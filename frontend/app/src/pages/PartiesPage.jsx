@@ -38,6 +38,11 @@ function PartiesPage() {
     setTimeout(() => setStatusMessage(''), 1800)
   }
 
+  const handleAddNew = () => {
+    window.history.pushState({}, '', '/parties/add-new')
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }
+
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
       <div className="mx-auto max-w-[1280px]">
@@ -74,7 +79,7 @@ function PartiesPage() {
             <button type="button" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
               ☆ Favourite
             </button>
-            <button type="button" className="rounded-md bg-[#1a1f24] px-3 py-2 text-xs font-semibold text-white">
+            <button type="button" onClick={handleAddNew} className="rounded-md bg-[#1a1f24] px-3 py-2 text-xs font-semibold text-white">
               ⊕ Add New
             </button>
             <button type="button" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700">

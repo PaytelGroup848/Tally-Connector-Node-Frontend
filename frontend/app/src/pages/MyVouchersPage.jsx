@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import DateRangePicker from '../components/DateRangePicker'
 
 const voucherData = [
   ['Cash Sales', 'CS-2026-001', 'Sales', '01/04/2026', '02/04/2026', '₹ 18,500', 'Completed', 'View'],
@@ -13,6 +14,8 @@ function MyVouchersPage() {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All')
   const [type, setType] = useState('All')
+  const [startDate, setStartDate] = useState('2026-04-01')
+  const [endDate, setEndDate] = useState('2027-03-31')
   const filters = ['All', 'Pending', 'Completed']
   const types = ['All', 'Sales', 'Purchase', 'Receipt', 'Payment', 'Journal']
 
@@ -32,12 +35,7 @@ function MyVouchersPage() {
         <span className="py-4">Manage Vouchers</span>
         <span className="py-4">Recent Activity</span>
         <div className="ml-auto flex items-center gap-3 pr-2">
-          <div className="date-filter flex min-h-8 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-medium whitespace-nowrap">
-            <span aria-hidden="true">‹</span>
-            <span aria-hidden="true">▣</span>
-            <span>01/04/2026 - 31/03/2027</span>
-            <span aria-hidden="true">›</span>
-          </div>
+          <DateRangePicker startDate={startDate} endDate={endDate} onChange={(nextStart, nextEnd) => { setStartDate(nextStart || startDate); setEndDate(nextEnd || endDate) }} compact />
         </div>
       </div>
 

@@ -1,4 +1,12 @@
+import { useState } from 'react'
+import DateRangePicker from '../components/DateRangePicker'
+
 function DeliveryNotePage() {
+  const [startDate, setStartDate] = useState('2026-04-01')
+  const [endDate, setEndDate] = useState('2027-03-31')
+  const [selectedFilter, setSelectedFilter] = useState('Month')
+  const filters = ['Month', 'Bill', 'Voucher Type', 'More⌄']
+
   return (
     <div className="report-page min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900">
       <div className="report-summary flex min-h-[64px] flex-wrap items-center gap-4 border-b border-slate-200 bg-white px-4 py-2.5 lg:flex-nowrap">
@@ -8,16 +16,19 @@ function DeliveryNotePage() {
           <strong className="block text-sm">₹ 0.00</strong>
         </div>
         <div className="report-filters flex flex-wrap items-center gap-1 rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
-          <button type="button" className="filter-active rounded-md border border-slate-900 bg-white px-3 py-2">Month</button>
-          <button type="button" className="rounded-md border border-transparent bg-transparent px-3 py-2 text-slate-700">Bill</button>
-          <button type="button" className="rounded-md border border-transparent bg-transparent px-3 py-2 text-slate-700">Voucher Type</button>
-          <button type="button" className="rounded-md border border-transparent bg-transparent px-3 py-2 text-slate-700">More⌄</button>
+          {filters.map((filter) => (
+            <button
+              key={filter}
+              type="button"
+              onClick={() => setSelectedFilter(filter)}
+              className={selectedFilter === filter ? 'filter-active rounded-md border border-slate-900 bg-white px-3 py-2 text-slate-800' : 'rounded-md border border-transparent bg-transparent px-3 py-2 text-slate-700'}
+            >
+              {filter}
+            </button>
+          ))}
         </div>
-        <div className="date-filter ml-auto flex min-h-8 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-medium whitespace-nowrap">
-          <span aria-hidden="true">‹</span>
-          <span aria-hidden="true">▣</span>
-          <span>01/04/2026 - 31/03/2027</span>
-          <span aria-hidden="true">›</span>
+        <div className="ml-auto">
+          <DateRangePicker startDate={startDate} endDate={endDate} onChange={(nextStart, nextEnd) => { setStartDate(nextStart || startDate); setEndDate(nextEnd || endDate) }} compact />
         </div>
       </div>
 

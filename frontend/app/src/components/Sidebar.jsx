@@ -26,22 +26,23 @@ function Sidebar({ collapsed, currentPath, showDashboard, expandedNav, setExpand
       </button>
       <nav className="overflow-y-auto px-3 py-4">
         {navItems.map(([icon, label, expandable, badge, path]) => {
-          const targetPath = label === 'Dashboard' ? '/dashboard' : `/${path}`
+          const isDataBackupItem = label === 'Data Backup'
+          const targetPath = isDataBackupItem ? undefined : (label === 'Dashboard' ? '/dashboard' : `/${path}`)
 
           return (
             <div className="group" key={label}>
               <a
-                className={`sidebar-link flex h-[40px] w-full items-center gap-3 rounded-lg px-3 text-left text-[12px] font-semibold no-underline transition-colors ${label === 'Data Backup' ? 'cursor-default text-neutral-400' : ((label === 'Dashboard' && showDashboard) || isCollectPaymentsRoute(label) || isCashBankRoute(label) || currentPath.startsWith(`/${path}`) || submenuItems[label]?.some(([, itemPath]) => isSubmenuActive(itemPath))) ? 'is-active bg-white text-neutral-900' : 'text-neutral-300 hover:bg-white/10 hover:text-white'}`}
-                href={expandable || label === 'Data Backup' ? undefined : targetPath}
+                className={`sidebar-link flex h-[40px] w-full items-center gap-3 rounded-lg px-3 text-left text-[12px] font-semibold no-underline transition-colors ${((label === 'Dashboard' && showDashboard) || isCollectPaymentsRoute(label) || isCashBankRoute(label) || currentPath.startsWith(`/${path}`) || submenuItems[label]?.some(([, itemPath]) => isSubmenuActive(itemPath))) ? 'is-active bg-white text-neutral-900' : 'text-neutral-300 hover:bg-white/10 hover:text-white'}`}
+                href={expandable || isDataBackupItem ? undefined : targetPath}
                 onClick={(event) => {
-                  if (label === 'Data Backup') {
-                    event.preventDefault()
-                    return
-                  }
-
                   if (expandable) {
                     event.preventDefault()
                     setExpandedNav((current) => ({ ...current, [label]: !isNavExpanded(label, path) }))
+                    return
+                  }
+
+                  if (isDataBackupItem) {
+                    event.preventDefault()
                     return
                   }
 

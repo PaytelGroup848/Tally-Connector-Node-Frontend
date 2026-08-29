@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import DateRangePicker from '../components/DateRangePicker'
 
 const reports = {
   '/sales': { title: 'Sales', total: 'Total Sales:', mode: 'gross', columns: ['Month', 'Amount'] },
@@ -64,12 +65,9 @@ const reports = {
   '/bank/voucher-list/bank-accounts': { title: 'Bank', total: 'Total Amount: ₹ 8,405.71', mode: 'accounts', columns: ['Name', 'Balance'], rows: [['Allahabad Bank OD A/c No. 50278830873', '₹ 37,676.27 Dr'], ['ICICI Bank-630005010396', '₹ 17,681.51 Dr'], ['Sbi Bank-5456', '₹ 46,952.07 Cr']] },
 }
 
-const dateRange = (
-  <div className="date-filter ml-auto flex min-h-8 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-medium whitespace-nowrap">
-    <span aria-hidden="true">‹</span>
-    <span aria-hidden="true">▣</span>
-    <span>01/04/2026 - 31/03/2027</span>
-    <span aria-hidden="true">›</span>
+const DateRangeDisplay = ({ startDate = '2026-04-01', endDate = '2027-03-31', onChange }) => (
+  <div className="ml-auto">
+    <DateRangePicker startDate={startDate} endDate={endDate} onChange={onChange} compact />
   </div>
 )
 
@@ -118,10 +116,12 @@ function ReportTable({ columns, rows = [], columnsClass = 'grid-cols-[1fr_140px]
 
 function ReceivablesReport({ config, query, setQuery }) {
   const [selectedFilter, setSelectedFilter] = useState('All')
+  const [selectedTab, setSelectedTab] = useState('Detailed Summary')
   const [rows, setRows] = useState(config.rows ?? [])
   const [sentMessage, setSentMessage] = useState('')
 
   const filterOptions = ['All', 'Due Today', 'Not Due', 'Past Due']
+  const headerTabs = ['Detailed Summary', 'Manage Reminders', 'SMS Credits', 'Customize Template']
 
   const filteredRows = rows.filter((row) => {
     const customerName = String(row[1] ?? '').toLowerCase()
@@ -161,11 +161,19 @@ function ReceivablesReport({ config, query, setQuery }) {
 
   return (
     <div className="report-page receivables-page min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900">
-      <div className="report-tabs flex flex-wrap items-center gap-8 border-b border-slate-200 bg-white px-4 text-xs text-slate-700">
-        <b className="border-b-2 border-slate-900 pb-3 pt-4">Detailed Summary</b>
-        <span className="py-4">Manage Reminders</span>
-        <span className="py-4">SMS Credits</span>
-        <span className="py-4">Customize Template</span>
+      <div className="report-tabs flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-4 py-2 text-xs text-slate-700">
+        {headerTabs.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setSelectedTab(tab)}
+            className={selectedTab === tab
+              ? 'rounded-lg bg-[#1f2d3d] px-4 py-2.5 font-medium text-white shadow-sm'
+              : 'rounded-lg bg-[#eef2f6] px-4 py-2.5 text-slate-700 hover:bg-slate-200'}
+          >
+            {tab}
+          </button>
+        ))}
         <div className="ml-auto flex items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-slate-600">
             On Account
@@ -223,6 +231,8 @@ function ReceivablesReport({ config, query, setQuery }) {
 }
 
 function AccountsReport({ config }) {
+  const [startDate, setStartDate] = useState('2026-04-01')
+  const [endDate, setEndDate] = useState('2027-03-31')
   const [label, amount] = config.total.split('₹')
 
   return (
@@ -233,7 +243,17 @@ function AccountsReport({ config }) {
           <b className="block font-medium">{label.trim()}</b>
           <strong className="block text-sm text-slate-900">₹{amount}</strong>
         </div>
-        {dateRange}
+        <div className="ml-auto">
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(nextStart, nextEnd) => {
+              setStartDate(nextStart || startDate)
+              setEndDate(nextEnd || endDate)
+            }}
+            compact
+          />
+        </div>
       </div>
 
       <section className="report-card mx-5 mt-2.5 min-h-[183px] overflow-hidden rounded-lg border border-white bg-white p-5 shadow-[0_8px_24px_rgba(24,33,43,0.05)]">
@@ -246,6 +266,9 @@ function AccountsReport({ config }) {
 
 function ReportListPage({ path }) {
   const [query, setQuery] = useState('')
+  const [selectedFilter, setSelectedFilter] = useState('Gross')
+  const [startDate, setStartDate] = useState('2026-04-01')
+  const [endDate, setEndDate] = useState('2027-03-31')
   const config = reports[path] || reports['/purchaseorder']
 
   if (config.mode === 'receivables') {
@@ -274,11 +297,12 @@ function ReportListPage({ path }) {
         </div>
 
         <div className="report-filters flex flex-wrap items-center gap-1 rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
-          {filterButtons.map((button, index) => (
+          {filterButtons.map((button) => (
             <button
               key={button}
               type="button"
-              className={index === 0 ? 'filter-active rounded-md border border-slate-900 bg-white px-3 py-2 text-slate-800' : 'rounded-md border border-transparent bg-transparent px-3 py-2 text-slate-700'}
+              onClick={() => setSelectedFilter(button)}
+              className={selectedFilter === button ? 'filter-active rounded-md border border-slate-900 bg-white px-3 py-2 text-slate-800' : 'rounded-md border border-transparent bg-transparent px-3 py-2 text-slate-700'}
             >
               {button}
             </button>
@@ -290,7 +314,14 @@ function ReportListPage({ path }) {
             All Payables⌄
           </div>
         ) : (
-          dateRange
+          <DateRangeDisplay
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(nextStart, nextEnd) => {
+              setStartDate(nextStart || startDate)
+              setEndDate(nextEnd || endDate)
+            }}
+          />
         )}
       </div>
 

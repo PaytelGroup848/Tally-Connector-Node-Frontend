@@ -8,5 +8,4 @@ export const pageContent = {
   '/reports': ['Reports', 'View business reports and performance summaries.', ['Report', 'Period', 'Generated On', 'Format', 'Action']],
   '/configurations': ['Configurations', 'Configure your company, vouchers, taxes, and preferences.', ['Company Profile', 'Voucher Settings', 'Tax Settings', 'Users', 'Preferences']],
   '/gst-search': ['GST Search', 'Search GST details and verify registered businesses.', ['GSTIN', 'Business Name', 'State', 'Status', 'Action']],
-  '/data-backup': ['Data Backup', 'Protect and download a copy of your business data.', ['Backup Name', 'Created On', 'Size', 'Status', 'Action']],
 }

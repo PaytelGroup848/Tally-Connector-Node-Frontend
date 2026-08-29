@@ -3,6 +3,7 @@ import AppHeader from './components/AppHeader'
 import Sidebar from './components/Sidebar'
 import DashboardPage from './pages/Dashboard'
 import EwayPage from './pages/EwayPage'
+import AddNewPage from './pages/AddNewPage'
 import ContraPage from './pages/ContraPage'
 import CreditNotePage from './pages/CreditNotePage'
 import ConfigurationsPage from './pages/ConfigurationsPage'
@@ -58,7 +59,10 @@ function App() {
   }, [])
 
   const navigateTo = (path) => {
-    if (!path || window.location.pathname === path) return
+    if (!path) return
+    const isEwayPath = path === '/eway' || path === '/e-way'
+    setShowEway(isEwayPath)
+    if (window.location.pathname === path) return
     window.history.pushState({}, '', path)
     window.dispatchEvent(new PopStateEvent('popstate'))
   }
@@ -83,7 +87,8 @@ function App() {
 
   const renderPage = () => {
     if (flags.showDashboard) return <DashboardPage activeTab={activeTab} setActiveTab={setActiveTab} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} dayBookDate={dayBookDate} setDayBookDate={setDayBookDate} openCustomDatePicker={openCustomDatePicker} customDateInput={customDateInput} />
-    if (showEway) return <EwayPage />
+    if (flags.showAddNewPage) return <AddNewPage path={currentPath} />
+    if (flags.showEwayPage || showEway) return <EwayPage />
     if (flags.showReportsPage) return <ReportsPage />
     if (flags.showItemsPage) return <ItemsPage />
     if (flags.showPartiesPage) return <PartiesPage />
@@ -112,7 +117,7 @@ function App() {
 
   return <div className="app-shell relative min-h-screen bg-slate-100 text-slate-900">
     <Sidebar collapsed={sidebarCollapsed} currentPath={currentPath} showDashboard={flags.showDashboard} expandedNav={expandedNav} setExpandedNav={setExpandedNav} onDashboard={openDashboard} onQuotation={openQuotation} onNavigate={(path) => navigateTo(path)} />
-    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} />{renderPage()}</main>
+    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} />{renderPage()}</main>
   </div>
 }
 
