@@ -11,6 +11,7 @@ import AllUsersPage from './pages/AllUsersPage'
 import ContraPage from './pages/ContraPage'
 import DownloadInvoicePage from './pages/DownloadInvoicePage'
 import CreditNotePage from './pages/CreditNotePage'
+import InactiveCustomersPage from './pages/InactiveCustomersPage'
 import ConfigurationsPage from './pages/ConfigurationsPage'
 import DebitNotePage from './pages/DebitNotePage'
 import DeliveryNotePage from './pages/DeliveryNotePage'
@@ -197,6 +198,7 @@ function App() {
     if (flags.showConfigurationsPage) return <ConfigurationsPage />
     if (flags.showAllUsersPage) return <AllUsersPage />
     if (flags.showAddUserPage) return <AddUserPage />
+    if (flags.showInactiveCustomersPage) return <InactiveCustomersPage />
     if (flags.showDownloadInvoicePage) return <DownloadInvoicePage />
     if (flags.showReport) return <ReportListPage path={entryPath} />
     if (flags.showPayment) return <PaymentPage />
