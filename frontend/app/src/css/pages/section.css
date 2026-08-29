@@ -1,0 +1,4 @@
+@reference "../tailwind.css";
+
+.section-page { --page-background: #fff; }
+@layer components { .section-page { @apply min-h-screen bg-white text-slate-800; } .section-page .workspace-card { @apply overflow-hidden rounded-md border border-slate-200 bg-white; } }

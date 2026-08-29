@@ -1,0 +1,4 @@
+@reference "../tailwind.css";
+
+.eway-page { --page-background: #fff; }
+@layer components { .eway-page { @apply min-h-screen bg-white text-slate-800; } }
