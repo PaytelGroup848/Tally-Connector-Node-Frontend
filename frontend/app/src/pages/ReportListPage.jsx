@@ -59,10 +59,10 @@ const reports = {
   '/receiptnote': { title: 'Receipt Note', total: 'Total Gross Amount:', mode: 'payment', columns: ['Month', 'Amount'] },
   '/deliverynote': { title: 'Delivery Note', total: 'Total Gross Amount:', mode: 'payment', columns: ['Month', 'Amount'] },
   '/salesorder': { title: 'Sales Order', total: 'Total Sales Order:', mode: 'gross', columns: ['Month', 'Amount'] },
-  '/cash/voucher-list/cash-in-hand': { title: 'Cash', total: 'Total Amount: ₹ 3,09,591.00', mode: 'accounts', columns: ['Name', 'Balance'], rows: [['Cash', '₹ 3,09,591.00 Dr']] },
-  '/cash-bank/cash': { title: 'Cash', total: 'Total Amount: ₹ 3,09,591.00', mode: 'accounts', columns: ['Name', 'Balance'], rows: [['Cash', '₹ 3,09,591.00 Dr']] },
-  '/cash-bank/bank': { title: 'Bank', total: 'Total Amount: ₹ 8,405.71', mode: 'accounts', columns: ['Name', 'Balance'], rows: [['Allahabad Bank OD A/c No. 50278830873', '₹ 37,676.27 Dr'], ['ICICI Bank-630005010396', '₹ 17,681.51 Dr'], ['Sbi Bank-5456', '₹ 46,952.07 Cr']] },
-  '/bank/voucher-list/bank-accounts': { title: 'Bank', total: 'Total Amount: ₹ 8,405.71', mode: 'accounts', columns: ['Name', 'Balance'], rows: [['Allahabad Bank OD A/c No. 50278830873', '₹ 37,676.27 Dr'], ['ICICI Bank-630005010396', '₹ 17,681.51 Dr'], ['Sbi Bank-5456', '₹ 46,952.07 Cr']] },
+  '/cash/voucher-list/cash-in-hand': { title: 'Cash', total: 'Total Amount: ₹ 3,37,124.68', mode: 'accounts', columns: ['Name', 'Amount'], rows: [['Cash', '₹ 3,37,124.68']] },
+  '/cash-bank/cash': { title: 'Cash', total: 'Total Amount: ₹ 3,37,124.68', mode: 'accounts', columns: ['Name', 'Amount'], rows: [['Cash', '₹ 3,37,124.68']] },
+  '/cash-bank/bank': { title: 'Bank', total: 'Total Amount: ₹ 35,42,442.52', mode: 'accounts', columns: ['Name', 'Amount'], rows: [['HDFC BANK - 9593', '₹ 78825.01'], ['HDFC BANK - 5320', '₹ 222683'], ['HDFC BANK - 7713', '₹ 3843950.53']] },
+  '/bank/voucher-list/bank-accounts': { title: 'Bank', total: 'Total Amount: ₹ 35,42,442.52', mode: 'accounts', columns: ['Name', 'Amount'], rows: [['HDFC BANK - 9593', '₹ 78825.01'], ['HDFC BANK - 5320', '₹ 222683'], ['HDFC BANK - 7713', '₹ 3843950.53']] },
 }
 
 const DateRangeDisplay = ({ startDate = '2026-04-01', endDate = '2027-03-31', onChange }) => (
@@ -233,16 +233,24 @@ function ReceivablesReport({ config, query, setQuery }) {
 function AccountsReport({ config }) {
   const [startDate, setStartDate] = useState('2026-04-01')
   const [endDate, setEndDate] = useState('2027-03-31')
+  const [query, setQuery] = useState('')
   const [label, amount] = config.total.split('₹')
+
+  const filteredRows = (config.rows ?? []).filter((row) => {
+    const name = String(row[0] ?? '').toLowerCase()
+    return name.includes(query.toLowerCase())
+  })
 
   return (
     <div className="report-page accounts-page min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900">
-      <div className="report-summary flex min-h-[59px] items-center gap-4 border-b border-slate-200 bg-white px-4">
-        <span className="back-arrow text-3xl font-light leading-none text-slate-900" aria-hidden="true">←</span>
+      <div className="report-summary flex min-h-[64px] items-center gap-4 border-b border-slate-200 bg-white px-4">
+        <button type="button" className="text-3xl font-light leading-none text-slate-800" aria-label="Back">←</button>
+
         <div className="text-[11px] leading-4 text-slate-700">
           <b className="block font-medium">{label.trim()}</b>
-          <strong className="block text-sm text-slate-900">₹{amount}</strong>
+          <strong className="block text-[18px] font-bold text-slate-900">₹{amount}</strong>
         </div>
+
         <div className="ml-auto">
           <DateRangePicker
             startDate={startDate}
@@ -256,9 +264,48 @@ function AccountsReport({ config }) {
         </div>
       </div>
 
-      <section className="report-card mx-5 mt-2.5 min-h-[183px] overflow-hidden rounded-lg border border-white bg-white p-5 shadow-[0_8px_24px_rgba(24,33,43,0.05)]">
-        <div className="accounts-toolbar pb-5 text-xs text-slate-700">Rows per page:　10　⌄</div>
-        <ReportTable columns={config.columns} rows={config.rows ?? []} />
+      <section className="report-card mx-5 mt-2.5 overflow-hidden rounded-lg border border-white bg-white shadow-[0_8px_24px_rgba(24,33,43,0.05)]">
+        <div className="report-toolbar flex flex-wrap items-center gap-4 px-5 py-3">
+          <label className="report-search flex h-9 w-[200px] items-center gap-2 rounded-md border border-slate-300 px-3 text-slate-400">
+            <span>⌕</span>
+            <input className="w-full bg-transparent text-xs outline-none" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search" />
+          </label>
+          <span className="ml-auto text-xs text-slate-700">Rows per page:　10　⌄</span>
+        </div>
+
+        <div className="report-table overflow-x-auto px-5">
+          <div className="report-header grid min-w-[520px] grid-cols-[1fr_140px] bg-[#edf2f6] px-4 py-2.5 text-xs font-medium text-slate-700">
+            {config.columns.map((column) => (
+              <b key={column}>
+                {column}
+                {column === 'Name' && ' ↑'}
+              </b>
+            ))}
+          </div>
+
+          {filteredRows.length > 0 ? (
+            filteredRows.map((row, index) => (
+              <div key={`${row[0] ?? 'row'}-${index}`} className="report-row grid min-w-[520px] grid-cols-[1fr_140px] border-b border-slate-100 px-4 py-3 text-xs text-slate-700">
+                {row.map((value, valueIndex) => (
+                  <span key={`${value}-${valueIndex}`} className={valueIndex === row.length - 1 ? 'text-right' : ''}>
+                    {value}
+                  </span>
+                ))}
+              </div>
+            ))
+          ) : (
+            <div className="report-empty flex min-h-[120px] min-w-[520px] items-center justify-center border-t border-slate-100 px-4 py-3 text-center text-xs text-slate-500">
+              No data available
+            </div>
+          )}
+        </div>
+
+        <footer className="report-footer flex justify-between px-5 py-4 text-xs text-slate-700">
+          <span>{filteredRows.length ? `1-${filteredRows.length} of ${filteredRows.length}` : '1-0 of 0'}</span>
+          <span>
+            ‹　<b>1</b>　›
+          </span>
+        </footer>
       </section>
     </div>
   )

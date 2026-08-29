@@ -51,6 +51,19 @@ function getPageMeta(path = '') {
     }
   }
 
+  if (normalizedPath.includes('/my-parties/add-new')) {
+    return {
+      title: 'Add New Party',
+      subtitle: 'Create a party profile',
+      fields: [
+        { label: 'Party Name', placeholder: 'Enter party name' },
+        { label: 'Mobile', placeholder: 'Enter mobile number' },
+        { label: 'Email', placeholder: 'Enter email address' },
+        { label: 'Opening Balance', placeholder: 'Enter opening balance' },
+      ],
+    }
+  }
+
   return {
     title: 'Add New Record',
     subtitle: 'Create a new record',
