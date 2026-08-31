@@ -1,1160 +1,394 @@
 import { useState } from 'react'
 
-function SearchIcon() {
+// ============================================================
+// FIELD DATA
+// ============================================================
+
+const supplierFields = [
+  ['Supplier’s Name', 'Supplier’s Name'],
+  ['Supplier’s Country', 'Supplier’s Country'],
+  ['Supplier’s State', 'Supplier’s State'],
+  ['Registration Type', 'Registration Type'],
+  ['Postal Code', 'Postal Code'],
+  ['GSTIN/UIN', 'GSTIN/UIN'],
+  ['Place of Supply', 'Place of Supply'],
+]
+
+const consigneeFields = [
+  ['Consignee Name', 'Consignee Name'],
+  ['GSTIN/UIN', 'GSTIN/UIN'],
+  ['Consignee Country', 'Country'],
+  ['Consignee State', 'State'],
+  ['Postal Code', 'Postal Code'],
+]
+
+const dispatchFields = [
+  ['Dispatch From', 'Dispatch From'],
+  ['Dispatch Through', 'Dispatch Through'],
+  ['Vehicle Number', 'Vehicle Number'],
+  ['Transporter Name', 'Transporter Name'],
+  ['Transporter ID', 'Transporter ID'],
+  ['Dispatch Date', 'Dispatch Date'],
+]
+
+const orderFields = [
+  ['Order No', 'Order No'],
+  ['Order Date', 'Order Date'],
+  ['Reference No', 'Reference No'],
+  ['Buyer Order No', 'Buyer Order No'],
+  ['Terms of Delivery', 'Terms of Delivery'],
+  ['Other Reference', 'Other Reference'],
+]
+
+const tabs = {
+  'Supplier’s Details': supplierFields,
+  'Consignee Details': consigneeFields,
+  'Dispatch Details': dispatchFields,
+  'Order Details': orderFields,
+}
+
+// ============================================================
+// REUSABLE INPUT
+// ============================================================
+
+function InputField({ label, placeholder, search = false }) {
   return (
-    <span
-      aria-hidden="true"
-      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[14px] text-slate-400"
-    >
-      ⌕
-    </span>
+    <label className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-slate-700">
+        {label}
+      </span>
+
+      <div className="relative">
+        <input
+          placeholder={placeholder}
+          className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+        />
+
+        {search && (
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+            ⌕
+          </span>
+        )}
+      </div>
+    </label>
   )
 }
 
-function CalendarIcon() {
-  return (
-    <span
-      aria-hidden="true"
-      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-slate-600"
-    >
-      ▣
-    </span>
-  )
-}
+// ============================================================
+// ITEMS TABLE
+// ============================================================
 
-function TrashIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M3 6h18" />
-      <path d="M8 6V4h8v2" />
-      <path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v5" />
-      <path d="M14 11v5" />
-    </svg>
-  )
-}
-
-function SalesOrderPage() {
-  const [rows, setRows] = useState([
-    {
-      id: 1,
-      item: '',
-      qty: '0',
-      rate: '0',
-      units: '',
-      discount: '0',
-      hsn: '',
-      godown: '',
-      description: '',
-      amount: '0',
-      taxInclusive: false,
-    },
-  ])
-
-  const [openSection, setOpenSection] = useState(null)
-
-  const [activeAdvancedTab, setActiveAdvancedTab] =
-    useState("Buyer's Details")
-
-  const [voucherType, setVoucherType] =
-    useState('Purchase')
-
-  const [partyName, setPartyName] =
-    useState('')
-
-  const [ledgerType, setLedgerType] =
-    useState('')
-
-  const [voucherNo, setVoucherNo] =
-    useState('1')
-
-  const [voucherDate, setVoucherDate] =
-    useState('2026-08-31')
-
-  /* =========================================================
-     REFERENCE POPUP
-  ========================================================= */
-
-  const [showReferencePopup, setShowReferencePopup] =
-    useState(false)
-
-  const [referenceNumber, setReferenceNumber] =
-    useState('')
-
-  const [referenceDate, setReferenceDate] =
-    useState('')
-
-  const [tempReferenceNumber, setTempReferenceNumber] =
-    useState('')
-
-  const [tempReferenceDate, setTempReferenceDate] =
-    useState('')
-
-  /* =========================================================
-     ADD ROW
-  ========================================================= */
+function ItemsTable() {
+  const [rows, setRows] = useState([1])
 
   const addRow = () => {
-    setRows((currentRows) => [
-      ...currentRows,
-      {
-        id: Date.now(),
-        item: '',
-        qty: '0',
-        rate: '0',
-        units: '',
-        discount: '0',
-        hsn: '',
-        godown: '',
-        description: '',
-        amount: '0',
-        taxInclusive: false,
-      },
-    ])
+    setRows([...rows, rows.length + 1])
   }
 
-  /* =========================================================
-     DELETE ROW
-  ========================================================= */
-
-  const removeRow = (id) => {
-    setRows((currentRows) => {
-      if (currentRows.length === 1) {
-        return currentRows
-      }
-
-      return currentRows.filter(
-        (row) => row.id !== id,
-      )
-    })
-  }
-
-  /* =========================================================
-     UPDATE ROW
-  ========================================================= */
-
-  const updateRow = (id, field, value) => {
-    setRows((currentRows) =>
-      currentRows.map((row) =>
-        row.id === id
-          ? {
-              ...row,
-              [field]: value,
-            }
-          : row,
-      ),
-    )
-  }
-
-  /* =========================================================
-     OPEN REFERENCE POPUP
-  ========================================================= */
-
-  const openReferencePopup = () => {
-    setTempReferenceNumber(referenceNumber)
-    setTempReferenceDate(referenceDate)
-    setShowReferencePopup(true)
-  }
-
-  /* =========================================================
-     SAVE REFERENCE
-  ========================================================= */
-
-  const saveReference = () => {
-    setReferenceNumber(tempReferenceNumber)
-    setReferenceDate(tempReferenceDate)
-    setShowReferencePopup(false)
-  }
-
-  /* =========================================================
-     CANCEL REFERENCE
-  ========================================================= */
-
-  const cancelReference = () => {
-    setTempReferenceNumber(referenceNumber)
-    setTempReferenceDate(referenceDate)
-    setShowReferencePopup(false)
-  }
-
-  /* =========================================================
-     CREATE PURCHASE VOUCHER
-  ========================================================= */
-
-  const handleCreateVoucher = () => {
-    alert('Purchase Voucher created')
+  const removeRow = (index) => {
+    setRows(rows.filter((_, i) => i !== index))
   }
 
   return (
-    <div className="min-h-[calc(100vh-60px)] overflow-x-auto bg-[#eaf0f5] text-slate-900">
+    <div className="mt-5 overflow-x-auto rounded-lg border border-slate-200 bg-white">
 
-      <div className="min-w-[1080px]">
+      <div className="min-w-[1100px]">
 
-        {/* ===================================================
-            HEADER
-        =================================================== */}
-        <div className="flex h-[40px] items-center bg-[#48bd3c] px-4">
-          <h1 className="text-[17px] font-bold text-white">
-            Create Purchase Voucher
-          </h1>
+        {/* HEADER */}
+        <div className="grid grid-cols-[220px_70px_90px_80px_80px_110px_120px_200px_100px_70px_45px] gap-2 bg-slate-100 p-2 text-xs font-semibold text-slate-600">
+
+          <div>Items</div>
+          <div>Qty</div>
+          <div>Rate</div>
+          <div>Units</div>
+          <div>Disc %</div>
+          <div>HSN Code</div>
+          <div>Godown</div>
+          <div>Description</div>
+          <div>Amount</div>
+          <div>Tax</div>
+
+          <button
+            onClick={addRow}
+            className="rounded bg-green-100 text-green-700"
+          >
+            +
+          </button>
+
         </div>
 
-        {/* ===================================================
-            BODY
-        =================================================== */}
-        <div className="relative p-4">
+        {/* ROWS */}
+        {rows.map((_, index) => (
+          <div
+            key={index}
+            className="grid grid-cols-[220px_70px_90px_80px_80px_110px_120px_200px_100px_70px_45px] gap-2 border-t p-2"
+          >
 
-          {/* =================================================
-              TOP FORM
-          ================================================= */}
-          <div className="grid grid-cols-3 gap-2">
+            <input
+              placeholder="Search Item"
+              className="input"
+            />
 
-            {/* VOUCHER TYPE */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Voucher Type
-              </label>
+            <input
+              value="0"
+              readOnly
+              className="input"
+            />
 
-              <div className="relative">
-                <select
-                  value={voucherType}
-                  onChange={(event) =>
-                    setVoucherType(event.target.value)
-                  }
-                  className="h-[38px] w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-[12px] text-slate-700 outline-none focus:border-green-500"
-                >
-                  <option value="Purchase">
-                    Purchase
-                  </option>
+            <input
+              value="0"
+              readOnly
+              className="input"
+            />
 
-                  <option value="Purchase Order">
-                    Purchase Order
-                  </option>
+            <select className="input">
+              <option>-</option>
+              <option>PCS</option>
+              <option>KG</option>
+              <option>BOX</option>
+            </select>
 
-                  <option value="Debit Note">
-                    Debit Note
-                  </option>
-                </select>
+            <input
+              value="0"
+              readOnly
+              className="input"
+            />
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setVoucherType('')
-                  }
-                  className="absolute right-2 top-1/2 flex h-[20px] w-[20px] -translate-y-1/2 items-center justify-center rounded-full bg-slate-100 text-[12px] text-slate-500 hover:bg-slate-200"
-                  aria-label="Clear voucher type"
-                >
-                  ×
-                </button>
-              </div>
+            <input
+              placeholder="Search HSN"
+              className="input"
+            />
+
+            <input
+              placeholder="Search Godown"
+              className="input"
+            />
+
+            <input
+              placeholder="Enter Notes"
+              className="input"
+            />
+
+            <input
+              value="0"
+              readOnly
+              className="input"
+            />
+
+            <div className="flex items-center justify-center">
+              <input type="checkbox" />
             </div>
 
-            {/* PARTY NAME */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Party Name
-              </label>
+            <button
+              onClick={() => removeRow(index)}
+              className="rounded bg-slate-100 text-lg text-slate-500"
+            >
+              ×
+            </button>
 
-              <div className="relative">
-                <input
-                  list="party-list"
-                  value={partyName}
-                  onChange={(event) =>
-                    setPartyName(event.target.value)
-                  }
-                  placeholder="Select Party"
-                  className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-[12px] text-slate-700 outline-none placeholder:text-slate-500 focus:border-green-500"
-                />
+          </div>
+        ))}
 
-                <datalist id="party-list">
-                  <option value="Amit Traders" />
-                  <option value="Bharat Metals" />
-                  <option value="Classic Garments" />
-                  <option value="Delhi Packaging" />
-                  <option value="Fortune Foods" />
-                </datalist>
+      </div>
+    </div>
+  )
+}
 
-                <SearchIcon />
-              </div>
-            </div>
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
 
-            {/* LEDGER TYPE */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Ledger Type
-              </label>
+function PurchasePage() {
 
-              <select
-                value={ledgerType}
-                onChange={(event) =>
-                  setLedgerType(event.target.value)
-                }
-                className="h-[38px] w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-[12px] text-slate-700 outline-none focus:border-green-500"
-              >
-                <option value="">
-                  Select Ledger
-                </option>
+  const [advancedOpen, setAdvancedOpen] = useState(true)
 
-                <option value="Purchase Account">
-                  Purchase Account
-                </option>
+  const [activeTab, setActiveTab] =
+    useState('Supplier’s Details')
 
-                <option value="Purchase Ledger">
-                  Purchase Ledger
-                </option>
+  const fields = tabs[activeTab]
 
-                <option value="Expense Ledger">
-                  Expense Ledger
-                </option>
-              </select>
+  return (
+    <div className="min-h-screen bg-[#eef3f8] p-5">
 
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">
-                ⌄
-              </span>
-            </div>
+      <div className="mx-auto max-w-[1280px] rounded-lg bg-white shadow">
 
-            {/* VOUCHER NO */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Voucher No
-              </label>
+        {/* ================================================= */}
+        {/* HEADER */}
+        {/* ================================================= */}
 
-              <div className="relative">
-                <input
-                  value={voucherNo}
-                  onChange={(event) =>
-                    setVoucherNo(event.target.value)
-                  }
-                  className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-[12px] text-slate-700 outline-none"
-                />
+        <div className="rounded-t-lg bg-[#63c45d] px-5 py-4 text-lg font-bold text-white">
+          Create Purchase Voucher
+        </div>
 
-                <button
-                  type="button"
-                  title="Edit reference details"
-                  onClick={openReferencePopup}
-                  className="absolute right-0 top-0 flex h-[38px] w-[38px] items-center justify-center border-l border-slate-200 bg-slate-50 text-[15px] text-slate-700 transition hover:bg-slate-100"
-                >
-                  ✎
-                </button>
-              </div>
-            </div>
+        {/* ================================================= */}
+        {/* CONTENT */}
+        {/* ================================================= */}
 
-            {/* DATE */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Date
-              </label>
+        <div className="bg-[#f5f7f4] p-5">
 
-              <div className="relative">
-                <CalendarIcon />
+          {/* TOP FIELDS */}
 
-                <input
-                  type="date"
-                  value={voucherDate}
-                  onChange={(event) =>
-                    setVoucherDate(
-                      event.target.value,
-                    )
-                  }
-                  className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 pl-9 text-[12px] text-slate-700 outline-none focus:border-green-500"
-                />
-              </div>
-            </div>
+          <div className="grid gap-3 md:grid-cols-3">
 
-            {/* EMPTY COLUMN */}
-            <div />
+            <InputField
+              label="Voucher Type"
+              placeholder="Select Voucher Type"
+              search
+            />
+
+            <InputField
+              label="Party Name"
+              placeholder="Select Party"
+              search
+            />
+
+            <InputField
+              label="Ledger Type"
+              placeholder="Select Ledger"
+              search
+            />
+
+            <InputField
+              label="Voucher No"
+              placeholder="-"
+            />
+
+            <InputField
+              label="Date"
+              placeholder="Date"
+            />
 
           </div>
 
-          {/* =================================================
-              REFERENCE POPUP
-          ================================================= */}
-          {showReferencePopup && (
-            <div className="absolute left-0 top-[70px] z-50 w-[480px] rounded-md border border-slate-300 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
+          {/* ================================================= */}
+          {/* ITEMS */}
+          {/* ================================================= */}
 
-              {/* POINTER */}
-              <div className="absolute -top-[9px] left-[28px] h-0 w-0 border-l-[9px] border-r-[9px] border-b-[9px] border-l-transparent border-r-transparent border-b-slate-300" />
+          <ItemsTable />
 
-              <div className="absolute -top-[8px] left-[29px] h-0 w-0 border-l-[8px] border-r-[8px] border-b-[8px] border-l-transparent border-r-transparent border-b-white" />
+          {/* ================================================= */}
+          {/* LOWER SECTION */}
+          {/* ================================================= */}
 
-              <div className="p-3">
+          <div className="mt-5 grid gap-4 xl:grid-cols-[1fr_330px]">
 
-                {/* REFERENCE FIELDS */}
-                <div className="grid grid-cols-2 gap-3">
+            {/* LEFT */}
 
-                  {/* REFERENCE NUMBER */}
-                  <div className="relative">
-                    <label className="absolute left-3 top-[-7px] z-10 bg-white px-1 text-[11px] font-medium text-slate-700">
-                      Reference Number
-                    </label>
+            <div className="rounded-lg border bg-white">
 
-                    <input
-                      type="text"
-                      value={tempReferenceNumber}
-                      onChange={(event) =>
-                        setTempReferenceNumber(
-                          event.target.value,
-                        )
-                      }
-                      placeholder="Reference Number"
-                      className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 text-[12px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-slate-500"
-                    />
-                  </div>
+              {/* Narration */}
 
-                  {/* REFERENCE DATE */}
-                  <div className="relative">
-                    <label className="absolute left-3 top-[-7px] z-10 bg-white px-1 text-[11px] font-medium text-slate-700">
-                      Reference Date
-                    </label>
-
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={tempReferenceDate}
-                        onChange={(event) =>
-                          setTempReferenceDate(
-                            event.target.value,
-                          )
-                        }
-                        className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 text-[12px] text-slate-700 outline-none focus:border-slate-500"
-                      />
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* DIVIDER */}
-                <div className="my-4 border-t border-slate-200" />
-
-                {/* ACTION BUTTONS */}
-                <div className="flex justify-end gap-2">
-
-                  <button
-                    type="button"
-                    onClick={cancelReference}
-                    className="rounded-md border border-slate-800 bg-white px-5 py-1.5 text-[13px] font-medium text-slate-900 hover:bg-slate-50"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={saveReference}
-                    className="rounded-md bg-black px-5 py-1.5 text-[13px] font-semibold text-white hover:bg-slate-800"
-                  >
-                    Save
-                  </button>
-
-                </div>
-
-              </div>
-            </div>
-          )}
-
-          {/* =================================================
-              ITEMS TABLE
-          ================================================= */}
-          <div className="mt-4 overflow-hidden border border-slate-300 bg-white">
-
-            {/* TABLE HEADER */}
-            <div className="grid min-w-[1080px] grid-cols-[1.4fr_0.55fr_0.55fr_0.7fr_0.55fr_0.95fr_0.95fr_1.1fr_0.7fr_0.55fr_0.32fr]">
-
-              {[
-                'Items',
-                'Qty',
-                'Rate',
-                'Units',
-                'Disc %',
-                'HSN Code',
-                'Godown',
-                'Description',
-                'Amount',
-                'Tax Incl.',
-                '',
-              ].map((heading, index) => (
-                <div
-                  key={`${heading}-${index}`}
-                  className="flex h-[34px] items-center border-r border-slate-300 bg-[#dfe3e6] px-2 text-[11px] font-semibold text-slate-900 last:border-r-0"
-                >
-                  {heading}
-
-                  {index === 10 && (
-                    <button
-                      type="button"
-                      onClick={addRow}
-                      title="Add item"
-                      className="ml-auto flex h-[20px] w-[20px] items-center justify-center rounded bg-[#4b4f52] text-[16px] font-bold leading-none text-white transition hover:bg-black"
-                    >
-                      +
-                    </button>
-                  )}
-                </div>
-              ))}
-
-            </div>
-
-            {/* TABLE ROWS */}
-            {rows.map((row) => (
-              <div
-                key={row.id}
-                className="grid min-w-[1080px] grid-cols-[1.4fr_0.55fr_0.55fr_0.7fr_0.55fr_0.95fr_0.95fr_1.1fr_0.7fr_0.55fr_0.32fr]"
-              >
-
-                {/* ITEM */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <div className="relative">
-
-                    <input
-                      list={`item-list-${row.id}`}
-                      value={row.item}
-                      onChange={(event) =>
-                        updateRow(
-                          row.id,
-                          'item',
-                          event.target.value,
-                        )
-                      }
-                      placeholder="Search Item"
-                      className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 pr-8 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-500"
-                    />
-
-                    <datalist id={`item-list-${row.id}`}>
-                      <option value="PVC 1 inch Pipe" />
-                      <option value="PVC 3/4 inch Pipe" />
-                      <option value="Water Tap" />
-                      <option value="Paint Primer" />
-                    </datalist>
-
-                    <SearchIcon />
-
-                  </div>
-                </div>
-
-                {/* QTY */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <input
-                    type="number"
-                    value={row.qty}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'qty',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
-                  />
-                </div>
-
-                {/* RATE */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <input
-                    type="number"
-                    value={row.rate}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'rate',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
-                  />
-                </div>
-
-                {/* UNITS */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <select
-                    value={row.units}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'units',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
-                  >
-                    <option value="">
-                      -
-                    </option>
-
-                    <option value="PCS">
-                      PCS
-                    </option>
-
-                    <option value="KG">
-                      KG
-                    </option>
-
-                    <option value="LTR">
-                      LTR
-                    </option>
-
-                    <option value="BOX">
-                      BOX
-                    </option>
-
-                    <option value="MTR">
-                      MTR
-                    </option>
-
-                  </select>
-                </div>
-
-                {/* DISCOUNT */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <input
-                    type="number"
-                    value={row.discount}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'discount',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
-                  />
-                </div>
-
-                {/* HSN */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <div className="relative">
-
-                    <input
-                      list={`hsn-list-${row.id}`}
-                      value={row.hsn}
-                      onChange={(event) =>
-                        updateRow(
-                          row.id,
-                          'hsn',
-                          event.target.value,
-                        )
-                      }
-                      placeholder="Search HSN"
-                      className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 pr-7 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-500"
-                    />
-
-                    <datalist id={`hsn-list-${row.id}`}>
-                      <option value="3917" />
-                      <option value="3926" />
-                      <option value="7307" />
-                    </datalist>
-
-                    <SearchIcon />
-
-                  </div>
-                </div>
-
-                {/* GODOWN */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <div className="relative">
-
-                    <input
-                      list={`godown-list-${row.id}`}
-                      value={row.godown}
-                      onChange={(event) =>
-                        updateRow(
-                          row.id,
-                          'godown',
-                          event.target.value,
-                        )
-                      }
-                      placeholder="Search Godown"
-                      className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 pr-7 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-500"
-                    />
-
-                    <datalist id={`godown-list-${row.id}`}>
-                      <option value="Main Godown" />
-                      <option value="Delhi Godown" />
-                      <option value="Warehouse 1" />
-                    </datalist>
-
-                    <SearchIcon />
-
-                  </div>
-                </div>
-
-                {/* DESCRIPTION */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <input
-                    value={row.description}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'description',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Enter Notes"
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-500"
-                  />
-                </div>
-
-                {/* AMOUNT */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <input
-                    value={row.amount}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'amount',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
-                  />
-                </div>
-
-                {/* TAX INCLUSIVE */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <label className="flex h-[31px] items-center justify-center">
-                    <input
-                      type="checkbox"
-                      checked={row.taxInclusive}
-                      onChange={(event) =>
-                        updateRow(
-                          row.id,
-                          'taxInclusive',
-                          event.target.checked,
-                        )
-                      }
-                      className="h-3.5 w-3.5 rounded border-slate-300 text-green-600 focus:ring-green-500"
-                    />
-                  </label>
-                </div>
-
-                {/* DELETE */}
-                <div className="border-t border-slate-300 p-1">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeRow(row.id)
-                    }
-                    title="Delete item"
-                    className="flex h-[31px] w-full items-center justify-center rounded-sm text-red-500 transition hover:bg-red-50 hover:text-red-600"
-                  >
-                    <TrashIcon />
-                  </button>
-                </div>
-
-              </div>
-            ))}
-
-          </div>
-
-          {/* =================================================
-              LOWER CONTENT
-          ================================================= */}
-          <div className="mt-3 grid grid-cols-[1.4fr_1fr] gap-2">
-
-            {/* LEFT SIDE */}
-            <div>
-
-              {/* NARRATION */}
-              <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setOpenSection(
-                      openSection === 'Narration'
-                        ? null
-                        : 'Narration',
-                    )
-                  }
-                  className="flex h-[42px] w-full items-center justify-between px-4 text-left text-[13px] font-semibold text-slate-800"
-                >
-                  <span>
-                    Narration
-                  </span>
-
-                  <span className="text-[20px]">
-                    {openSection === 'Narration'
-                      ? '⌄'
-                      : '›'}
-                  </span>
-                </button>
-
-                {openSection === 'Narration' && (
-                  <div className="border-t border-slate-200 p-3">
-
-                    <textarea
-                      rows={3}
-                      placeholder="Enter narration"
-                      className="w-full resize-none rounded-md border border-slate-300 px-3 py-2 text-[11px] outline-none focus:border-green-500"
-                    />
-
-                  </div>
-                )}
-
+              <div className="flex justify-between border-b px-4 py-3 text-sm">
+                <span>Narration</span>
+                <span>›</span>
               </div>
 
-              {/* ADVANCED SETTINGS */}
-              <div className="mt-2 overflow-hidden rounded-md border border-slate-200 bg-white">
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setOpenSection(
-                      openSection === 'Advanced Settings'
-                        ? null
-                        : 'Advanced Settings',
-                    )
-                  }
-                  className="flex h-[42px] w-full items-center justify-between px-4 text-left text-[13px] font-semibold text-slate-800"
-                >
-                  <span>
-                    Advanced Settings
-                  </span>
-
-                  <span className="text-[20px]">
-                    {openSection === 'Advanced Settings'
-                      ? '⌄'
-                      : '›'}
-                  </span>
-                </button>
-
-                {openSection === 'Advanced Settings' && (
-                  <div className="border-t border-slate-200">
-
-                    {/* TABS */}
-                    <div className="flex items-center overflow-x-auto border-b border-slate-200 px-3">
-
-                      {[
-                        "Buyer's Details",
-                        'Consignee Details',
-                        'Dispatch Details',
-                        'Order Details',
-                        'e-Way Bills',
-                      ].map((tab) => (
-                        <button
-                          key={tab}
-                          type="button"
-                          onClick={() =>
-                            setActiveAdvancedTab(tab)
-                          }
-                          className={`relative whitespace-nowrap px-4 py-3 text-[11px] ${
-                            activeAdvancedTab === tab
-                              ? 'font-medium text-[#008cff]'
-                              : 'text-slate-600'
-                          }`}
-                        >
-                          {tab}
-
-                          {activeAdvancedTab === tab && (
-                            <span className="absolute bottom-0 left-0 h-[2px] w-full bg-[#008cff]" />
-                          )}
-                        </button>
-                      ))}
-
-                    </div>
-
-                    {/* BUYER DETAILS */}
-                    {activeAdvancedTab === "Buyer's Details" && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
-
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Buyer's Name
-                          </label>
-
-                          <div className="relative">
-
-                            <input
-                              placeholder="Buyer's Name"
-                              className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 pr-8 text-[11px] outline-none focus:border-green-500"
-                            />
-
-                            <SearchIcon />
-
-                          </div>
-                        </div>
-
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Buyer's Country
-                          </label>
-
-                          <div className="relative">
-
-                            <input
-                              placeholder="Buyer's Country"
-                              className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 pr-8 text-[11px] outline-none focus:border-green-500"
-                            />
-
-                            <SearchIcon />
-
-                          </div>
-                        </div>
-
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Buyer's State
-                          </label>
-
-                          <div className="relative">
-
-                            <input
-                              placeholder="Buyer's State"
-                              className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 pr-8 text-[11px] outline-none focus:border-green-500"
-                            />
-
-                            <SearchIcon />
-
-                          </div>
-                        </div>
-
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Registration Type
-                          </label>
-
-                          <select
-                            defaultValue=""
-                            className="h-[35px] w-full rounded-md border border-slate-300 bg-white px-2.5 text-[11px] outline-none focus:border-green-500"
-                          >
-                            <option value="">
-                              Registration Type
-                            </option>
-
-                            <option value="Regular">
-                              Regular
-                            </option>
-
-                            <option value="Composition">
-                              Composition
-                            </option>
-
-                            <option value="Unregistered">
-                              Unregistered
-                            </option>
-                          </select>
-                        </div>
-
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Postal Code
-                          </label>
-
-                          <input
-                            placeholder="Postal Code"
-                            className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 text-[11px] outline-none focus:border-green-500"
-                          />
-                        </div>
-
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            GSTIN/UIN
-                          </label>
-
-                          <input
-                            placeholder="GSTIN/UIN"
-                            className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 text-[11px] outline-none focus:border-green-500"
-                          />
-                        </div>
-
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Place of Supply
-                          </label>
-
-                          <div className="relative">
-
-                            <input
-                              placeholder="Place of Supply"
-                              className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 pr-8 text-[11px] outline-none focus:border-green-500"
-                            />
-
-                            <SearchIcon />
-
-                          </div>
-                        </div>
-
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Bill to Place
-                          </label>
-
-                          <input
-                            placeholder="Bill to Place"
-                            className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 text-[11px] outline-none focus:border-green-500"
-                          />
-                        </div>
-
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Address
-                          </label>
-
-                          <textarea
-                            rows={2}
-                            placeholder="Address"
-                            className="w-full resize-none rounded-md border border-slate-300 px-2.5 py-2 text-[11px] outline-none focus:border-green-500"
-                          />
-                        </div>
-
-                      </div>
-                    )}
-
-                    {/* CONSIGNEE */}
-                    {activeAdvancedTab === 'Consignee Details' && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
-
-                        <input
-                          placeholder="Consignee Name"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Consignee Address"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Consignee GSTIN"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                      </div>
-                    )}
-
-                    {/* DISPATCH */}
-                    {activeAdvancedTab === 'Dispatch Details' && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
-
-                        <input
-                          placeholder="Dispatch From"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Dispatch Address"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Transporter"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                      </div>
-                    )}
-
-                    {/* ORDER */}
-                    {activeAdvancedTab === 'Order Details' && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
-
-                        <input
-                          placeholder="Order No"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          type="date"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Terms of Delivery"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                      </div>
-                    )}
-
-                    {/* E-WAY */}
-                    {activeAdvancedTab === 'e-Way Bills' && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
-
-                        <input
-                          placeholder="Transport Mode"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Vehicle Number"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Distance (KM)"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                      </div>
-                    )}
-
-                  </div>
-                )}
-
-              </div>
-
-            </div>
-
-            {/* =================================================
-                RIGHT TOTAL PANEL
-            ================================================= */}
-            <div className="self-start overflow-hidden rounded-md border border-slate-200 bg-white">
+              {/* Advanced */}
 
               <button
-                type="button"
-                className="flex h-[45px] w-full items-center border-b border-slate-200 px-4 text-left text-[13px] font-semibold text-[#4f94ff] hover:bg-slate-50"
-                onClick={() => {
-                  alert(
-                    'GST and other ledger panel opened',
-                  )
-                }}
+                onClick={() =>
+                  setAdvancedOpen(!advancedOpen)
+                }
+                className="flex w-full justify-between border-b px-4 py-3 text-sm"
               >
+                <span>Advanced Settings</span>
+
+                <span>
+                  {advancedOpen ? '⌄' : '›'}
+                </span>
+              </button>
+
+              {/* ADVANCED CONTENT */}
+
+              {advancedOpen && (
+
+                <div className="bg-[#f7f9f8] p-4">
+
+                  {/* TABS */}
+
+                  <div className="mb-4 grid grid-cols-4 border-b">
+
+                    {Object.keys(tabs).map((tab) => (
+
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`border-b-2 px-3 py-3 text-xs ${
+                          activeTab === tab
+                            ? 'border-green-600 bg-white font-semibold text-green-700'
+                            : 'border-transparent text-slate-600'
+                        }`}
+                      >
+                        {tab}
+                      </button>
+
+                    ))}
+
+                  </div>
+
+                  {/* FIELDS */}
+
+                  <div className="grid gap-3 md:grid-cols-2">
+
+                    {fields.map(([label, placeholder]) => (
+
+                      <InputField
+                        key={label}
+                        label={label}
+                        placeholder={placeholder}
+                        search
+                      />
+
+                    ))}
+
+                    <label className="md:col-span-2">
+
+                      <span className="text-xs font-medium">
+                        {activeTab === 'Dispatch Details'
+                          ? 'Dispatch Address'
+                          : activeTab === 'Order Details'
+                          ? 'Order Notes'
+                          : 'Address'}
+                      </span>
+
+                      <textarea
+                        className="mt-1 min-h-[80px] w-full rounded-md border border-slate-300 p-3 outline-none focus:border-green-600"
+                        placeholder="Enter details"
+                      />
+
+                    </label>
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </div>
+
+            {/* RIGHT TOTAL */}
+
+            <div className="rounded-lg border bg-[#f1f8ef]">
+
+              <button className="w-full border-b p-3 text-left text-sm font-semibold">
                 + Add GST And Other Ledgers
               </button>
 
-              <div className="bg-[#eff9eb] px-4 py-3">
+              <div className="space-y-3 p-4 text-sm">
 
-                <div className="flex items-center justify-between text-[12px] text-slate-700">
-                  <span>
-                    Sub Total
-                  </span>
-
-                  <b>
-                    ₹0
-                  </b>
+                <div className="flex justify-between">
+                  <span>Sub Total</span>
+                  <b>₹0</b>
                 </div>
 
-                <div className="mt-2 flex items-center justify-between text-[12px] text-slate-700">
-                  <span>
-                    Taxes
-                  </span>
-
-                  <b>
-                    ₹0
-                  </b>
+                <div className="flex justify-between border-t pt-2">
+                  <span>Taxes</span>
+                  <b>₹0</b>
                 </div>
 
-                <div className="mt-3 border-t border-slate-200 pt-3">
-
-                  <div className="flex items-center justify-between text-[16px] font-bold text-slate-900">
-
-                    <span>
-                      Grand Total
-                    </span>
-
-                    <b>
-                      ₹0
-                    </b>
-
-                  </div>
-
+                <div className="flex justify-between border-t pt-2 text-base font-bold">
+                  <span>Grand Total</span>
+                  <b>₹0</b>
                 </div>
 
               </div>
@@ -1165,16 +399,13 @@ function SalesOrderPage() {
 
         </div>
 
-        {/* =====================================================
-            FOOTER
-        ===================================================== */}
-        <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-end border-t border-slate-200 bg-white px-4 py-2">
+        {/* ================================================= */}
+        {/* BUTTON */}
+        {/* ================================================= */}
 
-          <button
-            type="button"
-            onClick={handleCreateVoucher}
-            className="rounded-md bg-[#171a1d] px-5 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_18px_rgba(0,0,0,0.18)] transition hover:bg-black"
-          >
+        <div className="flex justify-end bg-[#f5f7f4] px-5 pb-5">
+
+          <button className="rounded-lg bg-[#1a1f24] px-5 py-3 text-sm font-semibold text-white">
             Create Voucher
           </button>
 
@@ -1185,4 +416,4 @@ function SalesOrderPage() {
   )
 }
 
-export default SalesOrderPage
+export default PurchasePage

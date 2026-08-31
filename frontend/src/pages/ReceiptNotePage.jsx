@@ -1,126 +1,881 @@
-function ReceiptNotePage() {
+import { useState } from 'react'
+
+// ============================================================
+// FIELD
+// ============================================================
+
+function Field({
+  label,
+  placeholder,
+  value,
+  readOnly = false,
+  search = false,
+  icon = null,
+  className = '',
+}) {
   return (
-    <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
-      <div className="mx-auto max-w-[1280px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.05)]">
-        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white">Create Receipt Note</div>
+    <label className={`relative block min-w-0 ${className}`}>
+      <span className="absolute -top-[7px] left-3 z-10 bg-[#eef3f8] px-1.5 text-[12px] leading-none text-[#1f4264]">
+        {label}
+      </span>
 
-        <div className="bg-[#f5f7f4] p-5">
-          <div className="grid gap-3 md:grid-cols-3">
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Voucher Type</span>
-              <div className="relative">
-                <input placeholder="Select Voucher Type" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
-              </div>
-            </label>
+      <div className="relative">
+        <input
+          defaultValue={value}
+          readOnly={readOnly}
+          placeholder={placeholder}
+          className="
+            h-[39px]
+            w-full
+            rounded-[6px]
+            border
+            border-[#cbd5df]
+            bg-white
+            px-3
+            pr-9
+            text-[13px]
+            text-[#1f2937]
+            outline-none
+            placeholder:text-[#8d98a5]
+            focus:border-[#4dbb45]
+            focus:ring-1
+            focus:ring-[#d8f1d5]
+          "
+        />
 
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Party Name</span>
-              <div className="relative">
-                <input placeholder="Select Party" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
-              </div>
-            </label>
+        {search && (
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#98a3af]">
+            ⌕
+          </span>
+        )}
 
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Ledger Type</span>
-              <div className="relative">
-                <input placeholder="Select Ledger" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
-              </div>
-            </label>
+        {icon && (
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#111827]">
+            {icon}
+          </span>
+        )}
+      </div>
+    </label>
+  )
+}
 
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Voucher No</span>
-              <input value="-" readOnly className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none" />
-            </label>
+// ============================================================
+// TABLE INPUT
+// ============================================================
 
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Date</span>
-              <div className="relative">
-                <input type="date" defaultValue="2026-08-27" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">🗓</span>
-              </div>
-            </label>
+function TableInput({
+  placeholder,
+  value,
+  readOnly = false,
+  search = false,
+}) {
+  return (
+    <div className="relative w-full">
+      <input
+        defaultValue={value}
+        readOnly={readOnly}
+        placeholder={placeholder}
+        className="
+          h-[31px]
+          w-full
+          rounded-[2px]
+          border
+          border-[#cbd4dc]
+          bg-white
+          px-2
+          pr-7
+          text-[12px]
+          text-[#263238]
+          outline-none
+          placeholder:text-[#94a0ad]
+          focus:border-[#55ba4d]
+        "
+      />
+
+      {search && (
+        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[13px] text-[#9aa5af]">
+          ⌕
+        </span>
+      )}
+    </div>
+  )
+}
+
+// ============================================================
+// ITEMS TABLE
+// ============================================================
+
+function ItemsTable() {
+  const [rows, setRows] = useState([
+    {
+      id: 1,
+    },
+  ])
+
+  const addRow = () => {
+    setRows((current) => [
+      ...current,
+      {
+        id: Date.now(),
+      },
+    ])
+  }
+
+  const removeRow = (id) => {
+    setRows((current) =>
+      current.filter((row) => row.id !== id)
+    )
+  }
+
+  return (
+    <div className="relative w-full overflow-x-auto">
+      <div className="min-w-[1080px] overflow-hidden border border-[#d0d7de]">
+
+        {/* HEADER */}
+
+        <div
+          className="
+            grid
+            grid-cols-[1.25fr_0.46fr_0.46fr_0.58fr_0.52fr_0.9fr_0.92fr_1.18fr_0.7fr_0.54fr_0.34fr]
+            bg-[#e7eaed]
+          "
+        >
+          {[
+            'Items',
+            'Qty',
+            'Rate',
+            'Units',
+            'Disc %',
+            'HSN Code',
+            'Godown',
+            'Description',
+            'Amount',
+            'Tax Incl.',
+          ].map((heading) => (
+            <div
+              key={heading}
+              className="
+                flex
+                h-[31px]
+                items-center
+                border-r
+                border-[#cbd3dc]
+                px-2
+                text-[12px]
+                font-semibold
+                text-black
+              "
+            >
+              {heading}
+            </div>
+          ))}
+
+          <div className="flex h-[31px] items-center justify-center">
+            <button
+              type="button"
+              onClick={addRow}
+              className="
+                flex
+                h-[20px]
+                w-[20px]
+                items-center
+                justify-center
+                rounded-[3px]
+                bg-[#565656]
+                text-[17px]
+                font-bold
+                leading-none
+                text-white
+                hover:bg-[#333]
+              "
+            >
+              +
+            </button>
           </div>
+        </div>
 
-          <div className="mt-5 overflow-hidden rounded-lg border border-slate-200 bg-white">
-            <div className="grid min-w-[1000px] grid-cols-[1.2fr_0.45fr_0.45fr_0.5fr_0.5fr_0.9fr_0.8fr_1.3fr_0.7fr_0.5fr_0.35fr] gap-2 bg-slate-100 p-2 text-[12px] font-semibold uppercase tracking-wide text-slate-600">
-              <b>Items</b>
-              <b>Qty</b>
-              <b>Rate</b>
-              <b>Units</b>
-              <b>Disc %</b>
-              <b>HSN Code</b>
-              <b>Godown</b>
-              <b>Description</b>
-              <b>Amount</b>
-              <b>Tax Incl.</b>
-              <button type="button" className="justify-self-end rounded-md bg-[#dff5e5] px-2 py-1 text-[10px] font-bold uppercase text-green-700">+</button>
+        {/* ROWS */}
+
+        {rows.map((row) => (
+          <div
+            key={row.id}
+            className="
+              grid
+              grid-cols-[1.25fr_0.46fr_0.46fr_0.58fr_0.52fr_0.9fr_0.92fr_1.18fr_0.7fr_0.54fr_0.34fr]
+              min-h-[46px]
+              border-t
+              border-[#d4dbe2]
+              bg-white
+            "
+          >
+            {/* ITEM */}
+
+            <div className="flex items-center border-r border-[#d4dbe2] p-2">
+              <TableInput
+                placeholder="Search Item"
+                search
+              />
             </div>
 
-            <div className="grid min-w-[1000px] grid-cols-[1.2fr_0.45fr_0.45fr_0.5fr_0.5fr_0.9fr_0.8fr_1.3fr_0.7fr_0.5fr_0.35fr] gap-2 border-t border-slate-200 bg-white p-2">
-              <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" placeholder="Search Item" />
-              <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" value="0" readOnly />
-              <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" value="0" readOnly />
-              <select defaultValue="" className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100">
+            {/* QTY */}
+
+            <div className="flex items-center border-r border-[#d4dbe2] p-2">
+              <TableInput
+                value="0"
+                readOnly
+              />
+            </div>
+
+            {/* RATE */}
+
+            <div className="flex items-center border-r border-[#d4dbe2] p-2">
+              <TableInput
+                value="0"
+                readOnly
+              />
+            </div>
+
+            {/* UNITS */}
+
+            <div className="flex items-center border-r border-[#d4dbe2] p-2">
+              <select
+                defaultValue=""
+                className="
+                  h-[31px]
+                  w-full
+                  rounded-[2px]
+                  border
+                  border-[#cbd4dc]
+                  bg-white
+                  px-2
+                  text-[12px]
+                  outline-none
+                "
+              >
                 <option value="">-</option>
                 <option>PCS</option>
               </select>
-              <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" value="0" readOnly />
-              <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" placeholder="Search HSN" />
-              <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" placeholder="Search Godown" />
-              <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" placeholder="Enter Notes" />
-              <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" value="0" readOnly />
-              <label className="flex items-center justify-center">
-                <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500" />
-              </label>
-              <button type="button" className="min-h-9 rounded-md border border-slate-200 bg-slate-100 text-lg text-slate-500">✕</button>
+            </div>
+
+            {/* DISCOUNT */}
+
+            <div className="flex items-center border-r border-[#d4dbe2] p-2">
+              <TableInput
+                value="0"
+                readOnly
+              />
+            </div>
+
+            {/* HSN */}
+
+            <div className="flex items-center border-r border-[#d4dbe2] p-2">
+              <TableInput
+                placeholder="Search HSN"
+                search
+              />
+            </div>
+
+            {/* GODOWN */}
+
+            <div className="flex items-center border-r border-[#d4dbe2] p-2">
+              <TableInput
+                placeholder="Search Godown"
+                search
+              />
+            </div>
+
+            {/* DESCRIPTION */}
+
+            <div className="flex items-center border-r border-[#d4dbe2] p-2">
+              <TableInput
+                placeholder="Enter Notes"
+              />
+            </div>
+
+            {/* AMOUNT */}
+
+            <div className="flex items-center border-r border-[#d4dbe2] p-2">
+              <TableInput
+                value="0"
+                readOnly
+              />
+            </div>
+
+            {/* TAX */}
+
+            <div className="flex items-center justify-center border-r border-[#d4dbe2]">
+              <input
+                type="checkbox"
+                className="h-[14px] w-[14px]"
+              />
+            </div>
+
+            {/* DELETE */}
+
+            <div className="flex items-center justify-center">
+              <button
+                type="button"
+                onClick={() => removeRow(row.id)}
+                className="
+                  flex
+                  h-[30px]
+                  w-[30px]
+                  items-center
+                  justify-center
+                  text-[16px]
+                  text-[#ff6969]
+                  hover:text-[#e43e3e]
+                "
+              >
+                ♧
+              </button>
             </div>
           </div>
-
-          <div className="mt-5 flex flex-col gap-4 xl:flex-row">
-            <div className="flex-1 rounded-md border border-slate-200 bg-white">
-              <button type="button" className="flex w-full items-center justify-between border-b border-slate-200 px-4 py-3 text-left text-[14px] font-medium text-slate-700">
-                <span>Narration</span>
-                <span>›</span>
-              </button>
-
-              <button type="button" className="flex w-full items-center justify-between px-4 py-3 text-left text-[14px] font-medium text-slate-700">
-                <span>Advanced Settings</span>
-                <span>›</span>
-              </button>
-            </div>
-
-            <div className="w-full rounded-lg border border-slate-200 bg-[#f1f8ef] xl:max-w-[330px]">
-              <button type="button" className="w-full border-b border-slate-200 bg-transparent px-4 py-3 text-left text-[12px] font-semibold text-slate-700">
-                + Add GST And Other Ledgers
-              </button>
-
-              <div className="space-y-2 px-4 py-3 text-[12px] text-slate-700">
-                <div className="flex items-center justify-between">
-                  <span>Sub Total</span>
-                  <b>₹0</b>
-                </div>
-                <div className="flex items-center justify-between border-t border-slate-200 pt-2">
-                  <span>Taxes</span>
-                  <b>₹0</b>
-                </div>
-                <div className="flex items-center justify-between border-t border-slate-200 pt-2 text-[14px] font-bold text-slate-900">
-                  <span>Grand Total</span>
-                  <b>₹0</b>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end bg-[#f5f7f4] px-5 pb-5 pt-0">
-          <button type="button" className="rounded-lg bg-[#1a1f24] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(24,33,43,0.2)]">
-            Create Voucher
-          </button>
-        </div>
+        ))}
       </div>
+    </div>
+  )
+}
+
+// ============================================================
+// ADVANCED TABS
+// ============================================================
+
+const advancedTabs = [
+  "Supplier's Details",
+  'Consignee Details',
+  'Dispatch Details',
+  'Order Details',
+]
+
+// ============================================================
+// ADVANCED CONTENT
+// ============================================================
+
+function AdvancedContent({ activeTab }) {
+  if (activeTab === "Supplier's Details") {
+    return (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+        <Field
+          label="Supplier's Name"
+          placeholder="Supplier's Name"
+          search
+        />
+
+        <Field
+          label="Supplier's Country"
+          placeholder="Supplier's Country"
+          search
+        />
+
+        <Field
+          label="Supplier's State"
+          placeholder="Supplier's State"
+          search
+        />
+
+        <Field
+          label="Registration Type"
+          placeholder="Registration Type"
+          search
+        />
+
+        <Field
+          label="Postal Code"
+          placeholder="Postal Code"
+        />
+
+        <Field
+          label="GSTIN/UIN"
+          placeholder="GSTIN/UIN"
+        />
+
+        <Field
+          label="Place of Supply"
+          placeholder="Place of Supply"
+          className="md:col-span-2 lg:col-span-3"
+        />
+
+      </div>
+    )
+  }
+
+  if (activeTab === 'Consignee Details') {
+    return (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+        <Field
+          label="Consignee Name"
+          placeholder="Consignee Name"
+          search
+        />
+
+        <Field
+          label="GSTIN/UIN"
+          placeholder="GSTIN/UIN"
+        />
+
+        <Field
+          label="Consignee Country"
+          placeholder="Country"
+        />
+
+        <Field
+          label="Consignee State"
+          placeholder="State"
+        />
+
+        <Field
+          label="Postal Code"
+          placeholder="Postal Code"
+        />
+
+        <Field
+          label="Address"
+          placeholder="Address"
+          className="md:col-span-2 lg:col-span-3"
+        />
+
+      </div>
+    )
+  }
+
+  if (activeTab === 'Dispatch Details') {
+    return (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+        <Field
+          label="Dispatch From"
+          placeholder="Dispatch From"
+          search
+        />
+
+        <Field
+          label="Dispatch Through"
+          placeholder="Dispatch Through"
+          search
+        />
+
+        <Field
+          label="Vehicle Number"
+          placeholder="Vehicle Number"
+        />
+
+        <Field
+          label="Transporter Name"
+          placeholder="Transporter Name"
+          search
+        />
+
+        <Field
+          label="Transporter ID"
+          placeholder="Transporter ID"
+        />
+
+        <Field
+          label="Dispatch Date"
+          placeholder="Dispatch Date"
+          icon="▣"
+        />
+
+        <Field
+          label="Dispatch Address"
+          placeholder="Dispatch Address"
+          className="md:col-span-2 lg:col-span-3"
+        />
+
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+      <Field
+        label="Date"
+        placeholder="Order Date"
+        icon="▣"
+      />
+
+      <Field
+        label="Order Number"
+        placeholder="Order Number"
+      />
+
+      <Field
+        label="Mode of Payment"
+        placeholder="Mode of Payment"
+      />
+
+      <Field
+        label="Other Reference"
+        placeholder="Other Reference"
+        className="md:col-span-2"
+      />
+
+      <label className="relative block min-w-0">
+        <span className="absolute -top-[7px] left-3 z-10 bg-[#f7f9f8] px-1.5 text-[12px] leading-none text-[#1f4264]">
+          Terms of Delivery
+        </span>
+
+        <textarea
+          placeholder="Terms of Delivery"
+          className="
+            h-[44px]
+            w-full
+            resize-none
+            rounded-[6px]
+            border
+            border-[#cbd5df]
+            bg-white
+            px-3
+            py-2
+            text-[13px]
+            outline-none
+            placeholder:text-[#98a1ad]
+            focus:border-[#48b83d]
+          "
+        />
+      </label>
+
+    </div>
+  )
+}
+
+// ============================================================
+// RECEIPT NOTE PAGE
+// ============================================================
+
+function ReceiptNotePage() {
+  const [rows] = useState([{ id: 1 }])
+
+  const [activeTab, setActiveTab] =
+    useState("Supplier's Details")
+
+  const [narrationOpen, setNarrationOpen] =
+    useState(true)
+
+  const [advancedOpen, setAdvancedOpen] =
+    useState(true)
+
+  return (
+    <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900">
+
+      {/* ================================================== */}
+      {/* HEADER */}
+      {/* ================================================== */}
+
+      <div className="flex h-[36px] items-center bg-[#45bd35] px-5">
+        <h1 className="text-[16px] font-bold text-white">
+          Create Receipt Note Voucher
+        </h1>
+      </div>
+
+      {/* ================================================== */}
+      {/* MAIN */}
+      {/* ================================================== */}
+
+      <div className="p-4">
+
+        {/* ================================================= */}
+        {/* TOP FIELDS */}
+        {/* ================================================= */}
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+
+          <Field
+            label="Voucher Type"
+            placeholder="Select Voucher Type"
+            search
+          />
+
+          <Field
+            label="Party Name"
+            placeholder="Select Party"
+            search
+          />
+
+          <Field
+            label="Order Type"
+            placeholder="Select ref"
+            search
+          />
+
+          <Field
+            label="Order Number"
+            placeholder="Order Number"
+          />
+
+          <Field
+            label="Order Date"
+            placeholder="Order Date"
+            icon="▣"
+          />
+
+          <Field
+            label="Voucher No"
+            value="-"
+            readOnly
+            icon="✎"
+          />
+
+          <Field
+            label="Date"
+            value="31 Aug 2026"
+            readOnly
+            icon="▣"
+          />
+
+          <Field
+            label="Ledger Type"
+            placeholder="Select Ledger"
+            search
+            className="xl:col-span-3"
+          />
+
+        </div>
+
+        {/* ================================================= */}
+        {/* ITEMS */}
+        {/* ================================================= */}
+
+        <div className="mt-4">
+          <ItemsTable />
+        </div>
+
+        {/* ================================================= */}
+        {/* LOWER SECTION */}
+        {/* ================================================= */}
+
+        <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,1fr)]">
+
+          {/* ================================================= */}
+          {/* LEFT */}
+          {/* ================================================= */}
+
+          <div className="min-w-0">
+
+            {/* NARRATION */}
+
+            <div className="overflow-hidden rounded-[4px] bg-white shadow-sm">
+
+              <button
+                type="button"
+                onClick={() =>
+                  setNarrationOpen((current) => !current)
+                }
+                className="
+                  flex
+                  h-[37px]
+                  w-full
+                  items-center
+                  justify-between
+                  px-4
+                  text-left
+                "
+              >
+                <span className="text-[13px] font-semibold text-[#111827]">
+                  Narration
+                </span>
+
+                <span className="text-[21px] leading-none text-[#111]">
+                  {narrationOpen ? '⌄' : '›'}
+                </span>
+              </button>
+
+              {narrationOpen && (
+                <div className="border-t border-[#edf0f2] px-4 pb-4 pt-3">
+
+                  <textarea
+                    className="
+                      min-h-[48px]
+                      w-full
+                      resize-none
+                      rounded-[4px]
+                      border
+                      border-[#cbd5df]
+                      bg-white
+                      px-3
+                      py-2
+                      text-[13px]
+                      outline-none
+                      focus:border-[#48b83d]
+                    "
+                  />
+
+                </div>
+              )}
+
+            </div>
+
+            {/* ADVANCED SETTINGS */}
+
+            <div className="mt-2 overflow-hidden rounded-[4px] bg-white shadow-sm">
+
+              <button
+                type="button"
+                onClick={() =>
+                  setAdvancedOpen((current) => !current)
+                }
+                className="
+                  flex
+                  h-[37px]
+                  w-full
+                  items-center
+                  justify-between
+                  px-4
+                  text-left
+                "
+              >
+                <span className="text-[13px] font-semibold text-[#111827]">
+                  Advanced Settings
+                </span>
+
+                <span className="text-[21px] leading-none text-[#111]">
+                  {advancedOpen ? '⌄' : '›'}
+                </span>
+              </button>
+
+              {advancedOpen && (
+                <div className="border-t border-[#edf0f2] bg-[#f7f9f8] px-4 pb-4">
+
+                  {/* TABS */}
+
+                  <div className="overflow-x-auto">
+
+                    <div className="flex min-w-[610px] border-b border-[#d3dbe2]">
+
+                      {advancedTabs.map((tab) => (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => setActiveTab(tab)}
+                          className={`
+                            flex-1
+                            whitespace-nowrap
+                            px-3
+                            py-3
+                            text-[12px]
+                            ${
+                              activeTab === tab
+                                ? 'font-semibold text-[#079cf0]'
+                                : 'text-[#596875]'
+                            }
+                          `}
+                        >
+                          {tab}
+                        </button>
+                      ))}
+
+                    </div>
+
+                  </div>
+
+                  {/* TAB CONTENT */}
+
+                  <div className="pt-4">
+
+                    <AdvancedContent
+                      activeTab={activeTab}
+                    />
+
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+
+          </div>
+
+          {/* ================================================= */}
+          {/* TOTAL */}
+          {/* ================================================= */}
+
+          <div className="h-fit rounded-[4px] bg-white p-4 shadow-sm">
+
+            <button
+              type="button"
+              className="
+                text-[14px]
+                font-semibold
+                text-[#4994eb]
+              "
+            >
+              + Add GST And Other Ledgers
+            </button>
+
+            <div className="mt-3 bg-[#f1fbef] px-4 py-3">
+
+              <div className="flex items-center justify-between text-[12px] text-[#54616d]">
+                <span>
+                  Sub Total
+                </span>
+
+                <span className="font-medium text-[#111]">
+                  ₹0
+                </span>
+              </div>
+
+              <div className="mt-1.5 flex items-center justify-between text-[12px] text-[#54616d]">
+                <span>
+                  Taxes
+                </span>
+
+                <span className="font-medium text-[#111]">
+                  ₹0
+                </span>
+              </div>
+
+              <div className="mt-3 border-t border-[#d6e4d3] pt-2">
+
+                <div className="flex items-center justify-between text-[16px] font-bold text-[#111]">
+                  <span>
+                    Grand Total
+                  </span>
+
+                  <span>
+                    ₹0
+                  </span>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* ================================================== */}
+      {/* FOOTER */}
+      {/* ================================================== */}
+
+      <div className="flex min-h-[58px] items-center justify-end border-t border-[#e0e5ea] bg-white px-5">
+
+        <button
+          type="button"
+          className="
+            rounded-[4px]
+            bg-[#171717]
+            px-5
+            py-2.5
+            text-[13px]
+            font-bold
+            text-white
+            shadow-sm
+            transition
+            hover:bg-[#272727]
+            active:scale-[0.98]
+          "
+        >
+          Create Voucher
+        </button>
+
+      </div>
+
     </div>
   )
 }

@@ -30,14 +30,7 @@ function MyVouchersPage() {
 
   return (
     <div className="report-page min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900">
-      <div className="report-tabs flex flex-wrap items-center gap-8 border-b border-slate-200 bg-white px-4 text-xs text-slate-700">
-        <b className="border-b-2 border-slate-900 pb-3 pt-4 text-slate-900">Detailed Summary</b>
-        <span className="py-4">Manage Vouchers</span>
-        <span className="py-4">Recent Activity</span>
-        <div className="ml-auto flex items-center gap-3 pr-2">
-          <DateRangePicker startDate={startDate} endDate={endDate} onChange={(nextStart, nextEnd) => { setStartDate(nextStart || startDate); setEndDate(nextEnd || endDate) }} compact />
-        </div>
-      </div>
+     
 
       <section className="report-card mx-5 mt-2.5 overflow-hidden rounded-lg border border-white bg-white shadow-[0_8px_24px_rgba(24,33,43,0.05)]">
         <div className="receivables-toolbar flex flex-wrap items-center gap-4 px-5 py-4">

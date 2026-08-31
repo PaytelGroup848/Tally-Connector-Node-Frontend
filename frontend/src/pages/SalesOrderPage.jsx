@@ -200,15 +200,15 @@ function SalesOrderPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-60px)] overflow-x-auto bg-[#eaf0f5] text-slate-900">
+    <div className="min-h-screen bg-[#eef3f8] p-5">
 
-      <div className="min-w-[1080px]">
+      <div className="mx-auto max-w-6xl">
 
         {/* =====================================================
             HEADER
         ===================================================== */}
-        <div className="flex h-[28px] items-center bg-[#48bd3c] px-2">
-          <h1 className="text-[16px] font-bold text-white">
+        <div className="mb-5 rounded-t-lg bg-green-600 px-5 py-4">
+          <h1 className="text-lg font-bold text-white">
             Create Sales Order Voucher
           </h1>
         </div>
@@ -216,65 +216,39 @@ function SalesOrderPage() {
         {/* =====================================================
             BODY
         ===================================================== */}
-        <div className="relative p-2">
+        <div className="rounded-b-lg bg-white shadow-sm p-5">
 
           {/* =================================================
               TOP FORM
           ================================================= */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
 
             {/* VOUCHER TYPE */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Voucher Type
-              </label>
-
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-slate-700">Voucher Type</span>
               <select
                 value={voucherType}
-                onChange={(event) =>
-                  setVoucherType(event.target.value)
-                }
-                className="h-[38px] w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-[12px] text-slate-700 outline-none focus:border-green-500"
+                onChange={(event) => setVoucherType(event.target.value)}
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               >
-                <option value="Select Voucher Type">
-                  Select Voucher Type
-                </option>
-
-                <option value="Sales">
-                  Sales
-                </option>
-
-                <option value="Sales Order">
-                  Sales Order
-                </option>
-
-                <option value="Quotation">
-                  Quotation
-                </option>
+                <option value="Select Voucher Type">Select Voucher Type</option>
+                <option value="Sales">Sales</option>
+                <option value="Sales Order">Sales Order</option>
+                <option value="Quotation">Quotation</option>
               </select>
-
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">
-                ⌄
-              </span>
-            </div>
+            </label>
 
             {/* PARTY NAME */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Party Name
-              </label>
-
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-slate-700">Party Name</span>
               <div className="relative">
                 <input
                   list="party-list"
                   value={partyName}
-                  onChange={(event) =>
-                    setPartyName(event.target.value)
-                  }
+                  onChange={(event) => setPartyName(event.target.value)}
                   placeholder="Select Party"
-                  className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-[12px] text-slate-700 outline-none placeholder:text-slate-500 focus:border-green-500"
+                  className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
                 />
-
                 <datalist id="party-list">
                   <option value="Amit Traders" />
                   <option value="Bharat Metals" />
@@ -282,97 +256,58 @@ function SalesOrderPage() {
                   <option value="Delhi Packaging" />
                   <option value="Fortune Foods" />
                 </datalist>
-
                 <SearchIcon />
               </div>
-            </div>
+            </label>
 
             {/* LEDGER TYPE */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Ledger Type
-              </label>
-
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-slate-700">Ledger Type</span>
               <select
                 value={ledgerType}
-                onChange={(event) =>
-                  setLedgerType(event.target.value)
-                }
-                className="h-[38px] w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-[12px] text-slate-700 outline-none focus:border-green-500"
+                onChange={(event) => setLedgerType(event.target.value)}
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               >
-                <option value="">
-                  Select Ledger
-                </option>
-
-                <option value="Sales Account">
-                  Sales Account
-                </option>
-
-                <option value="Sales Order">
-                  Sales Order
-                </option>
-
-                <option value="Service Income">
-                  Service Income
-                </option>
+                <option value="">Select Ledger</option>
+                <option value="Sales Account">Sales Account</option>
+                <option value="Sales Order">Sales Order</option>
+                <option value="Service Income">Service Income</option>
               </select>
-
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">
-                ⌄
-              </span>
-            </div>
+            </label>
 
             {/* VOUCHER NO */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Voucher No
-              </label>
-
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-slate-700">Voucher No</span>
               <div className="relative">
                 <input
                   value={voucherNo}
-                  onChange={(event) =>
-                    setVoucherNo(event.target.value)
-                  }
-                  className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-[12px] text-slate-700 outline-none"
+                  onChange={(event) => setVoucherNo(event.target.value)}
+                  className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                 />
-
-                {/* PENCIL */}
                 <button
                   type="button"
                   title="Edit reference details"
                   onClick={openReferencePopup}
-                  className="absolute right-0 top-0 flex h-[38px] w-[38px] items-center justify-center border-l border-slate-200 bg-slate-50 text-[15px] text-slate-700 transition hover:bg-slate-100"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
                 >
                   ✎
                 </button>
               </div>
-            </div>
+            </label>
 
             {/* DATE */}
-            <div className="relative">
-              <label className="absolute left-3 top-[-7px] z-10 bg-[#eaf0f5] px-1 text-[12px] font-medium text-slate-700">
-                Date
-              </label>
-
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-slate-700">Date</span>
               <div className="relative">
                 <CalendarIcon />
-
                 <input
                   type="date"
                   value={voucherDate}
-                  onChange={(event) =>
-                    setVoucherDate(
-                      event.target.value,
-                    )
-                  }
-                  className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 pl-9 text-[12px] text-slate-700 outline-none focus:border-green-500"
+                  onChange={(event) => setVoucherDate(event.target.value)}
+                  className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 pl-9 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                 />
               </div>
-            </div>
-
-            {/* EMPTY */}
-            <div />
+            </label>
 
           </div>
 
@@ -380,67 +315,40 @@ function SalesOrderPage() {
               REFERENCE POPUP
           ================================================= */}
           {showReferencePopup && (
-            <div className="absolute left-0 top-[47px] z-50 w-[480px] rounded-md border border-slate-300 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
+            <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
+              <div className="w-full max-w-md rounded-lg bg-white shadow-xl p-5">
 
-              {/* POINTER */}
-              <div className="absolute -top-[9px] left-[28px] h-0 w-0 border-l-[9px] border-r-[9px] border-b-[9px] border-l-transparent border-r-transparent border-b-slate-300" />
-
-              <div className="absolute -top-[8px] left-[29px] h-0 w-0 border-l-[8px] border-r-[8px] border-b-[8px] border-l-transparent border-r-transparent border-b-white" />
-
-              {/* CONTENT */}
-              <div className="p-3">
+                <h2 className="mb-4 text-sm font-semibold text-slate-900">Reference Details</h2>
 
                 {/* FIELDS */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-3 mb-4">
 
                   {/* REFERENCE NUMBER */}
-                  <div className="relative">
-                    <label className="absolute left-3 top-[-7px] z-10 bg-white px-1 text-[11px] font-medium text-slate-700">
-                      Reference Number
-                    </label>
-
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs font-medium text-slate-700">Reference Number</span>
                     <input
                       type="text"
                       value={tempReferenceNumber}
-                      onChange={(event) =>
-                        setTempReferenceNumber(
-                          event.target.value,
-                        )
-                      }
+                      onChange={(event) => setTempReferenceNumber(event.target.value)}
                       placeholder="Reference Number"
-                      className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 text-[12px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-slate-500"
+                      className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                     />
-                  </div>
+                  </label>
 
                   {/* REFERENCE DATE */}
-                  <div className="relative">
-                    <label className="absolute left-3 top-[-7px] z-10 bg-white px-1 text-[11px] font-medium text-slate-700">
-                      Reference Date
-                    </label>
-
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs font-medium text-slate-700">Reference Date</span>
                     <div className="relative">
                       <input
                         type="date"
                         value={tempReferenceDate}
-                        onChange={(event) =>
-                          setTempReferenceDate(
-                            event.target.value,
-                          )
-                        }
-                        placeholder="Reference Date"
-                        className="h-[38px] w-full rounded-md border border-slate-300 bg-white px-3 text-[12px] text-slate-700 outline-none focus:border-slate-500"
+                        onChange={(event) => setTempReferenceDate(event.target.value)}
+                        className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                       />
-
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[14px] text-slate-500">
-                        ▣
-                      </span>
                     </div>
-                  </div>
+                  </label>
 
                 </div>
-
-                {/* DIVIDER */}
-                <div className="my-4 border-t border-slate-200" />
 
                 {/* BUTTONS */}
                 <div className="flex justify-end gap-2">
@@ -448,7 +356,7 @@ function SalesOrderPage() {
                   <button
                     type="button"
                     onClick={cancelReference}
-                    className="rounded-md border border-slate-800 bg-white px-5 py-1.5 text-[13px] font-medium text-slate-900 transition hover:bg-slate-50"
+                    className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -456,7 +364,7 @@ function SalesOrderPage() {
                   <button
                     type="button"
                     onClick={saveReference}
-                    className="rounded-md bg-[#050505] px-5 py-1.5 text-[13px] font-semibold text-white transition hover:bg-slate-800"
+                    className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
                   >
                     Save
                   </button>
@@ -470,286 +378,172 @@ function SalesOrderPage() {
           {/* =================================================
               ITEMS TABLE
           ================================================= */}
-          <div className="mt-4 overflow-hidden border border-slate-300 bg-white">
+          <div className="mt-5 overflow-hidden rounded-lg border border-slate-200 bg-white">
 
             {/* TABLE HEADER */}
-            <div className="grid min-w-[1080px] grid-cols-[1.4fr_0.55fr_0.55fr_0.7fr_0.55fr_0.95fr_0.95fr_1.1fr_0.7fr_0.55fr_0.32fr]">
-
-              {[
-                'Items',
-                'Qty',
-                'Rate',
-                'Units',
-                'Disc %',
-                'HSN Code',
-                'Godown',
-                'Description',
-                'Amount',
-                'Tax Incl.',
-                '',
-              ].map((heading, index) => (
-                <div
-                  key={`${heading}-${index}`}
-                  className="flex h-[34px] items-center border-r border-slate-300 bg-[#dfe3e6] px-2 text-[11px] font-semibold text-slate-900 last:border-r-0"
+            <div className="grid grid-cols-12 gap-1 bg-slate-100 p-2 text-xs font-semibold text-slate-600">
+              <div className="col-span-2">Items</div>
+              <div>Qty</div>
+              <div>Rate</div>
+              <div>Units</div>
+              <div>Disc %</div>
+              <div>HSN</div>
+              <div>Godown</div>
+              <div className="col-span-2">Description</div>
+              <div>Amount</div>
+              <div className="flex items-center justify-between">
+                <span>Tax</span>
+                <button
+                  type="button"
+                  onClick={addRow}
+                  title="Add item"
+                  className="ml-auto flex h-6 w-6 items-center justify-center rounded bg-green-600 text-white text-sm font-bold hover:bg-green-700"
                 >
-                  {heading}
-
-                  {index === 10 && (
-                    <button
-                      type="button"
-                      onClick={addRow}
-                      title="Add item"
-                      className="ml-auto flex h-[20px] w-[20px] items-center justify-center rounded bg-[#494d50] text-[16px] font-bold leading-none text-white transition hover:bg-black"
-                    >
-                      +
-                    </button>
-                  )}
-                </div>
-              ))}
-
+                  +
+                </button>
+              </div>
             </div>
 
             {/* TABLE ROWS */}
             {rows.map((row) => (
               <div
                 key={row.id}
-                className="grid min-w-[1080px] grid-cols-[1.4fr_0.55fr_0.55fr_0.7fr_0.55fr_0.95fr_0.95fr_1.1fr_0.7fr_0.55fr_0.32fr]"
+                className="grid grid-cols-12 gap-1 border-t border-slate-200 p-2 hover:bg-slate-50"
               >
 
                 {/* ITEM */}
-                <div className="border-r border-t border-slate-300 p-1">
+                <div className="col-span-2">
                   <div className="relative">
                     <input
                       list={`item-list-${row.id}`}
                       value={row.item}
-                      onChange={(event) =>
-                        updateRow(
-                          row.id,
-                          'item',
-                          event.target.value,
-                        )
-                      }
+                      onChange={(event) => updateRow(row.id, 'item', event.target.value)}
                       placeholder="Search Item"
-                      className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 pr-8 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-500"
+                      className="h-8 w-full rounded border border-slate-300 bg-white px-2 text-xs outline-none focus:border-green-600"
                     />
-
                     <datalist id={`item-list-${row.id}`}>
                       <option value="PVC 1 inch Pipe" />
                       <option value="PVC 3/4 inch Pipe" />
                       <option value="Water Tap" />
                       <option value="Paint Primer" />
                     </datalist>
-
-                    <SearchIcon />
                   </div>
                 </div>
 
                 {/* QTY */}
-                <div className="border-r border-t border-slate-300 p-1">
+                <div>
                   <input
                     type="number"
                     value={row.qty}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'qty',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
+                    onChange={(event) => updateRow(row.id, 'qty', event.target.value)}
+                    className="h-8 w-full rounded border border-slate-300 bg-white px-2 text-xs outline-none focus:border-green-600"
                   />
                 </div>
 
                 {/* RATE */}
-                <div className="border-r border-t border-slate-300 p-1">
+                <div>
                   <input
                     type="number"
                     value={row.rate}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'rate',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
+                    onChange={(event) => updateRow(row.id, 'rate', event.target.value)}
+                    className="h-8 w-full rounded border border-slate-300 bg-white px-2 text-xs outline-none focus:border-green-600"
                   />
                 </div>
 
                 {/* UNITS */}
-                <div className="border-r border-t border-slate-300 p-1">
+                <div>
                   <select
                     value={row.units}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'units',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
+                    onChange={(event) => updateRow(row.id, 'units', event.target.value)}
+                    className="h-8 w-full rounded border border-slate-300 bg-white px-2 text-xs outline-none focus:border-green-600"
                   >
-                    <option value="">
-                      -
-                    </option>
-
-                    <option value="PCS">
-                      PCS
-                    </option>
-
-                    <option value="KG">
-                      KG
-                    </option>
-
-                    <option value="LTR">
-                      LTR
-                    </option>
-
-                    <option value="BOX">
-                      BOX
-                    </option>
-
-                    <option value="MTR">
-                      MTR
-                    </option>
+                    <option value="">-</option>
+                    <option value="PCS">PCS</option>
+                    <option value="KG">KG</option>
+                    <option value="LTR">LTR</option>
+                    <option value="BOX">BOX</option>
+                    <option value="MTR">MTR</option>
                   </select>
                 </div>
 
                 {/* DISCOUNT */}
-                <div className="border-r border-t border-slate-300 p-1">
+                <div>
                   <input
                     type="number"
                     value={row.discount}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'discount',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
+                    onChange={(event) => updateRow(row.id, 'discount', event.target.value)}
+                    className="h-8 w-full rounded border border-slate-300 bg-white px-2 text-xs outline-none focus:border-green-600"
                   />
                 </div>
 
                 {/* HSN */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <div className="relative">
-
-                    <input
-                      list={`hsn-list-${row.id}`}
-                      value={row.hsn}
-                      onChange={(event) =>
-                        updateRow(
-                          row.id,
-                          'hsn',
-                          event.target.value,
-                        )
-                      }
-                      placeholder="Search HSN"
-                      className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 pr-7 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-500"
-                    />
-
-                    <datalist id={`hsn-list-${row.id}`}>
-                      <option value="3917" />
-                      <option value="3926" />
-                      <option value="7307" />
-                      <option value="PVC001" />
-                    </datalist>
-
-                    <SearchIcon />
-
-                  </div>
+                <div>
+                  <input
+                    list={`hsn-list-${row.id}`}
+                    value={row.hsn}
+                    onChange={(event) => updateRow(row.id, 'hsn', event.target.value)}
+                    placeholder="HSN"
+                    className="h-8 w-full rounded border border-slate-300 bg-white px-2 text-xs outline-none focus:border-green-600"
+                  />
+                  <datalist id={`hsn-list-${row.id}`}>
+                    <option value="3917" />
+                    <option value="3926" />
+                    <option value="7307" />
+                  </datalist>
                 </div>
 
                 {/* GODOWN */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <div className="relative">
-
-                    <input
-                      list={`godown-list-${row.id}`}
-                      value={row.godown}
-                      onChange={(event) =>
-                        updateRow(
-                          row.id,
-                          'godown',
-                          event.target.value,
-                        )
-                      }
-                      placeholder="Search Godown"
-                      className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 pr-7 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-500"
-                    />
-
-                    <datalist id={`godown-list-${row.id}`}>
-                      <option value="Main Godown" />
-                      <option value="Delhi Godown" />
-                      <option value="Warehouse 1" />
-                    </datalist>
-
-                    <SearchIcon />
-
-                  </div>
+                <div>
+                  <input
+                    list={`godown-list-${row.id}`}
+                    value={row.godown}
+                    onChange={(event) => updateRow(row.id, 'godown', event.target.value)}
+                    placeholder="Godown"
+                    className="h-8 w-full rounded border border-slate-300 bg-white px-2 text-xs outline-none focus:border-green-600"
+                  />
+                  <datalist id={`godown-list-${row.id}`}>
+                    <option value="Main Godown" />
+                    <option value="Delhi Godown" />
+                    <option value="Warehouse 1" />
+                  </datalist>
                 </div>
 
                 {/* DESCRIPTION */}
-                <div className="border-r border-t border-slate-300 p-1">
+                <div className="col-span-2">
                   <input
                     value={row.description}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'description',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Enter Notes"
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-500"
+                    onChange={(event) => updateRow(row.id, 'description', event.target.value)}
+                    placeholder="Notes"
+                    className="h-8 w-full rounded border border-slate-300 bg-white px-2 text-xs outline-none focus:border-green-600"
                   />
                 </div>
 
                 {/* AMOUNT */}
-                <div className="border-r border-t border-slate-300 p-1">
+                <div>
                   <input
                     value={row.amount}
-                    onChange={(event) =>
-                      updateRow(
-                        row.id,
-                        'amount',
-                        event.target.value,
-                      )
-                    }
-                    className="h-[31px] w-full rounded-sm border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none focus:border-green-500"
+                    onChange={(event) => updateRow(row.id, 'amount', event.target.value)}
+                    className="h-8 w-full rounded border border-slate-300 bg-white px-2 text-xs outline-none focus:border-green-600"
                   />
                 </div>
 
-                {/* TAX INCLUSIVE */}
-                <div className="border-r border-t border-slate-300 p-1">
-                  <label className="flex h-[31px] items-center justify-center">
+                {/* TAX + DELETE */}
+                <div className="flex items-center justify-between gap-1">
+                  <label className="flex items-center">
                     <input
                       type="checkbox"
                       checked={row.taxInclusive}
-                      onChange={(event) =>
-                        updateRow(
-                          row.id,
-                          'taxInclusive',
-                          event.target.checked,
-                        )
-                      }
-                      className="h-3.5 w-3.5 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                      onChange={(event) => updateRow(row.id, 'taxInclusive', event.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-green-600"
                     />
                   </label>
-                </div>
-
-                {/* DELETE */}
-                <div className="border-t border-slate-300 p-1">
                   <button
                     type="button"
-                    onClick={() =>
-                      removeRow(row.id)
-                    }
+                    onClick={() => removeRow(row.id)}
                     title="Delete item"
-                    className="flex h-[31px] w-full items-center justify-center rounded-sm text-red-500 transition hover:bg-red-50 hover:text-red-600"
+                    className="text-red-500 hover:text-red-700"
                   >
-                    <TrashIcon />
+                    ✕
                   </button>
                 </div>
 
@@ -761,7 +555,7 @@ function SalesOrderPage() {
           {/* =================================================
               LOWER CONTENT
           ================================================= */}
-          <div className="mt-3 grid grid-cols-[1.4fr_1fr] gap-2">
+          <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_300px]">
 
             {/* =================================================
                 LEFT
@@ -769,36 +563,23 @@ function SalesOrderPage() {
             <div>
 
               {/* NARRATION */}
-              <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setOpenSection(
-                      openSection === 'Narration'
-                        ? null
-                        : 'Narration',
-                    )
-                  }
-                  className="flex h-[42px] w-full items-center justify-between px-4 text-left text-[13px] font-semibold text-slate-800"
+                  onClick={() => setOpenSection(openSection === 'Narration' ? null : 'Narration')}
+                  className="flex h-12 w-full items-center justify-between px-4 text-left text-sm font-semibold text-slate-800 hover:bg-slate-50"
                 >
-                  <span>
-                    Narration
-                  </span>
-
-                  <span className="text-[20px]">
-                    {openSection === 'Narration'
-                      ? '⌄'
-                      : '›'}
-                  </span>
+                  <span>Narration</span>
+                  <span>{openSection === 'Narration' ? '⌄' : '›'}</span>
                 </button>
 
                 {openSection === 'Narration' && (
-                  <div className="border-t border-slate-200 p-3">
+                  <div className="border-t border-slate-200 p-4">
                     <textarea
                       rows={3}
                       placeholder="Enter narration"
-                      className="w-full resize-none rounded-md border border-slate-300 px-3 py-2 text-[11px] outline-none focus:border-green-500"
+                      className="w-full resize-none rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                     />
                   </div>
                 )}
@@ -806,35 +587,22 @@ function SalesOrderPage() {
               </div>
 
               {/* ADVANCED SETTINGS */}
-              <div className="mt-2 overflow-hidden rounded-md border border-slate-200 bg-white">
+              <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white">
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setOpenSection(
-                      openSection === 'Advanced Settings'
-                        ? null
-                        : 'Advanced Settings',
-                    )
-                  }
-                  className="flex h-[42px] w-full items-center justify-between px-4 text-left text-[13px] font-semibold text-slate-800"
+                  onClick={() => setOpenSection(openSection === 'Advanced Settings' ? null : 'Advanced Settings')}
+                  className="flex h-12 w-full items-center justify-between px-4 text-left text-sm font-semibold text-slate-800 hover:bg-slate-50"
                 >
-                  <span>
-                    Advanced Settings
-                  </span>
-
-                  <span className="text-[20px]">
-                    {openSection === 'Advanced Settings'
-                      ? '⌄'
-                      : '›'}
-                  </span>
+                  <span>Advanced Settings</span>
+                  <span>{openSection === 'Advanced Settings' ? '⌄' : '›'}</span>
                 </button>
 
                 {openSection === 'Advanced Settings' && (
                   <div className="border-t border-slate-200">
 
                     {/* TABS */}
-                    <div className="flex items-center overflow-x-auto border-b border-slate-200 px-3">
+                    <div className="flex items-center overflow-x-auto border-b border-slate-200">
 
                       {[
                         "Buyer's Details",
@@ -846,268 +614,89 @@ function SalesOrderPage() {
                         <button
                           key={tab}
                           type="button"
-                          onClick={() =>
-                            setActiveAdvancedTab(tab)
-                          }
-                          className={`relative whitespace-nowrap px-4 py-3 text-[11px] ${
+                          onClick={() => setActiveAdvancedTab(tab)}
+                          className={`relative whitespace-nowrap px-4 py-3 text-xs ${
                             activeAdvancedTab === tab
-                              ? 'font-medium text-[#008cff]'
-                              : 'text-slate-600'
+                              ? 'font-medium text-green-600 border-b-2 border-green-600'
+                              : 'text-slate-600 hover:text-slate-800'
                           }`}
                         >
                           {tab}
-
-                          {activeAdvancedTab === tab && (
-                            <span className="absolute bottom-0 left-0 h-[2px] w-full bg-[#008cff]" />
-                          )}
                         </button>
                       ))}
 
                     </div>
 
-                    {/* BUYER DETAILS */}
-                    {activeAdvancedTab === "Buyer's Details" && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
+                    {/* TAB CONTENT */}
+                    <div className="grid grid-cols-1 gap-3 p-4 md:grid-cols-3">
 
-                        {/* BUYER NAME */}
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Buyer's Name
+                      {activeAdvancedTab === "Buyer's Details" && (
+                        <>
+                          <label className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-slate-700">Buyer's Name</span>
+                            <input placeholder="Buyer's Name" className="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
                           </label>
-
-                          <div className="relative">
-
-                            <input
-                              placeholder="Buyer's Name"
-                              className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 pr-8 text-[11px] outline-none focus:border-green-500"
-                            />
-
-                            <SearchIcon />
-
-                          </div>
-                        </div>
-
-                        {/* COUNTRY */}
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Buyer's Country
+                          <label className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-slate-700">Country</span>
+                            <input placeholder="Country" className="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
                           </label>
-
-                          <div className="relative">
-
-                            <input
-                              placeholder="Buyer's Country"
-                              className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 pr-8 text-[11px] outline-none focus:border-green-500"
-                            />
-
-                            <SearchIcon />
-
-                          </div>
-                        </div>
-
-                        {/* STATE */}
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Buyer's State
+                          <label className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-slate-700">State</span>
+                            <input placeholder="State" className="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
                           </label>
-
-                          <div className="relative">
-
-                            <input
-                              placeholder="Buyer's State"
-                              className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 pr-8 text-[11px] outline-none focus:border-green-500"
-                            />
-
-                            <SearchIcon />
-
-                          </div>
-                        </div>
-
-                        {/* REGISTRATION */}
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Registration Type
+                          <label className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-slate-700">Registration Type</span>
+                            <select className="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600">
+                              <option value="">Select</option>
+                              <option value="Regular">Regular</option>
+                              <option value="Composition">Composition</option>
+                              <option value="Unregistered">Unregistered</option>
+                            </select>
                           </label>
-
-                          <select
-                            defaultValue=""
-                            className="h-[35px] w-full rounded-md border border-slate-300 bg-white px-2.5 text-[11px] outline-none focus:border-green-500"
-                          >
-                            <option value="">
-                              Registration Type
-                            </option>
-
-                            <option value="Regular">
-                              Regular
-                            </option>
-
-                            <option value="Composition">
-                              Composition
-                            </option>
-
-                            <option value="Unregistered">
-                              Unregistered
-                            </option>
-                          </select>
-                        </div>
-
-                        {/* POSTAL CODE */}
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Postal Code
+                          <label className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-slate-700">Postal Code</span>
+                            <input placeholder="Postal Code" className="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
                           </label>
-
-                          <input
-                            placeholder="Postal Code"
-                            className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 text-[11px] outline-none focus:border-green-500"
-                          />
-                        </div>
-
-                        {/* GSTIN */}
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            GSTIN/UIN
+                          <label className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-slate-700">GSTIN/UIN</span>
+                            <input placeholder="GSTIN/UIN" className="h-9 w-full rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
                           </label>
+                        </>
+                      )}
 
-                          <input
-                            placeholder="GSTIN/UIN"
-                            className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 text-[11px] outline-none focus:border-green-500"
-                          />
-                        </div>
+                      {activeAdvancedTab === 'Consignee Details' && (
+                        <>
+                          <input placeholder="Consignee Name" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                          <input placeholder="Consignee Address" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                          <input placeholder="Consignee GSTIN" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                        </>
+                      )}
 
-                        {/* PLACE OF SUPPLY */}
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Place of Supply
-                          </label>
+                      {activeAdvancedTab === 'Dispatch Details' && (
+                        <>
+                          <input placeholder="Dispatch From" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                          <input placeholder="Dispatch Address" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                          <input placeholder="Transporter" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                        </>
+                      )}
 
-                          <div className="relative">
+                      {activeAdvancedTab === 'Order Details' && (
+                        <>
+                          <input placeholder="Order No" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                          <input type="date" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                          <input placeholder="Terms of Delivery" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                        </>
+                      )}
 
-                            <input
-                              placeholder="Place of Supply"
-                              className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 pr-8 text-[11px] outline-none focus:border-green-500"
-                            />
+                      {activeAdvancedTab === 'e-Way Bills' && (
+                        <>
+                          <input placeholder="Transport Mode" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                          <input placeholder="Vehicle Number" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                          <input placeholder="Distance (KM)" className="h-9 rounded border border-slate-300 px-3 text-sm outline-none focus:border-green-600" />
+                        </>
+                      )}
 
-                            <SearchIcon />
-
-                          </div>
-                        </div>
-
-                        {/* BILL TO */}
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Bill to Place
-                          </label>
-
-                          <input
-                            placeholder="Bill to Place"
-                            className="h-[35px] w-full rounded-md border border-slate-300 px-2.5 text-[11px] outline-none focus:border-green-500"
-                          />
-                        </div>
-
-                        {/* ADDRESS */}
-                        <div className="relative">
-                          <label className="absolute left-2.5 top-[-7px] z-10 bg-white px-1 text-[10px] text-slate-600">
-                            Address
-                          </label>
-
-                          <textarea
-                            rows={2}
-                            placeholder="Address"
-                            className="w-full resize-none rounded-md border border-slate-300 px-2.5 py-2 text-[11px] outline-none focus:border-green-500"
-                          />
-                        </div>
-
-                      </div>
-                    )}
-
-                    {/* CONSIGNEE */}
-                    {activeAdvancedTab === 'Consignee Details' && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
-
-                        <input
-                          placeholder="Consignee Name"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Consignee Address"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Consignee GSTIN"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                      </div>
-                    )}
-
-                    {/* DISPATCH */}
-                    {activeAdvancedTab === 'Dispatch Details' && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
-
-                        <input
-                          placeholder="Dispatch From"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Dispatch Address"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Transporter"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                      </div>
-                    )}
-
-                    {/* ORDER */}
-                    {activeAdvancedTab === 'Order Details' && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
-
-                        <input
-                          placeholder="Order No"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          type="date"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Terms of Delivery"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                      </div>
-                    )}
-
-                    {/* E-WAY */}
-                    {activeAdvancedTab === 'e-Way Bills' && (
-                      <div className="grid grid-cols-3 gap-2 p-3">
-
-                        <input
-                          placeholder="Transport Mode"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Vehicle Number"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                        <input
-                          placeholder="Distance (KM)"
-                          className="h-[35px] rounded-md border border-slate-300 px-3 text-[11px] outline-none"
-                        />
-
-                      </div>
-                    )}
+                    </div>
 
                   </div>
                 )}
@@ -1119,58 +708,33 @@ function SalesOrderPage() {
             {/* =================================================
                 RIGHT TOTAL PANEL
             ================================================= */}
-            <div className="self-start overflow-hidden rounded-md border border-slate-200 bg-white">
+            <div className="h-fit overflow-hidden rounded-lg border border-slate-200 bg-white">
 
               {/* ADD GST */}
               <button
                 type="button"
-                onClick={() =>
-                  alert(
-                    'GST and other ledger panel opened',
-                  )
-                }
-                className="flex h-[45px] w-full items-center border-b border-slate-200 px-4 text-left text-[13px] font-semibold text-[#4f94ff] hover:bg-slate-50"
+                onClick={() => alert('GST and other ledger panel opened')}
+                className="flex h-12 w-full items-center border-b border-slate-200 px-4 text-left text-sm font-semibold text-green-600 hover:bg-slate-50"
               >
                 + Add GST And Other Ledgers
               </button>
 
               {/* TOTALS */}
-              <div className="bg-[#eff9eb] px-4 py-3">
+              <div className="space-y-3 bg-green-50 px-4 py-4 text-sm">
 
-                <div className="flex items-center justify-between text-[12px] text-slate-700">
-                  <span>
-                    Sub Total
-                  </span>
-
-                  <b>
-                    ₹0
-                  </b>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-700">Sub Total</span>
+                  <b className="text-slate-900">₹0</b>
                 </div>
 
-                <div className="mt-2 flex items-center justify-between text-[12px] text-slate-700">
-                  <span>
-                    Taxes
-                  </span>
-
-                  <b>
-                    ₹0
-                  </b>
+                <div className="flex items-center justify-between border-t border-slate-200 pt-3">
+                  <span className="text-slate-700">Taxes</span>
+                  <b className="text-slate-900">₹0</b>
                 </div>
 
-                <div className="mt-3 border-t border-slate-200 pt-3">
-
-                  <div className="flex items-center justify-between text-[16px] font-bold text-slate-900">
-
-                    <span>
-                      Grand Total
-                    </span>
-
-                    <b>
-                      ₹0
-                    </b>
-
-                  </div>
-
+                <div className="flex items-center justify-between border-t border-slate-200 pt-3">
+                  <span className="text-slate-900 font-bold">Grand Total</span>
+                  <b className="text-lg text-green-600">₹0</b>
                 </div>
 
               </div>
@@ -1182,21 +746,15 @@ function SalesOrderPage() {
         </div>
 
         {/* =====================================================
-            BOTTOM BUTTONS
+            BOTTOM CREATE BUTTON
         ===================================================== */}
-        <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-end gap-2 border-t border-slate-200 bg-white px-4 py-2">
-
-          
-
-          <button
-            type="button"
-            onClick={handleCreateVoucher}
-            className="rounded-md bg-[#171a1d] px-5 py-2.5 text-[12px] font-semibold text-white shadow-[0_8px_18px_rgba(0,0,0,0.18)] transition hover:bg-black"
-          >
-            Create Voucher
-          </button>
-
-        </div>
+        <button
+          type="button"
+          onClick={handleCreateVoucher}
+          className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:bg-green-700 md:bottom-6 md:right-6"
+        >
+          ✓ Create Sales Order
+        </button>
 
       </div>
     </div>

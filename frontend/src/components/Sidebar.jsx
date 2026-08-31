@@ -48,11 +48,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
                     return
                   }
 
-                  if (isDataBackupItem) {
-                    event.preventDefault()
-                    onPlanClick?.()
-                    return
-                  }
+                 
 
                   if (label === 'Dashboard') {
                     onDashboard(event)

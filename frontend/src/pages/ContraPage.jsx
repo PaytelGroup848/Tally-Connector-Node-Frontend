@@ -51,8 +51,8 @@ function ContraPage() {
               <div key={row.id} className="grid min-w-[760px] grid-cols-[1fr_1.4fr_1fr_40px] gap-2 border-t border-slate-200 bg-white p-2">
                 <select defaultValue="" className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100">
                   <option value="">Please select type</option>
-                  <option>Debit</option>
-                  <option>Credit</option>
+                  <option>By</option>
+                  <option>To</option>
                 </select>
                 <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" placeholder="Select Party Name" />
                 <input className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" placeholder="Amount" />

@@ -7,5 +7,5 @@ export const submenuItems = {
   Sales: [['Sales', '/sales'], ['Credit Note', '/creditNote'], ['Receipt', '/receipt'], ['Receivables', '/receivables'], ['Sales Order', '/salesorder'], ['Delivery Note', '/deliveryNote']],
   Purchase: [['Purchase', '/purchase'], ['Debit Note', '/debitNote'], ['Payment', '/payments'], ['Payables', '/payables'], ['Purchase Order', '/purchaseorder'], ['Receipt Note', '/receiptNote']],
   'Cash & Bank': [['Cash', '/cash-bank/cash'], ['Bank', '/cash-bank/bank']],
-  'My Entries': [['My Vouchers', '/my-vouchers'], ['My Quotations', '/my-quotations'], ['My eWay Bills', '/my-eway-bill'], ['My Invoices', '/my-invoices'], ['My Parties', '/my-parties'], ['My Stock Items', '/my-stock-items'], ['My Ledgers', '/my-ledgers'], ['Tracking Report', '/tracking-report']],
+  'My Entries': [['My Vouchers', '/my-vouchers'], ['My Quotations', '/my-quotations'], ['My eWay Bills', '/my-eway-bill'], ['My Invoices', '/my-invoices'], ['My Parties', '/my-parties'], ['My Stock Items', '/my-stock-items'],['Tracking Report', '/tracking-report']],
 }

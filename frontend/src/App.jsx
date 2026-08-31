@@ -38,6 +38,7 @@ import StockJournalPage from './pages/StockJournalPage'
 import MangaeReminderPage from './pages/ManageReminderPage'
 import VoucherPage from './pages/VoucherPage'
 import InactiveStocksPage from './pages/InactiveStocksPage'
+import DataBackupPage from './pages/DataBackupPage'
 import { getRouteFlags } from './routes/routeConfig'
 
 function App() {
@@ -195,7 +196,7 @@ function App() {
     if (flags.showItemsPage) return <ItemsPage />
     if (flags.showPartiesPage) return <PartiesPage />
     if (flags.showMyVouchersPage) return <MyVouchersPage />
-    if (flags.showManageReminderPage) return <MangaeReminderPage />
+    if (flags.showManageReminderPage) return <ManageReminderPage />
     if (flags.showEntryList) return <MyEntryListPage path={entryPath} />
     if (flags.showGstPage) return <GstSearchPage />
     if (flags.showConfigurationsPage) return <ConfigurationsPage />
@@ -211,6 +212,7 @@ function App() {
     if (flags.showPurchaseOrder) return <PurchaseOrderPage />
     if (flags.showPurchase) return <PurchasePage />
     if (flags.showStockJournal) return <StockJournalPage />
+    if (flags.showDataBackupPage) return <DataBackupPage />
     if (flags.showJournal) return <JournalPage />
     if (flags.showContra) return <ContraPage />
     if (flags.showDeliveryNote) return <DeliveryNotePage />
@@ -237,7 +239,7 @@ function App() {
       {showQuickCreate && (
         <div className="mb-3 w-[280px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
           <div className="flex items-center justify-between bg-[#101010] px-3 py-2 text-white">
-           
+
             <button type="button" aria-label="Close quick create" onClick={() => setShowQuickCreate(false)} className="text-lg pl-60 leading-none text-white/80 hover:text-white">×</button>
           </div>
           <div className="max-h-[360px] overflow-y-auto bg-slate-100 p-2">
