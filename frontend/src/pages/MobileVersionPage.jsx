@@ -106,32 +106,13 @@ function MobileVersionPage() {
         {/* Phone Input */}
         <div className="mx-auto mt-5 flex w-full max-w-[420px] items-center overflow-hidden rounded-xl border-[1.5px] border-slate-300 bg-white shadow-sm">
 
-          {/* Country Code Dropdown */}
-          <div className="flex w-[102px] shrink-0 items-center justify-between gap-1 border-r border-slate-300 bg-slate-50 px-2 py-3 text-sm font-medium text-slate-700">
-            <select
-              value={countryCode}
-              onChange={(e) => setCountryCode(e.target.value)}
-              className="w-full cursor-pointer appearance-none bg-transparent text-sm font-medium text-slate-700 outline-none"
-            >
-              {countryCodes.map((item, index) => (
-                <option
-                  key={`${item.code}-${item.country}-${index}`}
-                  value={item.code}
-                >
-                  {item.code} - {item.country}
-                </option>
-              ))}
-            </select>
+    
+          
 
-            <span className="pointer-events-none text-xs text-slate-400">
-              ▾
-            </span>
-          </div>
-
-          {/* Mobile Number */}
+          {/* Email address */}
           <input
-            type="text"
-            placeholder="Enter Mobile Number"
+            type="email"
+            placeholder="Enter email address"
             className="min-w-0 flex-1 border-0 bg-transparent px-3 py-4 text-[16px] text-slate-700 outline-none placeholder:text-slate-400"
           />
 
