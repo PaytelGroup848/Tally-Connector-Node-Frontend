@@ -1,4 +1,0 @@
-@reference "../tailwind.css";
-
-.list-page, .entry-list-page, .gst-page { --page-background: #f7f8fa; }
-@layer components { .list-page, .entry-list-page, .gst-page { @apply min-h-screen bg-slate-50 text-slate-800; } .list-page .list-card, .entry-list-page .entry-table-row, .gst-page .list-card { @apply border-slate-200 bg-white; } }

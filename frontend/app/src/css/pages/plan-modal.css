@@ -1,4 +1,0 @@
-@reference "../tailwind.css";
-
-.plan-modal { --modal-background: #fff; }
-@layer components { .plan-overlay { @apply fixed inset-0 z-20 grid place-items-center bg-black/50 p-4; } .plan-modal { @apply w-full max-w-lg overflow-hidden rounded-md bg-white shadow-xl; } }

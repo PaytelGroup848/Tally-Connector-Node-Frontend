@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+@layer base {
+  :root { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; color: #18212b; background: #f5f7f4; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-width: 320px; background: #f5f7f4; }
+  #root { min-height: 100vh; }
+}
+
+@theme {
+  --color-app-green: #2da44e;
+  --color-app-surface: #ffffff;
+  --color-app-muted: #f5f7f4;
+  --color-app-border: #dfe5df;
+}
+
+@layer components {
+  .page-title-row, .journal-title, .stock-title, .receipt-title, .config-heading, .list-summary, .parties-summary, .entry-heading, .reports-page > header, .gst-page > h1 {
+    @apply flex min-h-14 items-center gap-3 border-b border-slate-200 bg-white px-5;
+  }
+  .page-title-row h1, .journal-title h1, .stock-title h1, .receipt-title h1, .config-heading h1, .list-summary h1, .entry-heading h1, .reports-page h1, .gst-page > h1 {
+    @apply m-0 text-[17px] font-semibold tracking-tight text-slate-900;
+  }
+  .voucher-details, .journal-form, .receipt-form, .stock-header {
+    @apply mx-auto grid w-full max-w-6xl gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(24,33,43,0.04)];
+  }
+  .voucher-details { @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-4; }
+  .journal-form, .receipt-form { @apply grid-cols-1 md:grid-cols-2; }
+  .stock-header { @apply grid-cols-1 md:grid-cols-3; }
+  .voucher-details label, .journal-form label, .receipt-form label, .stock-header label {
+    @apply min-w-0 text-xs font-medium text-slate-600;
+  }
+  .voucher-details input, .voucher-details select, .journal-form input, .journal-form select, .receipt-form input, .receipt-form select, .receipt-form textarea, .stock-header input, .stock-header select {
+    @apply mt-1 min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100;
+  }
+  .items-card, .particulars-card, .config-card, .list-card, .report-card, .workspace-card, .stock-card {
+    @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(24,33,43,0.04)];
+  }
+  .items-card, .particulars-card, .stock-card, .config-card, .list-card, .report-card, .workspace-card {
+    @apply mx-auto w-[calc(100%-2rem)] max-w-6xl;
+  }
+  .items-scroll { @apply max-w-full overflow-x-auto; }
+  .item-row, .particular-row, .stock-row { @apply border-b border-slate-100; }
+  .item-row input, .item-row select, .particular-row input, .particular-row select, .stock-row input, .stock-row select { @apply rounded border border-slate-300 px-2 outline-none focus:border-green-500; }
+  .accordion-list, .totals-card { @apply rounded-md border border-slate-200 bg-white; }
+  .accordion { @apply flex w-full items-center justify-between border-b border-slate-100 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700; }
+  .create-voucher, .primary-action, .save-config, .eway-portal-button { @apply rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-200; }
+  .voucher-actions, .receipt-actions, .journal-actions, .stock-actions { @apply flex justify-end gap-3 p-4; }
+  .report-group { @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(24,33,43,0.04)]; }
+  .report-group h2 { @apply m-0 border-b border-slate-200 bg-slate-50 px-5 py-4 text-sm font-semibold text-slate-900; }
+  .report-group a { @apply block border-b border-slate-100 px-5 py-3.5 text-sm text-slate-600 no-underline transition hover:bg-green-50 hover:pl-6 hover:text-green-700; }
+  .plan-overlay { @apply fixed inset-0 z-50 grid place-items-center bg-black/50 p-4; }
+  .plan-modal { @apply w-full max-w-lg rounded-md bg-white shadow-xl; }
+  @media (max-width: 640px) { .voucher-details, .journal-form, .receipt-form, .stock-header { @apply p-3; } .items-card, .particulars-card, .stock-card, .config-card, .list-card, .report-card, .workspace-card { @apply w-[calc(100%-1.5rem)]; } }
+}
+
+@layer components {
+  .page-surface { @apply min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900; }
+  .page-toolbar { @apply flex min-h-14 flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-5 py-2.5; }
+  .page-card { @apply mx-5 mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(24,33,43,0.04)]; }
+  .page-tabs { @apply flex flex-wrap gap-1 border-b border-slate-200 bg-slate-50 p-1; }
+  .page-tabs button { @apply rounded-md px-3 py-2 text-xs text-slate-600 transition hover:bg-white hover:text-green-700; }
+  .section-page { @apply min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900; }
+  .section-heading { @apply mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4; }
+  .section-heading h1 { @apply m-0 text-lg font-semibold tracking-tight; }
+  .section-heading p { @apply m-1 text-xs text-slate-500; }
+  .section-page .workspace-card { @apply mx-auto mt-3 w-full max-w-6xl; }
+  .workspace-toolbar { @apply flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-4; }
+  .workspace-toolbar .search-box { @apply ml-auto flex h-9 w-[min(100%,240px)] items-center gap-2 rounded-lg border border-slate-300 px-3 text-slate-400; }
+  .workspace-toolbar input { @apply w-full bg-transparent text-xs outline-none; }
+  .outline-action { @apply rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-green-500 hover:text-green-700; }
+  .workspace-header { @apply min-w-[640px] bg-slate-100 px-5 py-3 text-xs uppercase tracking-wide text-slate-600; }
+  .workspace-empty { @apply flex min-h-56 flex-col items-center justify-center gap-2 border-t border-slate-100 px-5 text-center text-xs text-slate-500; }
+  .workspace-empty strong { @apply text-sm text-slate-800; }
+  .receipt-page, .journal-page, .stock-page, .stock-journal-page, .quotation-page { @apply min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900; }
+  .item-heading, .particulars-head { @apply bg-slate-100 text-xs uppercase tracking-wide text-slate-600; }
+  .add-row, .add-ledger { @apply border-0 bg-green-50 px-4 py-3 text-xs font-semibold text-green-700 transition hover:bg-green-100; }
+  .toggle-control { @apply relative h-7 w-12 cursor-pointer rounded-full border-0 bg-slate-300 p-0 transition-colors focus:outline-none focus:ring-2 focus:ring-green-200 focus:ring-offset-1; }
+  .toggle-control.is-on { @apply bg-green-600; }
+  .toggle-thumb { @apply absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform; }
+  .toggle-control.is-on .toggle-thumb { @apply translate-x-5; }
+  .radio-control { @apply relative mr-4 inline-flex min-h-8 cursor-pointer items-center justify-start border-0 bg-transparent p-0 pl-7 text-left text-xs font-normal text-slate-600 transition hover:text-green-700 focus:border-0 focus:outline-none focus:ring-0 focus:ring-offset-0; border-style: none; }
+  .radio-dot { @apply absolute left-0 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded-full border-0 bg-slate-200 transition-colors; }
+  .radio-control.is-selected .radio-dot { @apply bg-green-600; }
+  .radio-control.is-selected .radio-dot::after { content: ''; @apply h-2.5 w-2.5 rounded-full bg-white; }
+  .eway-page { @apply min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900; }
+  .gst-page > h1 { @apply min-h-9; }
+  .tracking-page .page-toolbar { @apply min-h-12 px-4; }
+  .tracking-page .page-card { @apply mt-2 min-h-[183px] rounded-lg p-5; }
+  .tracking-page .page-card > div:first-child { @apply mb-3; }
+  .entry-page .page-toolbar { @apply h-[59px] min-h-[59px] px-4; }
+  .entry-page .page-card { @apply mt-2 h-[185px] min-h-[185px] rounded-lg p-5; }
+  .entry-page .page-toolbar .page-tabs { @apply ml-auto gap-0 p-0; }
+  .entry-page .page-toolbar .page-tabs button { @apply h-8 px-3 py-1.5; }
+  .entry-page .page-toolbar .page-tabs button:first-child { @apply border border-slate-900; }
+  .entry-page .page-card > div:first-child { @apply mb-3; }
+  .entry-page .page-card > div:first-child input { @apply h-7 rounded border-slate-300; }
+  .entry-page .page-card > div:nth-child(2) { @apply bg-[#edf2f6]; }
+  .entry-page .page-card button.bg-slate-900 { @apply rounded-md bg-black; }
+  .reference-date { @apply ml-auto rounded-md border border-slate-300 bg-white px-3 py-2 text-xs; }
+  .reference-vouchers .list-summary { @apply min-h-[59px] px-4; }
+  .reference-vouchers .list-card { @apply mt-2 min-h-[185px] rounded-lg p-5; }
+  .reference-vouchers .list-toolbar { @apply mb-3 flex flex-wrap items-center gap-4; }
+  .reference-vouchers .list-toolbar input { @apply h-7 rounded border-slate-300; }
+  .reference-vouchers .voucher-type-filter { @apply ml-auto rounded-md border border-slate-300 bg-white px-4 py-2 text-xs text-slate-700 shadow-sm; }
+  .reference-reports { @apply min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900; }
+  .reference-reports > header { @apply flex min-h-16 items-center justify-between border-b border-slate-200 bg-white px-6; }
+  .reference-reports > header label { @apply flex h-8 w-[200px] items-center gap-2 rounded-md border border-slate-300 px-3 text-xs text-slate-500; }
+  .reference-reports > header input { @apply w-full bg-transparent outline-none; }
+  .reference-reports .reports-columns { @apply grid grid-cols-1 gap-0 lg:grid-cols-2; }
+  .reference-reports .reports-columns > div { @apply min-w-0; }
+  .reference-reports .report-group { @apply rounded-none border-0 shadow-none; }
+  .reference-reports .report-group h2 { @apply bg-[#eef0f2] px-5 py-3; }
+  .reference-reports .report-group a { @apply px-6 py-2.5; }
+  @media (max-width: 640px) { .page-surface, .section-page, .receipt-page, .journal-page, .stock-page, .stock-journal-page, .quotation-page { @apply p-3; } .page-toolbar { @apply px-3; } .page-card { @apply mx-3; } .section-heading { @apply px-4; } .workspace-toolbar .search-box { @apply ml-0 w-full; } }
+}
+
+@layer components {
+  .app-main { background: #f5f7f4; }
+  .app-sidebar { background: #18212b; }
+  .sidebar-brand { border-bottom: 1px solid #e7ebe7; }
+  .sidebar-link.is-active { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14); }
+  .sidebar-support { background: rgba(255,255,255,0.08); color: #a9b7b0; }
+  .app-header { box-shadow: 0 1px 0 rgba(24,33,43,0.02); }
+  .header-search:focus-within { border-color: #2da44e; box-shadow: 0 0 0 3px rgba(45,164,78,0.12); }
+  .panel { border-radius: 12px; box-shadow: 0 8px 30px rgba(24,33,43,0.04); }
+  .panel-header { min-height: 48px; padding: 0 18px; background: #fff; }
+  .metric, .attention-item { min-height: 74px; padding: 14px 18px; }
+  .list-page { min-height: calc(100vh - 72px); padding: 24px; background: #f5f7f4; }
+  .parties-summary { flex-wrap: wrap; gap: 12px; border: 0; border-radius: 12px 12px 0 0; padding: 16px 20px; }
+  .parties-summary > div:not(.list-filters) { min-width: 120px; color: #7a8580; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .parties-summary strong { display: block; margin-top: 3px; color: #18212b; font-size: 18px; letter-spacing: -0.02em; }
+  .list-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .list-filters button { border: 1px solid #dfe5df; border-radius: 999px; background: #fff; padding: 7px 12px; color: #52615a; font-size: 11px; }
+  .list-filters button:first-child { border-color: #b8dfc0; background: #eaf7ed; color: #187537; }
+  .list-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid #edf1ed; }
+  .list-toolbar label { flex: 1 1 180px; }
+  .list-toolbar input { width: 100%; min-height: 36px; border: 1px solid #dfe5df; border-radius: 8px; padding: 0 11px; outline: none; }
+  .list-toolbar input:focus { border-color: #2da44e; box-shadow: 0 0 0 3px rgba(45,164,78,0.12); }
+  .list-toolbar button { min-height: 36px; border: 1px solid #dfe5df; border-radius: 8px; background: #fff; padding: 0 12px; color: #52615a; font-size: 11px; }
+  .list-toolbar .dark-button { border-color: #18212b; background: #18212b; color: #fff; }
+  .party-header, .party-row { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(110px, 1fr)) minmax(90px, .8fr); min-width: 820px; align-items: center; gap: 12px; padding: 0 16px; }
+  .party-header { min-height: 42px; background: #f7faf7; color: #748179; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+  .party-row { min-height: 50px; border-top: 1px solid #edf1ed; color: #52615a; font-size: 12px; }
+  .party-row > span:first-child { color: #18212b; font-weight: 600; }
+  .party-row:hover { background: #fbfefb; }
+  .list-card footer { display: flex; justify-content: space-between; padding: 14px 16px; color: #7a8580; font-size: 11px; }
+  @media (max-width: 640px) { .list-page { padding: 12px; } .parties-summary { padding: 14px; } .list-filters { width: 100%; margin-left: 0; } .list-toolbar > span { order: 3; width: 100%; } .party-header, .party-row { padding: 0 12px; } .list-card footer { min-width: 820px; } }
+}
+
+@layer components {
+  .list-page, .entry-list-page, .gst-page { @apply min-h-screen bg-slate-50 text-slate-800; }
+  .list-page .list-card, .entry-list-page .entry-table-row, .gst-page .list-card { @apply border-slate-200 bg-white; }
+
+  .reports-page, .report-page { @apply min-h-screen bg-slate-50 text-slate-800; }
+  .reports-page input, .report-page input { color-scheme: light; }
+  .reports-page .report-group, .report-page .report-card { @apply overflow-hidden rounded-lg border border-slate-200 bg-white; }
+  .report-filters button { @apply rounded-md border border-transparent bg-transparent px-3 py-2 text-slate-900 transition hover:bg-white; }
+  .report-filters .filter-active { @apply border-slate-900 bg-white shadow-sm; }
+  .report-tabs button { @apply rounded-md bg-slate-900 px-3 py-2 text-[10px] font-bold text-white; }
+  .report-tabs i { @apply ml-1 inline-block h-3 w-6 rounded-full bg-green-500 align-middle; }
+  .receivables-page .report-tabs { min-height: 51px; }
+  .receivables-page .report-tabs b { @apply self-stretch border-b-2 border-slate-900 pt-4; }
+  .receivables-page .report-tabs button { @apply rounded-md bg-slate-900 px-3 py-2 text-[10px] font-bold text-white; }
+  .receivables-page .report-filters button { @apply rounded-md px-3 py-2; }
+  .receivables-page .report-filters .filter-active { @apply border border-slate-900 bg-white; }
+  .receivables-page .report-search:focus-within { @apply border-green-600 ring-2 ring-green-100; }
+  .report-table .report-header b:last-child, .report-table .report-row span:last-child { @apply text-right; }
+
+  .section-page { @apply min-h-screen bg-white text-slate-800; }
+  .section-page .workspace-card { @apply overflow-hidden rounded-md border border-slate-200 bg-white; }
+
+  @media (max-width: 640px) {
+    .report-summary { @apply items-start; }
+    .report-filters { @apply order-3 w-full; }
+    .date-filter { @apply ml-0; }
+    .report-card { @apply mx-3; }
+  }
+}
