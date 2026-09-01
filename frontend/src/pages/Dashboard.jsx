@@ -103,10 +103,9 @@ function DashboardPage({
             <a
               key={label}
               href={href}
-              className={`relative flex min-h-[51px] flex-col gap-1 border-b border-[#f0f1f2] px-[13px] py-[8px] text-left ${
+              className={`relative flex min-h-[51px] cursor-pointer flex-col gap-1 border-b border-[#f0f1f2] px-[13px] py-[8px] text-left text-inherit no-underline ${
                 index % 2 === 0 ? 'border-r border-[#f0f1f2]' : ''
               }`}
-              style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
             >
               <span className="text-[10px] font-semibold text-[#8a8d8f]">{label}</span>
               <b className="text-[12px]">{value}</b>
@@ -132,10 +131,9 @@ function DashboardPage({
             <a
               key={label}
               href={href}
-              className={`relative flex min-h-[51px] flex-col gap-1 border-b border-[#f0f1f2] px-[13px] py-[8px] text-left ${
+              className={`relative flex min-h-[51px] cursor-pointer flex-col gap-1 border-b border-[#f0f1f2] px-[13px] py-[8px] text-left text-inherit no-underline ${
                 index % 2 === 0 ? 'border-r border-[#f0f1f2]' : ''
               }`}
-              style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
             >
               <span className="text-[10px] font-semibold text-[#8a8d8f]">{label}</span>
               <b className="text-[12px]">{value}</b>
@@ -237,17 +235,15 @@ function DashboardPage({
             </span>
           </div>
 
-          <div className="flex w-full items-center justify-center py-2" style={{ minHeight: '220px' }}>
+          <div className="flex min-h-[220px] w-full items-center justify-center py-2">
             <div
-              className="relative flex items-center justify-center rounded-full"
+              className="relative flex h-[200px] w-[200px] items-center justify-center rounded-full"
               style={{
-                width: '200px',
-                height: '200px',
                 background: `conic-gradient(#63b6ee ${receivableProgress}%, #e5e7eb ${receivableProgress}% 100%)`,
                 transition: 'background 0.05s linear',
               }}
             >
-              <div className="rounded-full bg-white" style={{ width: '138px', height: '138px' }} />
+              <div className="h-[138px] w-[138px] rounded-full bg-white" />
             </div>
           </div>
 

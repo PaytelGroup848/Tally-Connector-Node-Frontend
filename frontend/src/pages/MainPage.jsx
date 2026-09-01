@@ -1,45 +1,46 @@
 import { useEffect, useRef, useState } from 'react'
-import AppHeader from './components/AppHeader'
-import Sidebar from './components/Sidebar'
-import PlanModal from './pages/PlanModal'
-import DashboardPage from './pages/Dashboard'
-import EwayPage from './pages/EwayPage'
-import ProfilePage from './pages/ProfilePage'
-import AddNewPage from './pages/AddNewPage'
-import AddUserPage from './pages/AddUserPage'
-import AllUsersPage from './pages/AllUsersPage'
-import ContraPage from './pages/ContraPage'
-import DownloadInvoicePage from './pages/DownloadInvoicePage'
-import CreditNotePage from './pages/CreditNotePage'
-import InactiveCustomersPage from './pages/InactiveCustomersPage'
-import ConfigurationsPage from './pages/ConfigurationsPage'
-import DebitNotePage from './pages/DebitNotePage'
-import DeliveryNotePage from './pages/DeliveryNotePage'
-import JournalPage from './pages/JournalPage'
-import GstSearchPage from './pages/GstSearchPage'
-import ItemsPage from './pages/ItemsPage'
-import CreateItemPage from './pages/CreateItemPage'
-import CreatePartyPage from './pages/CreatePartyPage'
-import MyEntryListPage from './pages/MyEntryListPage'
-import MyVouchersPage from './pages/MyVouchersPage'
-import PartiesPage from './pages/PartiesPage'
-import MobileVersionPage from './pages/MobileVersionPage'
-import PaymentPage from './pages/PaymentPage'
-import PurchasePage from './pages/PurchasePage'
-import PurchaseOrderPage from './pages/PurchaseOrderPage'
-import PhysicalStockPage from './pages/PhysicalStockPage'
-import ReportListPage from './pages/ReportListPage'
-import ReportsPage from './pages/ReportsPage'
-import ReceiptPage from './pages/ReceiptPage'
-import ReceiptNotePage from './pages/ReceiptNotePage'
-import SectionPage from './pages/SectionPage'
-import SalesOrderPage from './pages/SalesOrderPage'
-import StockJournalPage from './pages/StockJournalPage'
-import MangaeReminderPage from './pages/ManageReminderPage'
-import VoucherPage from './pages/VoucherPage'
-import InactiveStocksPage from './pages/InactiveStocksPage'
-import DataBackupPage from './pages/DataBackupPage'
-import { getRouteFlags } from './routes/routeConfig'
+import AppHeader from '../components/AppHeader'
+import Sidebar from '../components/Sidebar'
+import useAuthStore from '../store/authStore'
+import DashboardPage from './Dashboard'
+import EwayPage from './EwayPage'
+import ProfilePage from './ProfilePage'
+import AddNewPage from './AddNewPage'
+import AddUserPage from './AddUserPage'
+import AllUsersPage from './AllUsersPage'
+import ContraPage from './ContraPage'
+import DownloadInvoicePage from './DownloadInvoicePage'
+import CreditNotePage from './CreditNotePage'
+import InactiveCustomersPage from './InactiveCustomersPage'
+import ConfigurationsPage from './ConfigurationsPage'
+import DebitNotePage from './DebitNotePage'
+import DeliveryNotePage from './DeliveryNotePage'
+import JournalPage from './JournalPage'
+import GstSearchPage from './GstSearchPage'
+import ItemsPage from './ItemsPage'
+import CreateItemPage from './CreateItemPage'
+import CreatePartyPage from './CreatePartyPage'
+import MyEntryListPage from './MyEntryListPage'
+import MyVouchersPage from './MyVouchersPage'
+import PartiesPage from './PartiesPage'
+import MobileVersionPage from './MobileVersionPage'
+import PaymentPage from './PaymentPage'
+import PurchasePage from './PurchasePage'
+import PurchaseOrderPage from './PurchaseOrderPage'
+import PhysicalStockPage from './PhysicalStockPage'
+import ReportListPage from './ReportListPage'
+import ReportsPage from './ReportsPage'
+import ReceiptPage from './ReceiptPage'
+import ReceiptNotePage from './ReceiptNotePage'
+import SectionPage from './SectionPage'
+import SalesOrderPage from './SalesOrderPage'
+import StockJournalPage from './StockJournalPage'
+import MangaeReminderPage from './ManageReminderPage'
+import VoucherPage from './VoucherPage'
+import InactiveStocksPage from './InactiveStocksPage'
+import DataBackupPage from './DataBackupPage'
+import PlansPage from './PlansPage'
+import { getRouteFlags } from '../routes/routeConfig'
 
 function App() {
   const [activeTab, setActiveTab] = useState('Customers')
@@ -63,7 +64,7 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isCompact, setIsCompact] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
   const [showQuickCreate, setShowQuickCreate] = useState(false)
-  const [showPlanModal, setShowPlanModal] = useState(false)
+  const logout = useAuthStore((state) => state.logout)
 
   const quickCreateGroups = [
     {
@@ -179,6 +180,7 @@ function App() {
 
   const renderPage = () => {
     if (currentPath === '/profile') return <ProfilePage />
+    if (flags.showPlansPage) return <PlansPage />
     if (flags.showMobileVersionPage) return <MobileVersionPage />
     if (flags.showDashboard) return <DashboardPage activeTab={activeTab} setActiveTab={setActiveTab} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} dayBookDate={dayBookDate} setDayBookDate={setDayBookDate} openCustomDatePicker={openCustomDatePicker} customDateInput={customDateInput} onMetricClick={(label) => {
       const routes = {
@@ -230,10 +232,8 @@ function App() {
   }
 
   return <div className="app-shell relative min-h-screen bg-slate-100 text-slate-900">
-    <Sidebar collapsed={sidebarCollapsed} isCompact={isCompact} setSidebarCollapsed={setSidebarCollapsed} currentPath={currentPath} showDashboard={flags.showDashboard} expandedNav={expandedNav} setExpandedNav={setExpandedNav} onDashboard={openDashboard} onQuotation={openQuotation} onNavigate={(path) => navigateTo(path)} onPlanClick={() => setShowPlanModal(true)} />
-    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onSelectCompany={(company) => { setSelectedCompany(company); setShowCompanyMenu(false) }} />{renderPage()}</main>
-
-    {showPlanModal && <PlanModal onClose={() => setShowPlanModal(false)} />}
+    <Sidebar collapsed={sidebarCollapsed} isCompact={isCompact} setSidebarCollapsed={setSidebarCollapsed} currentPath={currentPath} showDashboard={flags.showDashboard} expandedNav={expandedNav} setExpandedNav={setExpandedNav} onDashboard={openDashboard} onQuotation={openQuotation} onNavigate={(path) => navigateTo(path)} />
+    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onSelectCompany={(company) => { setSelectedCompany(company); setShowCompanyMenu(false) }} onLogout={async () => { await logout(); window.location.replace('/') }} />{renderPage()}</main>
 
     <div className="fixed bottom-5 right-5 z-40">
       {showQuickCreate && (
