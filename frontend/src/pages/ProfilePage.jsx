@@ -9,12 +9,10 @@ import {
   ListChecks,
 } from 'lucide-react'
 import useAuthStore from '../store/authStore'
-
-const API_BASE_URL = (
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.BaseUrl ||
-  'https://connector.cloudata.in/api'
-).replace(/\/$/, '')
+import {
+  extractOrganizationProfile,
+  fetchProfile,
+} from '../services/profileApi'
 
 const ProfilePage = () => {
   const user = useAuthStore(
@@ -26,64 +24,37 @@ const ProfilePage = () => {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    let mounted = true
+
+    const loadProfile = async () => {
       try {
         setLoading(true)
         setError('')
 
-        const token =
-          localStorage.getItem('accessToken')
+        const result = await fetchProfile(
+          useAuthStore.getState().accessToken,
+        )
 
-        if (!token) {
-          throw new Error(
-            'Access token not found',
+        if (mounted) {
+          setProfile(extractOrganizationProfile(result))
+        }
+      } catch (profileError) {
+        if (mounted) {
+          setError(
+            profileError?.message ||
+              'Unable to load profile',
           )
         }
-
-        const response = await fetch(
-          `${API_BASE_URL}/organizations/me`,
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        )
-
-        const result = await response.json()
-
-        console.log(
-          'ORGANIZATION API RESPONSE:',
-          result,
-        )
-
-        if (!response.ok) {
-          throw new Error(
-            result?.message ||
-              'Failed to fetch profile',
-          )
-        }
-
-        setProfile(
-          result?.data || result,
-        )
-      } catch (err) {
-        console.error(
-          'PROFILE API ERROR:',
-          err,
-        )
-
-        setError(
-          err.message ||
-            'Unable to load profile',
-        )
       } finally {
-        setLoading(false)
+        if (mounted) setLoading(false)
       }
     }
 
-    fetchProfile()
+    loadProfile()
+
+    return () => {
+      mounted = false
+    }
   }, [])
 
   /*

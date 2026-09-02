@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import useAuthStore from '../store/authStore'
-import { fetchProfile } from '../services/profileApi'
+import {
+  extractOrganizationContext,
+  fetchProfile,
+} from '../services/profileApi'
 
 export function useCurrentUser() {
   const accessToken = useAuthStore(
@@ -35,6 +38,8 @@ export function useCurrentUser() {
         setIsLoading(true)
 
         const response = await fetchProfile(accessToken)
+        const organizationContext =
+          extractOrganizationContext(response)
         const currentUser =
           response?.user ||
           response?.data?.user ||
@@ -52,13 +57,17 @@ export function useCurrentUser() {
 
         if (!mounted) return
 
-        const organizationProfile =
-          response?.data || response
         const subscription =
-          organizationProfile?.subscription
+          organizationContext.subscription
 
         setUser({
           ...currentUser,
+          organization:
+            organizationContext.organization,
+          organizationId:
+            organizationContext.organizationId,
+          owner: organizationContext.owner,
+          plan: organizationContext.plan,
           ...(subscription
             ? {
                 subscription,

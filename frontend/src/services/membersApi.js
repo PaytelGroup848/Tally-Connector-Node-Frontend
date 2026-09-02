@@ -4,9 +4,7 @@ const API_BASE_URL = (
   'https://connector.cloudata.in/api'
 ).replace(/\/$/, '')
 
-function getAuthHeaders() {
-  const accessToken = localStorage.getItem('accessToken')
-
+function getAuthHeaders(accessToken) {
   if (!accessToken) {
     throw new Error('Access token not found')
   }
@@ -17,12 +15,12 @@ function getAuthHeaders() {
   }
 }
 
-async function request(path, options = {}) {
+async function request(path, accessToken, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
-      ...getAuthHeaders(),
       ...options.headers,
+      ...getAuthHeaders(accessToken),
     },
   })
 
@@ -35,27 +33,47 @@ async function request(path, options = {}) {
   return data
 }
 
-export function fetchMembers() {
-  return request('/members', { method: 'GET' })
+export function fetchMembers(accessToken) {
+  return request('/members', accessToken, { method: 'GET' })
 }
 
-export function updateMemberRole({ id, role }) {
-  return request(`/members/${id}/role`, {
+export function updateMemberRole({ accessToken, id, role }) {
+  return request(`/members/${id}/role`, accessToken, {
     method: 'PUT',
     body: JSON.stringify({ role }),
   })
 }
 
-export function inviteMember({ email, role }) {
-  return request('/members/invite', {
+export function deleteMember(accessToken, id) {
+  return request(`/members/${id}`, accessToken, {
+    method: 'DELETE',
+  })
+}
+
+export function inviteMember({ accessToken, email, role }) {
+  return request('/members/invite', accessToken, {
     method: 'POST',
     body: JSON.stringify({ email, role }),
   })
 }
 
 export function normalizeMember(member, index) {
+  const id =
+    member?.id ||
+    member?._id ||
+    member?.memberId ||
+    member?.member_id ||
+    member?.userId ||
+    member?.user_id ||
+    member?.member?.id ||
+    member?.member?._id ||
+    member?.user?.id ||
+    member?.user?._id ||
+    `member-${index}`
+
   return {
-    id: member?.id || member?._id || `member-${index}`,
+    id,
+    hasPersistedId: !String(id).startsWith('member-'),
     email: member?.email || '-',
     role: member?.role || member?.type || '',
     status: member?.status || '-',

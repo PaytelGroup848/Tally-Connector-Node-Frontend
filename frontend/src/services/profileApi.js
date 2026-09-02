@@ -46,3 +46,37 @@ export async function fetchProfile(accessToken) {
 
   return result
 }
+
+export function extractOrganizationProfile(response) {
+  return response?.data || response || {}
+}
+
+export function extractOrganizationContext(response) {
+  const profile = extractOrganizationProfile(response)
+  const organization = profile?.organization || null
+  const subscription =
+    profile?.subscription ||
+    organization?.subscription ||
+    null
+
+  return {
+    profile,
+    organization,
+    owner:
+      profile?.owner ||
+      organization?.owner ||
+      profile?.organizationOwner ||
+      null,
+    subscription,
+    plan:
+      subscription?.plan ||
+      profile?.plan ||
+      organization?.plan ||
+      null,
+    organizationId:
+      profile?.organizationId ||
+      organization?.id ||
+      organization?._id ||
+      null,
+  }
+}
