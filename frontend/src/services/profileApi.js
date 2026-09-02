@@ -4,6 +4,14 @@ const API_BASE_URL = (
   'https://connector.cloudata.in/api'
 ).replace(/\/$/, '')
 
+export class ProfileApiError extends Error {
+  constructor(message, status) {
+    super(message)
+    this.name = 'ProfileApiError'
+    this.status = status
+  }
+}
+
 function buildUrl(path) {
   const cleanPath = path.startsWith('/') ? path : `/${path}`
   return `${API_BASE_URL}${cleanPath}`
@@ -31,10 +39,11 @@ export async function fetchProfile(accessToken) {
   }
 
   if (!response.ok) {
-    throw new Error(
+    throw new ProfileApiError(
       result?.message ||
         result?.error ||
         `Failed to fetch profile (${response.status})`,
+      response.status,
     )
   }
 
@@ -48,7 +57,9 @@ export async function fetchProfile(accessToken) {
 }
 
 export function extractOrganizationProfile(response) {
-  return response?.data || response || {}
+  const data = response?.data || response || {}
+
+  return data?.data || data
 }
 
 export function extractOrganizationContext(response) {
@@ -68,6 +79,15 @@ export function extractOrganizationContext(response) {
       profile?.organizationOwner ||
       null,
     subscription,
+    role: profile?.role || profile?.member?.role || null,
+    permissions: Array.isArray(profile?.permissions)
+      ? profile.permissions
+      : [],
+    isMember: Boolean(
+      profile?.isMember === true ||
+      profile?.member ||
+      profile?.role && profile.role !== 'OWNER',
+    ),
     plan:
       subscription?.plan ||
       profile?.plan ||

@@ -15,6 +15,10 @@ import {
 } from '../services/profileApi'
 
 const ProfilePage = () => {
+  const accessToken = useAuthStore(
+    (state) => state.accessToken,
+  )
+
   const user = useAuthStore(
     (state) => state.user,
   )
@@ -32,7 +36,7 @@ const ProfilePage = () => {
         setError('')
 
         const result = await fetchProfile(
-          useAuthStore.getState().accessToken,
+          accessToken,
         )
 
         if (mounted) {
@@ -55,7 +59,7 @@ const ProfilePage = () => {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [accessToken])
 
   /*
    * Format date as DD/MM/YYYY

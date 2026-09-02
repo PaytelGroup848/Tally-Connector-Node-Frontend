@@ -40,11 +40,12 @@ export function useCurrentUser() {
         const response = await fetchProfile(accessToken)
         const organizationContext =
           extractOrganizationContext(response)
-        const currentUser =
+        const authenticatedUser =
           response?.user ||
           response?.data?.user ||
-          response?.data ||
-          response
+          {}
+        const currentUser =
+          organizationContext.profile
 
         if (
           !currentUser ||
@@ -62,12 +63,16 @@ export function useCurrentUser() {
 
         setUser({
           ...currentUser,
+          ...authenticatedUser,
           organization:
             organizationContext.organization,
           organizationId:
             organizationContext.organizationId,
           owner: organizationContext.owner,
           plan: organizationContext.plan,
+          role: organizationContext.role,
+          permissions: organizationContext.permissions,
+          isMember: organizationContext.isMember,
           ...(subscription
             ? {
                 subscription,
@@ -81,6 +86,22 @@ export function useCurrentUser() {
         })
         setIsLoading(false)
       } catch (error) {
+        if (error?.status === 404) {
+          if (mounted) {
+            setUser({
+              ...(useAuthStore.getState().user || {}),
+              hasOrganization: false,
+              activeSubscription: false,
+              subscriptionActive: false,
+              subscription: null,
+              plan: null,
+            })
+            setIsLoading(false)
+          }
+
+          return
+        }
+
         console.error(
           'CURRENT USER ERROR:',
           error,
