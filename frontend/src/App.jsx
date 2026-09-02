@@ -1,39 +1,136 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import MainPage from './pages/MainPage'
 import LoginPage from './pages/LoginPage'
 import PlansPage from './pages/PlansPage'
+import ProfilePage from './pages/ProfilePage'
 import useAuthStore from './store/authStore'
 import { useCurrentUser } from './hooks/useCurrentUser'
 
 function App() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const user = useAuthStore((state) => state.user)
-  const { isLoading } = useCurrentUser()
-
-  const hasActiveSubscription = Boolean(
-    user?.activeSubscription === true ||
-    user?.subscriptionActive === true ||
-    user?.isActiveSubscription === true ||
-    user?.subscriptionStatus === 'active' ||
-    user?.status === 'active'
+  const [currentPath, setCurrentPath] = useState(
+    () => window.location.pathname,
   )
+
+  const isAuthenticated = useAuthStore(
+    (state) => state.isAuthenticated,
+  )
+
+  const user = useAuthStore(
+    (state) => state.user,
+  )
+
+  const { isLoading } =
+    useCurrentUser()
+
+  useEffect(() => {
+    const handlePathChange = () => {
+      setCurrentPath(window.location.pathname)
+    }
+
+    window.addEventListener(
+      'popstate',
+      handlePathChange,
+    )
+
+    return () => {
+      window.removeEventListener(
+        'popstate',
+        handlePathChange,
+      )
+    }
+  }, [])
+
+  /*
+   * This supports subscription information
+   * if your verify-token API already returns it.
+   *
+   * The ProfilePage independently fetches
+   * /organizations/me for the authoritative
+   * organization subscription data.
+   */
+  const subscriptionStatus =
+    user?.subscriptionStatus ||
+    user?.status ||
+    user?.subscription?.status ||
+    user?.plan?.status ||
+    ''
+
+  const hasActiveSubscription =
+    Boolean(
+      user?.paymentVerified === true ||
+        user?.activeSubscription === true ||
+        user?.subscriptionActive === true ||
+        user?.isActiveSubscription === true ||
+        user?.isSubscribed === true ||
+        user?.subscription?.active === true ||
+        user?.plan?.active === true ||
+        String(subscriptionStatus).toLowerCase() ===
+          'active' ||
+        String(subscriptionStatus).toLowerCase() ===
+          'paid' ||
+        String(subscriptionStatus).toLowerCase() ===
+          'success',
+    )
 
   useEffect(() => {
     if (!isAuthenticated) return
 
-    const currentPath = window.location.pathname
-    const targetPath = hasActiveSubscription ? '/dashboard' : '/plans'
+    if (isLoading) return
 
-    if (currentPath === '/' || (currentPath !== '/plans' && !hasActiveSubscription)) {
-      window.history.replaceState({}, '', targetPath)
+    /*
+     * Root redirect
+     */
+    if (currentPath === '/') {
+      window.history.replaceState(
+        {},
+        '',
+        hasActiveSubscription
+          ? '/dashboard'
+          : '/plans',
+      )
+
+      window.dispatchEvent(
+        new PopStateEvent('popstate'),
+      )
+
       return
     }
 
-    if (hasActiveSubscription && currentPath === '/plans') {
-      window.history.replaceState({}, '', '/dashboard')
-    }
-  }, [isAuthenticated, hasActiveSubscription])
+    if (hasActiveSubscription) {
+      if (currentPath === '/plans') {
+        window.history.replaceState(
+          {},
+          '',
+          '/dashboard',
+        )
+        window.dispatchEvent(
+          new PopStateEvent('popstate'),
+        )
+      }
 
+      return
+    }
+
+    if (currentPath !== '/plans') {
+      window.history.replaceState(
+        {},
+        '',
+        '/plans',
+      )
+      window.dispatchEvent(
+        new PopStateEvent('popstate'),
+      )
+    }
+  }, [
+    isAuthenticated,
+    isLoading,
+    currentPath,
+    hasActiveSubscription,
+  ])
+
+  /*
+   * Authentication loading
+   */
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -42,6 +139,9 @@ function App() {
     )
   }
 
+  /*
+   * Not authenticated
+   */
   if (!isAuthenticated) {
     return <LoginPage />
   }
@@ -50,7 +150,17 @@ function App() {
     return <PlansPage />
   }
 
+  /*
+   * Profile
+   */
+  if (currentPath === '/profile') {
+    return <ProfilePage />
+  }
+
+  /*
+   * Dashboard / Main
+   */
   return <MainPage />
 }
 
-export default App;
+export default App

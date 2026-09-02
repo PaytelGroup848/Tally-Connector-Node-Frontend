@@ -57,8 +57,6 @@ const LoginPage = () => {
           ...(data?.user || {}),
         },
       })
-
-      window.location.replace('/dashboard')
     } catch (error) {
       setMessage(error.message || 'OTP verification failed. Please try again.')
     } finally {

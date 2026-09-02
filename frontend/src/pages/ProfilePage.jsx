@@ -1,101 +1,452 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import {
+  User,
+  CalendarDays,
+  CreditCard,
+  ShieldCheck,
+  CheckCircle2,
+  XCircle,
+  ListChecks,
+} from 'lucide-react'
+import useAuthStore from '../store/authStore'
 
-function ProfilePage() {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    mobile: '7011022899',
-    postalCode: '',
-  })
-  const [mobileEditable, setMobileEditable] = useState(false)
-  const [message, setMessage] = useState('')
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.BaseUrl ||
+  'https://connector.cloudata.in/api'
+).replace(/\/$/, '')
 
-  const handleChange = (field, value) => {
-    setFormData((current) => ({ ...current, [field]: value }))
+const ProfilePage = () => {
+  const user = useAuthStore(
+    (state) => state.user,
+  )
+
+  const [profile, setProfile] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true)
+        setError('')
+
+        const token =
+          localStorage.getItem('accessToken')
+
+        if (!token) {
+          throw new Error(
+            'Access token not found',
+          )
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/organizations/me`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+
+        const result = await response.json()
+
+        console.log(
+          'ORGANIZATION API RESPONSE:',
+          result,
+        )
+
+        if (!response.ok) {
+          throw new Error(
+            result?.message ||
+              'Failed to fetch profile',
+          )
+        }
+
+        setProfile(
+          result?.data || result,
+        )
+      } catch (err) {
+        console.error(
+          'PROFILE API ERROR:',
+          err,
+        )
+
+        setError(
+          err.message ||
+            'Unable to load profile',
+        )
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [])
+
+  /*
+   * Format date as DD/MM/YYYY
+   */
+  const formatDate = (date) => {
+    if (!date) return '-'
+
+    const d = new Date(date)
+
+    if (Number.isNaN(d.getTime())) {
+      return '-'
+    }
+
+    const day = String(
+      d.getDate(),
+    ).padStart(2, '0')
+
+    const month = String(
+      d.getMonth() + 1,
+    ).padStart(2, '0')
+
+    const year = d.getFullYear()
+
+    return `${day}/${month}/${year}`
   }
 
-  const handleUpdate = () => {
-    setMessage('Profile updated successfully.')
+  /*
+   * Calculate subscription period
+   *
+   * Formula:
+   * Expiry Date - Purchase Date
+   *
+   * Result:
+   * 30 Days
+   * 365 Days
+   * etc.
+   */
+  const calculateSubscriptionPeriod = (
+    purchaseDate,
+    expiryDate,
+  ) => {
+    if (!purchaseDate || !expiryDate) {
+      return '-'
+    }
+
+    const start = new Date(purchaseDate)
+    const end = new Date(expiryDate)
+
+    if (
+      Number.isNaN(start.getTime()) ||
+      Number.isNaN(end.getTime())
+    ) {
+      return '-'
+    }
+
+    const differenceInMilliseconds =
+      end.getTime() - start.getTime()
+
+    const differenceInDays = Math.ceil(
+      differenceInMilliseconds /
+        (1000 * 60 * 60 * 24),
+    )
+
+    if (differenceInDays < 0) {
+      return 'Expired'
+    }
+
+    return `${differenceInDays} Days`
   }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[350px] items-center justify-center">
+        <p className="text-sm text-slate-500">
+          Loading profile...
+        </p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
+        <div className="mx-auto max-w-4xl">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+            {error}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
+        <div className="mx-auto max-w-4xl">
+          <div className="rounded-xl border border-slate-200 bg-white p-6">
+            No profile data found.
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const subscription =
+    profile?.subscription
+
+  const plan =
+    subscription?.plan
+
+  /*
+   * Active subscription
+   */
+  const isActive =
+    subscription?.status === 'ACTIVE' &&
+    subscription?.active === true
+
+  /*
+   * Email from authStore
+   */
+  const email =
+    user?.email ||
+    user?.user?.email ||
+    '-'
+
+  /*
+   * Dates
+   */
+  const purchaseDate =
+    subscription?.fromDate
+
+  const expiryDate =
+    subscription?.toDate
+
+  /*
+   * Subscription period
+   */
+  const subscriptionPeriod =
+    calculateSubscriptionPeriod(
+      purchaseDate,
+      expiryDate,
+    )
+
+  /*
+   * Plan features
+   *
+   * API:
+   * subscription.plan.features
+   */
+  const features =
+    plan?.features || []
 
   return (
-    <div className="min-h-[calc(100vh-60px)] bg-[#f3f3f3] p-4 md:p-6">
-      <div className="mx-auto max-w-[1100px] rounded-[12px] border border-slate-200 bg-[#f5f5f5] p-4 md:p-6">
-        <h1 className="mb-6 text-[28px] font-bold text-slate-900 md:text-[38px]">My Profile</h1>
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
+      <div className="mx-auto max-w-4xl">
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-[15px] font-semibold text-slate-700">
-              Full Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.fullName}
-              placeholder="Full Name"
-              onChange={(event) => handleChange('fullName', event.target.value)}
-              className="w-full rounded-[8px] border border-slate-300 bg-white px-3 py-3 text-[15px] text-slate-700 outline-none placeholder:text-slate-400"
-            />
-          </div>
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-slate-900">
+            Profile
+          </h1>
 
-          <div>
-            <label className="mb-2 block text-[15px] font-semibold text-slate-700">
-              Email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              placeholder="Email"
-              onChange={(event) => handleChange('email', event.target.value)}
-              className="w-full rounded-[8px] border border-slate-300 bg-white px-3 py-3 text-[15px] text-slate-700 outline-none placeholder:text-slate-400"
-            />
-          </div>
+          <p className="mt-1 text-sm text-slate-500">
+            Your account and subscription details
+          </p>
+        </div>
 
-          <div className="md:col-span-1">
-            <label className="mb-2 block text-[15px] font-semibold text-slate-700">
-              Mobile Number <span className="text-red-500">*</span>
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="text"
-                value={formData.mobile}
-                placeholder="Mobile Number"
-                readOnly={!mobileEditable}
-                onChange={(event) => handleChange('mobile', event.target.value)}
-                className="w-full rounded-[8px] border border-slate-300 bg-white px-3 py-3 text-[15px] text-slate-700 outline-none placeholder:text-slate-400 disabled:bg-slate-100"
-              />
-              <button
-                type="button"
-                onClick={() => setMobileEditable((current) => !current)}
-                className="whitespace-nowrap rounded-[8px] border border-slate-300 bg-white px-3 py-3 text-[14px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                ✎ {mobileEditable ? 'Done' : 'Change Number'}
-              </button>
+        {/* Main Card */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+          {/* Green Header */}
+          <div className="bg-gradient-to-r from-green-600 to-emerald-500 p-6">
+            <div className="flex items-center gap-4">
+
+              {/* User Icon */}
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-green-600 shadow">
+                <User size={30} />
+              </div>
+
+              {/* Header Text */}
+              <div>
+                <h2 className="text-xl font-bold text-white sm:text-2xl">
+                  Owner Profile
+                </h2>
+
+                <p className="mt-1 text-sm text-green-50">
+                  Account and subscription information
+                </p>
+              </div>
+
             </div>
           </div>
 
-          <div>
-            <label className="mb-2 block text-[15px] font-semibold text-slate-700">
-              Postal Code <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.postalCode}
-              placeholder="Postal Code"
-              onChange={(event) => handleChange('postalCode', event.target.value)}
-              className="w-full rounded-[8px] border border-slate-300 bg-white px-3 py-3 text-[15px] text-slate-700 outline-none placeholder:text-slate-400"
-            />
-          </div>
-        </div>
+          {/* Profile Information */}
+          <div className="p-6">
 
-        <div className="mt-6 flex flex-col items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={handleUpdate}
-            className="cursor-pointer rounded-[10px] bg-[#1f1f1f] px-10 py-3 text-[18px] font-bold text-white shadow-sm transition hover:bg-black"
-          >
-            Update
-          </button>
-          {message && <p className="text-sm font-medium text-emerald-600">{message}</p>}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+              {/* Email */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <div className="mb-2 flex items-center gap-2 text-slate-500">
+                  <User size={17} />
+
+                  <span className="text-sm">
+                    Email
+                  </span>
+                </div>
+
+                <p className="break-all text-sm font-semibold text-slate-900">
+                  {email}
+                </p>
+              </div>
+
+              {/* Role */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <div className="mb-2 flex items-center gap-2 text-slate-500">
+                  <ShieldCheck size={17} />
+
+                  <span className="text-sm">
+                    Role
+                  </span>
+                </div>
+
+                <p className="text-sm font-semibold text-slate-900">
+                  {profile?.role || '-'}
+                </p>
+              </div>
+
+              {/* Subscription Period */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <div className="mb-2 flex items-center gap-2 text-slate-500">
+                  <CalendarDays size={17} />
+
+                  <span className="text-sm">
+                    Subscription Period
+                  </span>
+                </div>
+
+                <p className="text-sm font-semibold text-slate-900">
+                  {subscriptionPeriod}
+                </p>
+              </div>
+
+              {/* Plan */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <div className="mb-2 flex items-center gap-2 text-slate-500">
+                  <CreditCard size={17} />
+
+                  <span className="text-sm">
+                    Plan
+                  </span>
+                </div>
+
+                <p className="text-sm font-semibold text-slate-900">
+                  {plan?.name || '-'}
+                </p>
+              </div>
+
+              {/* Status */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <div className="mb-2 flex items-center gap-2 text-slate-500">
+                  <CheckCircle2 size={17} />
+
+                  <span className="text-sm">
+                    Status
+                  </span>
+                </div>
+
+                {isActive ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    <CheckCircle2 size={14} />
+                    Active
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                    <XCircle size={14} />
+                    Expired
+                  </span>
+                )}
+              </div>
+
+              {/* Purchase Date */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <div className="mb-2 flex items-center gap-2 text-slate-500">
+                  <CalendarDays size={17} />
+
+                  <span className="text-sm">
+                    Purchase Date
+                  </span>
+                </div>
+
+                <p className="text-sm font-semibold text-slate-900">
+                  {formatDate(purchaseDate)}
+                </p>
+              </div>
+
+              {/* Expiry Date */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <div className="mb-2 flex items-center gap-2 text-slate-500">
+                  <CalendarDays size={17} />
+
+                  <span className="text-sm">
+                    Expiry Date
+                  </span>
+                </div>
+
+                <p className="text-sm font-semibold text-slate-900">
+                  {formatDate(expiryDate)}
+                </p>
+              </div>
+
+            </div>
+
+            {/* Features */}
+            <div className="mt-6 rounded-xl border border-slate-200 p-5">
+
+              <div className="mb-4 flex items-center gap-2">
+                <ListChecks
+                  size={20}
+                  className="text-green-600"
+                />
+
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900">
+                    Features
+                  </h3>
+
+                  <p className="text-xs text-slate-500">
+                    Features included in your plan
+                  </p>
+                </div>
+              </div>
+
+              {features.length > 0 ? (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+
+                  {features.map((feature) => (
+                    <div
+                      key={feature}
+                      className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2"
+                    >
+                      <CheckCircle2
+                        size={16}
+                        className="shrink-0 text-green-600"
+                      />
+
+                      <span className="text-sm font-medium text-slate-700">
+                        {feature}
+                      </span>
+                    </div>
+                  ))}
+
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  No features available.
+                </p>
+              )}
+
+            </div>
+
+          </div>
         </div>
       </div>
     </div>

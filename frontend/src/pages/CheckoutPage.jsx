@@ -4,15 +4,20 @@ import {
   Minus,
   Plus,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   createPaymentOrder,
   verifyPayment,
 } from '../services/paymentApi'
+import useAuthStore from '../store/authStore'
 
 const RAZORPAY_SCRIPT_URL =
   'https://checkout.razorpay.com/v1/checkout.js'
+
+/* =========================================================
+   LOAD RAZORPAY
+========================================================= */
 
 function loadRazorpay() {
   if (window.Razorpay) {
@@ -40,9 +45,12 @@ function loadRazorpay() {
       return
     }
 
-    const script = document.createElement('script')
+    const script =
+      document.createElement('script')
 
-    script.src = RAZORPAY_SCRIPT_URL
+    script.src =
+      RAZORPAY_SCRIPT_URL
+
     script.async = true
 
     script.onload = resolve
@@ -57,6 +65,10 @@ function loadRazorpay() {
     document.body.appendChild(script)
   })
 }
+
+/* =========================================================
+   CHECKOUT PAGE
+========================================================= */
 
 const CheckoutPage = ({
   selectedPlanData,
@@ -83,285 +95,723 @@ const CheckoutPage = ({
     setOrderMessage,
   ] = useState('')
 
-  /* =====================================================
+  /* =======================================================
+     FEATURES
+  ======================================================= */
+
+  const features = useMemo(() => {
+    if (
+      !Array.isArray(
+        selectedPlanData?.features,
+      )
+    ) {
+      return []
+    }
+
+    return [
+      ...new Set(
+        selectedPlanData.features
+          .filter(Boolean)
+          .map((feature) =>
+            String(feature).trim(),
+          )
+          .filter(Boolean),
+      ),
+    ]
+  }, [selectedPlanData])
+
+  /* =======================================================
+     FEATURE COLUMN COUNT
+
+     <= 4  → 2 columns
+     5-8   → 2 columns
+     9-12  → 3 columns
+     13+   → 4 columns on large screens
+  ======================================================= */
+
+  const featureGridClass =
+    features.length >= 13
+      ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+      : features.length >= 9
+        ? 'grid-cols-2 sm:grid-cols-3'
+        : 'grid-cols-2'
+
+  /* =======================================================
      CREATE PAYMENT ORDER
-  ===================================================== */
+  ======================================================= */
 
-  const handleCreateOrder = async () => {
-    const safeAddonPrice =
-      Number(addonPricePerSeat) || 0
+  const handleCreateOrder =
+    async () => {
+      const safeAddonPrice =
+        Number(addonPricePerSeat) || 0
 
-    const safeExtraSeats =
-      Number(extraSeats) || 0
+      const safeExtraSeats =
+        Number(extraSeats) || 0
 
-    const billableExtraSeats =
-      Math.max(0, safeExtraSeats - 1)
+      const billableExtraSeats =
+        Math.max(
+          0,
+          safeExtraSeats - 1,
+        )
 
-    const safeTotalAmount =
-      Number(totalAmount) || 0
-
-    if (safeTotalAmount <= 0) {
-      setOrderMessage(
-        'Invalid payment amount.',
-      )
-      return
-    }
-
-    if (safeAddonPrice < 0) {
-      setOrderMessage(
-        'Invalid additional seat price.',
-      )
-      return
-    }
-
-    setIsCreatingOrder(true)
-    setOrderMessage('')
-
-    try {
-      const response =
-        await createPaymentOrder({
-          accessToken,
-
-          planId:
-            selectedPlanData?.id,
-
-          durationMonths:
-            selectedDurationData?.months,
-
-          extraSeats:
-            billableExtraSeats,
-
-          totalSeats:
-            safeExtraSeats,
-
-          totalSeats:
-            safeExtraSeats,
-
-          addonPricePerSeat:
-            safeAddonPrice,
-
-          totalAmount:
-            safeTotalAmount,
-        })
-
-      const order =
-        response?.data?.order ||
-        response?.data ||
-        response?.order ||
-        response
-
-      const orderId =
-        order?.id ||
-        order?.orderId ||
-        order?.razorpay_order_id ||
-        response?.razorpay_order_id ||
-        response?.razorpayOrderId
-
-      const razorpayKey =
-        order?.key ||
-        order?.keyId ||
-        order?.key_id ||
-        order?.razorpayKeyId ||
-        response?.key ||
-        response?.keyId ||
-        response?.key_id ||
-        response?.razorpayKeyId ||
-        import.meta.env.VITE_RAZORPAY_KEY_ID
-
-      const amount = Math.round(
-        safeTotalAmount * 100,
-      )
-
-      const currency =
-        order?.currency ||
-        response?.currency ||
-        'INR'
+      const safeTotalAmount =
+        Number(totalAmount) || 0
 
       if (
-        !Number.isFinite(amount) ||
-        amount <= 0
+        safeTotalAmount <= 0
       ) {
-        throw new Error(
+        setOrderMessage(
           'Invalid payment amount.',
         )
+
+        return
       }
 
       if (
-        !orderId ||
-        !razorpayKey
+        safeAddonPrice < 0
       ) {
-        throw new Error(
-          'Payment order response is missing Razorpay order details.',
+        setOrderMessage(
+          'Invalid additional seat price.',
         )
+
+        return
       }
 
-      await loadRazorpay()
+      if (
+        !selectedPlanData?.id
+      ) {
+        setOrderMessage(
+          'Invalid plan selected.',
+        )
 
-      const razorpay =
-        new window.Razorpay({
-          key: razorpayKey,
+        return
+      }
 
-          amount,
+      if (
+        !selectedDurationData?.months
+      ) {
+        setOrderMessage(
+          'Invalid plan duration.',
+        )
 
-          currency,
+        return
+      }
 
-          name: 'LiveKeeping',
+      if (!accessToken) {
+        setOrderMessage(
+          'Please login before making a payment.',
+        )
 
-          description: `${
-            selectedPlanData?.name ||
-            'Plan'
-          } subscription`,
+        return
+      }
 
-          order_id: orderId,
+      setIsCreatingOrder(true)
+      setOrderMessage('')
 
-          handler: async (payment) => {
-            setIsCreatingOrder(true)
+      try {
+        /* ===============================================
+           CREATE ORDER
+        =============================================== */
 
-            setOrderMessage(
-              'Verifying payment...',
+        const response =
+          await createPaymentOrder({
+            accessToken,
+
+            planId:
+              selectedPlanData?.id,
+
+            durationMonths:
+              selectedDurationData?.months,
+
+            extraSeats:
+              billableExtraSeats,
+
+            totalSeats:
+              safeExtraSeats,
+
+            addonPricePerSeat:
+              safeAddonPrice,
+
+            totalAmount:
+              safeTotalAmount,
+          })
+
+        /* ===============================================
+           ORDER RESPONSE
+        =============================================== */
+
+        const order =
+          response?.data?.order ||
+          response?.data ||
+          response?.order ||
+          response
+
+        /* ===============================================
+           ORDER ID
+        =============================================== */
+
+        const orderId =
+          order?.id ||
+          order?.orderId ||
+          order?.razorpay_order_id ||
+          response?.razorpay_order_id ||
+          response?.razorpayOrderId
+
+        /* ===============================================
+           RAZORPAY KEY
+        =============================================== */
+
+        const razorpayKey =
+          order?.key ||
+          order?.keyId ||
+          order?.key_id ||
+          order?.razorpayKeyId ||
+          response?.key ||
+          response?.keyId ||
+          response?.key_id ||
+          response?.razorpayKeyId ||
+          import.meta.env
+            .VITE_RAZORPAY_KEY_ID
+
+        /* ===============================================
+           AMOUNT
+        =============================================== */
+
+        const amount =
+          Math.round(
+            safeTotalAmount * 100,
+          )
+
+        const currency =
+          order?.currency ||
+          response?.currency ||
+          'INR'
+
+        /* ===============================================
+           VALIDATE ORDER
+        =============================================== */
+
+        if (
+          !Number.isFinite(
+            amount,
+          ) ||
+          amount <= 0
+        ) {
+          throw new Error(
+            'Invalid payment amount.',
+          )
+        }
+
+        if (
+          !orderId ||
+          !razorpayKey
+        ) {
+          throw new Error(
+            'Payment order response is missing Razorpay order details.',
+          )
+        }
+
+        /* ===============================================
+           LOAD RAZORPAY
+        =============================================== */
+
+        await loadRazorpay()
+
+        /* ===============================================
+           OPEN RAZORPAY
+        =============================================== */
+
+        const razorpay =
+          new window.Razorpay({
+            key: razorpayKey,
+
+            amount,
+
+            currency,
+
+            name: 'LiveKeeping',
+
+            description: `${
+              selectedPlanData?.name ||
+              'Plan'
+            } subscription`,
+
+            order_id: orderId,
+
+            /* ===========================================
+               PAYMENT SUCCESS CALLBACK
+            =========================================== */
+
+            handler:
+              async (
+                payment,
+              ) => {
+                setIsCreatingOrder(
+                  true,
+                )
+
+                setOrderMessage(
+                  'Verifying payment...',
+                )
+
+                try {
+                  /* =====================================
+                     VERIFY PAYMENT
+                  ===================================== */
+
+                  const verification =
+                    await verifyPayment(
+                      {
+                        accessToken,
+
+                        razorpay_order_id:
+                          payment?.razorpay_order_id,
+
+                        razorpay_payment_id:
+                          payment?.razorpay_payment_id,
+
+                        razorpay_signature:
+                          payment?.razorpay_signature,
+                      },
+                    )
+
+                  /* =====================================
+                     CHECK API SUCCESS
+                  ===================================== */
+
+                  if (
+                    verification?.success ===
+                    false
+                  ) {
+                    throw new Error(
+                      verification?.message ||
+                        'Payment verification failed.',
+                    )
+                  }
+
+                  const authStore =
+                    useAuthStore.getState()
+
+                  const verifiedUser =
+                    verification?.user ||
+                    verification?.data?.user ||
+                    verification?.data ||
+                    {}
+
+                  if (authStore?.accessToken) {
+                    const normalizedUser = {
+                      ...(authStore.user || {}),
+                      ...(verifiedUser || {}),
+                      activeSubscription:
+                        verifiedUser?.activeSubscription === true ||
+                        verifiedUser?.subscriptionActive === true ||
+                        verifiedUser?.isActiveSubscription === true ||
+                        verifiedUser?.isSubscribed === true ||
+                        verifiedUser?.subscription?.active === true ||
+                        verifiedUser?.plan?.active === true ||
+                        String(
+                          verifiedUser?.subscriptionStatus ||
+                            verifiedUser?.status ||
+                            verifiedUser?.subscription?.status ||
+                            verifiedUser?.plan?.status ||
+                            '',
+                        ).toLowerCase() === 'active' ||
+                        String(
+                          verifiedUser?.subscriptionStatus ||
+                            verifiedUser?.status ||
+                            verifiedUser?.subscription?.status ||
+                            verifiedUser?.plan?.status ||
+                            '',
+                        ).toLowerCase() === 'paid' ||
+                        String(
+                          verifiedUser?.subscriptionStatus ||
+                            verifiedUser?.status ||
+                            verifiedUser?.subscription?.status ||
+                            verifiedUser?.plan?.status ||
+                            '',
+                        ).toLowerCase() === 'success',
+                      subscriptionActive:
+                        verifiedUser?.subscriptionActive === true ||
+                        verifiedUser?.activeSubscription === true ||
+                        verifiedUser?.isActiveSubscription === true ||
+                        verifiedUser?.isSubscribed === true ||
+                        verifiedUser?.subscription?.active === true ||
+                        verifiedUser?.plan?.active === true ||
+                        String(
+                          verifiedUser?.subscriptionStatus ||
+                            verifiedUser?.status ||
+                            verifiedUser?.subscription?.status ||
+                            verifiedUser?.plan?.status ||
+                            '',
+                        ).toLowerCase() === 'active' ||
+                        String(
+                          verifiedUser?.subscriptionStatus ||
+                            verifiedUser?.status ||
+                            verifiedUser?.subscription?.status ||
+                            verifiedUser?.plan?.status ||
+                            '',
+                        ).toLowerCase() === 'paid' ||
+                        String(
+                          verifiedUser?.subscriptionStatus ||
+                            verifiedUser?.status ||
+                            verifiedUser?.subscription?.status ||
+                            verifiedUser?.plan?.status ||
+                            '',
+                        ).toLowerCase() === 'success',
+                      subscriptionStatus:
+                        verifiedUser?.subscriptionStatus ||
+                        verifiedUser?.status ||
+                        verifiedUser?.subscription?.status ||
+                        verifiedUser?.plan?.status ||
+                        'active',
+                      status:
+                        verifiedUser?.status ||
+                        verifiedUser?.subscriptionStatus ||
+                        verifiedUser?.subscription?.status ||
+                        verifiedUser?.plan?.status ||
+                        'active',
+                      paymentVerified: true,
+                    }
+
+                    authStore.setAuth({
+                      accessToken:
+                        authStore.accessToken,
+                      user: normalizedUser,
+                    })
+                  }
+
+                  /* =====================================
+                     REDIRECT ONLY AFTER
+                     SUCCESSFUL VERIFICATION
+                  ===================================== */
+
+                  window.history.replaceState(
+                    {},
+                    '',
+                    '/dashboard',
+                  )
+                  window.dispatchEvent(
+                    new PopStateEvent('popstate'),
+                  )
+                } catch (
+                  error
+                ) {
+                  /* ===================================
+                     VERIFICATION FAILED
+
+                     STAY ON CHECKOUT
+                  =================================== */
+
+                  setOrderMessage(
+                    error?.message ||
+                      'Payment verification failed.',
+                  )
+
+                  setIsCreatingOrder(
+                    false,
+                  )
+                }
+              },
+
+            /* ===========================================
+               MODAL CLOSED
+            =========================================== */
+
+            modal: {
+              ondismiss: () => {
+                setIsCreatingOrder(
+                  false,
+                )
+
+                setOrderMessage(
+                  'Payment window closed.',
+                )
+              },
+            },
+          })
+
+        /* ===============================================
+           PAYMENT FAILED
+        =============================================== */
+
+        razorpay.on(
+          'payment.failed',
+          (payment) => {
+            setIsCreatingOrder(
+              false,
             )
 
-            try {
-              const verification =
-                await verifyPayment({
-                  accessToken,
-
-                  razorpay_order_id:
-                    payment.razorpay_order_id,
-
-                  razorpay_payment_id:
-                    payment.razorpay_payment_id,
-
-                  razorpay_signature:
-                    payment.razorpay_signature,
-                })
-
-              setOrderMessage(
-                verification?.message ||
-                  'Payment verified successfully.',
-              )
-            } catch (error) {
-              setOrderMessage(
-                error?.message ||
-                  'Payment verification failed.',
-              )
-            } finally {
-              setIsCreatingOrder(false)
-            }
+            setOrderMessage(
+              payment?.error
+                ?.description ||
+                'Payment failed. Please try again.',
+            )
           },
+        )
 
-          modal: {
-            ondismiss: () => {
-              setIsCreatingOrder(false)
+        /* ===============================================
+           OPEN PAYMENT WINDOW
+        =============================================== */
 
-              setOrderMessage(
-                'Payment window closed.',
-              )
-            },
-          },
-        })
+        razorpay.open()
+      } catch (
+        error
+      ) {
+        setOrderMessage(
+          error?.message ||
+            'Unable to create payment order.',
+        )
 
-      razorpay.on(
-        'payment.failed',
-        (payment) => {
-          setIsCreatingOrder(false)
-
-          setOrderMessage(
-            payment?.error?.description ||
-              'Payment failed. Please try again.',
+        setIsCreatingOrder(
+          false,
+        )
+      } finally {
+        if (!window.Razorpay) {
+          setIsCreatingOrder(
+            false,
           )
-        },
-      )
-
-      razorpay.open()
-    } catch (error) {
-      setOrderMessage(
-        error?.message ||
-          'Unable to create payment order.',
-      )
-
-      setIsCreatingOrder(false)
-    } finally {
-      if (!window.Razorpay) {
-        setIsCreatingOrder(false)
+        }
       }
     }
-  }
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#F0FDF4] via-[#F7FAF8] to-white px-4 py-4 sm:px-5 lg:px-6">
-
-      <div className="mx-auto flex h-full max-w-6xl flex-col">
+    <div
+      className="
+        h-screen
+        overflow-hidden
+        bg-gradient-to-br
+        from-[#F0FDF4]
+        via-[#F7FAF8]
+        to-white
+        px-3
+        py-2
+        sm:px-4
+        sm:py-3
+        lg:px-6
+      "
+    >
+      <div
+        className="
+          mx-auto
+          flex
+          h-full
+          w-full
+          max-w-6xl
+          flex-col
+        "
+      >
 
         {/* =================================================
             BACK BUTTON
         ================================================= */}
+
         <div className="shrink-0">
+
           <button
             type="button"
             onClick={onBack}
-            className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="
+              mb-2
+              inline-flex
+              items-center
+              gap-2
+              rounded-full
+              border
+              border-slate-200
+              bg-white
+              px-3
+              py-1.5
+              text-[10px]
+              font-semibold
+              text-slate-700
+              shadow-sm
+              transition
+              hover:bg-slate-50
+              sm:mb-3
+              sm:px-3.5
+              sm:text-xs
+            "
           >
+
             <ArrowRight
-              className="h-3.5 w-3.5 rotate-180"
+              className="
+                h-3
+                w-3
+                rotate-180
+                sm:h-3.5
+                sm:w-3.5
+              "
             />
 
             Back to plans
+
           </button>
+
         </div>
 
         {/* =================================================
             MAIN CONTENT
         ================================================= */}
-        <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1.12fr_0.88fr]">
+
+        <div
+          className="
+            grid
+            min-h-0
+            flex-1
+            grid-cols-1
+            gap-3
+            lg:grid-cols-[1.12fr_0.88fr]
+            lg:gap-4
+          "
+        >
 
           {/* =================================================
               LEFT SIDE
           ================================================= */}
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_15px_40px_rgba(15,23,42,0.07)]">
+
+          <section
+            className="
+              flex
+              min-h-0
+              flex-col
+              overflow-hidden
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              shadow-[0_12px_35px_rgba(15,23,42,0.07)]
+            "
+          >
 
             {/* =================================================
                 LEFT HEADER
             ================================================= */}
-            <div className="shrink-0 px-5 pb-3 pt-4 sm:px-6">
 
-              <div className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-green-700">
+            <div
+              className="
+                shrink-0
+                px-4
+                pb-2
+                pt-3
+                sm:px-5
+                sm:pb-3
+                sm:pt-4
+                lg:px-6
+              "
+            >
+
+              <div
+                className="
+                  mb-1
+                  text-[8px]
+                  font-bold
+                  uppercase
+                  tracking-[0.2em]
+                  text-green-700
+                  sm:text-[9px]
+                "
+              >
                 Checkout
               </div>
-
-              <p className="mt-1 text-xs text-slate-500">
-                Review your plan and adjust
-                extra seats before confirming.
-              </p>
 
             </div>
 
             {/* =================================================
                 LEFT CONTENT
-                NOT SCROLLABLE
             ================================================= */}
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-5 sm:px-6">
+
+            <div
+              className="
+                flex
+                min-h-0
+                flex-1
+                flex-col
+                overflow-hidden
+                px-4
+                pb-3
+                sm:px-5
+                sm:pb-4
+                lg:px-6
+              "
+            >
 
               {/* =================================================
                   SELECTED PLAN
               ================================================= */}
-              <div className="shrink-0 rounded-xl border border-green-100 bg-green-50 p-4">
 
-                <div className="flex items-center justify-between gap-3">
+              <div
+                className="
+                  shrink-0
+                  rounded-xl
+                  border
+                  border-green-100
+                  bg-green-50
+                  p-3
+                  sm:p-4
+                "
+              >
+
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-3
+                  "
+                >
 
                   <div className="min-w-0">
 
-                    <div className="text-[9px] font-bold uppercase tracking-[0.16em] text-green-700">
+                    <div
+                      className="
+                        text-[8px]
+                        font-bold
+                        uppercase
+                        tracking-[0.16em]
+                        text-green-700
+                        sm:text-[9px]
+                      "
+                    >
                       Selected Plan
                     </div>
 
-                    <div className="mt-1 text-xl font-bold text-[#143D2A]">
-                      {selectedPlanData?.name}
+                    <div
+                      className="
+                        mt-0.5
+                        truncate
+                        text-lg
+                        font-bold
+                        text-[#143D2A]
+                        sm:text-xl
+                      "
+                    >
+                      {
+                        selectedPlanData?.name
+                      }
                     </div>
 
                   </div>
 
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-green-700 shadow-sm">
+                  <div
+                    className="
+                      flex
+                      h-9
+                      w-9
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-white
+                      text-green-700
+                      shadow-sm
+                      sm:h-10
+                      sm:w-10
+                    "
+                  >
 
                     <PlanIcon
                       planName={
@@ -373,16 +823,53 @@ const CheckoutPage = ({
 
                 </div>
 
-                <div className="mt-3 grid grid-cols-2 gap-2">
+                {/* =================================================
+                    PLAN INFO
+                ================================================= */}
+
+                <div
+                  className="
+                    mt-2
+                    grid
+                    grid-cols-2
+                    gap-2
+                    sm:mt-3
+                  "
+                >
 
                   {/* DURATION */}
-                  <div className="rounded-lg bg-white p-2.5">
 
-                    <div className="text-[9px] uppercase tracking-[0.1em] text-slate-400">
+                  <div
+                    className="
+                      rounded-lg
+                      bg-white
+                      p-2
+                      sm:p-2.5
+                    "
+                  >
+
+                    <div
+                      className="
+                        text-[8px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.1em]
+                        text-slate-400
+                        sm:text-[9px]
+                      "
+                    >
                       Duration
                     </div>
 
-                    <div className="mt-0.5 text-sm font-bold text-slate-800">
+                    <div
+                      className="
+                        mt-0.5
+                        text-xs
+                        font-bold
+                        text-slate-800
+                        sm:text-sm
+                      "
+                    >
                       {
                         selectedDurationData?.fullLabel
                       }
@@ -391,13 +878,38 @@ const CheckoutPage = ({
                   </div>
 
                   {/* BASE PRICE */}
-                  <div className="rounded-lg bg-white p-2.5">
 
-                    <div className="text-[9px] uppercase tracking-[0.1em] text-slate-400">
+                  <div
+                    className="
+                      rounded-lg
+                      bg-white
+                      p-2
+                      sm:p-2.5
+                    "
+                  >
+
+                    <div
+                      className="
+                        text-[8px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.1em]
+                        text-slate-400
+                        sm:text-[9px]
+                      "
+                    >
                       Base price
                     </div>
 
-                    <div className="mt-0.5 text-sm font-bold text-slate-800">
+                    <div
+                      className="
+                        mt-0.5
+                        text-xs
+                        font-bold
+                        text-slate-800
+                        sm:text-sm
+                      "
+                    >
                       ₹
                       {formatPrice(
                         basePlanPrice,
@@ -407,26 +919,74 @@ const CheckoutPage = ({
                   </div>
 
                 </div>
+
               </div>
 
               {/* =================================================
-                  ADDITIONAL SEATS
+                  TOTAL SEATS
               ================================================= */}
-              <div className="mt-3 shrink-0 rounded-xl border border-slate-200 bg-slate-50 p-4">
 
-                <div className="flex items-center justify-between gap-4">
+              <div
+                className="
+                  mt-2.5
+                  shrink-0
+                  rounded-xl
+                  border
+                  border-slate-200
+                  bg-slate-50
+                  p-3
+                  sm:mt-3
+                  sm:p-4
+                "
+              >
 
-                  <div>
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-3
+                  "
+                >
 
-                    <div className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                  <div className="min-w-0">
+
+                    <div
+                      className="
+                        text-[8px]
+                        font-bold
+                        uppercase
+                        tracking-[0.16em]
+                        text-slate-500
+                        sm:text-[9px]
+                      "
+                    >
                       Total seats
                     </div>
 
-                    <div className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-green-600">
+                    <div
+                      className="
+                        mt-0.5
+                        text-[8px]
+                        font-medium
+                        uppercase
+                        tracking-[0.1em]
+                        text-green-600
+                        sm:text-[9px]
+                      "
+                    >
                       Additional seat price
                     </div>
 
-                    <div className="mt-0.5 text-sm font-semibold text-slate-600">
+                    <div
+                      className="
+                        mt-0.5
+                        text-xs
+                        font-semibold
+                        text-slate-600
+                        sm:text-sm
+                      "
+                    >
                       ₹
                       {formatPrice(
                         addonPricePerSeat,
@@ -437,7 +997,25 @@ const CheckoutPage = ({
                   </div>
 
                   {/* COUNTER */}
-                  <div className="flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1.5 shadow-sm">
+
+                  <div
+                    className="
+                      flex
+                      shrink-0
+                      items-center
+                      gap-1.5
+                      rounded-full
+                      border
+                      border-slate-200
+                      bg-white
+                      px-1.5
+                      py-1
+                      shadow-sm
+                      sm:gap-2
+                      sm:px-2
+                      sm:py-1.5
+                    "
+                  >
 
                     <button
                       type="button"
@@ -446,17 +1024,43 @@ const CheckoutPage = ({
                           (count) =>
                             Math.max(
                               1,
-                              Number(count) - 1,
+                              Number(count) -
+                                1,
                             ),
                         )
                       }
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
-                      aria-label="Decrease extra seats"
+                      className="
+                        flex
+                        h-6
+                        w-6
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-slate-100
+                        text-slate-700
+                        transition
+                        hover:bg-slate-200
+                        sm:h-7
+                        sm:w-7
+                      "
+                      aria-label="Decrease seats"
                     >
-                      <Minus size={14} />
+                      <Minus
+                        size={13}
+                      />
                     </button>
 
-                    <span className="min-w-[24px] text-center text-base font-bold text-slate-900">
+                    <span
+                      className="
+                        min-w-[20px]
+                        text-center
+                        text-sm
+                        font-bold
+                        text-slate-900
+                        sm:min-w-[24px]
+                        sm:text-base
+                      "
+                    >
                       {extraSeats}
                     </span>
 
@@ -465,26 +1069,70 @@ const CheckoutPage = ({
                       onClick={() =>
                         setExtraSeats(
                           (count) =>
-                            Number(count) + 1,
+                            Number(count) +
+                            1,
                         )
                       }
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-green-100 text-green-700 transition hover:bg-green-200"
-                      aria-label="Increase extra seats"
+                      className="
+                        flex
+                        h-6
+                        w-6
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-green-100
+                        text-green-700
+                        transition
+                        hover:bg-green-200
+                        sm:h-7
+                        sm:w-7
+                      "
+                      aria-label="Increase seats"
                     >
-                      <Plus size={14} />
+                      <Plus
+                        size={13}
+                      />
                     </button>
 
                   </div>
+
                 </div>
 
-                {/* EXTRA SEAT TOTAL */}
-                <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
+                {/* SEAT TOTAL */}
 
-                  <span className="text-xs font-medium text-slate-500">
+                <div
+                  className="
+                    mt-2
+                    flex
+                    items-center
+                    justify-between
+                    border-t
+                    border-slate-200
+                    pt-2
+                    sm:mt-3
+                    sm:pt-3
+                  "
+                >
+
+                  <span
+                    className="
+                      text-[10px]
+                      font-medium
+                      text-slate-500
+                      sm:text-xs
+                    "
+                  >
                     Additional seat total
                   </span>
 
-                  <span className="text-sm font-bold text-[#143D2A]">
+                  <span
+                    className="
+                      text-xs
+                      font-bold
+                      text-[#143D2A]
+                      sm:text-sm
+                    "
+                  >
                     ₹
                     {formatPrice(
                       extraSeatTotal,
@@ -492,88 +1140,227 @@ const CheckoutPage = ({
                   </span>
 
                 </div>
+
               </div>
 
               {/* =================================================
                   INCLUDED FEATURES
               ================================================= */}
-              <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-4">
 
-                {/* FEATURES HEADER - FIXED */}
-                <div className="flex shrink-0 items-center justify-between">
+              <div
+                className="
+                  mt-2.5
+                  flex
+                  min-h-0
+                  flex-1
+                  flex-col
+                  overflow-hidden
+                  rounded-xl
+                  border
+                  border-slate-200
+                  bg-white
+                  p-3
+                  sm:mt-3
+                  sm:p-4
+                "
+              >
 
-                  <div className="text-xs font-bold text-slate-700">
+                {/* FEATURES HEADER */}
+
+                <div
+                  className="
+                    flex
+                    shrink-0
+                    items-center
+                    justify-between
+                    gap-2
+                  "
+                >
+
+                  <div
+                    className="
+                      text-[10px]
+                      font-bold
+                      text-slate-700
+                      sm:text-xs
+                    "
+                  >
                     Included features
                   </div>
 
-                  <div className="text-[9px] uppercase tracking-[0.12em] text-slate-400">
-                    {selectedPlanData?.name}
+                  <div
+                    className="
+                      shrink-0
+                      font-bold
+                      text-[8px]
+                      uppercase
+                      tracking-[0.12em]
+                      text-slate-400
+                      sm:text-[9px]
+                    "
+                  >
+                    {
+                      selectedPlanData?.name
+                    }
                   </div>
 
                 </div>
 
                 {/* =================================================
-                    ONLY THIS SECTION SCROLLS
+                    FEATURES
+
+                    NO SCROLLBAR
                 ================================================= */}
-                <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-2">
 
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div
+                  className={`
+                    mt-2.5
+                    grid
+                    ${featureGridClass}
+                    content-start
+                    gap-x-3
+                    gap-y-1.5
+                    sm:mt-3
+                    sm:gap-x-4
+                    sm:gap-y-2
+                  `}
+                >
 
-                    {(
-                      selectedPlanData?.features ||
-                      []
-                    ).map(
-                      (feature) => (
+                  {features.map(
+                    (feature) => (
+                      <div
+                        key={feature}
+                        className="
+                          flex
+                          min-w-0
+                          items-start
+                          gap-1.5
+                        "
+                      >
+
                         <div
-                          key={feature}
-                          className="flex items-start gap-2"
+                          className="
+                            mt-0.5
+                            flex
+                            h-3.5
+                            w-3.5
+                            shrink-0
+                            items-center
+                            justify-center
+                            rounded-full
+                            bg-green-100
+                            text-green-600
+                            sm:h-4
+                            sm:w-4
+                          "
                         >
 
-                          <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
-
-                            <Check
-                              size={9}
-                              strokeWidth={3}
-                            />
-
-                          </div>
-
-                          <span className="text-[10px] leading-4 text-slate-600">
-                            {
-                              featureLabels?.[
-                                feature
-                              ] || feature
-                            }
-                          </span>
+                          <Check
+                            size={8}
+                            strokeWidth={3}
+                          />
 
                         </div>
-                      ),
-                    )}
 
-                  </div>
+                        {/* BOLD FEATURE TEXT */}
+
+                        <span
+                          className="
+                            min-w-0
+                            break-words
+                            font-bold
+                            text-[8px]
+                            leading-3
+                            text-slate-700
+                            sm:text-[9px]
+                            sm:leading-3.5
+                            lg:text-[10px]
+                          "
+                        >
+                          {
+                            featureLabels?.[
+                              feature
+                            ] ||
+                            feature
+                          }
+                        </span>
+
+                      </div>
+                    ),
+                  )}
+
+                  {features.length ===
+                    0 && (
+                    <div
+                      className="
+                        col-span-full
+                        py-3
+                        text-center
+                        text-[10px]
+                        text-slate-400
+                      "
+                    >
+                      No features available
+                    </div>
+                  )}
 
                 </div>
 
               </div>
 
             </div>
-          </div>
+
+          </section>
 
           {/* =================================================
               RIGHT SIDE
           ================================================= */}
-          <aside className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-green-200 bg-[#143D2A] p-5 text-white shadow-[0_15px_40px_rgba(20,61,42,0.18)] sm:p-6">
+
+          <aside
+            className="
+              flex
+              min-h-0
+              flex-col
+              overflow-hidden
+              rounded-2xl
+              border
+              border-green-200
+              bg-[#143D2A]
+              p-4
+              text-white
+              shadow-[0_12px_35px_rgba(20,61,42,0.18)]
+              sm:p-5
+              lg:p-6
+            "
+          >
 
             {/* =================================================
                 SUMMARY HEADER
             ================================================= */}
+
             <div className="shrink-0">
 
-              <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-green-200">
+              <div
+                className="
+                  text-[8px]
+                  font-bold
+                  uppercase
+                  tracking-[0.2em]
+                  text-green-200
+                  sm:text-[9px]
+                "
+              >
                 Order summary
               </div>
 
-              <h2 className="mt-1 text-xl font-bold">
+              <h2
+                className="
+                  mt-0.5
+                  text-lg
+                  font-bold
+                  sm:text-xl
+                "
+              >
                 Your order
               </h2>
 
@@ -582,17 +1369,39 @@ const CheckoutPage = ({
             {/* =================================================
                 ORDER DETAILS
             ================================================= */}
-            <div className="mt-5 shrink-0 space-y-3">
+
+            <div
+              className="
+                mt-4
+                shrink-0
+                space-y-2.5
+                sm:mt-5
+                sm:space-y-3
+              "
+            >
 
               {/* PLAN */}
-              <div className="flex items-center justify-between gap-3 text-xs text-green-100">
+
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  gap-3
+                  text-[10px]
+                  text-green-100
+                  sm:text-xs
+                "
+              >
 
                 <span>
-                  {selectedPlanData?.name}{' '}
+                  {
+                    selectedPlanData?.name
+                  }{' '}
                   plan
                 </span>
 
-                <span>
+                <span className="shrink-0">
                   ₹
                   {formatPrice(
                     basePlanPrice,
@@ -602,14 +1411,30 @@ const CheckoutPage = ({
               </div>
 
               {/* EXTRA SEATS */}
-              <div className="flex items-center justify-between gap-3 text-xs text-green-100">
+
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  gap-3
+                  text-[10px]
+                  text-green-100
+                  sm:text-xs
+                "
+              >
 
                 <span>
                   Extra seats
                 </span>
 
-                <span>
-                  {Math.max(0, Number(extraSeats) - 1)} × ₹
+                <span className="shrink-0">
+                  {Math.max(
+                    0,
+                    Number(extraSeats) -
+                      1,
+                  )}{' '}
+                  × ₹
                   {formatPrice(
                     addonPricePerSeat,
                   )}
@@ -618,13 +1443,24 @@ const CheckoutPage = ({
               </div>
 
               {/* DURATION */}
-              <div className="flex items-center justify-between gap-3 text-xs text-green-100">
+
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  gap-3
+                  text-[10px]
+                  text-green-100
+                  sm:text-xs
+                "
+              >
 
                 <span>
                   Duration
                 </span>
 
-                <span>
+                <span className="shrink-0">
                   {
                     selectedDurationData?.label
                   }
@@ -633,15 +1469,31 @@ const CheckoutPage = ({
               </div>
 
               {/* SUBTOTAL */}
-              <div className="border-t border-white/15 pt-3">
 
-                <div className="flex items-center justify-between text-green-100">
+              <div
+                className="
+                  border-t
+                  border-white/15
+                  pt-2.5
+                  sm:pt-3
+                "
+              >
 
-                  <span className="text-xs">
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-3
+                    text-green-100
+                  "
+                >
+
+                  <span className="text-[10px] sm:text-xs">
                     Subtotal
                   </span>
 
-                  <span className="text-xs">
+                  <span className="shrink-0 text-[10px] sm:text-xs">
                     ₹
                     {formatPrice(
                       basePlanPrice +
@@ -658,25 +1510,72 @@ const CheckoutPage = ({
             {/* =================================================
                 ADDITIONAL SEAT SUMMARY
             ================================================= */}
-            <div className="mt-4 shrink-0 rounded-xl bg-white/10 p-3">
 
-              <div className="text-[9px] uppercase tracking-[0.15em] text-green-200">
+            <div
+              className="
+                mt-3
+                shrink-0
+                rounded-xl
+                bg-white/10
+                p-3
+                sm:mt-4
+              "
+            >
+
+              <div
+                className="
+                  text-[8px]
+                  uppercase
+                  tracking-[0.15em]
+                  text-green-200
+                  sm:text-[9px]
+                "
+              >
                 Additional seat
               </div>
 
-              <div className="mt-1 flex items-end justify-between gap-2">
+              <div
+                className="
+                  mt-1
+                  flex
+                  items-end
+                  justify-between
+                  gap-2
+                "
+              >
 
                 <div>
 
-                  <div className="text-xs text-green-100">
-                    {Math.max(0, Number(extraSeats) - 1)}{' '}
+                  <div
+                    className="
+                      text-[10px]
+                      text-green-100
+                      sm:text-xs
+                    "
+                  >
+                    {Math.max(
+                      0,
+                      Number(extraSeats) -
+                        1,
+                    )}{' '}
                     billable{' '}
-                    {Math.max(0, Number(extraSeats) - 1) === 1
+                    {Math.max(
+                      0,
+                      Number(extraSeats) -
+                        1,
+                    ) === 1
                       ? 'seat'
                       : 'seats'}
                   </div>
 
-                  <div className="mt-0.5 text-[10px] text-green-100/70">
+                  <div
+                    className="
+                      mt-0.5
+                      text-[8px]
+                      text-green-100/70
+                      sm:text-[10px]
+                    "
+                  >
                     ₹
                     {formatPrice(
                       addonPricePerSeat,
@@ -686,7 +1585,14 @@ const CheckoutPage = ({
 
                 </div>
 
-                <div className="text-lg font-bold">
+                <div
+                  className="
+                    shrink-0
+                    text-base
+                    font-bold
+                    sm:text-lg
+                  "
+                >
                   ₹
                   {formatPrice(
                     extraSeatTotal,
@@ -700,20 +1606,53 @@ const CheckoutPage = ({
             {/* =================================================
                 TOTAL
             ================================================= */}
-            <div className="mt-4 shrink-0 rounded-xl bg-white/10 p-4">
 
-              <div className="text-[9px] uppercase tracking-[0.16em] text-green-100">
+            <div
+              className="
+                mt-3
+                shrink-0
+                rounded-xl
+                bg-white/10
+                p-3
+                sm:mt-4
+                sm:p-4
+              "
+            >
+
+              <div
+                className="
+                  text-[8px]
+                  uppercase
+                  tracking-[0.16em]
+                  text-green-100
+                  sm:text-[9px]
+                "
+              >
                 Total payable
               </div>
 
-              <div className="mt-1 text-3xl font-extrabold">
+              <div
+                className="
+                  mt-1
+                  text-2xl
+                  font-extrabold
+                  sm:text-3xl
+                "
+              >
                 ₹
                 {formatPrice(
                   totalAmount,
                 )}
               </div>
 
-              <div className="mt-1 text-[10px] text-green-100/70">
+              <div
+                className="
+                  mt-0.5
+                  text-[8px]
+                  text-green-100/70
+                  sm:text-[10px]
+                "
+              >
                 Base plan + additional seats
               </div>
 
@@ -722,8 +1661,25 @@ const CheckoutPage = ({
             {/* =================================================
                 PAYMENT MESSAGE
             ================================================= */}
+
             {orderMessage && (
-              <div className="mt-3 shrink-0 rounded-lg bg-white/10 px-3 py-2 text-center text-[10px] leading-4 text-green-100">
+              <div
+                className="
+                  mt-2.5
+                  shrink-0
+                  rounded-lg
+                  bg-white/10
+                  px-3
+                  py-2
+                  text-center
+                  text-[9px]
+                  leading-3.5
+                  text-green-100
+                  sm:mt-3
+                  sm:text-[10px]
+                  sm:leading-4
+                "
+              >
                 {orderMessage}
               </div>
             )}
@@ -731,7 +1687,15 @@ const CheckoutPage = ({
             {/* =================================================
                 PAY BUTTON
             ================================================= */}
-            <div className="mt-auto shrink-0 pt-5">
+
+            <div
+              className="
+                mt-auto
+                shrink-0
+                pt-3
+                sm:pt-4
+              "
+            >
 
               <button
                 type="button"
@@ -741,24 +1705,59 @@ const CheckoutPage = ({
                 disabled={
                   isCreatingOrder ||
                   !accessToken ||
-                  !selectedPlanData?.id
+                  !selectedPlanData?.id ||
+                  !selectedDurationData?.months
                 }
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#143D2A] shadow-lg transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="
+                  flex
+                  w-full
+                  items-center
+                  justify-center
+                  gap-2
+                  rounded-xl
+                  bg-white
+                  px-4
+                  py-2.5
+                  text-xs
+                  font-bold
+                  text-[#143D2A]
+                  shadow-lg
+                  transition
+                  hover:bg-green-50
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
+                  sm:py-3
+                  sm:text-sm
+                "
               >
+
                 {isCreatingOrder
                   ? 'Processing...'
                   : 'Confirm & Pay'}
 
-                <ArrowRight size={16} />
+                <ArrowRight
+                  size={14}
+                />
+
               </button>
 
-              <p className="mt-2 text-center text-[9px] text-green-100/70">
+              <p
+                className="
+                  mt-1.5
+                  text-center
+                  text-[8px]
+                  text-green-100/70
+                  sm:mt-2
+                  sm:text-[9px]
+                "
+              >
                 Secure billing • No hidden fees
               </p>
 
             </div>
 
           </aside>
+
         </div>
       </div>
     </div>
