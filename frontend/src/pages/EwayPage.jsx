@@ -214,23 +214,23 @@ function EwayPage() {
 
                 <div className="mx-auto max-w-[430px] rounded-lg border-4 border-red-500 bg-white p-3">
                   <div className="space-y-3 text-[11px] text-slate-700">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="w-[118px] text-right">Select your GSP:</span>
-                      <select defaultValue="Fynamics Techno Solution" className="w-[210px] rounded border border-slate-300 bg-slate-50 px-2 py-2 font-semibold text-slate-700 outline-none ring-1 ring-sky-100">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                      <span className="w-full text-left sm:w-[118px] sm:text-right">Select your GSP:</span>
+                      <select defaultValue="Fynamics Techno Solution" className="w-full rounded border border-slate-300 bg-slate-50 px-2 py-2 font-semibold text-slate-700 outline-none ring-1 ring-sky-100 sm:w-[210px]">
                         <option>Fynamics Techno Solution</option>
                       </select>
                     </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="w-[118px] text-right">Username:</span>
-                      <input value="API_xxxxxxxxxxxxx" readOnly className="w-[210px] rounded border border-slate-300 bg-slate-50 px-2 py-2 text-slate-700 outline-none" />
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                      <span className="w-full text-left sm:w-[118px] sm:text-right">Username:</span>
+                      <input value="API_xxxxxxxxxxxxx" readOnly className="w-full rounded border border-slate-300 bg-slate-50 px-2 py-2 text-slate-700 outline-none sm:w-[210px]" />
                     </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="w-[118px] text-right">Password:</span>
-                      <input value="xxxxxxxxxxxxxx" readOnly className="w-[210px] rounded border border-slate-300 bg-slate-50 px-2 py-2 text-slate-700 outline-none" />
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                      <span className="w-full text-left sm:w-[118px] sm:text-right">Password:</span>
+                      <input value="xxxxxxxxxxxxxx" readOnly className="w-full rounded border border-slate-300 bg-slate-50 px-2 py-2 text-slate-700 outline-none sm:w-[210px]" />
                     </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="w-[118px] text-right">Re-enter Password:</span>
-                      <input value="xxxxxxxxxxxxxx" readOnly className="w-[210px] rounded border border-slate-300 bg-slate-50 px-2 py-2 text-slate-700 outline-none" />
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                      <span className="w-full text-left sm:w-[118px] sm:text-right">Re-enter Password:</span>
+                      <input value="xxxxxxxxxxxxxx" readOnly className="w-full rounded border border-slate-300 bg-slate-50 px-2 py-2 text-slate-700 outline-none sm:w-[210px]" />
                     </div>
                   </div>
 

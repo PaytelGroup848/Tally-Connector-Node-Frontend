@@ -23,7 +23,6 @@ import CreatePartyPage from './CreatePartyPage'
 import MyEntryListPage from './MyEntryListPage'
 import MyVouchersPage from './MyVouchersPage'
 import PartiesPage from './PartiesPage'
-import MobileVersionPage from './MobileVersionPage'
 import PaymentPage from './PaymentPage'
 import PurchasePage from './PurchasePage'
 import PurchaseOrderPage from './PurchaseOrderPage'
@@ -40,7 +39,9 @@ import VoucherPage from './VoucherPage'
 import InactiveStocksPage from './InactiveStocksPage'
 import DataBackupPage from './DataBackupPage'
 import PlansPage from './PlansPage'
+import MyCompanyDetailsPage from '../components/MyCompanyDetailsPage'
 import { getRouteFlags } from '../routes/routeConfig'
+import { extractCompanies, fetchCompanies, normalizeCompany } from '../services/companiesApi'
 
 function App() {
   const [activeTab, setActiveTab] = useState('Customers')
@@ -64,6 +65,7 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isCompact, setIsCompact] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
   const [showQuickCreate, setShowQuickCreate] = useState(false)
+  const accessToken = useAuthStore((state) => state.accessToken)
   const logout = useAuthStore((state) => state.logout)
 
   const quickCreateGroups = [
@@ -135,6 +137,34 @@ function App() {
     return () => window.removeEventListener('popstate', refreshRoute)
   }, [])
 
+  useEffect(() => {
+    if (!accessToken) return undefined
+
+    let isMounted = true
+
+    fetchCompanies(accessToken)
+      .then((response) => {
+        if (!isMounted) return
+
+        const companies = extractCompanies(response).map(normalizeCompany)
+        if (companies.length === 0) return
+
+        const [currentCompany, ...remainingCompanies] = companies
+        setSelectedCompany({ ...currentCompany, isCurrent: true })
+        setCompanyOptions([
+          { ...currentCompany, isCurrent: true },
+          ...remainingCompanies.map((company) => ({ ...company, isCurrent: false })),
+        ])
+      })
+      .catch((error) => {
+        console.warn('Company list API failed, using local company list:', error)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [accessToken])
+
   const navigateTo = (path) => {
     if (!path) return
     const isEwayPath = path === '/eway' || path === '/e-way'
@@ -163,6 +193,14 @@ function App() {
     setShowEway(false)
   }
 
+  const openCompanyDetails = (company) => {
+    const companyId = company?.id || company?._id || company?.companyId || company?.company_id
+    if (!companyId) return
+    setSelectedCompany(company)
+    setShowCompanyMenu(false)
+    navigateTo(`/company-details/${encodeURIComponent(companyId)}`)
+  }
+
   const flags = getRouteFlags(currentPath)
   const entryPath = flags.normalizedPath
 
@@ -179,9 +217,9 @@ function App() {
   }
 
   const renderPage = () => {
+    if (flags.showCompanyDetailsPage) return <MyCompanyDetailsPage />
     if (currentPath === '/profile') return <ProfilePage />
     if (flags.showPlansPage) return <PlansPage />
-    if (flags.showMobileVersionPage) return <MobileVersionPage />
     if (flags.showDashboard) return <DashboardPage activeTab={activeTab} setActiveTab={setActiveTab} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} dayBookDate={dayBookDate} setDayBookDate={setDayBookDate} openCustomDatePicker={openCustomDatePicker} customDateInput={customDateInput} onMetricClick={(label) => {
       const routes = {
         CASH: '/cash-bank/cash',
@@ -227,20 +265,16 @@ function App() {
     return <SectionPage path={currentPath} />
   }
 
-  if (flags.showMobileVersionPage) {
-    return <MobileVersionPage />
-  }
-
   return <div className="app-shell relative min-h-screen bg-slate-100 text-slate-900">
     <Sidebar collapsed={sidebarCollapsed} isCompact={isCompact} setSidebarCollapsed={setSidebarCollapsed} currentPath={currentPath} showDashboard={flags.showDashboard} expandedNav={expandedNav} setExpandedNav={setExpandedNav} onDashboard={openDashboard} onQuotation={openQuotation} onNavigate={(path) => navigateTo(path)} />
-    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onSelectCompany={(company) => { setSelectedCompany(company); setShowCompanyMenu(false) }} onLogout={async () => { await logout(); window.location.replace('/') }} />{renderPage()}</main>
+    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onCompanyClick={openCompanyDetails} onSelectCompany={(company) => { setSelectedCompany(company); setShowCompanyMenu(false) }} onLogout={async () => { await logout(); window.location.replace('/') }} />{renderPage()}</main>
 
     <div className="fixed bottom-5 right-5 z-40">
       {showQuickCreate && (
-        <div className="mb-3 w-[280px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
+        <div className="mb-3 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
           <div className="flex items-center justify-between bg-[#101010] px-3 py-2 text-white">
 
-            <button type="button" aria-label="Close quick create" onClick={() => setShowQuickCreate(false)} className="text-lg pl-60 leading-none text-white/80 hover:text-white">×</button>
+            <button type="button" aria-label="Close quick create" onClick={() => setShowQuickCreate(false)} className="ml-auto text-lg leading-none text-white/80 hover:text-white">×</button>
           </div>
           <div className="max-h-[360px] overflow-y-auto bg-slate-100 p-2">
             {quickCreateGroups.map((group) => (

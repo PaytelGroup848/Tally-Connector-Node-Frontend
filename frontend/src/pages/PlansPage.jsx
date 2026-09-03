@@ -944,7 +944,7 @@ function PlansPage() {
   ========================================================= */
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#F0FDF4] via-[#F7FAF8] to-white px-3 py-2 sm:px-4 sm:py-3 lg:px-6">
+    <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-[#F0FDF4] via-[#F7FAF8] to-white px-3 py-2 sm:px-4 sm:py-3 lg:px-6">
 
       <div className="mx-auto flex h-full max-w-7xl flex-col">
 

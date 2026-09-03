@@ -45,7 +45,7 @@ function JournalPage() {
             </label>
           </div>
 
-          <div className="mt-5 overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="mt-5 overflow-x-auto overflow-y-hidden rounded-lg border border-slate-200 bg-white">
             <div className="flex items-center justify-between border-b border-slate-200 bg-slate-100 px-4 py-3">
               <span className="text-[12px] font-semibold uppercase tracking-wide text-slate-600">Add Particulars</span>
               <button type="button" onClick={() => setRows((currentRows) => [...currentRows, { id: Date.now() }])} className="rounded-md bg-[#dff4e4] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-green-700">

@@ -123,7 +123,7 @@ function PhysicalStockPage() {
           {/* ITEMS TABLE */}
           {/* ================================================= */}
 
-          <div className="mt-5 overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="mt-5 overflow-x-auto overflow-y-hidden rounded-lg border border-slate-200 bg-white">
 
             {/* TABLE HEADER */}
 

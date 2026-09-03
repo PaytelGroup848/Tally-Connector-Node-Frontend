@@ -65,7 +65,7 @@ export function DocumentVoucherPage({ title, extraField, date = '2026-08-27' }) 
             </label>
           </div>
 
-          <div className="mt-5 overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="mt-5 overflow-x-auto overflow-y-hidden rounded-lg border border-slate-200 bg-white">
             <div className="grid min-w-[1000px] grid-cols-[1.2fr_0.45fr_0.45fr_0.5fr_0.5fr_0.9fr_0.8fr_1.3fr_0.7fr_0.5fr_0.35fr] gap-2 bg-slate-100 p-2 text-[12px] font-semibold uppercase tracking-wide text-slate-600">
               <b>Items</b>
               <b>Qty</b>

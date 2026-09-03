@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   XCircle,
   ListChecks,
+  ArrowLeft,
 } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 import {
@@ -216,16 +217,20 @@ const ProfilePage = () => {
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
       <div className="mx-auto max-w-4xl">
 
-        {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">
-            Profile
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Your account and subscription details
-          </p>
+        {/* Back Button */}
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+          >
+            <ArrowLeft size={18} />
+            Back
+          </button>
         </div>
+
+        {/* Page Header */}
+       
 
         {/* Main Card */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
