@@ -1,6 +1,7 @@
 
 import { useState } from 'react'
-import mobileIllustration from '../assets/livekeeping-and-tally.png'
+import mobileIllustration from '../assets/-and-tally.png'
+import cloudedataLogo from '../assets/cloudedata.svg'
 
 function MobileVersionPage() {
   const [countryCode, setCountryCode] = useState('+91')
@@ -68,21 +69,9 @@ function MobileVersionPage() {
     <div className="flex min-h-screen items-center justify-center bg-[#f3f3f3] px-4 py-8 text-slate-900">
       <div className="w-full max-w-[440px]">
 
-        {/* LiveKeeping Logo */}
-        <div className="mb-7 flex items-center justify-center gap-3">
-          <div className="flex h-[40px] w-[40px] items-center justify-center rounded-md bg-[#0d1f2a] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.08)]">
-            <div className="h-[20px] w-[20px] rounded-sm bg-gradient-to-br from-[#38d96a] via-[#1f9d5b] to-[#0d1f2a]" />
-          </div>
-
-          <div className="text-left">
-            <div className="flex items-end gap-2 text-[19px] font-bold leading-none tracking-[-0.03em] text-slate-900">
-              Live <span className="text-[#2cbf5a]">Keeping</span>
-            </div>
-
-            <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-slate-500">
-              an <span className="text-red-500 not-italic">indiamart</span> Company
-            </div>
-          </div>
+        {/* Cloudedata Logo */}
+        <div className="mb-7 flex justify-center">
+          <img src={cloudedataLogo} alt="Cloudedata logo" className="h-14 w-auto object-contain" />
         </div>
 
         {/* Heading */}

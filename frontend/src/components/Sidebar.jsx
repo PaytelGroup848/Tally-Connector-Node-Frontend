@@ -1,4 +1,4 @@
-import logo from '../assets/livekeeping-logo.svg'
+import logo from '../assets/cloudedata.svg'
 import { navItems, submenuItems } from '../routes/navigation'
 
 function Arrow() {
@@ -28,8 +28,8 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
         </div>
       )}
       <button type="button" className={`sidebar-brand flex h-[60px] w-full shrink-0 items-center gap-2 border-0 bg-white px-2 text-left text-neutral-800 ${collapsed ? 'justify-center px-0' : ''}`} onClick={onDashboard} aria-label="Go to dashboard">
-        <img className="h-[38px] w-[38px] shrink-0 object-contain" src={logo} alt="LiveKeeping" />
-        {!collapsed && <span className="whitespace-nowrap text-[18px] leading-5">Live <b className="text-green-600">Keeping</b><small className="block text-right text-[7px] text-neutral-500">an <i className="text-red-500">indiamart</i> Company</small></span>}
+        <img className="h-[300px] w-[300px] shrink-0 object-contain" src={logo} alt="Cloudedata" />
+        
       </button>
       <nav className="overflow-y-auto px-3 py-4">
         {navItems.map(([icon, label, expandable, badge, path]) => {

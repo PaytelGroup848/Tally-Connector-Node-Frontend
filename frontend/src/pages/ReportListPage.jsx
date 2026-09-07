@@ -1,5 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import DateRangePicker from '../components/DateRangePicker'
+import useAuthStore from '../store/authStore'
+import {
+  extractCustomerPagination,
+  extractCustomers,
+  extractCustomerTotal,
+  fetchCustomers,
+} from '../services/customersApi'
 import {
   ArrowLeft,
   ArrowUp,
@@ -462,7 +469,9 @@ function ReceivablesReport({
   config,
   query,
   setQuery,
+  companyId,
 }) {
+  const accessToken = useAuthStore((state) => state.accessToken)
   const [selectedFilter, setSelectedFilter] =
     useState('All')
 
@@ -481,6 +490,100 @@ function ReceivablesReport({
   const [currentPage, setCurrentPage] =
     useState(1)
 
+  const [pageSize, setPageSize] = useState(20)
+
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalOutstanding, setTotalOutstanding] = useState(null)
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    if (!accessToken || !companyId) {
+      setRows([])
+      setTotalItems(0)
+      setTotalPages(1)
+      setTotalOutstanding(null)
+      setErrorMessage(
+        accessToken
+          ? 'No company is selected. Load a company before viewing sundry debtors.'
+          : 'Your session has expired. Please sign in again.'
+      )
+      return undefined
+    }
+
+    let isMounted = true
+    setIsLoading(true)
+    setErrorMessage('')
+
+    fetchCustomers({
+      companyId,
+      accessToken,
+      page: currentPage,
+      limit: pageSize,
+      q: query,
+    })
+      .then((response) => {
+        if (!isMounted) return
+
+        const customers = extractCustomers(response)
+        setRows(customers.map((customer, index) => {
+          const name = customer?.name || customer?.customerName || customer?.partyName || customer?.party_name || customer?.ledgerName || customer?.ledger_name || `Customer ${index + 1}`
+          const outstanding = customer?.outstanding ?? customer?.outstandingAmount ?? customer?.outstanding_amount ?? customer?.closingBalance ?? customer?.closing_balance ?? customer?.balance ?? '-'
+          const overdue = customer?.overdue ?? customer?.overdueAmount ?? customer?.overdue_amount ?? '-'
+          const creditDays = customer?.creditDays ?? customer?.credit_days ?? '-'
+          const averagePayDays = customer?.averagePayDays ?? customer?.avgPayDays ?? customer?.average_payment_days ?? customer?.average_pay_days ?? '-'
+
+          return [
+            String(((currentPage - 1) * pageSize) + index + 1),
+            name,
+            outstanding,
+            overdue,
+            creditDays,
+            averagePayDays,
+            'Set Reminder',
+          ]
+        }))
+
+        const responseTotalOutstanding = extractCustomerTotal(response)
+        setTotalOutstanding(responseTotalOutstanding)
+
+        const pagination = extractCustomerPagination(response)
+        const responseTotal = Number(
+          pagination.total ??
+          pagination.totalItems ??
+          pagination.count ??
+          pagination.totalRecords
+        )
+        const responsePages = Number(
+          pagination.totalPages ??
+          pagination.pages ??
+          pagination.lastPage
+        )
+        const nextTotal = Number.isFinite(responseTotal) && responseTotal >= 0
+          ? responseTotal
+          : customers.length
+        const nextPages = Number.isFinite(responsePages) && responsePages > 0
+          ? responsePages
+          : Math.max(1, Math.ceil(nextTotal / pageSize))
+
+        setTotalItems(nextTotal)
+        setTotalPages(nextPages)
+      })
+      .catch((error) => {
+        if (!isMounted) return
+        setErrorMessage(error.message || 'Unable to load sundry debtors')
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [accessToken, companyId, currentPage, pageSize, query])
+
   const filterOptions = [
     'All',
     'Due Today',
@@ -494,17 +597,32 @@ function ReceivablesReport({
     'Customize Template',
   ]
 
-  const filteredRows = rows.filter((row) => {
-    const customerName =
-      String(row[1] ?? '').toLowerCase()
+  const filteredRows = rows
 
-    const matchesQuery =
-      customerName.includes(
-        String(query ?? '').toLowerCase()
-      )
+  const displayedOutstanding = totalOutstanding ?? rows.reduce((total, row) => {
+    const amount = Number(String(row[2]).replace(/[^\d.-]/g, ''))
+    return Number.isFinite(amount) ? total + amount : total
+  }, 0)
 
-    return matchesQuery
-  })
+  const formattedOutstanding = totalOutstanding === null && displayedOutstanding === 0
+    ? '-'
+    : typeof displayedOutstanding === 'number'
+      ? displayedOutstanding.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })
+      : displayedOutstanding
+
+  const pageItems = totalPages <= 7
+    ? Array.from({ length: totalPages }, (_, index) => index + 1)
+    : currentPage <= 4
+      ? [1, 2, 3, 4, 5, '...', totalPages]
+      : currentPage >= totalPages - 3
+        ? [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+        : [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages]
+  const paginationDisabled = isLoading || totalPages <= 1
+
+  const handleSearchChange = (event) => {
+    setQuery(event.target.value)
+    setCurrentPage(1)
+  }
 
   // ==========================================================
   // REMINDER
@@ -803,7 +921,7 @@ function ReceivablesReport({
             </span>
 
             <strong className="mt-1 block text-[16px] font-bold text-[#18202a]">
-              ₹ 10,43,86,676.44
+              {formattedOutstanding}
             </strong>
 
           </div>
@@ -889,6 +1007,24 @@ function ReceivablesReport({
 
           {/* SEARCH */}
 
+          <label className="flex h-[32px] items-center gap-2 text-[12px] text-slate-600">
+            <span className="whitespace-nowrap">Show</span>
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value))
+                setCurrentPage(1)
+              }}
+              className="h-[32px] rounded-[5px] border border-slate-300 bg-white px-2 outline-none focus:border-[#168acb]"
+              aria-label="Rows per page"
+            >
+              {[10, 20, 30, 50].map((limit) => (
+                <option key={limit} value={limit}>{limit}</option>
+              ))}
+            </select>
+            <span className="whitespace-nowrap">records</span>
+          </label>
+
           <label className="ml-auto flex h-[32px] w-[180px] items-center gap-2 rounded-[5px] border border-slate-300 bg-white px-3">
 
             <Search
@@ -899,9 +1035,7 @@ function ReceivablesReport({
 
             <input
               value={query}
-              onChange={(event) =>
-                setQuery(event.target.value)
-              }
+              onChange={handleSearchChange}
               placeholder="Search"
               className="
                 w-full
@@ -950,6 +1084,12 @@ function ReceivablesReport({
         {sentMessage && (
           <div className="mx-4 mb-2 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-[12px] text-green-700">
             {sentMessage}
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="mx-4 mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+            {errorMessage}
           </div>
         )}
 
@@ -1018,7 +1158,11 @@ function ReceivablesReport({
 
             {/* TABLE BODY */}
 
-            {displayRows.length > 0 ? (
+            {isLoading ? (
+              <div className="flex min-h-[120px] items-center justify-center border-x border-b border-[#d9dee3] text-xs text-slate-500">
+                Loading sundry debtors...
+              </div>
+            ) : displayRows.length > 0 ? (
 
               displayRows.map((row, index) => (
 
@@ -1090,7 +1234,9 @@ function ReceivablesReport({
         <div className="flex items-center justify-between px-4 py-4">
 
           <span className="text-[12px] text-slate-700">
-            1-{displayRows.length} of 276
+            {totalItems === 0
+              ? '0 of 0'
+              : `${((currentPage - 1) * pageSize) + 1}-${((currentPage - 1) * pageSize) + displayRows.length} of ${totalItems}`}
           </span>
 
           <div className="flex items-center gap-1">
@@ -1104,6 +1250,7 @@ function ReceivablesReport({
                   Math.max(1, page - 1)
                 )
               }
+              disabled={paginationDisabled || currentPage === 1}
               className="
                 flex
                 h-[30px]
@@ -1117,6 +1264,8 @@ function ReceivablesReport({
                 text-slate-400
                 shadow-sm
                 hover:bg-slate-50
+                disabled:cursor-not-allowed
+                disabled:opacity-50
               "
               title="Previous page"
               aria-label="Previous page"
@@ -1129,13 +1278,19 @@ function ReceivablesReport({
 
             {/* PAGE NUMBERS */}
 
-            {[1, 2, 3, 4].map((page) => (
+            {pageItems.map((page, index) => page === '...' ? (
+              <span
+                key={`ellipsis-${index}`}
+                className="flex h-[30px] min-w-[31px] items-center justify-center text-[12px] text-slate-500"
+              >
+                ...
+              </span>
+            ) : (
               <button
                 key={page}
                 type="button"
-                onClick={() =>
-                  setCurrentPage(page)
-                }
+                disabled={paginationDisabled}
+                onClick={() => setCurrentPage(page)}
                 className={`
                   flex
                   h-[30px]
@@ -1152,41 +1307,21 @@ function ReceivablesReport({
                       ? 'border-[#168acb] bg-[#168acb] text-white'
                       : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                   }
+                  disabled:cursor-not-allowed disabled:opacity-50
                 `}
               >
                 {page}
               </button>
             ))}
 
-            {/* DOTS */}
-
-            <button
-              type="button"
-              className="
-                flex
-                h-[30px]
-                min-w-[31px]
-                items-center
-                justify-center
-                rounded
-                border
-                border-slate-200
-                bg-white
-                text-[12px]
-                text-slate-700
-                shadow-sm
-              "
-            >
-              ...
-            </button>
-
             {/* LAST PAGE */}
 
             <button
               type="button"
               onClick={() =>
-                setCurrentPage(28)
+                setCurrentPage(totalPages)
               }
+              disabled={paginationDisabled || currentPage === totalPages}
               className={`
                 flex
                 h-[30px]
@@ -1199,13 +1334,14 @@ function ReceivablesReport({
                 font-medium
                 shadow-sm
                 ${
-                  currentPage === 28
+                  currentPage === totalPages
                     ? 'border-[#168acb] bg-[#168acb] text-white'
                     : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                 }
+                  disabled:cursor-not-allowed disabled:opacity-50
               `}
             >
-              28
+              {totalPages}
             </button>
 
             {/* NEXT */}
@@ -1214,9 +1350,10 @@ function ReceivablesReport({
               type="button"
               onClick={() =>
                 setCurrentPage((page) =>
-                  Math.min(28, page + 1)
+                  Math.min(totalPages, page + 1)
                 )
               }
+              disabled={paginationDisabled || currentPage === totalPages}
               className="
                 flex
                 h-[30px]
@@ -1230,6 +1367,8 @@ function ReceivablesReport({
                 text-slate-700
                 shadow-sm
                 hover:bg-slate-50
+                disabled:cursor-not-allowed
+                disabled:opacity-50
               "
               title="Next page"
               aria-label="Next page"
@@ -1372,7 +1511,7 @@ function AccountsReport({ config }) {
 // GENERAL REPORT
 // ============================================================
 
-function ReportListPage({ path }) {
+function ReportListPage({ path, companyId }) {
   const config =
     reports[path] ||
     reports['/purchaseorder']
@@ -1392,6 +1531,7 @@ function ReportListPage({ path }) {
         config={config}
         query={query}
         setQuery={setQuery}
+        companyId={companyId}
       />
     )
   }

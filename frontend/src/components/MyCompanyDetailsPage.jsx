@@ -26,6 +26,7 @@ const MyCompanyDetailsPage = () => {
   const [ledgerError, setLedgerError] = useState('')
   const [ledgerPage, setLedgerPage] = useState(1)
   const [ledgerLimit, setLedgerLimit] = useState(20)
+  const [ledgerSearch, setLedgerSearch] = useState('')
   const [ledgerQuery, setLedgerQuery] = useState('')
   const [ledgerPagination, setLedgerPagination] = useState({})
   const [isLedgersLoading, setIsLedgersLoading] = useState(false)
@@ -35,6 +36,15 @@ const MyCompanyDetailsPage = () => {
   const companyId = decodeURIComponent(
     window.location.pathname.split('/').pop() || '',
   )
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setLedgerQuery(ledgerSearch)
+      setLedgerPage(1)
+    }, 400)
+
+    return () => clearTimeout(debounceTimer)
+  }, [ledgerSearch])
 
   useEffect(() => {
     if (!accessToken || !companyId) return undefined
@@ -249,11 +259,27 @@ const MyCompanyDetailsPage = () => {
     company?.tallyCompanyName || 'Tally Company'
 
   const ledgerColumns = Array.from(
-    new Set(ledgers.flatMap((ledger) => Object.keys(ledger || {}))),
-  ).filter((column) => !['raw', 'version', 'v', '__v', 'id', '_id', 'ledgerid'].includes(column.toLowerCase()))
+  new Set(ledgers.flatMap((ledger) => Object.keys(ledger || {}))),
+).filter(
+  (column) =>
+    ![
+      'source',
+      'raw',
+      'version',
+      'v',
+      '__v',
+      'id',
+      '_id',
+      'ledgerid',
+      'companyid',
+      'organisationid',
+      'organizationid',
+      'tallyexternalid',
+    ].includes(column.toLowerCase().replace(/[_-]/g, '')),
+)
 
   const formatLedgerValue = (value, column) => {
-    if (value === null || value === undefined || value === '') return '-'
+    if (value === null || value === undefined || value === '') return 'NA'
 
     const normalizedColumn = column.toLowerCase().replace(/[_-]/g, '')
     if (normalizedColumn === 'createdat' || normalizedColumn === 'updatedat') {
@@ -470,10 +496,9 @@ const MyCompanyDetailsPage = () => {
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
               <input
                 type="search"
-                value={ledgerQuery}
+                value={ledgerSearch}
                 onChange={(event) => {
-                  setLedgerQuery(event.target.value)
-                  setLedgerPage(1)
+                  setLedgerSearch(event.target.value)
                 }}
                 placeholder="Search ledgers"
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 sm:w-64"

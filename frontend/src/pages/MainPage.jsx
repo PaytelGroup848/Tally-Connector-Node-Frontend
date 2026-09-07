@@ -245,7 +245,7 @@ function App() {
     if (flags.showInactiveCustomersPage) return <InactiveCustomersPage />
     if (flags.showInactiveStocksPage) return <InactiveStocksPage />
     if (flags.showDownloadInvoicePage) return <DownloadInvoicePage />
-    if (flags.showReport) return <ReportListPage path={entryPath} />
+    if (flags.showReport) return <ReportListPage path={entryPath} companyId={selectedCompany?.id} />
     if (flags.showPayment) return <PaymentPage />
     if (flags.showReceiptNote) return <ReceiptNotePage />
     if (flags.showReceipt) return <ReceiptPage />
