@@ -28,6 +28,7 @@ import PurchasePage from './PurchasePage'
 import PurchaseOrderPage from './PurchaseOrderPage'
 import PhysicalStockPage from './PhysicalStockPage'
 import ReportListPage from './ReportListPage'
+import TrialBalancePage from './TrialBalancePage'
 import ReportsPage from './ReportsPage'
 import ReceiptPage from './ReceiptPage'
 import ReceiptNotePage from './ReceiptNotePage'
@@ -43,6 +44,12 @@ import MyCompanyDetailsPage from '../components/MyCompanyDetailsPage'
 import { getRouteFlags } from '../routes/routeConfig'
 import { extractCompanies, fetchCompanies, normalizeCompany } from '../services/companiesApi'
 
+const selectedCompanyStorageKey = 'selectedCompanyId'
+
+function getCompanyId(company) {
+  return company?.id || company?._id || company?.companyId || company?.company_id
+}
+
 function App() {
   const [activeTab, setActiveTab] = useState('Customers')
   const [selectedPeriod, setSelectedPeriod] = useState('This Year (1st Apr ’26 - 31st Mar ’27)')
@@ -52,10 +59,13 @@ function App() {
   const [showEway, setShowEway] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showCompanyMenu, setShowCompanyMenu] = useState(false)
-  const [selectedCompany, setSelectedCompany] = useState({
-    name: 'Paytel Financial Services Pvt Ltd 22-23',
-    meta: 'Synced a day ago',
-    isCurrent: true,
+  const [selectedCompany, setSelectedCompany] = useState(() => {
+    const storedCompanyId = typeof window !== 'undefined' ? window.localStorage.getItem(selectedCompanyStorageKey) : null
+    return storedCompanyId ? { id: storedCompanyId } : {
+      name: 'Paytel Financial Services Pvt Ltd 22-23',
+      meta: 'Synced a day ago',
+      isCurrent: true,
+    }
   })
   const [companyOptions, setCompanyOptions] = useState([
     { name: 'Paytel Financial Services Pvt Ltd 22-23', meta: 'Synced a day ago', isCurrent: true },
@@ -149,10 +159,11 @@ function App() {
         const companies = extractCompanies(response).map(normalizeCompany)
         if (companies.length === 0) return
 
+        const storedCompanyId = typeof window !== 'undefined' ? window.localStorage.getItem(selectedCompanyStorageKey) : null
+        const selectedCompanyId = getCompanyId(selectedCompany)
         const currentCompany = companies.find((company) => {
-          const companyId = company?.id || company?._id || company?.companyId || company?.company_id
-          const selectedCompanyId = selectedCompany?.id || selectedCompany?._id || selectedCompany?.companyId || selectedCompany?.company_id
-          return companyId && selectedCompanyId && String(companyId) === String(selectedCompanyId)
+          const companyId = getCompanyId(company)
+          return companyId && (String(companyId) === String(storedCompanyId || selectedCompanyId))
         }) || companies[0]
         const remainingCompanies = companies.filter((company) => company !== currentCompany)
         setSelectedCompany({ ...currentCompany, isCurrent: true })
@@ -160,6 +171,7 @@ function App() {
           { ...currentCompany, isCurrent: true },
           ...remainingCompanies.map((company) => ({ ...company, isCurrent: false })),
         ])
+        if (typeof window !== 'undefined' && getCompanyId(currentCompany)) window.localStorage.setItem(selectedCompanyStorageKey, String(getCompanyId(currentCompany)))
       })
       .catch((error) => {
         console.warn('Company list API failed, using local company list:', error)
@@ -199,9 +211,10 @@ function App() {
   }
 
   const openCompanyDetails = (company) => {
-    const companyId = company?.id || company?._id || company?.companyId || company?.company_id
+    const companyId = getCompanyId(company)
     if (!companyId) return
     setSelectedCompany(company)
+    window.localStorage.setItem(selectedCompanyStorageKey, String(companyId))
     setShowCompanyMenu(false)
     navigateTo(`/company-details/${encodeURIComponent(companyId)}`)
   }
@@ -218,6 +231,15 @@ function App() {
       return [candidate, ...next]
     })
     setSelectedCompany(candidate)
+    if (typeof window !== 'undefined' && getCompanyId(candidate)) window.localStorage.setItem(selectedCompanyStorageKey, String(getCompanyId(candidate)))
+    setShowCompanyMenu(false)
+  }
+
+  const selectCompany = (company) => {
+    const companyId = getCompanyId(company)
+    if (!companyId) return
+    setSelectedCompany(company)
+    window.localStorage.setItem(selectedCompanyStorageKey, String(companyId))
     setShowCompanyMenu(false)
   }
 
@@ -250,6 +272,7 @@ function App() {
     if (flags.showInactiveCustomersPage) return <InactiveCustomersPage />
     if (flags.showInactiveStocksPage) return <InactiveStocksPage />
     if (flags.showDownloadInvoicePage) return <DownloadInvoicePage />
+    if (entryPath === '/trial-balance') return <TrialBalancePage companyId={selectedCompany?.id} />
     if (flags.showReport) return <ReportListPage path={entryPath} companyId={selectedCompany?.id} />
     if (flags.showPayment) return <PaymentPage />
     if (flags.showReceiptNote) return <ReceiptNotePage />
@@ -272,7 +295,7 @@ function App() {
 
   return <div className="app-shell relative min-h-screen bg-slate-100 text-slate-900">
     <Sidebar collapsed={sidebarCollapsed} isCompact={isCompact} setSidebarCollapsed={setSidebarCollapsed} currentPath={currentPath} showDashboard={flags.showDashboard} expandedNav={expandedNav} setExpandedNav={setExpandedNav} onDashboard={openDashboard} onQuotation={openQuotation} onNavigate={(path) => navigateTo(path)} />
-    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onCompanyClick={openCompanyDetails} onSelectCompany={(company) => { setSelectedCompany(company); setShowCompanyMenu(false) }} onLogout={async () => { await logout(); window.location.replace('/') }} />{renderPage()}</main>
+    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onCompanyClick={openCompanyDetails} onSelectCompany={selectCompany} onLogout={async () => { await logout(); window.location.replace('/') }} />{renderPage()}</main>
 
     <div className="fixed bottom-5 right-5 z-40">
       {showQuickCreate && (

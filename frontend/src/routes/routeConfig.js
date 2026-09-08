@@ -1,5 +1,5 @@
 const entryListPaths = new Set(['/tracking-report', '/my-stock-items', '/my-ledgers', '/my-parties', '/my-invoices', '/my-eway-bill', '/my-quotations'])
-const reportPaths = new Set(['/sales', '/purchase', '/purchaseorder', '/payables', '/payments', '/debitnote', '/creditnote', '/receivables', '/collect-payments', '/receivablesnew', '/receipt', '/receiptnote', '/deliverynote', '/salesorder', '/cash/voucher-list/cash-in-hand', '/cash-bank/cash', '/cash-bank/bank', '/bank/voucher-list/bank-accounts'])
+const reportPaths = new Set(['/sales', '/purchase', '/purchaseorder', '/payables', '/payments', '/debitnote', '/creditnote', '/receivables', '/collect-payments', '/receivablesnew', '/receipt', '/receiptnote', '/deliverynote', '/salesorder', '/trial-balance', '/cash/voucher-list/cash-in-hand', '/cash-bank/cash', '/cash-bank/bank', '/bank/voucher-list/bank-accounts'])
 
 export function getRouteFlags(path) {
   const normalizedPath = path.toLowerCase()

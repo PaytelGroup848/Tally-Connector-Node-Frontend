@@ -226,3 +226,59 @@ export function extractVoucherPagination(response) {
   if (response && typeof response === 'object') return response
   return {}
 }
+
+export function fetchTrialBalance(accessToken, companyId, { page = 1, limit = 10, q = '' } = {}) {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+  if (q.trim()) params.set('q', q.trim())
+  return request(`/companies/${encodeURIComponent(companyId)}/reports/trial-balance?${params}`, accessToken)
+}
+
+export function extractTrialBalanceRows(response) {
+  if (Array.isArray(response)) return response
+  const pending = [response]
+  const rowKeys = [
+    'trialBalance',
+    'trial_balance',
+    'trialBalanceData',
+    'trial_balance_data',
+    'accounts',
+    'ledgers',
+    'balances',
+    'ledgerBalances',
+    'items',
+    'records',
+    'results',
+    'docs',
+    'rows',
+    'content',
+    'data',
+  ]
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+    for (const key of rowKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  const candidate = response?.data || response
+  if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+    const objectRows = Object.values(candidate).filter(
+      (value) => value && typeof value === 'object' && !Array.isArray(value),
+    )
+    if (objectRows.length > 0) return objectRows
+  }
+
+  return []
+}
+
+export function extractTrialBalancePagination(response) {
+  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
+  if (pagination && typeof pagination === 'object') return pagination
+  if (response?.data && typeof response.data === 'object') return response.data
+  return response && typeof response === 'object' ? response : {}
+}
