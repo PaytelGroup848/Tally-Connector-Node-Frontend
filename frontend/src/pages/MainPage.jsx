@@ -149,7 +149,12 @@ function App() {
         const companies = extractCompanies(response).map(normalizeCompany)
         if (companies.length === 0) return
 
-        const [currentCompany, ...remainingCompanies] = companies
+        const currentCompany = companies.find((company) => {
+          const companyId = company?.id || company?._id || company?.companyId || company?.company_id
+          const selectedCompanyId = selectedCompany?.id || selectedCompany?._id || selectedCompany?.companyId || selectedCompany?.company_id
+          return companyId && selectedCompanyId && String(companyId) === String(selectedCompanyId)
+        }) || companies[0]
+        const remainingCompanies = companies.filter((company) => company !== currentCompany)
         setSelectedCompany({ ...currentCompany, isCurrent: true })
         setCompanyOptions([
           { ...currentCompany, isCurrent: true },

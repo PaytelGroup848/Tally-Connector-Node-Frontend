@@ -1,21 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import DateRangePicker from '../components/DateRangePicker'
 import useAuthStore from '../store/authStore'
+
 import {
   extractCustomerPagination,
   extractCustomers,
   extractCustomerTotal,
+  extractSuppliers,
   fetchCustomers,
+  fetchSuppliers,
 } from '../services/customersApi'
+
 import {
   ArrowLeft,
-  ArrowUp,
   Bell,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   FileText,
-  Filter,
   MessageCircle,
   Search,
 } from 'lucide-react'
@@ -47,9 +49,10 @@ const reports = {
   },
 
   '/payables': {
-    title: 'Payables',
+    title: 'Sundry Creditors',
     total: 'Total Payables:',
-    mode: 'payables',
+    mode: 'receivables',
+    resource: 'suppliers',
     columns: [
       'Name',
       'Credit Days',
@@ -412,51 +415,550 @@ function ReportTable({
   columns,
   rows = [],
 }) {
-  const hasRows = rows.length > 0
+  const [currentPage, setCurrentPage] =
+    useState(1)
+
+  const [pageSize, setPageSize] =
+    useState(10)
+
+  // ----------------------------------------------------------
+  // TOTAL ITEMS
+  // ----------------------------------------------------------
+
+  const totalItems = rows.length
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalItems / pageSize)
+  )
+
+  // ----------------------------------------------------------
+  // KEEP PAGE VALID WHEN DATA CHANGES
+  // ----------------------------------------------------------
+
+  useEffect(() => {
+    setCurrentPage((page) =>
+      Math.min(page, totalPages)
+    )
+  }, [totalPages])
+
+  // ----------------------------------------------------------
+  // PAGINATED ROWS
+  // ----------------------------------------------------------
+
+  const paginatedRows = useMemo(() => {
+    const start =
+      (currentPage - 1) * pageSize
+
+    const end =
+      start + pageSize
+
+    return rows.slice(start, end)
+  }, [
+    rows,
+    currentPage,
+    pageSize,
+  ])
+
+  // ----------------------------------------------------------
+  // PAGE NUMBERS
+  // ----------------------------------------------------------
+
+  const pageItems =
+    totalPages <= 7
+      ? Array.from(
+          {
+            length: totalPages,
+          },
+          (_, index) => index + 1
+        )
+      : currentPage <= 4
+        ? [
+            1,
+            2,
+            3,
+            4,
+            5,
+            '...',
+            totalPages,
+          ]
+        : currentPage >=
+            totalPages - 3
+          ? [
+              1,
+              '...',
+              totalPages - 4,
+              totalPages - 3,
+              totalPages - 2,
+              totalPages - 1,
+              totalPages,
+            ]
+          : [
+              1,
+              '...',
+              currentPage - 1,
+              currentPage,
+              currentPage + 1,
+              '...',
+              totalPages,
+            ]
+
+  // ----------------------------------------------------------
+  // RANGE
+  // ----------------------------------------------------------
+
+  const startItem =
+    totalItems === 0
+      ? 0
+      : (currentPage - 1) *
+          pageSize +
+        1
+
+  const endItem =
+    Math.min(
+      currentPage * pageSize,
+      totalItems
+    )
+
+  // ----------------------------------------------------------
+  // GRID COLUMNS
+  // Automatically adjusts depending on column name.
+  // ----------------------------------------------------------
+
+  const getGridColumns = () => {
+    return columns
+      .map((column) => {
+        const normalized =
+          String(column)
+            .toLowerCase()
+            .replace(/\s+/g, '')
+
+        if (
+          normalized.includes('email')
+        ) {
+          return 'minmax(220px, 1.8fr)'
+        }
+
+        if (
+          normalized.includes(
+            'address'
+          )
+        ) {
+          return 'minmax(240px, 1.8fr)'
+        }
+
+        if (
+          normalized.includes('name')
+        ) {
+          return 'minmax(180px, 1.4fr)'
+        }
+
+        if (
+          normalized.includes(
+            'description'
+          )
+        ) {
+          return 'minmax(220px, 1.6fr)'
+        }
+
+        if (
+          normalized.includes(
+            'amount'
+          ) ||
+          normalized.includes(
+            'balance'
+          )
+        ) {
+          return 'minmax(160px, 1fr)'
+        }
+
+        if (
+          normalized.includes(
+            'phone'
+          ) ||
+          normalized.includes(
+            'mobile'
+          )
+        ) {
+          return 'minmax(140px, 1fr)'
+        }
+
+        if (
+          normalized.includes(
+            'gst'
+          )
+        ) {
+          return 'minmax(150px, 1fr)'
+        }
+
+        if (
+          normalized.includes(
+            'date'
+          )
+        ) {
+          return 'minmax(160px, 1fr)'
+        }
+
+        if (
+          normalized.includes(
+            'days'
+          )
+        ) {
+          return 'minmax(130px, 1fr)'
+        }
+
+        return 'minmax(140px, 1fr)'
+      })
+      .join(' ')
+  }
+
+  const gridColumns =
+    getGridColumns()
 
   return (
-    <div className="overflow-x-auto px-5">
-      <div className="min-w-[520px]">
+    <div className="px-5">
 
-        {/* HEADER */}
+      {/* ======================================================
+          TABLE
+      ====================================================== */}
 
-        <div className="grid grid-cols-[1fr_140px] bg-[#edf2f6] px-4 py-2.5 text-xs font-medium text-slate-700">
-          {columns.map((column) => (
-            <b key={column}>
-              {column}
-            </b>
-          ))}
+      <div className="overflow-x-auto">
+
+        <div
+          className="
+            min-w-[520px]
+            overflow-hidden
+            rounded-md
+            border
+            border-slate-200
+          "
+        >
+
+          {/* ==================================================
+              HEADER
+          ================================================== */}
+
+          <div
+            className="
+              grid
+              items-center
+              bg-[#edf2f6]
+              px-4
+              py-2.5
+              text-xs
+              font-medium
+              text-slate-700
+            "
+            style={{
+              gridTemplateColumns:
+                gridColumns,
+            }}
+          >
+            {columns.map(
+              (column) => (
+                <b
+                  key={column}
+                  className="
+                    min-w-0
+                    overflow-hidden
+                    text-ellipsis
+                    whitespace-nowrap
+                    pr-3
+                  "
+                >
+                  {column}
+                </b>
+              )
+            )}
+          </div>
+
+          {/* ==================================================
+              BODY
+          ================================================== */}
+
+          {paginatedRows.length > 0 ? (
+            paginatedRows.map(
+              (row, index) => (
+                <div
+                  key={`${row[0] ?? 'row'}-${index}`}
+                  className="
+                    grid
+                    items-center
+                    border-b
+                    border-slate-100
+                    px-4
+                    py-3
+                    text-xs
+                    text-slate-700
+                  "
+                  style={{
+                    gridTemplateColumns:
+                      gridColumns,
+                  }}
+                >
+                  {row.map(
+                    (
+                      value,
+                      valueIndex
+                    ) => (
+                      <span
+                        key={`${value}-${valueIndex}`}
+                        title={String(
+                          value ?? ''
+                        )}
+                        className="
+                          min-w-0
+                          max-w-full
+                          break-words
+                          [overflow-wrap:anywhere]
+                          whitespace-normal
+                          pr-3
+                          leading-5
+                        "
+                      >
+                        {value}
+                      </span>
+                    )
+                  )}
+                </div>
+              )
+            )
+          ) : (
+            <div className="flex min-h-[120px] items-center justify-center border-t border-slate-100 text-xs text-slate-500">
+              No data available
+            </div>
+          )}
+
         </div>
 
-        {/* BODY */}
+      </div>
 
-        {hasRows ? (
-          rows.map((row, index) => (
-            <div
-              key={`${row[0] ?? 'row'}-${index}`}
-              className="grid grid-cols-[1fr_140px] border-b border-slate-100 px-4 py-3 text-xs text-slate-700"
+      {/* ======================================================
+          PAGINATION FOOTER
+      ====================================================== */}
+
+      <div
+        className="
+          flex
+          flex-wrap
+          items-center
+          justify-between
+          gap-3
+          border-t
+          border-slate-200
+          py-4
+        "
+      >
+
+        {/* LEFT */}
+
+        <div className="flex flex-wrap items-center gap-4">
+
+          <span className="text-xs text-slate-600">
+            {totalItems === 0
+              ? '0 of 0'
+              : `${startItem}-${endItem} of ${totalItems}`}
+          </span>
+
+          {/* ROWS PER PAGE */}
+
+          <label className="flex items-center gap-2 text-xs text-slate-600">
+
+            <span>
+              Rows per page
+            </span>
+
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(
+                  Number(
+                    event.target.value
+                  )
+                )
+
+                setCurrentPage(1)
+              }}
+              className="
+                h-8
+                rounded-md
+                border
+                border-slate-300
+                bg-white
+                px-2
+                text-xs
+                outline-none
+                focus:border-[#168acb]
+              "
             >
-              {row.map((value, valueIndex) => (
+              <option value={10}>
+                10
+              </option>
+
+              <option value={20}>
+                20
+              </option>
+
+              <option value={30}>
+                30
+              </option>
+
+              <option value={50}>
+                50
+              </option>
+            </select>
+
+          </label>
+
+        </div>
+
+        {/* RIGHT */}
+
+        <div className="flex items-center gap-1">
+
+          {/* PREVIOUS */}
+
+          <button
+            type="button"
+            disabled={
+              totalPages <= 1 ||
+              currentPage === 1
+            }
+            onClick={() =>
+              setCurrentPage(
+                (page) =>
+                  Math.max(
+                    1,
+                    page - 1
+                  )
+              )
+            }
+            className="
+              flex
+              h-8
+              w-8
+              items-center
+              justify-center
+              rounded
+              border
+              border-slate-200
+              bg-white
+              text-slate-600
+              transition
+              hover:bg-slate-50
+              disabled:cursor-not-allowed
+              disabled:opacity-40
+            "
+            title="Previous page"
+            aria-label="Previous page"
+          >
+            <ChevronLeft
+              size={16}
+            />
+          </button>
+
+          {/* PAGE NUMBERS */}
+
+          {pageItems.map(
+            (page, index) =>
+              page === '...' ? (
                 <span
-                  key={`${value}-${valueIndex}`}
-                  className={
-                    valueIndex === row.length - 1
-                      ? 'text-right'
-                      : ''
-                  }
+                  key={`ellipsis-${index}`}
+                  className="
+                    flex
+                    h-8
+                    min-w-8
+                    items-center
+                    justify-center
+                    text-xs
+                    text-slate-500
+                  "
                 >
-                  {value}
+                  ...
                 </span>
-              ))}
-            </div>
-          ))
-        ) : (
-          <div className="flex min-h-[120px] items-center justify-center border-t border-slate-100 text-xs text-slate-500">
-            No data available
-          </div>
-        )}
+              ) : (
+                <button
+                  key={page}
+                  type="button"
+                  disabled={
+                    totalPages <= 1
+                  }
+                  onClick={() =>
+                    setCurrentPage(
+                      page
+                    )
+                  }
+                  className={`
+                    flex
+                    h-8
+                    min-w-8
+                    items-center
+                    justify-center
+                    rounded
+                    border
+                    text-xs
+                    font-medium
+                    transition
+                    disabled:cursor-not-allowed
+                    disabled:opacity-40
+                    ${
+                      currentPage ===
+                      page
+                        ? 'border-[#168acb] bg-[#168acb] text-white'
+                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                    }
+                  `}
+                >
+                  {page}
+                </button>
+              )
+          )}
+
+          {/* NEXT */}
+
+          <button
+            type="button"
+            disabled={
+              totalPages <= 1 ||
+              currentPage === totalPages
+            }
+            onClick={() =>
+              setCurrentPage(
+                (page) =>
+                  Math.min(
+                    totalPages,
+                    page + 1
+                  )
+              )
+            }
+            className="
+              flex
+              h-8
+              w-8
+              items-center
+              justify-center
+              rounded
+              border
+              border-slate-200
+              bg-white
+              text-slate-600
+              transition
+              hover:bg-slate-50
+              disabled:cursor-not-allowed
+              disabled:opacity-40
+            "
+            title="Next page"
+            aria-label="Next page"
+          >
+            <ChevronRight
+              size={16}
+            />
+          </button>
+
+        </div>
 
       </div>
+
     </div>
   )
 }
@@ -471,9 +973,20 @@ function ReceivablesReport({
   setQuery,
   companyId,
 }) {
-  const accessToken = useAuthStore((state) => state.accessToken)
-  const [selectedFilter, setSelectedFilter] =
-    useState('All')
+  const isSupplierReport = config.resource === 'suppliers'
+  const fetchRecords = isSupplierReport
+    ? fetchSuppliers
+    : fetchCustomers
+  const extractRecords = isSupplierReport
+    ? extractSuppliers
+    : extractCustomers
+  const entityLabel = isSupplierReport
+    ? 'sundry creditors'
+    : 'sundry debtors'
+
+  const accessToken = useAuthStore(
+    (state) => state.accessToken
+  )
 
   const [selectedTab, setSelectedTab] =
     useState('Detailed Summary')
@@ -484,40 +997,60 @@ function ReceivablesReport({
   const [rows, setRows] =
     useState(config.rows ?? [])
 
+  const [customerRecords, setCustomerRecords] =
+    useState([])
+
   const [sentMessage, setSentMessage] =
     useState('')
 
   const [currentPage, setCurrentPage] =
     useState(1)
 
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] =
+    useState(20)
 
-  const [totalItems, setTotalItems] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalOutstanding, setTotalOutstanding] = useState(null)
+  const [totalItems, setTotalItems] =
+    useState(0)
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
+  const [totalPages, setTotalPages] =
+    useState(1)
+
+  const [totalOutstanding, setTotalOutstanding] =
+    useState(null)
+
+  const [isLoading, setIsLoading] =
+    useState(false)
+
+  const [errorMessage, setErrorMessage] =
+    useState('')
+
+  // ==========================================================
+  // FETCH CUSTOMERS
+  // ==========================================================
 
   useEffect(() => {
     if (!accessToken || !companyId) {
       setRows([])
+      setCustomerRecords([])
       setTotalItems(0)
       setTotalPages(1)
       setTotalOutstanding(null)
+
       setErrorMessage(
         accessToken
-          ? 'No company is selected. Load a company before viewing sundry debtors.'
+          ? `No company is selected. Load a company before viewing ${entityLabel}.`
           : 'Your session has expired. Please sign in again.'
       )
+
       return undefined
     }
 
     let isMounted = true
+
     setIsLoading(true)
     setErrorMessage('')
 
-    fetchCustomers({
+    fetchRecords({
       companyId,
       accessToken,
       page: currentPage,
@@ -527,68 +1060,165 @@ function ReceivablesReport({
       .then((response) => {
         if (!isMounted) return
 
-        const customers = extractCustomers(response)
-        setRows(customers.map((customer, index) => {
-          const name = customer?.name || customer?.customerName || customer?.partyName || customer?.party_name || customer?.ledgerName || customer?.ledger_name || `Customer ${index + 1}`
-          const outstanding = customer?.outstanding ?? customer?.outstandingAmount ?? customer?.outstanding_amount ?? customer?.closingBalance ?? customer?.closing_balance ?? customer?.balance ?? '-'
-          const overdue = customer?.overdue ?? customer?.overdueAmount ?? customer?.overdue_amount ?? '-'
-          const creditDays = customer?.creditDays ?? customer?.credit_days ?? '-'
-          const averagePayDays = customer?.averagePayDays ?? customer?.avgPayDays ?? customer?.average_payment_days ?? customer?.average_pay_days ?? '-'
+        const customers =
+          extractRecords(response)
 
-          return [
-            String(((currentPage - 1) * pageSize) + index + 1),
-            name,
-            outstanding,
-            overdue,
-            creditDays,
-            averagePayDays,
-            'Set Reminder',
-          ]
-        }))
-
-        const responseTotalOutstanding = extractCustomerTotal(response)
-        setTotalOutstanding(responseTotalOutstanding)
-
-        const pagination = extractCustomerPagination(response)
-        const responseTotal = Number(
-          pagination.total ??
-          pagination.totalItems ??
-          pagination.count ??
-          pagination.totalRecords
+        setCustomerRecords(
+          customers
         )
-        const responsePages = Number(
-          pagination.totalPages ??
-          pagination.pages ??
-          pagination.lastPage
-        )
-        const nextTotal = Number.isFinite(responseTotal) && responseTotal >= 0
-          ? responseTotal
-          : customers.length
-        const nextPages = Number.isFinite(responsePages) && responsePages > 0
-          ? responsePages
-          : Math.max(1, Math.ceil(nextTotal / pageSize))
 
-        setTotalItems(nextTotal)
-        setTotalPages(nextPages)
+        setRows(
+          customers.map(
+            (
+              customer,
+              index
+            ) => {
+              const name =
+                customer?.name ||
+                customer?.customerName ||
+                customer?.supplierName ||
+                customer?.supplier_name ||
+                customer?.partyName ||
+                customer?.party_name ||
+                customer?.ledgerName ||
+                customer?.ledger_name ||
+                `Customer ${index + 1}`
+
+              const outstanding =
+                customer?.outstanding ??
+                customer?.outstandingAmount ??
+                customer?.outstanding_amount ??
+                customer?.closingBalance ??
+                customer?.closing_balance ??
+                customer?.balance ??
+                '-'
+
+              const overdue =
+                customer?.overdue ??
+                customer?.overdueAmount ??
+                customer?.overdue_amount ??
+                '-'
+
+              const creditDays =
+                customer?.creditDays ??
+                customer?.credit_days ??
+                '-'
+
+              const averagePayDays =
+                customer?.averagePayDays ??
+                customer?.avgPayDays ??
+                customer?.average_payment_days ??
+                customer?.average_pay_days ??
+                '-'
+
+              return [
+                String(
+                  (currentPage - 1) *
+                    pageSize +
+                    index +
+                    1
+                ),
+                name,
+                outstanding,
+                overdue,
+                creditDays,
+                averagePayDays,
+                'Set Reminder',
+              ]
+            }
+          )
+        )
+
+        const responseTotalOutstanding =
+          extractCustomerTotal(
+            response
+          )
+
+        setTotalOutstanding(
+          responseTotalOutstanding
+        )
+
+        const pagination =
+          extractCustomerPagination(
+            response
+          )
+
+        const responseTotal =
+          Number(
+            pagination.total ??
+              pagination.totalItems ??
+              pagination.count ??
+              pagination.totalRecords
+          )
+
+        const responsePages =
+          Number(
+            pagination.totalPages ??
+              pagination.pages ??
+              pagination.lastPage
+          )
+
+        const nextTotal =
+          Number.isFinite(
+            responseTotal
+          ) &&
+          responseTotal >= 0
+            ? responseTotal
+            : customers.length
+
+        const nextPages =
+          Number.isFinite(
+            responsePages
+          ) &&
+          responsePages > 0
+            ? responsePages
+            : Math.max(
+                1,
+                Math.ceil(
+                  nextTotal /
+                    pageSize
+                )
+              )
+
+        setTotalItems(
+          nextTotal
+        )
+
+        setTotalPages(
+          nextPages
+        )
       })
       .catch((error) => {
         if (!isMounted) return
-        setErrorMessage(error.message || 'Unable to load sundry debtors')
+
+        setErrorMessage(
+          error.message ||
+            `Unable to load ${entityLabel}`
+        )
       })
       .finally(() => {
-        if (isMounted) setIsLoading(false)
+        if (isMounted) {
+          setIsLoading(false)
+        }
       })
 
     return () => {
       isMounted = false
     }
-  }, [accessToken, companyId, currentPage, pageSize, query])
+  }, [
+    accessToken,
+    companyId,
+    currentPage,
+    pageSize,
+    query,
+    fetchRecords,
+    extractRecords,
+    entityLabel,
+  ])
 
-  const filterOptions = [
-    'All',
-    'Due Today',
-    'Not Due',
-  ]
+  // ==========================================================
+  // HEADER TABS
+  // ==========================================================
 
   const headerTabs = [
     'Detailed Summary',
@@ -597,30 +1227,307 @@ function ReceivablesReport({
     'Customize Template',
   ]
 
-  const filteredRows = rows
+  // ==========================================================
+  // CUSTOMER COLUMNS
+  // ==========================================================
 
-  const displayedOutstanding = totalOutstanding ?? rows.reduce((total, row) => {
-    const amount = Number(String(row[2]).replace(/[^\d.-]/g, ''))
-    return Number.isFinite(amount) ? total + amount : total
-  }, 0)
+  const customerColumns = [
+    {
+      key: 'name',
+      label: 'Name',
+      aliases: [
+        'name',
+        'customerName',
+        'supplierName',
+        'supplier_name',
+        'partyName',
+        'party_name',
+        'ledgerName',
+        'ledger_name',
+      ],
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      aliases: [
+        'email',
+        'emailAddress',
+        'email_address',
+      ],
+    },
+    {
+      key: 'gstin',
+      label: 'GSTIN',
+      aliases: [
+        'gstin',
+        'gstIn',
+        'gstNumber',
+        'gst_number',
+      ],
+    },
+    {
+      key: 'openingBalance',
+      label: 'Opening Balance',
+      aliases: [
+        'openingBalance',
+        'opening_balance',
+        'openingAmount',
+        'opening_amount',
+      ],
+    },
+    {
+      key: 'closingBalance',
+      label: 'Closing Balance',
+      aliases: [
+        'closingBalance',
+        'closing_balance',
+        'closingAmount',
+        'closing_amount',
+        'balance',
+      ],
+    },
+    {
+      key: 'createdAt',
+      label: 'Created At',
+      aliases: [
+        'createdAt',
+        'created_at',
+        'createdDate',
+        'created_date',
+      ],
+    },
+    {
+      key: 'updatedAt',
+      label: 'Updated At',
+      aliases: [
+        'updatedAt',
+        'updated_at',
+        'updatedDate',
+        'updated_date',
+      ],
+    },
+    {
+      key: 'phone',
+      label: 'Phone',
+      aliases: [
+        'phone',
+        'phoneNumber',
+        'phone_number',
+        'mobile',
+        'mobileNumber',
+        'mobile_number',
+      ],
+    },
+    {
+      key: 'address',
+      label: 'Address',
+      aliases: [
+        'address',
+        'billingAddress',
+        'billing_address',
+        'postalAddress',
+        'postal_address',
+        'addressLine1',
+        'address_line_1',
+        'fullAddress',
+        'full_address',
+        'location',
+      ],
+    },
+  ]
 
-  const formattedOutstanding = totalOutstanding === null && displayedOutstanding === 0
-    ? '-'
-    : typeof displayedOutstanding === 'number'
-      ? displayedOutstanding.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })
-      : displayedOutstanding
+  // ==========================================================
+  // GET CUSTOMER VALUE
+  // ==========================================================
 
-  const pageItems = totalPages <= 7
-    ? Array.from({ length: totalPages }, (_, index) => index + 1)
-    : currentPage <= 4
-      ? [1, 2, 3, 4, 5, '...', totalPages]
-      : currentPage >= totalPages - 3
-        ? [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
-        : [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages]
-  const paginationDisabled = isLoading || totalPages <= 1
+  const getCustomerValue = (
+    customer,
+    column
+  ) => {
+    const matchingKey =
+      column.aliases.find(
+        (alias) =>
+          customer?.[alias] !==
+          undefined
+      )
 
-  const handleSearchChange = (event) => {
-    setQuery(event.target.value)
+    if (matchingKey) {
+      return customer[
+        matchingKey
+      ]
+    }
+
+    const normalizedAliases =
+      column.aliases.map(
+        (alias) =>
+          alias
+            .replace(
+              /[_-]+/g,
+              ''
+            )
+            .toLowerCase()
+      )
+
+    const caseInsensitiveKey =
+      Object.keys(
+        customer || {}
+      ).find(
+        (key) =>
+          normalizedAliases.includes(
+            key
+              .replace(
+                /[_-]+/g,
+                ''
+              )
+              .toLowerCase()
+          )
+      )
+
+    return caseInsensitiveKey
+      ? customer[
+          caseInsensitiveKey
+        ]
+      : undefined
+  }
+
+  // ==========================================================
+  // FORMAT CUSTOMER VALUE
+  // ==========================================================
+
+  const formatCustomerValue = (
+    value,
+    columnKey
+  ) => {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ''
+    ) {
+      return columnKey ===
+        'gstin'
+        ? 'NA'
+        : '-'
+    }
+
+    if (
+      typeof value ===
+      'object'
+    ) {
+      return (
+        Object.values(value)
+          .filter(Boolean)
+          .join(', ') || '-'
+      )
+    }
+
+    return String(value)
+  }
+
+  // ==========================================================
+  // OUTSTANDING
+  // ==========================================================
+
+  const displayedOutstanding =
+    totalOutstanding ??
+    rows.reduce(
+      (total, row) => {
+        const amount =
+          Number(
+            String(
+              row[2]
+            ).replace(
+              /[^\d.-]/g,
+              ''
+            )
+          )
+
+        return Number.isFinite(
+          amount
+        )
+          ? total + amount
+          : total
+      },
+      0
+    )
+
+  const formattedOutstanding =
+    totalOutstanding ===
+      null &&
+    displayedOutstanding === 0
+      ? '-'
+      : typeof displayedOutstanding ===
+          'number'
+        ? displayedOutstanding.toLocaleString(
+            'en-IN',
+            {
+              style:
+                'currency',
+              currency:
+                'INR',
+            }
+          )
+        : displayedOutstanding
+
+  // ==========================================================
+  // PAGINATION
+  // ==========================================================
+
+  const pageItems =
+    totalPages <= 7
+      ? Array.from(
+          {
+            length:
+              totalPages,
+          },
+          (_, index) =>
+            index + 1
+        )
+      : currentPage <= 4
+        ? [
+            1,
+            2,
+            3,
+            4,
+            5,
+            '...',
+            totalPages,
+          ]
+        : currentPage >=
+            totalPages - 3
+          ? [
+              1,
+              '...',
+              totalPages - 4,
+              totalPages - 3,
+              totalPages - 2,
+              totalPages - 1,
+              totalPages,
+            ]
+          : [
+              1,
+              '...',
+              currentPage - 1,
+              currentPage,
+              currentPage + 1,
+              '...',
+              totalPages,
+            ]
+
+  const paginationDisabled =
+    isLoading ||
+    totalPages <= 1
+
+  // ==========================================================
+  // SEARCH
+  // ==========================================================
+
+  const handleSearchChange = (
+    event
+  ) => {
+    setQuery(
+      event.target.value
+    )
+
     setCurrentPage(1)
   }
 
@@ -628,7 +1535,9 @@ function ReceivablesReport({
   // REMINDER
   // ==========================================================
 
-  const handleReminder = (customer) => {
+  const handleReminder = (
+    customer
+  ) => {
     setSentMessage(
       `Reminder sent to ${customer}`
     )
@@ -642,11 +1551,15 @@ function ReceivablesReport({
   // MARK PAID
   // ==========================================================
 
-  const handleMarkPaid = (customer) => {
-    setRows((currentRows) =>
-      currentRows.filter(
-        (row) => row[1] !== customer
-      )
+  const handleMarkPaid = (
+    customer
+  ) => {
+    setRows(
+      (currentRows) =>
+        currentRows.filter(
+          (row) =>
+            row[1] !== customer
+        )
     )
 
     setSentMessage(
@@ -662,156 +1575,202 @@ function ReceivablesReport({
   // BULK REMINDER
   // ==========================================================
 
-  const handleBulkReminder = () => {
-    setSentMessage(
-      'Bulk reminders queued successfully'
-    )
+  const handleBulkReminder =
+    () => {
+      setSentMessage(
+        'Bulk reminders queued successfully'
+      )
 
-    setTimeout(() => {
-      setSentMessage('')
-    }, 2000)
-  }
+      setTimeout(() => {
+        setSentMessage('')
+      }, 2000)
+    }
 
   // ==========================================================
   // TABLE ROWS
   // ==========================================================
 
-  const displayRows = filteredRows.map(
-    (row) => [
-      row[0],
-      row[1],
-      row[2],
-      row[3],
-      row[4],
-      row[5],
+  const displayRows =
+    customerRecords.map(
+      (
+        customer,
+        index
+      ) => ({
+        customer,
 
-      <div
-        key={row[1]}
-        className="flex items-center gap-2 whitespace-nowrap"
-      >
+        number:
+          (currentPage - 1) *
+            pageSize +
+          index +
+          1,
 
-        {/* PHONE / MESSAGE */}
+        name:
+          customer?.name ||
+          customer?.customerName ||
+          customer?.partyName ||
+          customer?.party_name ||
+          customer?.ledgerName ||
+          customer?.ledger_name ||
+          `Customer ${index + 1}`,
 
-        <button
-          type="button"
-          onClick={() =>
-            handleReminder(row[1])
-          }
-          className="
-            flex
-            items-center
-            justify-center
-            text-[#4385e5]
-            transition
-            hover:text-blue-700
-          "
-          title="Send reminder"
-          aria-label="Send reminder"
-        >
-          <MessageCircle
-            size={15}
-            strokeWidth={2}
-          />
-        </button>
+        action: (
+          <div
+            key={
+              customer?.id ||
+              customer?._id ||
+              index
+            }
+            className="
+              flex
+              items-center
+              gap-2
+              whitespace-nowrap
+            "
+          >
 
-        {/* PDF */}
+            {/* MESSAGE */}
 
-        <button
-          type="button"
-          onClick={() =>
-            handleReminder(row[1])
-          }
-          className="
-            flex
-            items-center
-            justify-center
-            text-red-500
-            transition
-            hover:text-red-700
-          "
-          title="Send PDF"
-          aria-label="Send PDF"
-        >
-          <FileText
-            size={15}
-            strokeWidth={2}
-          />
-        </button>
+            <button
+              type="button"
+              onClick={() =>
+                handleReminder(
+                  customer?.name ||
+                    customer?.customerName ||
+                    customer?.partyName ||
+                    'Customer'
+                )
+              }
+              className="
+                flex
+                items-center
+                justify-center
+                text-[#4385e5]
+                transition
+                hover:text-blue-700
+              "
+              title="Send reminder"
+              aria-label="Send reminder"
+            >
+              <MessageCircle
+                size={15}
+                strokeWidth={2}
+              />
+            </button>
 
-        {/* REMINDER */}
+            {/* PDF */}
 
-        <button
-          type="button"
-          onClick={() =>
-            handleReminder(row[1])
-          }
-          className="
-            flex
-            h-[23px]
-            min-w-[125px]
-            items-center
-            justify-center
-            gap-1
-            rounded-[4px]
-            border
-            border-[#43bd45]
-            bg-white
-            px-3
-            text-[11px]
-            font-medium
-            text-[#222]
-            transition
-            hover:bg-[#effaf0]
-          "
-        >
-          <Bell
-            size={13}
-            strokeWidth={2}
-          />
+            <button
+              type="button"
+              onClick={() =>
+                handleReminder(
+                  customer?.name ||
+                    customer?.customerName ||
+                    customer?.partyName ||
+                    'Customer'
+                )
+              }
+              className="
+                flex
+                items-center
+                justify-center
+                text-red-500
+                transition
+                hover:text-red-700
+              "
+              title="Send PDF"
+              aria-label="Send PDF"
+            >
+              <FileText
+                size={15}
+                strokeWidth={2}
+              />
+            </button>
 
-          <span>
-            Set Reminder
-          </span>
-        </button>
+            {/* REMINDER */}
 
-      </div>,
-    ]
-  )
+            <button
+              type="button"
+              onClick={() =>
+                handleReminder(
+                  customer?.name ||
+                    customer?.customerName ||
+                    customer?.partyName ||
+                    'Customer'
+                )
+              }
+              className="
+                flex
+                h-[23px]
+                min-w-[125px]
+                items-center
+                justify-center
+                gap-1
+                rounded-[4px]
+                border
+                border-[#43bd45]
+                bg-white
+                px-3
+                text-[11px]
+                font-medium
+                text-[#222]
+                transition
+                hover:bg-[#effaf0]
+              "
+            >
+              <Bell
+                size={13}
+                strokeWidth={2}
+              />
+
+              <span>
+                Set Reminder
+              </span>
+            </button>
+
+          </div>
+        ),
+      })
+    )
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900">
 
-      {/* ====================================================== */}
-      {/* TOP NAV */}
-      {/* ====================================================== */}
+      {/* ======================================================
+          TOP NAV
+      ====================================================== */}
 
       <div className="flex min-h-[62px] items-end border-b border-slate-200 bg-white px-3">
 
         <div className="flex items-end gap-1 overflow-x-auto">
 
-          {headerTabs.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() =>
-                setSelectedTab(tab)
-              }
-              className={`
-                relative
-                whitespace-nowrap
-                px-3
-                py-4
-                text-[13px]
-                ${
-                  selectedTab === tab
-                    ? 'font-semibold text-black after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-black'
-                    : 'text-slate-700 hover:text-black'
+          {headerTabs.map(
+            (tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() =>
+                  setSelectedTab(
+                    tab
+                  )
                 }
-              `}
-            >
-              {tab}
-            </button>
-          ))}
+                className={`
+                  relative
+                  whitespace-nowrap
+                  px-3
+                  py-4
+                  text-[13px]
+                  ${
+                    selectedTab ===
+                    tab
+                      ? 'font-semibold text-black after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-black'
+                      : 'text-slate-700 hover:text-black'
+                  }
+                `}
+              >
+                {tab}
+              </button>
+            )
+          )}
 
         </div>
 
@@ -830,9 +1789,14 @@ function ReceivablesReport({
             <button
               type="button"
               role="switch"
-              aria-checked={onAccount}
+              aria-checked={
+                onAccount
+              }
               onClick={() =>
-                setOnAccount((current) => !current)
+                setOnAccount(
+                  (current) =>
+                    !current
+                )
               }
               className={`
                 relative
@@ -872,7 +1836,9 @@ function ReceivablesReport({
 
           <button
             type="button"
-            onClick={handleBulkReminder}
+            onClick={
+              handleBulkReminder
+            }
             className="
               flex
               h-[33px]
@@ -900,186 +1866,80 @@ function ReceivablesReport({
         </div>
       </div>
 
-      {/* ====================================================== */}
-      {/* MAIN CARD */}
-      {/* ====================================================== */}
+      {/* ======================================================
+          MAIN CARD
+      ====================================================== */}
 
-      <section className="mx-3 mt-2 overflow-hidden rounded-[6px] border border-white bg-white shadow-[0_3px_15px_rgba(24,33,43,0.06)] lg:mx-3">
+      <section className="mx-3 mt-2 overflow-hidden rounded-[6px] border border-white bg-white shadow-[0_3px_15px_rgba(24,33,43,0.06)]">
 
-        {/* ==================================================== */}
         {/* CARD TOP */}
-        {/* ==================================================== */}
 
-        <div className="flex flex-wrap items-center gap-3 px-4 py-4">
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
 
-          {/* TOTAL */}
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
 
-          <div className="min-w-[145px]">
+            {/* SEARCH */}
 
-            <span className="block text-[12px] text-slate-700">
-              Total Outstanding
-            </span>
+            <label className="flex h-9 w-full items-center rounded-lg border border-slate-200 px-3 text-sm text-slate-500 sm:w-64">
+              <input
+                value={query}
+                onChange={handleSearchChange}
+                placeholder="Search customers"
+                className="w-full bg-transparent outline-none placeholder:text-slate-400"
+              />
+            </label>
 
-            <strong className="mt-1 block text-[16px] font-bold text-[#18202a]">
-              {formattedOutstanding}
-            </strong>
+            {/* RECORDS */}
 
-          </div>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
 
-          {/* FILTER ICON */}
-
-          <button
-            type="button"
-            className="
-              flex
-              h-[29px]
-              w-[32px]
-              items-center
-              justify-center
-              rounded-[5px]
-              border
-              border-slate-300
-              bg-white
-              text-slate-600
-              hover:bg-slate-50
-            "
-            title="Filter"
-            aria-label="Filter"
-          >
-            <Filter
-              size={15}
-              strokeWidth={2}
-            />
-          </button>
-
-          {/* FILTERS */}
-
-          <div className="flex items-center overflow-hidden rounded-[5px] bg-[#f1f3f5]">
-
-            {filterOptions.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => {
-                  setSelectedFilter(option)
-                  setCurrentPage(1)
-                }}
-                className={`
-                  min-h-[32px]
-                  whitespace-nowrap
-                  px-3
-                  text-[12px]
-                  ${
-                    selectedFilter === option
-                      ? 'rounded-[5px] border border-[#151515] bg-white font-medium text-black'
-                      : 'text-slate-700 hover:bg-white/60'
-                  }
-                `}
-              >
-                {option}
-              </button>
-            ))}
-
-            <button
-              type="button"
-              className="
-                flex
-                min-h-[32px]
-                items-center
-                gap-1
-                px-3
-                text-[12px]
-                text-slate-700
-                hover:bg-white/60
-              "
-            >
-              <span>
-                More
+              <span className="whitespace-nowrap">
+                Show
               </span>
 
-              <ChevronDown
-                size={13}
-                strokeWidth={2}
-              />
-            </button>
+              <select
+                value={pageSize}
+                onChange={(event) => {
+                  setPageSize(
+                    Number(
+                      event.target.value
+                    )
+                  )
+
+                  setCurrentPage(1)
+                }}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-emerald-500"
+                aria-label="Rows per page"
+              >
+                {[10, 20, 30, 50].map(
+                  (limit) => (
+                    <option
+                      key={limit}
+                      value={limit}
+                    >
+                      {limit}
+                    </option>
+                  )
+                )}
+              </select>
+
+              <span className="whitespace-nowrap">
+                records
+              </span>
+
+            </label>
 
           </div>
 
-          {/* SEARCH */}
-
-          <label className="flex h-[32px] items-center gap-2 text-[12px] text-slate-600">
-            <span className="whitespace-nowrap">Show</span>
-            <select
-              value={pageSize}
-              onChange={(event) => {
-                setPageSize(Number(event.target.value))
-                setCurrentPage(1)
-              }}
-              className="h-[32px] rounded-[5px] border border-slate-300 bg-white px-2 outline-none focus:border-[#168acb]"
-              aria-label="Rows per page"
-            >
-              {[10, 20, 30, 50].map((limit) => (
-                <option key={limit} value={limit}>{limit}</option>
-              ))}
-            </select>
-            <span className="whitespace-nowrap">records</span>
-          </label>
-
-          <label className="ml-auto flex h-[32px] w-[180px] items-center gap-2 rounded-[5px] border border-slate-300 bg-white px-3">
-
-            <Search
-              size={15}
-              strokeWidth={2}
-              className="shrink-0 text-slate-400"
-            />
-
-            <input
-              value={query}
-              onChange={handleSearchChange}
-              placeholder="Search"
-              className="
-                w-full
-                bg-transparent
-                text-[12px]
-                text-slate-700
-                outline-none
-                placeholder:text-slate-400
-              "
-            />
-
-          </label>
-
-          {/* PDF */}
-
-          <button
-            type="button"
-            className="
-              flex
-              h-[32px]
-              w-[34px]
-              items-center
-              justify-center
-              rounded-[5px]
-              border
-              border-slate-300
-              bg-white
-              text-red-500
-              hover:bg-red-50
-            "
-            title="Export PDF"
-            aria-label="Export PDF"
-          >
-            <FileText
-              size={15}
-              strokeWidth={2}
-            />
-          </button>
+          <span className="text-xs text-slate-500">
+            Page {currentPage} · {pageSize} per page
+          </span>
 
         </div>
 
-        {/* ==================================================== */}
-        {/* MESSAGE */}
-        {/* ==================================================== */}
+        {/* ====================================================
+            MESSAGE
+        ==================================================== */}
 
         {sentMessage && (
           <div className="mx-4 mb-2 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-[12px] text-green-700">
@@ -1087,201 +1947,89 @@ function ReceivablesReport({
           </div>
         )}
 
+        {/* ====================================================
+            ERROR
+        ==================================================== */}
+
         {errorMessage && (
           <div className="mx-4 mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
             {errorMessage}
           </div>
         )}
 
-        {/* ==================================================== */}
-        {/* TABLE */}
-        {/* ==================================================== */}
+        {/* ====================================================
+            CUSTOMER TABLE
+        ==================================================== */}
 
-        <div className="overflow-x-auto px-3">
-
-          <div className="min-w-[950px]">
-
-            {/* TABLE HEADER */}
-
-            <div
-              className="
-                grid
-                grid-cols-[45px_1.5fr_1.25fr_1.25fr_1fr_1.05fr_220px]
-                items-center
-                border
-                border-[#d7dde3]
-                bg-[#eef2f6]
-                px-3
-                py-2.5
-                text-[12px]
-                font-semibold
-                text-[#18202a]
-              "
-            >
-
-              <div>
-                #
-              </div>
-
-              <div>
-                Customer Name
-              </div>
-
-              <div className="flex items-center justify-end gap-1">
-                <ArrowUp
-                  size={12}
-                  strokeWidth={2}
-                />
-
-                <span>
-                  Outstanding
-                </span>
-              </div>
-
-              <div className="text-right">
-                Overdue
-              </div>
-
-              <div className="text-center">
-                Credit Days
-              </div>
-
-              <div className="text-center">
-                Avg Pay Days
-              </div>
-
-              <div className="text-center">
-                Action
-              </div>
-
+        <div className="overflow-x-auto px-3 pb-1">
+          {isLoading ? (
+            <div className="flex min-h-[120px] items-center justify-center border-y border-slate-100 text-sm text-slate-500">
+              Loading {entityLabel}...
             </div>
+          ) : displayRows.length > 0 ? (
+            <table className="min-w-[1650px] w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  {customerColumns.map((column) => (
+                    <th key={column.key} className="whitespace-nowrap px-5 py-3 font-semibold">
+                      {column.label}
+                    </th>
+                  ))}
+                  <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
+                    Action
+                  </th>
+                </tr>
+              </thead>
 
-            {/* TABLE BODY */}
+              <tbody className="divide-y divide-slate-100">
+                {displayRows.map((row) => (
+                  <tr
+                    key={row.customer?.id || row.customer?._id || row.number}
+                    className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
+                  >
+                    {customerColumns.map((column) => {
+                      const value = formatCustomerValue(
+                        getCustomerValue(row.customer, column),
+                        column.key
+                      )
 
-            {isLoading ? (
-              <div className="flex min-h-[120px] items-center justify-center border-x border-b border-[#d9dee3] text-xs text-slate-500">
-                Loading sundry debtors...
-              </div>
-            ) : displayRows.length > 0 ? (
+                      return (
+                        <td
+                          key={column.key}
+                          title={value}
+                          className="max-w-[280px] px-5 py-3 leading-5 [overflow-wrap:anywhere]"
+                        >
+                          {value}
+                        </td>
+                      )
+                    })}
 
-              displayRows.map((row, index) => (
-
-                <div
-                  key={index}
-                  className="
-                    grid
-                    grid-cols-[45px_1.5fr_1.25fr_1.25fr_1fr_1.05fr_220px]
-                    min-h-[37px]
-                    items-center
-                    border-x
-                    border-b
-                    border-[#d9dee3]
-                    px-3
-                    text-[12px]
-                    text-[#18202a]
-                    hover:bg-[#fafcfd]
-                  "
-                >
-
-                  <div>
-                    {row[0]}
-                  </div>
-
-                  <div className="pr-3 leading-4 text-[#1474c4]">
-                    {row[1]}
-                  </div>
-
-                  <div className="whitespace-nowrap text-right">
-                    {row[2]}
-                  </div>
-
-                  <div className="whitespace-nowrap text-right">
-                    {row[3]}
-                  </div>
-
-                  <div className="text-center">
-                    {row[4]}
-                  </div>
-
-                  <div className="whitespace-nowrap text-center">
-                    {row[5]}
-                  </div>
-
-                  <div className="flex justify-center">
-                    {row[6]}
-                  </div>
-
-                </div>
-
-              ))
-
-            ) : (
-
-              <div className="flex min-h-[150px] items-center justify-center border-x border-b border-[#d9dee3] text-xs text-slate-500">
-                No data available
-              </div>
-
-            )}
-
-          </div>
-
+                    <td className="whitespace-nowrap px-5 py-3">
+                      <div className="flex justify-center">
+                        {row.action}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="flex min-h-[150px] items-center justify-center border-y border-slate-100 text-sm text-slate-500">
+              No {entityLabel} data available.
+            </div>
+          )}
         </div>
 
-        {/* ==================================================== */}
-        {/* FOOTER */}
-        {/* ==================================================== */}
+        {/* ====================================================
+            CUSTOMER PAGINATION FOOTER
+        ==================================================== */}
 
-        <div className="flex items-center justify-between px-4 py-4">
-
-          <span className="text-[12px] text-slate-700">
-            {totalItems === 0
-              ? '0 of 0'
-              : `${((currentPage - 1) * pageSize) + 1}-${((currentPage - 1) * pageSize) + displayRows.length} of ${totalItems}`}
-          </span>
-
-          <div className="flex items-center gap-1">
-
-            {/* PREVIOUS */}
-
-            <button
-              type="button"
-              onClick={() =>
-                setCurrentPage((page) =>
-                  Math.max(1, page - 1)
-                )
-              }
-              disabled={paginationDisabled || currentPage === 1}
-              className="
-                flex
-                h-[30px]
-                w-[31px]
-                items-center
-                justify-center
-                rounded
-                border
-                border-slate-200
-                bg-white
-                text-slate-400
-                shadow-sm
-                hover:bg-slate-50
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-              "
-              title="Previous page"
-              aria-label="Previous page"
-            >
-              <ChevronLeft
-                size={17}
-                strokeWidth={2}
-              />
-            </button>
-
-            {/* PAGE NUMBERS */}
-
-            {pageItems.map((page, index) => page === '...' ? (
+        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4">
+          {pageItems.map((page, index) => (
+            page === '...' ? (
               <span
                 key={`ellipsis-${index}`}
-                className="flex h-[30px] min-w-[31px] items-center justify-center text-[12px] text-slate-500"
+                className="px-1 text-sm text-slate-400"
               >
                 ...
               </span>
@@ -1291,95 +2039,16 @@ function ReceivablesReport({
                 type="button"
                 disabled={paginationDisabled}
                 onClick={() => setCurrentPage(page)}
-                className={`
-                  flex
-                  h-[30px]
-                  min-w-[31px]
-                  items-center
-                  justify-center
-                  rounded
-                  border
-                  text-[12px]
-                  font-medium
-                  shadow-sm
-                  ${
-                    currentPage === page
-                      ? 'border-[#168acb] bg-[#168acb] text-white'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                  }
-                  disabled:cursor-not-allowed disabled:opacity-50
-                `}
+                className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
+                  currentPage === page
+                    ? 'border-emerald-600 bg-emerald-600 text-white'
+                    : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 {page}
               </button>
-            ))}
-
-            {/* LAST PAGE */}
-
-            <button
-              type="button"
-              onClick={() =>
-                setCurrentPage(totalPages)
-              }
-              disabled={paginationDisabled || currentPage === totalPages}
-              className={`
-                flex
-                h-[30px]
-                min-w-[31px]
-                items-center
-                justify-center
-                rounded
-                border
-                text-[12px]
-                font-medium
-                shadow-sm
-                ${
-                  currentPage === totalPages
-                    ? 'border-[#168acb] bg-[#168acb] text-white'
-                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                }
-                  disabled:cursor-not-allowed disabled:opacity-50
-              `}
-            >
-              {totalPages}
-            </button>
-
-            {/* NEXT */}
-
-            <button
-              type="button"
-              onClick={() =>
-                setCurrentPage((page) =>
-                  Math.min(totalPages, page + 1)
-                )
-              }
-              disabled={paginationDisabled || currentPage === totalPages}
-              className="
-                flex
-                h-[30px]
-                w-[31px]
-                items-center
-                justify-center
-                rounded
-                border
-                border-slate-200
-                bg-white
-                text-slate-700
-                shadow-sm
-                hover:bg-slate-50
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-              "
-              title="Next page"
-              aria-label="Next page"
-            >
-              <ChevronRight
-                size={17}
-                strokeWidth={2}
-              />
-            </button>
-
-          </div>
+            )
+          ))}
 
         </div>
 
@@ -1393,7 +2062,9 @@ function ReceivablesReport({
 // ACCOUNTS REPORT
 // ============================================================
 
-function AccountsReport({ config }) {
+function AccountsReport({
+  config,
+}) {
   const [startDate, setStartDate] =
     useState('2026-04-01')
 
@@ -1407,15 +2078,17 @@ function AccountsReport({ config }) {
     config.total.split('₹')
 
   const filteredRows =
-    (config.rows ?? []).filter((row) => {
-      const name = String(
-        row[0] ?? ''
-      ).toLowerCase()
+    (config.rows ?? []).filter(
+      (row) => {
+        const name = String(
+          row[0] ?? ''
+        ).toLowerCase()
 
-      return name.includes(
-        query.toLowerCase()
-      )
-    })
+        return name.includes(
+          query.toLowerCase()
+        )
+      }
+    )
 
   return (
     <div className="report-page min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900">
@@ -1451,13 +2124,18 @@ function AccountsReport({ config }) {
         <DateRangeDisplay
           startDate={startDate}
           endDate={endDate}
-          onChange={(nextStart, nextEnd) => {
+          onChange={(
+            nextStart,
+            nextEnd
+          ) => {
             setStartDate(
-              nextStart || startDate
+              nextStart ||
+                startDate
             )
 
             setEndDate(
-              nextEnd || endDate
+              nextEnd ||
+                endDate
             )
           }}
         />
@@ -1480,10 +2158,12 @@ function AccountsReport({ config }) {
             />
 
             <input
-              className="w-full bg-transparent text-xs outline-none"
+              className="w-full min-w-0 bg-transparent text-xs outline-none"
               value={query}
               onChange={(event) =>
-                setQuery(event.target.value)
+                setQuery(
+                  event.target.value
+                )
               }
               placeholder="Search"
             />
@@ -1491,14 +2171,18 @@ function AccountsReport({ config }) {
           </label>
 
           <span className="ml-auto text-xs">
-            Rows per page: 10
+            Rows are paginated below
           </span>
 
         </div>
 
         <ReportTable
-          columns={config.columns}
-          rows={filteredRows}
+          columns={
+            config.columns
+          }
+          rows={
+            filteredRows
+          }
         />
 
       </section>
@@ -1511,10 +2195,15 @@ function AccountsReport({ config }) {
 // GENERAL REPORT
 // ============================================================
 
-function ReportListPage({ path, companyId }) {
+function ReportListPage({
+  path,
+  companyId,
+}) {
   const config =
     reports[path] ||
-    reports['/purchaseorder']
+    reports[
+      '/purchaseorder'
+    ]
 
   const [query, setQuery] =
     useState('')
@@ -1525,18 +2214,26 @@ function ReportListPage({ path, companyId }) {
   const [endDate, setEndDate] =
     useState('2027-03-31')
 
-  if (config.mode === 'receivables') {
+  if (
+    config.mode ===
+    'receivables'
+  ) {
     return (
       <ReceivablesReport
         config={config}
         query={query}
         setQuery={setQuery}
-        companyId={companyId}
+        companyId={
+          companyId
+        }
       />
     )
   }
 
-  if (config.mode === 'accounts') {
+  if (
+    config.mode ===
+    'accounts'
+  ) {
     return (
       <AccountsReport
         config={config}
@@ -1554,24 +2251,36 @@ function ReportListPage({ path, companyId }) {
         <div className="flex items-center justify-between">
 
           <div>
+
             <span className="block text-xs text-slate-600">
               {config.total}
             </span>
+
             <strong className="mt-1 block text-xl font-bold text-slate-900">
               ₹ 0.00
             </strong>
+
           </div>
 
           <DateRangeDisplay
-            startDate={startDate}
-            endDate={endDate}
-            onChange={(nextStart, nextEnd) => {
+            startDate={
+              startDate
+            }
+            endDate={
+              endDate
+            }
+            onChange={(
+              nextStart,
+              nextEnd
+            ) => {
               setStartDate(
-                nextStart || startDate
+                nextStart ||
+                  startDate
               )
 
               setEndDate(
-                nextEnd || endDate
+                nextEnd ||
+                  endDate
               )
             }}
           />
@@ -1598,10 +2307,12 @@ function ReportListPage({ path, companyId }) {
             <input
               value={query}
               onChange={(event) =>
-                setQuery(event.target.value)
+                setQuery(
+                  event.target.value
+                )
               }
               placeholder="Search"
-              className="w-full bg-transparent text-xs outline-none"
+              className="w-full min-w-0 bg-transparent text-xs outline-none"
             />
 
           </label>
@@ -1647,7 +2358,10 @@ function ReportListPage({ path, companyId }) {
             type="button"
             className="flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
           >
-            <span>More</span>
+            <span>
+              More
+            </span>
+
             <ChevronDown
               size={13}
               strokeWidth={2}
@@ -1673,37 +2387,13 @@ function ReportListPage({ path, companyId }) {
         </div>
 
         <ReportTable
-          columns={config.columns}
-          rows={config.rows ?? []}
+          columns={
+            config.columns
+          }
+          rows={
+            config.rows ?? []
+          }
         />
-
-        {/* FOOTER PAGINATION */}
-
-        <div className="flex items-center justify-between border-t border-slate-200 px-5 py-3 text-xs text-slate-600">
-
-          <span>
-            1-0 of 0
-          </span>
-
-          <div className="flex items-center gap-1">
-
-            <button
-              type="button"
-              className="flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-            >
-              ‹
-            </button>
-
-            <button
-              type="button"
-              className="flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-            >
-              ›
-            </button>
-
-          </div>
-
-        </div>
 
       </section>
 

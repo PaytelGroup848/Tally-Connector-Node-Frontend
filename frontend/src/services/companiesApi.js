@@ -87,5 +87,34 @@ export function extractLedgers(response) {
 
 export function extractLedgerPagination(response) {
   const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
-  return pagination && typeof pagination === 'object' ? pagination : {}
+  if (pagination && typeof pagination === 'object') return pagination
+
+  const paginationKeys = [
+    'total',
+    'totalItems',
+    'totalRecords',
+    'count',
+    'totalPages',
+    'total_pages',
+    'pages',
+    'lastPage',
+  ]
+
+  if (
+    response &&
+    typeof response === 'object' &&
+    paginationKeys.some((key) => response[key] !== undefined)
+  ) {
+    return response
+  }
+
+  if (
+    response?.data &&
+    typeof response.data === 'object' &&
+    paginationKeys.some((key) => response.data[key] !== undefined)
+  ) {
+    return response.data
+  }
+
+  return {}
 }

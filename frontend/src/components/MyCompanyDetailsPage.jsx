@@ -104,6 +104,28 @@ const MyCompanyDetailsPage = () => {
     }
   }, [accessToken, companyId, ledgerPage, ledgerLimit, ledgerQuery])
 
+  const reportedPageCount = Number(
+    ledgerPagination.totalPages ||
+      ledgerPagination.total_pages ||
+      ledgerPagination.pages ||
+      ledgerPagination.lastPage ||
+      0,
+  )
+  const reportedTotal = Number(
+    ledgerPagination.total ||
+      ledgerPagination.totalItems ||
+      ledgerPagination.totalRecords ||
+      ledgerPagination.count ||
+      0,
+  )
+  const ledgerPageCount = reportedPageCount > 0
+    ? reportedPageCount
+    : Math.max(1, Math.ceil(reportedTotal / ledgerLimit))
+
+  useEffect(() => {
+    setLedgerPage((page) => Math.min(page, ledgerPageCount))
+  }, [ledgerPageCount])
+
   const handleCopy = async (value, key) => {
     if (!value || value === '-') return
 
@@ -304,19 +326,13 @@ const MyCompanyDetailsPage = () => {
     .replace(/\b\w/g, (character) => character.toUpperCase())
     .trim()
 
-  const reportedPageCount = Number(
-    ledgerPagination.totalPages ||
-      ledgerPagination.total_pages ||
-      ledgerPagination.pages ||
-      0,
-  )
-  const ledgerPageCount = reportedPageCount > 0 ? reportedPageCount : 30
-
-  const ledgerPageItems = ledgerPage <= 4
-    ? [1, 2, 3, 4, 5, '...', ledgerPageCount]
-    : ledgerPage >= ledgerPageCount - 3
-      ? [1, '...', ledgerPageCount - 4, ledgerPageCount - 3, ledgerPageCount - 2, ledgerPageCount - 1, ledgerPageCount]
-      : [1, '...', ledgerPage - 1, ledgerPage, ledgerPage + 1, '...', ledgerPageCount]
+  const ledgerPageItems = ledgerPageCount <= 7
+    ? Array.from({ length: ledgerPageCount }, (_, index) => index + 1)
+    : ledgerPage <= 4
+      ? [1, 2, 3, 4, 5, '...', ledgerPageCount]
+      : ledgerPage >= ledgerPageCount - 3
+        ? [1, '...', ledgerPageCount - 4, ledgerPageCount - 3, ledgerPageCount - 2, ledgerPageCount - 1, ledgerPageCount]
+        : [1, '...', ledgerPage - 1, ledgerPage, ledgerPage + 1, '...', ledgerPageCount]
 
   return (
     <section className="min-h-screen bg-[#f7f9fc] px-4 py-6 sm:px-6 lg:px-8">
