@@ -33,9 +33,9 @@ import ReceiptPage from './ReceiptPage'
 import ReceiptNotePage from './ReceiptNotePage'
 import SectionPage from './SectionPage'
 import SalesOrderPage from './SalesOrderPage'
+import { DocumentVoucherPage } from './DocumentVoucherPage'
 import StockJournalPage from './StockJournalPage'
 import MangaeReminderPage from './ManageReminderPage'
-import VoucherPage from './VoucherPage'
 import InactiveStocksPage from './InactiveStocksPage'
 import DataBackupPage from './DataBackupPage'
 import PlansPage from './PlansPage'
@@ -238,9 +238,9 @@ function App() {
     if (flags.showReportsPage) return <ReportsPage />
     if (flags.showCreateItemPage) return <CreateItemPage />
     if (flags.showCreatePartyPage) return <CreatePartyPage />
-    if (flags.showItemsPage) return <ItemsPage />
+    if (flags.showItemsPage) return <ItemsPage companyId={selectedCompany?.id} />
     if (flags.showPartiesPage) return <PartiesPage />
-    if (flags.showMyVouchersPage) return <MyVouchersPage />
+    if (flags.showMyVouchersPage) return <MyVouchersPage companyId={selectedCompany?.id} />
     if (flags.showManageReminderPage) return <ManageReminderPage />
     if (flags.showEntryList) return <MyEntryListPage path={entryPath} />
     if (flags.showGstPage) return <GstSearchPage />
@@ -265,8 +265,8 @@ function App() {
     if (flags.showDebitNote) return <DebitNotePage />
     if (flags.showCreditNote) return <CreditNotePage />
     if (flags.showSalesOrder) return <SalesOrderPage />
-    if (flags.showQuotation) return <VoucherPage />
-    if (flags.showSalesVoucher) return <VoucherPage type="Sales" />
+    if (flags.showQuotation) return <DocumentVoucherPage title="Quotation" />
+    if (flags.showSalesVoucher) return <DocumentVoucherPage title="Sales" />
     return <SectionPage path={currentPath} />
   }
 

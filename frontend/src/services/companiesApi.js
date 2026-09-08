@@ -1,8 +1,4 @@
-const API_BASE_URL = (
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.BaseUrl ||
-  'https://connector.cloudata.in/api'
-).replace(/\/$/, '')
+const API_BASE_URL = 'https://connector.cloudata.in/api'
 
 async function request(path, accessToken) {
   if (!accessToken) {
@@ -116,5 +112,117 @@ export function extractLedgerPagination(response) {
     return response.data
   }
 
+  return {}
+}
+export function fetchCompanyStock(
+  accessToken,
+  companyId,
+  {
+    page = 1,
+    limit = 10,
+    q = '',
+    startDate = '',
+    endDate = '',
+  } = {},
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  })
+
+  if (q.trim()) {
+    params.set('q', q.trim())
+  }
+
+  if (startDate) {
+    params.set('startDate', startDate)
+  }
+
+  if (endDate) {
+    params.set('endDate', endDate)
+  }
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/stock?${params}`,
+    accessToken,
+  )
+}
+
+export function extractStockItems(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const stockKeys = ['stock', 'stockItems', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of stockKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function fetchCompanyVouchers(
+  accessToken,
+  companyId,
+  {
+    page = 1,
+    limit = 10,
+    q = '',
+    startDate = '',
+    endDate = '',
+  } = {},
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  })
+
+  if (q.trim()) params.set('q', q.trim())
+  if (startDate) params.set('startDate', startDate)
+  if (endDate) params.set('endDate', endDate)
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/vouchers?${params}`,
+    accessToken,
+  )
+}
+
+export function extractVouchers(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const voucherKeys = ['vouchers', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of voucherKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractVoucherPagination(response) {
+  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
+  if (pagination && typeof pagination === 'object') return pagination
+
+  if (response?.data && typeof response.data === 'object') return response.data
+  if (response && typeof response === 'object') return response
   return {}
 }
