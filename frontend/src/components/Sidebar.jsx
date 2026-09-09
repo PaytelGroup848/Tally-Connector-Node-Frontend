@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import logo from '../assets/cloudedata.svg'
 import { navItems, submenuItems } from '../routes/navigation'
 
@@ -22,8 +23,8 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
     <aside className={`app-sidebar fixed left-0 top-0 z-30 flex h-screen shrink-0 flex-col bg-neutral-900 text-white transition-all duration-200 ${isCompact ? `${collapsed ? '-translate-x-full' : 'translate-x-0'} w-[200px]` : collapsed ? 'w-[58px]' : 'w-[200px]'}`} data-collapsed={collapsed}>
       {isCompact && !collapsed && (
         <div className="flex justify-end px-3 pt-3">
-          <button type="button" aria-label="Close sidebar" onClick={() => setSidebarCollapsed(true)} className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/5 text-lg text-white transition hover:bg-white/10">
-            ×
+          <button type="button" aria-label="Close sidebar" onClick={() => setSidebarCollapsed(true)} className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white transition hover:bg-white/10">
+            <X className="h-4 w-4" />
           </button>
         </div>
       )}
@@ -32,7 +33,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
         
       </button>
       <nav className="overflow-y-auto px-3 py-4">
-        {navItems.map(([icon, label, expandable, badge, path]) => {
+        {navItems.map(([IconComponent, label, expandable, badge, path]) => {
           const isDataBackupItem = label === 'Data Backup'
           const targetPath = label === 'Dashboard' ? '/dashboard' : `/${path}`
 
@@ -48,8 +49,6 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
                     return
                   }
 
-                 
-
                   if (label === 'Dashboard') {
                     onDashboard(event)
                     return
@@ -58,14 +57,14 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
                   handleNavClick(event, targetPath)
                 }}
               >
-                <span className="w-4 shrink-0 text-center">{icon}</span>{!collapsed && <><span>{label}</span>{badge && <em className="ml-auto rounded bg-red-500 px-1.5 py-0.5 text-[9px] not-italic text-white">{badge}</em>}{expandable && <Arrow />}</>}
+                <span className="flex w-4 shrink-0 items-center justify-center text-center"><IconComponent className="h-4 w-4" /></span>{!collapsed && <><span>{label}</span>{badge && <em className="ml-auto rounded bg-red-500 px-1.5 py-0.5 text-[9px] not-italic text-white">{badge}</em>}{expandable && <Arrow />}</>}
               </a>
               {!collapsed && submenuItems[label] && isNavExpanded(label, path) && <div className="flex flex-col pb-2 pl-8">{submenuItems[label].map(([item, itemPath]) => <a className={`px-2 py-1.5 text-[11px] no-underline ${isSubmenuActive(itemPath) ? 'text-green-500' : 'text-neutral-100 hover:text-green-400'}`} href={itemPath} onClick={(event) => { if (itemPath === '/create-voucher/Quotation') { onQuotation(event); return } handleNavClick(event, itemPath) }} key={item}>{item} <span className="float-right">›</span></a>)}</div>}
             </div>
           )
         })}
       </nav>
-      {!collapsed && <div className="sidebar-support mt-auto mx-3 mb-4 rounded-lg px-3 py-3 text-[10px]"><span aria-hidden="true">◔</span>&nbsp; <u>+91 8383838383</u></div>}
+      {!collapsed && <div className="sidebar-support mt-auto mx-3 mb-4 rounded-lg px-3 py-3 text-[10px]"><span className="inline-flex items-center justify-center align-middle"><div className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" /></span>&nbsp; <u>+91 8383838383</u></div>}
     </aside>
   )
 }

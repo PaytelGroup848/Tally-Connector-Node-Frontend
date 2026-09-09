@@ -191,7 +191,6 @@ function ConfigurationsPage() {
       </div>
 
       <section className="page-card mx-4 mt-4 rounded-lg bg-white p-5 shadow-sm">
-
         {/* TOP TABS */}
         <nav className="page-tabs flex gap-8 border-b border-slate-200 text-sm text-slate-700">
           {topTabs.map((item) => (

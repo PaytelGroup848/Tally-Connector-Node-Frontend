@@ -29,6 +29,10 @@ import PurchaseOrderPage from './PurchaseOrderPage'
 import PhysicalStockPage from './PhysicalStockPage'
 import ReportListPage from './ReportListPage'
 import TrialBalancePage from './TrialBalancePage'
+import DayBookPage from './DayBookPage'
+import ProfitLossPage from './Profit&LossPage'
+import BalanceSheetPage from './BalanceSheetPage'
+import VoucherLinesPage from './VoucherLinesPage'
 import ReportsPage from './ReportsPage'
 import ReceiptPage from './ReceiptPage'
 import ReceiptNotePage from './ReceiptNotePage'
@@ -42,7 +46,14 @@ import DataBackupPage from './DataBackupPage'
 import PlansPage from './PlansPage'
 import MyCompanyDetailsPage from '../components/MyCompanyDetailsPage'
 import { getRouteFlags } from '../routes/routeConfig'
-import { extractCompanies, fetchCompanies, normalizeCompany } from '../services/companiesApi'
+import {
+  extractCompanies,
+  extractConnectorsStatusRows,
+  extractLastSyncMeta,
+  fetchCompanies,
+  fetchConnectorsStatus,
+  normalizeCompany,
+} from '../services/companiesApi'
 
 const selectedCompanyStorageKey = 'selectedCompanyId'
 
@@ -67,6 +78,10 @@ function App() {
       isCurrent: true,
     }
   })
+  const [connectorStatusRows, setConnectorStatusRows] = useState([])
+  const [lastSyncMeta, setLastSyncMeta] = useState(null)
+  const [connectorStatusError, setConnectorStatusError] = useState('')
+  const [isConnectorStatusLoading, setIsConnectorStatusLoading] = useState(false)
   const [companyOptions, setCompanyOptions] = useState([
     { name: 'Paytel Financial Services Pvt Ltd 22-23', meta: 'Synced a day ago', isCurrent: true },
     { name: 'PayTel Financial Technologies Pvt. Ltd.', meta: '(Delhi)', isCurrent: false },
@@ -146,6 +161,38 @@ function App() {
     window.addEventListener('popstate', refreshRoute)
     return () => window.removeEventListener('popstate', refreshRoute)
   }, [])
+
+  useEffect(() => {
+    if (!accessToken) {
+      setConnectorStatusRows([])
+      setLastSyncMeta(null)
+      setConnectorStatusError('')
+      return undefined
+    }
+
+    let isMounted = true
+    setIsConnectorStatusLoading(true)
+    setConnectorStatusError('')
+
+    fetchConnectorsStatus(accessToken)
+      .then((response) => {
+        if (!isMounted) return
+        const rows = extractConnectorsStatusRows(response)
+        setConnectorStatusRows(rows)
+        setLastSyncMeta(extractLastSyncMeta(response))
+      })
+      .catch((error) => {
+        if (!isMounted) return
+        setConnectorStatusError(error?.message || 'Unable to load connector status.')
+      })
+      .finally(() => {
+        if (isMounted) setIsConnectorStatusLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [accessToken])
 
   useEffect(() => {
     if (!accessToken) return undefined
@@ -273,6 +320,10 @@ function App() {
     if (flags.showInactiveStocksPage) return <InactiveStocksPage />
     if (flags.showDownloadInvoicePage) return <DownloadInvoicePage />
     if (entryPath === '/trial-balance') return <TrialBalancePage companyId={selectedCompany?.id} />
+    if (entryPath === '/day-book') return <DayBookPage companyId={selectedCompany?.id} />
+    if (entryPath === '/profit-loss') return <ProfitLossPage companyId={selectedCompany?.id} />
+    if (entryPath === '/balance-sheet') return <BalanceSheetPage companyId={selectedCompany?.id} />
+    if (entryPath === '/voucher-lines') return <VoucherLinesPage companyId={selectedCompany?.id} />
     if (flags.showReport) return <ReportListPage path={entryPath} companyId={selectedCompany?.id} />
     if (flags.showPayment) return <PaymentPage />
     if (flags.showReceiptNote) return <ReceiptNotePage />
@@ -295,7 +346,7 @@ function App() {
 
   return <div className="app-shell relative min-h-screen bg-slate-100 text-slate-900">
     <Sidebar collapsed={sidebarCollapsed} isCompact={isCompact} setSidebarCollapsed={setSidebarCollapsed} currentPath={currentPath} showDashboard={flags.showDashboard} expandedNav={expandedNav} setExpandedNav={setExpandedNav} onDashboard={openDashboard} onQuotation={openQuotation} onNavigate={(path) => navigateTo(path)} />
-    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onCompanyClick={openCompanyDetails} onSelectCompany={selectCompany} onLogout={async () => { await logout(); window.location.replace('/') }} />{renderPage()}</main>
+    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onCompanyClick={openCompanyDetails} onSelectCompany={selectCompany} onLogout={async () => { await logout(); window.location.replace('/') }} connectorStatusRows={connectorStatusRows} lastSyncMeta={lastSyncMeta} connectorStatusError={connectorStatusError} isConnectorStatusLoading={isConnectorStatusLoading} />{renderPage()}</main>
 
     <div className="fixed bottom-5 right-5 z-40">
       {showQuickCreate && (

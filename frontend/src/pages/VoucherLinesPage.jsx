@@ -9,166 +9,50 @@ import {
 const MODAL_LAYER = {
   entry: 1000,
   billAllocation: 1100,
-  detail: 1200,
+  field: 1200,
+  detail: 1300,
 }
 
 const hiddenFields = new Set([
-  // Mongo / internal IDs
   '_id',
-  'id',
   '_v',
   'V',
   'v',
 
-  // Voucher IDs
-  'voucherId',
-  'voucher_id',
-  'voucherID',
-
-  // Internal / system fields
-  'createdAt',
-  'created_at',
-  'tallyExternalId',
-  'tallyExternalID',
-  'tally_external_id',
-  'alterId',
-  'alterID',
-  'alter_id',
   'companyId',
   'organizationId',
+
   'raw',
   'source',
 
-  // Technical fields
+  'tallyExternalId',
+  'tallyExternalID',
+  'tally_external_id',
+
   'effectiveDate',
   'effective_date',
-  'date',
+
   'guid',
   'GUID',
+
+  'alterId',
+  'alterID',
+  'alter_id',
+
+  'voucherId',
+  'voucherID',
+  'voucher_id',
 ])
 
-function getVoucherValue(voucher, ...keys) {
-  for (const key of keys) {
-    if (
-      voucher?.[key] !== undefined &&
-      voucher?.[key] !== null
-    ) {
-      return voucher[key]
-    }
-  }
-
-  return ''
-}
-
-function getVoucherCompanyName(voucher) {
-  if (!voucher || typeof voucher !== 'object') {
-    return ''
-  }
-
-  const companyNameKeys = [
-    'companyName',
-    'company_name',
-    'company',
-    'tallyCompanyName',
-    'tally_company_name',
-    'partyName',
-    'party_name',
-    'party',
-    'customerName',
-    'customer_name',
-    'ledgerName',
-    'ledger_name',
-    'accountName',
-    'account_name',
-    'name',
-  ]
-
-  for (const key of companyNameKeys) {
-    const value = voucher?.[key]
-
-    if (
-      typeof value === 'string' &&
-      value.trim()
-    ) {
-      return value.trim()
-    }
-
-    if (
-      value &&
-      typeof value === 'object'
-    ) {
-      const nestedName =
-        value.name ||
-        value.companyName ||
-        value.company_name ||
-        value.tallyCompanyName ||
-        value.partyName ||
-        value.customerName ||
-        value.accountName ||
-        value.ledgerName
-
-      if (
-        typeof nestedName === 'string' &&
-        nestedName.trim()
-      ) {
-        return nestedName.trim()
-      }
-    }
-  }
-
-  return ''
-}
-
-function formatDate(value) {
-  if (!value) return 'NA'
-
-  const date = new Date(value)
-
-  return Number.isNaN(date.getTime())
-    ? value
-    : date.toLocaleDateString('en-IN')
-}
-
-function formatAmount(value) {
-  if (
-    value === '' ||
-    value === null ||
-    value === undefined
-  ) {
-    return 'NA'
-  }
-
-  const numericValue = Number(value)
-
-  if (Number.isNaN(numericValue)) {
-    return String(value)
-  }
-
-  return `₹ ${numericValue.toLocaleString('en-IN')}`
-}
-
-function formatFieldLabel(key) {
+function formatLabel(key) {
   return String(key)
-    .replace(
-      /([a-z])([A-Z])/g,
-      '$1 $2',
-    )
-    .replace(
-      /[_-]+/g,
-      ' ',
-    )
-    .replace(
-      /\s+/g,
-      ' ',
-    )
-    .replace(
-      /\b\w/g,
-      (letter) =>
-        letter.toUpperCase(),
-    )
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function formatApiValue(value, key) {
+function formatIstDate(value) {
   if (
     value === null ||
     value === undefined ||
@@ -177,45 +61,34 @@ function formatApiValue(value, key) {
     return 'NA'
   }
 
-  if (
-    Array.isArray(value) &&
-    value.length === 0
-  ) {
+  const rawValue = String(value).trim()
+
+  if (!rawValue) {
     return 'NA'
   }
 
-  if (
-    typeof value === 'object'
-  ) {
-    try {
-      return JSON.stringify(
-        value,
-        null,
-        2,
-      )
-    } catch {
-      return String(value)
-    }
+  const dateValue =
+    rawValue.match(/^\d{4}-\d{2}-\d{2}$/)
+      ? new Date(
+          Number(rawValue.slice(0, 4)),
+          Number(rawValue.slice(5, 7)) - 1,
+          Number(rawValue.slice(8, 10)),
+        )
+      : new Date(rawValue)
+
+  if (Number.isNaN(dateValue.getTime())) {
+    return String(value)
   }
 
-  const normalizedKey =
-    String(key || '').toLowerCase()
+  const hasTime =
+    /[T\s]\d{1,2}:\d{2}/.test(rawValue) ||
+    /Z|[+-]\d{2}:?\d{2}$/.test(rawValue)
 
-  if (
-    normalizedKey.includes('date') ||
-    normalizedKey.includes('at')
-  ) {
-    return formatDate(value)
-  }
-
-  if (
-    normalizedKey.includes('amount') ||
-    normalizedKey === 'total'
-  ) {
-    return formatAmount(value)
-  }
-
-  return String(value)
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    dateStyle: 'medium',
+    timeStyle: hasTime ? 'short' : undefined,
+  }).format(dateValue)
 }
 
 function isJsonString(value) {
@@ -259,21 +132,63 @@ function normalizeStructuredValue(value) {
 }
 
 function isStructuredValue(value) {
-  const normalizedValue =
+  const normalized =
     normalizeStructuredValue(value)
 
   return (
-    normalizedValue !== null &&
-    normalizedValue !== undefined &&
-    typeof normalizedValue === 'object'
+    normalized !== null &&
+    normalized !== undefined &&
+    typeof normalized === 'object'
   )
+}
+
+function formatValue(value, key = '') {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ''
+  ) {
+    return 'NA'
+  }
+
+  const normalizedValue =
+    normalizeStructuredValue(value)
+
+  if (
+    typeof normalizedValue === 'object'
+  ) {
+    try {
+      return JSON.stringify(
+        normalizedValue,
+        null,
+        2,
+      )
+    } catch {
+      return String(value)
+    }
+  }
+
+  const normalizedKey =
+    String(key || '').toLowerCase()
+
+  if (
+    normalizedKey.includes('date') ||
+    normalizedKey.includes('at') ||
+    normalizedKey.includes('time')
+  ) {
+    return formatIstDate(value)
+  }
+
+  if (typeof value === 'number') {
+    return value.toLocaleString('en-IN')
+  }
+
+  return String(value)
 }
 
 function isHiddenField(field) {
   const normalizedKey =
-    String(field)
-      .trim()
-      .toLowerCase()
+    String(field).trim().toLowerCase()
 
   return Array.from(hiddenFields).some(
     (hiddenField) =>
@@ -287,23 +202,20 @@ function getEntryFields(entries) {
   const keys = new Set()
 
   entries.forEach((entry) => {
-    Object.keys(entry || {}).forEach(
-      (key) => {
-        if (!isHiddenField(key)) {
-          keys.add(key)
-        }
-      },
-    )
+    Object.keys(entry || {}).forEach((key) => {
+      if (!isHiddenField(key)) {
+        keys.add(key)
+      }
+    })
   })
 
   return Array.from(keys)
 }
 
 function getEntryType(field) {
-  const normalizedField =
-    field
-      .replace(/[_-]+/g, '')
-      .toLowerCase()
+  const normalizedField = field
+    .replace(/[_-]+/g, '')
+    .toLowerCase()
 
   if (
     normalizedField ===
@@ -326,8 +238,7 @@ function isBillAllocationsField(field) {
   return (
     field
       .replace(/[_-]+/g, '')
-      .toLowerCase() ===
-    'billallocations'
+      .toLowerCase() === 'billallocations'
   )
 }
 
@@ -335,40 +246,35 @@ function getNextLayer(parentLayer) {
   return (parentLayer ?? MODAL_LAYER.entry) + 100
 }
 
-function MyVouchersPage({
+function VoucherLinesPage({
   companyId,
+  voucherId: propVoucherId = '',
 }) {
-  const accessToken =
-    useAuthStore(
-      (state) => state.accessToken,
+  const accessToken = useAuthStore(
+    (state) => state.accessToken,
+  )
+
+  const routeVoucherId = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return propVoucherId
+    }
+
+    const params = new URLSearchParams(
+      window.location.search,
     )
 
-  const [query, setQuery] =
-    useState('')
+    const queryVoucherId =
+      params.get('voucherId') ||
+      params.get('VoucherId') ||
+      params.get('voucher_id') ||
+      ''
 
-  const [filter, setFilter] =
-    useState('All')
+    return queryVoucherId || propVoucherId
+  }, [propVoucherId])
 
-  const [type, setType] =
-    useState('All')
-
-  const [startDate, setStartDate] =
-    useState('2010-04-01')
-
-  const [endDate, setEndDate] =
-    useState('2027-03-31')
-
-  const [vouchers, setVouchers] =
-    useState([])
-
-  const [knownFields, setKnownFields] =
-    useState([])
-
-  const [page, setPage] =
-    useState(1)
-
-  const [pageSize, setPageSize] =
-    useState(20)
+  const [rows, setRows] = useState([])
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
   const [totalItems, setTotalItems] =
     useState(0)
@@ -393,151 +299,145 @@ function MyVouchersPage({
   const [detailPopup, setDetailPopup] =
     useState(null)
 
-  const filters = [
-    'All',
-    'Pending',
-    'Completed',
-  ]
-
-  const types = [
-    'All',
-    'Sales',
-    'Purchase',
-    'Receipt',
-    'Payment',
-    'Journal',
-  ]
+  const [fieldPopup, setFieldPopup] =
+    useState(null)
 
   useEffect(() => {
     setPage(1)
-    setKnownFields([])
   }, [
-    query,
-    startDate,
-    endDate,
     companyId,
     pageSize,
+    routeVoucherId,
   ])
 
+  const activeVoucherId =
+    (routeVoucherId || '').trim()
+
   useEffect(() => {
-    if (
-      !accessToken ||
-      !companyId
-    ) {
-      setVouchers([])
-      setKnownFields([])
+    if (!accessToken) {
+      setRows([])
       setTotalItems(0)
       setTotalPages(1)
-
       setErrorMessage(
-        accessToken
-          ? 'No company selected.'
-          : 'Session expired. Please sign in.',
+        'Session expired. Please sign in.',
       )
+      return undefined
+    }
 
+    if (!companyId) {
+      setRows([])
+      setTotalItems(0)
+      setTotalPages(1)
+      setErrorMessage(
+        'No company selected.',
+      )
       return undefined
     }
 
     let isMounted = true
 
-    setIsLoading(true)
-    setErrorMessage('')
+    async function loadVoucherLines() {
+      try {
+        setIsLoading(true)
+        setErrorMessage('')
 
-    fetchCompanyVouchers(
-      accessToken,
-      companyId,
-      {
-        page,
-        limit: pageSize,
-        q: query,
-        startDate,
-        endDate,
-      },
-    )
-      .then((response) => {
+        const response =
+          await fetchCompanyVouchers(
+            accessToken,
+            companyId,
+            {
+              page,
+              limit: pageSize,
+              q: activeVoucherId,
+            },
+          )
+
         if (!isMounted) return
+
+        const nextRows =
+          extractVouchers(response)
 
         const pagination =
           extractVoucherPagination(
             response,
           )
 
-        const total = Number(
-          pagination.total ||
-            pagination.totalItems ||
-            pagination.totalRecords ||
-            pagination.count ||
-            0,
-        )
+        const totalCandidates = [
+          pagination?.total,
+          pagination?.totalItems,
+          pagination?.totalRecords,
+          pagination?.count,
+        ]
 
-        const limit = Number(
-          pagination.limit ||
-            pagination.pageSize ||
+        const totalFromApi =
+          totalCandidates.find(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              Number.isFinite(
+                Number(value),
+              ),
+          )
+
+        const safeTotal =
+          totalFromApi !== undefined
+            ? Number(totalFromApi)
+            : nextRows.length
+
+        const apiLimit = Number(
+          pagination?.limit ??
+            pagination?.pageSize ??
             pageSize,
         )
 
-        const nextVouchers =
-          extractVouchers(
-            response,
+        const safeLimit =
+          Number.isFinite(apiLimit) &&
+          apiLimit > 0
+            ? apiLimit
+            : pageSize
+
+        const calculatedTotalPages =
+          Math.max(
+            1,
+            Math.ceil(
+              safeTotal / safeLimit,
+            ),
           )
 
-        setVouchers(nextVouchers)
-
-        setKnownFields(
-          (currentFields) => {
-            const nextFields =
-              new Set(currentFields)
-
-            nextVouchers.forEach(
-              (voucher) => {
-                Object.keys(
-                  voucher || {},
-                ).forEach((key) => {
-                  if (
-                    !isHiddenField(
-                      key,
-                    )
-                  ) {
-                    nextFields.add(
-                      key,
-                    )
-                  }
-                })
-              },
-            )
-
-            return Array.from(
-              nextFields,
-            )
-          },
+        const apiTotalPages = Number(
+          pagination?.totalPages ??
+            pagination?.pages ??
+            calculatedTotalPages,
         )
 
-        setTotalItems(total)
+        setRows(nextRows)
+        setTotalItems(safeTotal)
 
         setTotalPages(
-          Number(
-            pagination.totalPages ||
-              pagination.pages ||
-              Math.ceil(
-                total / limit,
-              ) ||
-              1,
-          ),
+          Number.isFinite(apiTotalPages) &&
+            apiTotalPages > 0
+            ? apiTotalPages
+            : calculatedTotalPages,
         )
-      })
-      .catch((error) => {
-        if (isMounted) {
-          setErrorMessage(
-            error?.message ||
-              'Unable to load vouchers',
-          )
-        }
-      })
-      .finally(() => {
+      } catch (error) {
+        if (!isMounted) return
+
+        setRows([])
+        setTotalItems(0)
+        setTotalPages(1)
+
+        setErrorMessage(
+          error?.message ||
+            'Unable to load vouchers',
+        )
+      } finally {
         if (isMounted) {
           setIsLoading(false)
         }
-      })
+      }
+    }
+
+    loadVoucherLines()
 
     return () => {
       isMounted = false
@@ -545,138 +445,38 @@ function MyVouchersPage({
   }, [
     accessToken,
     companyId,
-    endDate,
+    activeVoucherId,
     page,
     pageSize,
-    query,
-    startDate,
   ])
 
-  const visibleRows =
-    useMemo(() => {
-      return vouchers.filter(
-        (voucher) => {
-          const voucherType =
-            String(
-              getVoucherValue(
-                voucher,
-                'voucherType',
-                'voucher_type',
-                'type',
-              ),
-            )
+  const fields = useMemo(() => {
+    const keys = new Set()
 
-          const status =
-            String(
-              getVoucherValue(
-                voucher,
-                'status',
-                'voucherStatus',
-                'voucher_status',
-              ),
-            )
+    rows.forEach((row) => {
+      if (
+        !row ||
+        typeof row !== 'object'
+      ) {
+        return
+      }
 
-          const companyName =
-            String(
-              getVoucherCompanyName(
-                voucher,
-              ) || '',
-            ).toLowerCase()
-
-          const fallbackSearchValue =
-            JSON.stringify(
-              voucher,
-            ).toLowerCase()
-
-          const normalizedQuery =
-            query
-              .trim()
-              .toLowerCase()
-
-          const matchesSearch =
-            !normalizedQuery ||
-            companyName.includes(
-              normalizedQuery,
-            ) ||
-            fallbackSearchValue.includes(
-              normalizedQuery,
-            )
-
-          const matchesFilter =
-            filter === 'All' ||
-            status.toLowerCase() ===
-              filter.toLowerCase()
-
-          const matchesType =
-            type === 'All' ||
-            voucherType.toLowerCase() ===
-              type.toLowerCase()
-
-          const effectiveDate =
-            voucher?.effectiveDate
-
-          const effectiveDateValue =
-            effectiveDate
-              ? new Date(
-                  effectiveDate,
-                )
-              : null
-
-          const hasValidEffectiveDate =
-            effectiveDateValue &&
-            !Number.isNaN(
-              effectiveDateValue.getTime(),
-            )
-
-          const matchesStartDate =
-            !startDate ||
-            (
-              hasValidEffectiveDate &&
-              effectiveDateValue >=
-                new Date(
-                  `${startDate}T00:00:00`,
-                )
-            )
-
-          const matchesEndDate =
-            !endDate ||
-            (
-              hasValidEffectiveDate &&
-              effectiveDateValue <=
-                new Date(
-                  `${endDate}T23:59:59.999`,
-                )
-            )
-
-          return (
-            matchesSearch &&
-            matchesFilter &&
-            matchesType &&
-            hasValidEffectiveDate &&
-            matchesStartDate &&
-            matchesEndDate
-          )
+      Object.keys(row).forEach(
+        (key) => {
+          if (!isHiddenField(key)) {
+            keys.add(key)
+          }
         },
       )
-    }, [
-      endDate,
-      filter,
-      query,
-      startDate,
-      type,
-      vouchers,
-    ])
+    })
 
-  const fields = knownFields
+    return Array.from(keys)
+  }, [rows])
 
   const COLUMN_WIDTH = 220
   const ACTION_WIDTH = 100
 
-  /*
-   * Fixed widths keep the header, body cells
-   * and Action column aligned.
-   */
-  const gridTemplate =
+  const gridTemplateColumns =
     fields.length > 0
       ? `${fields
           .map(
@@ -686,53 +486,56 @@ function MyVouchersPage({
           .join(' ')} ${ACTION_WIDTH}px`
       : `${ACTION_WIDTH}px`
 
-  const pageItems =
-    totalPages <= 7
-      ? Array.from(
-          {
-            length:
-              totalPages,
-          },
-          (_, index) =>
-            index + 1,
-        )
-      : page <= 4
-        ? [
-            1,
-            2,
-            3,
-            4,
-            5,
-            '...',
-            totalPages,
-          ]
-        : page >=
-            totalPages - 3
-          ? [
-              1,
-              '...',
-              totalPages - 4,
-              totalPages - 3,
-              totalPages - 2,
-              totalPages - 1,
-              totalPages,
-            ]
-          : [
-              1,
-              '...',
-              page - 1,
-              page,
-              page + 1,
-              '...',
-              totalPages,
-            ]
+  const pageItems = useMemo(() => {
+    if (totalPages <= 7) {
+      return Array.from(
+        { length: totalPages },
+        (_, index) => index + 1,
+      )
+    }
 
-  const entryFields =
-    entryPopup
-      ? getEntryFields(
-          entryPopup.entries,
-        )
-      : []
+    if (page <= 4) {
+      return [
+        1,
+        2,
+        3,
+        4,
+        5,
+        '...',
+        totalPages,
+      ]
+    }
+
+    if (
+      page >= totalPages - 3
+    ) {
+      return [
+        1,
+        '...',
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ]
+    }
+
+    return [
+      1,
+      '...',
+      page - 1,
+      page,
+      page + 1,
+      '...',
+      totalPages,
+    ]
+  }, [page, totalPages])
+
+  const entryFields = entryPopup
+    ? getEntryFields(
+        entryPopup.entries,
+      )
+    : []
 
   const billAllocationFields =
     billAllocationPopup
@@ -741,14 +544,40 @@ function MyVouchersPage({
         )
       : []
 
-  const detailFields =
-    detailPopup
-      ? Object.keys(
-          detailPopup.row || {},
-        ).filter(
-          (key) =>
-            !isHiddenField(key),
+  const detailFields = detailPopup
+    ? Object.keys(
+        detailPopup.row || {},
+      ).filter(
+        (key) =>
+          !isHiddenField(key),
+      )
+    : []
+
+  const fieldEntries = fieldPopup
+    ? (
+        Array.isArray(
+          normalizeStructuredValue(
+            fieldPopup.value,
+          ),
         )
+          ? normalizeStructuredValue(
+              fieldPopup.value,
+            )
+          : [
+              normalizeStructuredValue(
+                fieldPopup.value,
+              ),
+            ]
+      ).filter(
+        (item) =>
+          item &&
+          typeof item === 'object',
+      )
+    : []
+
+  const fieldPopupFields =
+    fieldEntries.length > 0
+      ? getEntryFields(fieldEntries)
       : []
 
   const recordStart =
@@ -766,7 +595,6 @@ function MyVouchersPage({
 
   return (
     <div className="min-h-[calc(100vh-60px)] overflow-x-auto bg-[#f8fafc] text-[#17355f]">
-      {/* ERROR */}
       {errorMessage && (
         <div className="mx-8 mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
           {errorMessage}
@@ -774,23 +602,8 @@ function MyVouchersPage({
       )}
 
       <section className="min-w-[1120px] border-t border-[#e5ebf2] bg-white">
-        {/* FILTER BAR */}
+        {/* TOP BAR */}
         <div className="flex min-h-[70px] flex-wrap items-center gap-3 border-b border-[#e5ebf2] px-8 py-3">
-          {/* SEARCH */}
-          <label className="flex h-[38px] w-[256px] items-center rounded-lg border border-[#d6e0ec] px-3 text-[#7d8da5] focus-within:border-[#1bb88a]">
-            <input
-              className="w-full bg-transparent text-[13px] outline-none"
-              value={query}
-              onChange={(event) =>
-                setQuery(
-                  event.target.value,
-                )
-              }
-              placeholder="Search vouchers"
-            />
-          </label>
-
-          {/* SHOW */}
           <span className="text-[13px] text-[#17355f]">
             Show
           </span>
@@ -822,160 +635,65 @@ function MyVouchersPage({
             records
           </span>
 
-          {/* DATE FILTER */}
-          <div className="ml-auto flex shrink-0 items-center gap-2">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(event) =>
-                setStartDate(
-                  event.target.value,
-                )
-              }
-              className="h-[38px] w-[125px] rounded-md border border-[#bfcfe2] bg-white px-2 text-[11px] text-[#17355f] outline-none focus:border-[#10b981]"
-              aria-label="From date"
-            />
-
-            <span className="text-[11px] text-[#17355f]">
-              to
-            </span>
-
-            <input
-              type="date"
-              value={endDate}
-              min={startDate}
-              onChange={(event) =>
-                setEndDate(
-                  event.target.value,
-                )
-              }
-              className="h-[38px] w-[125px] rounded-md border border-[#bfcfe2] bg-white px-2 text-[11px] text-[#17355f] outline-none focus:border-[#10b981]"
-              aria-label="To date"
-            />
-          </div>
-
-          <span className="text-[12px] text-[#17355f]">
+          <span className="ml-auto text-[12px] text-[#17355f]">
             Page {page} · {pageSize}{' '}
             per page
           </span>
         </div>
 
-        {/* STATUS / TYPE FILTER */}
-        <div className="flex items-center gap-2 px-8 py-2 text-xs">
-          {filters.map(
-            (option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() =>
-                  setFilter(
-                    option,
-                  )
-                }
-                className={
-                  filter === option
-                    ? 'border-b-2 border-[#10b981] px-2 py-1 font-semibold text-[#17355f]'
-                    : 'px-2 py-1 text-[#71819a]'
-                }
-              >
-                {option}
-              </button>
-            ),
-          )}
-
-          <select
-            value={type}
-            onChange={(event) =>
-              setType(
-                event.target.value,
-              )
-            }
-            className="ml-2 h-8 rounded border border-[#d6e0ec] bg-white px-2 text-xs text-[#17355f] outline-none"
-          >
-            {types.map(
-              (option) => (
-                <option
-                  key={option}
-                  value={option}
-                >
-                  {option === 'All'
-                    ? 'Voucher Type'
-                    : option}
-                </option>
-              ),
-            )}
-          </select>
-        </div>
-
-        {/* MAIN TABLE */}
+        {/* TABLE */}
         <div className="mx-8 overflow-x-auto rounded-lg border border-[#dfe7f0]">
           {/* TABLE HEADER */}
           <div
             style={{
-              gridTemplateColumns:
-                gridTemplate,
+              gridTemplateColumns,
             }}
             className="grid min-w-max border-b border-[#dfe7f0] bg-[#f4f7fb] px-4 py-3 text-[11px] font-semibold uppercase tracking-normal text-[#274b78]"
           >
             {fields.length > 0 ? (
               <>
-                {fields.map(
-                  (field) => (
-                    <div
-                      key={field}
-                      className="box-border flex w-[220px] min-w-[220px] max-w-[220px] items-center overflow-hidden pr-4"
-                    >
-                      <span className="block whitespace-normal break-words">
-                        {formatFieldLabel(
-                          field,
-                        )}
-                      </span>
-                    </div>
-                  ),
-                )}
+                {fields.map((field) => (
+                  <div
+                    key={field}
+                    className="box-border w-[220px] min-w-[220px] max-w-[220px] overflow-hidden pr-4"
+                  >
+                    <span className="block whitespace-normal break-words">
+                      {formatLabel(field)}
+                    </span>
+                  </div>
+                ))}
 
-                <div className="box-border flex w-[100px] min-w-[100px] max-w-[100px] items-center justify-start">
-                  Action
+                <div className="box-border w-[100px] min-w-[100px] max-w-[100px]">
+                  <span className="block">
+                    VOUCHER LINES
+                  </span>
                 </div>
               </>
             ) : (
               <div className="w-[100px]">
-                Action
+                VOUCHER LINES
               </div>
             )}
           </div>
 
           {/* TABLE BODY */}
           {isLoading ? (
-            <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center px-4 py-3 text-center text-xs text-slate-500">
-              Loading vouchers...
+            <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center border-b border-[#e5ebf2] px-4 py-3 text-center text-xs text-slate-500">
+              Loading voucher lines...
             </div>
-          ) : visibleRows.length >
-            0 ? (
-            visibleRows.map(
-              (
-                voucher,
-                index,
-              ) => {
-                const voucherNumber =
-                  getVoucherValue(
-                    voucher,
-                    'voucherNumber',
-                    'voucher_number',
-                  ) || 'NA'
-
+          ) : rows.length > 0 ? (
+            rows.map(
+              (row, index) => {
                 const rowKey =
-                  voucher?._id ||
-                  voucher?.id ||
-                  voucher?.guid ||
-                  `${voucherNumber}-${index}`
+                  row?._id ||
+                  row?.id ||
+                  `voucher-lines-row-${index}`
 
                 return (
                   <div
                     key={rowKey}
                     style={{
-                      gridTemplateColumns:
-                        gridTemplate,
+                      gridTemplateColumns,
                     }}
                     className="grid min-w-max items-start border-b border-[#e5ebf2] px-4 py-3 text-[12px] text-[#17355f] last:border-b-0 odd:bg-white even:bg-[#fbfdff]"
                   >
@@ -983,16 +701,12 @@ function MyVouchersPage({
                       (field) => {
                         const cellValue =
                           normalizeStructuredValue(
-                            voucher?.[
-                              field
-                            ],
+                            row?.[field],
                           )
 
-                        const isStructured =
+                        const isStructuredCell =
                           isStructuredValue(
-                            voucher?.[
-                              field
-                            ],
+                            row?.[field],
                           )
 
                         const entryCount =
@@ -1005,9 +719,8 @@ function MyVouchersPage({
                         return (
                           <div
                             key={field}
-                            className="box-border flex w-[220px] min-w-[220px] max-w-[220px] items-start overflow-hidden pr-4"
+                            className="box-border w-[220px] min-w-[220px] max-w-[220px] overflow-hidden pr-4"
                           >
-                            {/* INVENTORY / LEDGER ENTRIES */}
                             {Array.isArray(
                               cellValue,
                             ) &&
@@ -1044,24 +757,18 @@ function MyVouchersPage({
                                 }{' '}
                                 entries
                               </button>
-                            ) : isStructured ? (
+                            ) : isStructuredCell ? (
                               <button
                                 type="button"
                                 onClick={() =>
-                                  setEntryPopup(
+                                  setFieldPopup(
                                     {
                                       title:
-                                        formatFieldLabel(
+                                        formatLabel(
                                           field,
                                         ),
-                                      entries:
-                                        Array.isArray(
-                                          cellValue,
-                                        )
-                                          ? cellValue
-                                          : [
-                                              cellValue,
-                                            ],
+                                      value:
+                                        cellValue,
                                       layer:
                                         getNextLayer(
                                           detailPopup?.layer ??
@@ -1078,8 +785,8 @@ function MyVouchersPage({
                               </button>
                             ) : (
                               <pre className="m-0 max-h-28 w-full overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
-                                {formatApiValue(
-                                  voucher?.[
+                                {formatValue(
+                                  row?.[
                                     field
                                   ],
                                   field,
@@ -1091,7 +798,7 @@ function MyVouchersPage({
                       },
                     )}
 
-                    {/* VIEW ACTION */}
+                    {/* ACTION / VIEW BUTTON */}
                     <div className="flex w-[100px] min-w-[100px] max-w-[100px] items-start justify-start">
                       <button
                         type="button"
@@ -1100,10 +807,11 @@ function MyVouchersPage({
                             {
                               title:
                                 'Voucher Detail',
-                              row: voucher,
+                              row,
                               layer:
                                 getNextLayer(
-                                  entryPopup?.layer ??
+                                  fieldPopup?.layer ??
+                                    entryPopup?.layer ??
                                     billAllocationPopup?.layer ??
                                     MODAL_LAYER.entry,
                                 ),
@@ -1120,7 +828,7 @@ function MyVouchersPage({
               },
             )
           ) : (
-            <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center px-4 py-3 text-center text-xs text-slate-500">
+            <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center border-b border-[#e5ebf2] px-4 py-3 text-center text-xs text-slate-500">
               No data available
             </div>
           )}
@@ -1152,7 +860,9 @@ function MyVouchersPage({
                   <button
                     key={pageNumber}
                     type="button"
-                    disabled={isLoading}
+                    disabled={
+                      isLoading
+                    }
                     onClick={() =>
                       setPage(
                         pageNumber,
@@ -1172,31 +882,25 @@ function MyVouchersPage({
         </footer>
       </section>
 
-      {/* INVENTORY / LEDGER POPUP */}
+      {/* ENTRY POPUP */}
       {entryPopup && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4"
           style={{ zIndex: entryPopup?.layer ?? MODAL_LAYER.entry }}
           role="dialog"
           aria-modal="true"
-          aria-label={
-            entryPopup.title
-          }
         >
           <div className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-            {/* HEADER */}
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">
-                  {
-                    entryPopup.title
-                  }
+                  {entryPopup.title}
                 </h2>
 
                 <p className="mt-1 text-xs text-slate-500">
                   {
-                    entryPopup.entries
-                      .length
+                    entryPopup
+                      .entries.length
                   }{' '}
                   entries
                 </p>
@@ -1210,13 +914,12 @@ function MyVouchersPage({
                   )
                 }
                 className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                aria-label="Close entries"
+                aria-label="Close"
               >
                 ×
               </button>
             </div>
 
-            {/* TABLE */}
             <div className="overflow-auto p-4">
               {entryPopup.entries
                 .length > 0 ? (
@@ -1251,7 +954,7 @@ function MyVouchersPage({
                             }}
                             className="border border-slate-200 px-3 py-2 text-left align-top text-[11px] font-semibold uppercase text-slate-600"
                           >
-                            {formatFieldLabel(
+                            {formatLabel(
                               field,
                             )}
                           </th>
@@ -1321,7 +1024,7 @@ function MyVouchersPage({
                                         },
                                       )
                                     }
-                                    className="inline-flex min-h-8 items-center rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold leading-tight text-sky-700 transition hover:bg-sky-100"
+                                    className="inline-flex min-h-8 items-center rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                                   >
                                     View{' '}
                                     {
@@ -1332,8 +1035,8 @@ function MyVouchersPage({
                                     allocations
                                   </button>
                                 ) : (
-                                  <pre className="m-0 max-h-32 w-full overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
-                                    {formatApiValue(
+                                  <pre className="m-0 max-h-28 overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
+                                    {formatValue(
                                       entry?.[
                                         field
                                       ],
@@ -1356,7 +1059,7 @@ function MyVouchersPage({
               )}
             </div>
 
-            {/* CLOSE */}
+            {/* POPUP FOOTER CLOSE */}
             <div className="flex justify-end border-t border-slate-200 px-5 py-3">
               <button
                 type="button"
@@ -1365,7 +1068,7 @@ function MyVouchersPage({
                     null,
                   )
                 }
-                className="rounded-md bg-slate-800 px-5 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
+                className="rounded-md bg-slate-800 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
               >
                 Close
               </button>
@@ -1381,12 +1084,8 @@ function MyVouchersPage({
           style={{ zIndex: billAllocationPopup?.layer ?? MODAL_LAYER.billAllocation }}
           role="dialog"
           aria-modal="true"
-          aria-label={
-            billAllocationPopup.title
-          }
         >
           <div className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-            {/* HEADER */}
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">
@@ -1412,13 +1111,12 @@ function MyVouchersPage({
                   )
                 }
                 className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                aria-label="Close bill allocations"
+                aria-label="Close"
               >
                 ×
               </button>
             </div>
 
-            {/* TABLE */}
             <div className="overflow-auto p-4">
               {billAllocationPopup
                 .entries.length >
@@ -1454,7 +1152,7 @@ function MyVouchersPage({
                             }}
                             className="border border-slate-200 px-3 py-2 text-left align-top text-[11px] font-semibold uppercase text-slate-600"
                           >
-                            {formatFieldLabel(
+                            {formatLabel(
                               field,
                             )}
                           </th>
@@ -1466,13 +1164,13 @@ function MyVouchersPage({
                   <tbody>
                     {billAllocationPopup.entries.map(
                       (
-                        allocation,
+                        entry,
                         index,
                       ) => (
                         <tr
                           key={
-                            allocation?._id ||
-                            allocation?.id ||
+                            entry?._id ||
+                            entry?.id ||
                             index
                           }
                           className="align-top even:bg-slate-50"
@@ -1493,9 +1191,9 @@ function MyVouchersPage({
                                 }}
                                 className="align-top border border-slate-200 px-3 py-2"
                               >
-                                <pre className="m-0 max-h-32 overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
-                                  {formatApiValue(
-                                    allocation?.[
+                                <pre className="m-0 max-h-28 overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
+                                  {formatValue(
+                                    entry?.[
                                       field
                                     ],
                                     field,
@@ -1516,7 +1214,6 @@ function MyVouchersPage({
               )}
             </div>
 
-            {/* CLOSE */}
             <div className="flex justify-end border-t border-slate-200 px-5 py-3">
               <button
                 type="button"
@@ -1525,7 +1222,7 @@ function MyVouchersPage({
                     null,
                   )
                 }
-                className="rounded-md bg-slate-800 px-5 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
+                className="rounded-md bg-slate-800 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
               >
                 Close
               </button>
@@ -1534,7 +1231,154 @@ function MyVouchersPage({
         </div>
       )}
 
-      {/* VOUCHER DETAIL POPUP */}
+      {/* STRUCTURED FIELD POPUP */}
+      {fieldPopup && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4"
+          style={{ zIndex: fieldPopup?.layer ?? MODAL_LAYER.field }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-slate-900">
+                  {fieldPopup.title}
+                </h2>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Structured data
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setFieldPopup(
+                    null,
+                  )
+                }
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="overflow-auto p-4">
+              {fieldPopupFields.length >
+              0 ? (
+                <table className="min-w-max table-fixed border-collapse text-left text-xs">
+                  <colgroup>
+                    {fieldPopupFields.map(
+                      (field) => (
+                        <col
+                          key={field}
+                          style={{
+                            width:
+                              COLUMN_WIDTH,
+                          }}
+                        />
+                      ),
+                    )}
+                  </colgroup>
+
+                  <thead className="sticky top-0 z-10 bg-slate-100">
+                    <tr>
+                      {fieldPopupFields.map(
+                        (field) => (
+                          <th
+                            key={field}
+                            style={{
+                              width:
+                                COLUMN_WIDTH,
+                              minWidth:
+                                COLUMN_WIDTH,
+                              maxWidth:
+                                COLUMN_WIDTH,
+                            }}
+                            className="border border-slate-200 px-3 py-2 text-left text-[11px] font-semibold uppercase text-slate-600"
+                          >
+                            {formatLabel(
+                              field,
+                            )}
+                          </th>
+                        ),
+                      )}
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {fieldEntries.map(
+                      (
+                        entry,
+                        index,
+                      ) => (
+                        <tr
+                          key={
+                            entry?._id ||
+                            entry?.id ||
+                            index
+                          }
+                          className="align-top even:bg-slate-50"
+                        >
+                          {fieldPopupFields.map(
+                            (
+                              field,
+                            ) => (
+                              <td
+                                key={field}
+                                style={{
+                                  width:
+                                    COLUMN_WIDTH,
+                                  minWidth:
+                                    COLUMN_WIDTH,
+                                  maxWidth:
+                                    COLUMN_WIDTH,
+                                }}
+                                className="align-top border border-slate-200 px-3 py-2"
+                              >
+                                <pre className="m-0 max-h-28 overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
+                                  {formatValue(
+                                    entry?.[
+                                      field
+                                    ],
+                                    field,
+                                  )}
+                                </pre>
+                              </td>
+                            ),
+                          )}
+                        </tr>
+                      ),
+                    )}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="flex min-h-[120px] items-center justify-center text-xs text-slate-500">
+                  No data
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end border-t border-slate-200 px-5 py-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setFieldPopup(
+                    null,
+                  )
+                }
+                className="rounded-md bg-slate-800 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MAIN VIEW DETAILS POPUP */}
       {detailPopup && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4"
@@ -1544,7 +1388,7 @@ function MyVouchersPage({
           aria-label="Voucher Detail"
         >
           <div className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-            {/* HEADER */}
+            {/* POPUP HEADER */}
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">
@@ -1552,7 +1396,8 @@ function MyVouchersPage({
                 </h2>
 
                 <p className="mt-1 text-xs text-slate-500">
-                  Complete voucher information
+                  Complete voucher line
+                  details
                 </p>
               </div>
 
@@ -1605,7 +1450,7 @@ function MyVouchersPage({
                             }}
                             className="border border-slate-200 px-3 py-2 text-left align-top text-[11px] font-semibold uppercase text-slate-600"
                           >
-                            {formatFieldLabel(
+                            {formatLabel(
                               field,
                             )}
                           </th>
@@ -1646,30 +1491,15 @@ function MyVouchersPage({
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    setEntryPopup(
+                                    setFieldPopup(
                                       {
                                         title:
-                                          formatFieldLabel(
+                                          formatLabel(
                                             field,
                                           ),
-                                        entries:
-                                          Array.isArray(
-                                            normalizeStructuredValue(
-                                              value,
-                                            ),
-                                          )
-                                            ? normalizeStructuredValue(
-                                                value,
-                                              )
-                                            : [
-                                                normalizeStructuredValue(
-                                                  value,
-                                                ),
-                                              ],
-                                        layer:
-                                          getNextLayer(
-                                            detailPopup?.layer ??
-                                              MODAL_LAYER.entry,
+                                        value:
+                                          normalizeStructuredValue(
+                                            value,
                                           ),
                                       },
                                     )
@@ -1680,7 +1510,7 @@ function MyVouchersPage({
                                 </button>
                               ) : (
                                 <pre className="m-0 max-h-32 w-full overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
-                                  {formatApiValue(
+                                  {formatValue(
                                     value,
                                     field,
                                   )}
@@ -1700,7 +1530,7 @@ function MyVouchersPage({
               )}
             </div>
 
-            {/* CLOSE */}
+            {/* CLOSE BUTTON */}
             <div className="flex justify-end border-t border-slate-200 px-5 py-3">
               <button
                 type="button"
@@ -1721,4 +1551,4 @@ function MyVouchersPage({
   )
 }
 
-export default MyVouchersPage 
+export default VoucherLinesPage
