@@ -7,11 +7,13 @@ import {
   extractGodowns,
   extractLedgers,
   extractVouchers,
+  extractVoucherTypes,
   fetchCommandStatus,
   fetchCompanyLedgers,
   fetchCompanyGodowns,
   fetchCompanyStock,
   fetchCompanyVouchers,
+  fetchCompanyVoucherTypes,
   postCompanyCommand,
 } from '../services/companiesApi'
 import {
@@ -216,7 +218,7 @@ export function DocumentVoucherPage({
   title,
   companyId,
   extraField,
-  date = '2026-08-27',
+  date = new Date().toLocaleDateString('en-CA'),
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
@@ -226,10 +228,13 @@ export function DocumentVoucherPage({
   const [vouchers, setVouchers] = useState([])
   const [ledgers, setLedgers] = useState([])
   const [godowns, setGodowns] = useState([])
+  const [voucherTypes, setVoucherTypes] = useState([])
 
   const [selectedParty, setSelectedParty] = useState('')
   const [selectedVoucherNumber, setSelectedVoucherNumber] =
     useState('')
+  const [selectedVoucherType, setSelectedVoucherType] =
+    useState('Sales')
 
   const [itemRows, setItemRows] = useState([
     createEmptyItemRow(),
@@ -265,8 +270,10 @@ export function DocumentVoucherPage({
       setVouchers([])
       setLedgers([])
       setGodowns([])
+      setVoucherTypes([])
       setSelectedParty('')
       setSelectedVoucherNumber('')
+      setSelectedVoucherType('Sales')
       setItemRows([createEmptyItemRow()])
       setStockError('')
       return undefined
@@ -335,6 +342,17 @@ export function DocumentVoucherPage({
       ),
     )
 
+    if (isSalesInvoice) {
+      requests.push(
+        fetchCompanyVoucherTypes(
+          accessToken,
+          requestCompanyId,
+        ),
+      )
+    } else {
+      requests.push(Promise.resolve(null))
+    }
+
     Promise.allSettled(requests)
       .then(
         ([
@@ -343,6 +361,7 @@ export function DocumentVoucherPage({
           vouchersResult,
           ledgersResult,
           godownsResult,
+          voucherTypesResult,
         ]) => {
           if (!mounted) return
 
@@ -404,6 +423,17 @@ export function DocumentVoucherPage({
             setGodowns(
               extractGodowns(
                 godownsResult.value,
+              ),
+            )
+          }
+
+          if (
+            voucherTypesResult?.status ===
+            'fulfilled'
+          ) {
+            setVoucherTypes(
+              extractVoucherTypes(
+                voucherTypesResult.value,
               ),
             )
           }
@@ -653,6 +683,32 @@ export function DocumentVoucherPage({
         (value, index, values) =>
           values.indexOf(value) === index,
       )
+
+  const voucherTypeOptions = voucherTypes
+    .map((voucherType) =>
+      typeof voucherType === 'string'
+        ? voucherType
+        : getDisplayValue(voucherType, [
+            'voucherType',
+            'voucher_type',
+            'type',
+            'name',
+            'value',
+            'displayName',
+          ]),
+    )
+    .filter(Boolean)
+    .filter(
+      (value, index, values) =>
+        values.indexOf(value) === index,
+    )
+
+  if (
+    isSalesInvoice &&
+    voucherTypeOptions.length === 0
+  ) {
+    voucherTypeOptions.push('Sales')
+  }
 
   const godownOptions =
     godowns
@@ -918,10 +974,8 @@ export function DocumentVoucherPage({
       )
 
     const voucherType =
-      isSalesInvoice
-        ? 'Sales'
-        : values.voucherType ||
-          'Quotation'
+      values.voucherType ||
+      (isSalesInvoice ? 'Sales' : 'Quotation')
 
     const items = itemRows.map(
       (row) => ({
@@ -978,6 +1032,16 @@ export function DocumentVoucherPage({
         narration:
           values.narration || '',
       },
+    }
+
+    if (!isSalesInvoice) {
+      form.reset()
+      setSelectedParty('')
+      setSelectedVoucherNumber('')
+      resetItemRows()
+      setSubmitMessage('')
+      setIsSubmitting(false)
+      return
     }
 
     try {
@@ -1127,13 +1191,27 @@ export function DocumentVoucherPage({
                   Voucher Type
                 </span>
 
-                <input
-                  name="voucherType"
-                  value="Sales"
-                  readOnly
-                  className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                  placeholder="Select Voucher Type"
-                />
+                {isSalesInvoice ? (
+                  <SearchableDropdown
+                    name="voucherType"
+                    label="voucher types"
+                    options={voucherTypeOptions}
+                    placeholder="Select Voucher Type"
+                    loading={isOptionsLoading}
+                    value={selectedVoucherType}
+                    resetToken={clearToken}
+                    onSelect={setSelectedVoucherType}
+                    onClear={() => setSelectedVoucherType('')}
+                  />
+                ) : (
+                  <input
+                    name="voucherType"
+                    value="Sales"
+                    readOnly
+                    className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                    placeholder="Select Voucher Type"
+                  />
+                )}
               </label>
             )}
 

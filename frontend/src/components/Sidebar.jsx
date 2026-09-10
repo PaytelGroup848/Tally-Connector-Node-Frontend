@@ -28,8 +28,8 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
           </button>
         </div>
       )}
-      <button type="button" className={`sidebar-brand flex h-[60px] w-full shrink-0 items-center gap-2 border-0 bg-white px-2 text-left text-neutral-800 ${collapsed ? 'justify-center px-0' : ''}`} onClick={onDashboard} aria-label="Go to dashboard">
-        <img className="h-[300px] w-[300px] shrink-0 object-contain" src={logo} alt="Cloudedata" />
+      <button type="button" className={`sidebar-brand flex h-[60px] w-full shrink-0 items-center gap-2 border-0 bg-black-200 px-2 text-left text-neutral-800 ${collapsed ? 'justify-center px-0' : ''}`} onClick={onDashboard} aria-label="Go to dashboard">
+        <img className="h-[300px] w-[300px] shrink-0 object-contain " src={logo} alt="Cloudedata" />
         
       </button>
       <nav className="overflow-y-auto px-3 py-4">
@@ -64,7 +64,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
           )
         })}
       </nav>
-      {!collapsed && <div className="sidebar-support mt-auto mx-3 mb-4 rounded-lg px-3 py-3 text-[10px]"><span className="inline-flex items-center justify-center align-middle"><div className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" /></span>&nbsp; <u>+91 8383838383</u></div>}
+      {!collapsed && <div className="sidebar-support mt-auto mx-3 mb-4 rounded-lg px-3 py-3 text-[10px]"><span className="inline-flex items-center justify-center align-middle"><div className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" /></span>&nbsp; <u>+91 9311472357</u></div>}
     </aside>
   )
 }

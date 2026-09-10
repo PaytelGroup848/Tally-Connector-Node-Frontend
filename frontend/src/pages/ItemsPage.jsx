@@ -10,7 +10,6 @@ import {
 // Columns with all required fields
 const columns = [
   { key: 'itemName', label: 'Item Name' },
-  { key: 'itemTallyExternalId', label: 'Item ID' },
   { key: 'quantity', label: 'Quantity' },
   { key: 'rate', label: 'Rate' },
   { key: 'value', label: 'Value' },

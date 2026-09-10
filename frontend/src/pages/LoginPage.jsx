@@ -78,7 +78,7 @@ const LoginPage = () => {
         </p>
 
         {message && (
-          <p className="mb-4 text-center text-xs text-emerald-700">{message}</p>
+          <p className="mb-4 text-center text-xs text-emerald-700">{message + ' to ' + email}</p>
         )}
 
         {!otpSent ? (
