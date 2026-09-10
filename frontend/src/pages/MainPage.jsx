@@ -340,7 +340,7 @@ function App() {
     if (flags.showCreditNote) return <CreditNotePage />
     if (flags.showSalesOrder) return <SalesOrderPage />
     if (flags.showQuotation) return <DocumentVoucherPage title="Quotation" />
-    if (flags.showSalesVoucher) return <DocumentVoucherPage title="Sales" />
+    if (flags.showSalesVoucher) return <DocumentVoucherPage title="Sales" companyId={selectedCompany?.id} />
     return <SectionPage path={currentPath} />
   }
 

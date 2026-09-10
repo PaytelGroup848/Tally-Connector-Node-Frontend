@@ -6,7 +6,7 @@ const profileItems = ['Profile', 'All User', 'Download Invoice', 'Logout']
 function ConnectorStatusButton({ rows = [], lastSyncMeta = null, connectorStatusError = '', isConnectorStatusLoading = false }) {
   const [open, setOpen] = useState(false)
   const syncMeta = Array.isArray(lastSyncMeta) ? lastSyncMeta[0] : lastSyncMeta
-  const lastSyncValue = syncMeta?.lastSync || syncMeta?.lastSyncedAt || syncMeta?.updatedAt || syncMeta?.timestamp || null
+  const lastSyncValue = syncMeta?.completedAt || syncMeta?.lastSync || syncMeta?.lastSyncedAt || syncMeta?.updatedAt || syncMeta?.timestamp || null
   const lastSyncLabel = (() => {
     if (!lastSyncValue) return 'No sync yet'
     const date = new Date(lastSyncValue)

@@ -22,6 +22,70 @@ async function request(path, accessToken) {
   return data
 }
 
+export async function postCompanyCommand(accessToken, companyId, command) {
+  if (!accessToken) throw new Error('Access token not found')
+  if (!companyId) throw new Error('Company is not selected')
+
+  const response = await fetch(`${API_BASE_URL}/companies/${encodeURIComponent(companyId)}/commands`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(command),
+  })
+
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || 'Unable to create voucher')
+  }
+
+  return data
+}
+
+export async function fetchCommandStatus(accessToken, commandId) {
+  return request(`/commands/${encodeURIComponent(commandId)}`, accessToken)
+}
+
+export function extractCommandId(response) {
+  const queue = [response]
+  const idKeys = new Set(['commandid', 'command_id', 'commandid', 'id'])
+
+  while (queue.length > 0) {
+    const value = queue.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const [key, child] of Object.entries(value)) {
+      const normalizedKey = key.toLowerCase().replace(/[^a-z0-9_]/g, '')
+      if (idKeys.has(normalizedKey) && child !== null && child !== undefined && String(child).trim()) {
+        return String(child).trim()
+      }
+      if (child && typeof child === 'object') queue.push(child)
+    }
+  }
+
+  return ''
+}
+
+export function extractCommandStatus(response) {
+  const queue = [response]
+
+  while (queue.length > 0) {
+    const value = queue.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const [key, child] of Object.entries(value)) {
+      const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, '')
+      if (['status', 'state', 'commandstatus'].includes(normalizedKey) && child !== null && child !== undefined && String(child).trim()) {
+        return String(child).trim()
+      }
+      if (child && typeof child === 'object') queue.push(child)
+    }
+  }
+
+  return ''
+}
+
 export function fetchCompanies(accessToken) {
   return request('/companies', accessToken)
 }
@@ -51,6 +115,10 @@ export function extractLastSyncMeta(response) {
     fallback?.syncHistory?.[0],
     fallback?.data?.syncHistory?.[0],
   ].filter(Boolean)
+
+  for (const candidate of allCandidates) {
+    if (candidate && typeof candidate === 'object' && candidate.completedAt) return candidate
+  }
 
   for (const candidate of allCandidates) {
     if (candidate && typeof candidate === 'object') return candidate
@@ -97,6 +165,12 @@ export function fetchCompanyLedgers(accessToken, companyId, { page = 1, limit = 
   return request(`/companies/${encodeURIComponent(companyId)}/ledgers?${params.toString()}`, accessToken)
 }
 
+export function fetchCompanyGodowns(accessToken, companyId, { page = 1, limit = 100, q = '' } = {}) {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+  if (q.trim()) params.set('q', q.trim())
+  return request(`/companies/${encodeURIComponent(companyId)}/godowns?${params.toString()}`, accessToken)
+}
+
 export function extractCompany(response) {
   return response?.data?.company || response?.company || response?.data || response
 }
@@ -131,6 +205,28 @@ export function extractLedgers(response) {
     if (!value || typeof value !== 'object') continue
 
     for (const key of ledgerKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractGodowns(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const godownKeys = ['godowns', 'godown', 'warehouses', 'locations', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of godownKeys) {
       if (Array.isArray(value[key])) return value[key]
     }
 
@@ -268,6 +364,35 @@ export function extractVouchers(response) {
     if (!value || typeof value !== 'object') continue
 
     for (const key of voucherKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function fetchCompanyVoucherTypes(accessToken, companyId) {
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/voucher-types`,
+    accessToken,
+  )
+}
+
+export function extractVoucherTypes(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const typeKeys = ['voucherTypes', 'voucher_types', 'types', 'items', 'records', 'results', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of typeKeys) {
       if (Array.isArray(value[key])) return value[key]
     }
 

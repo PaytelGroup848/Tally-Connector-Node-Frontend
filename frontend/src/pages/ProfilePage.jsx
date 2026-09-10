@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   User,
+  Users,
   CalendarDays,
   CreditCard,
   ShieldCheck,
@@ -12,6 +13,9 @@ import {
 import useAuthStore from '../store/authStore'
 import {
   extractOrganizationProfile,
+  extractMySubscription,
+  extractTotalUsers,
+  fetchMySubscription,
   fetchProfile,
 } from '../services/profileApi'
 
@@ -25,8 +29,11 @@ const ProfilePage = () => {
   )
 
   const [profile, setProfile] = useState(null)
+  const [subscriptionFromApi, setSubscriptionFromApi] = useState(null)
+  const [totalUsers, setTotalUsers] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [seatLimit, setSeatLimit] = useState(0)
 
   useEffect(() => {
     let mounted = true
@@ -35,13 +42,27 @@ const ProfilePage = () => {
       try {
         setLoading(true)
         setError('')
+        setTotalUsers(null)
 
-        const result = await fetchProfile(
-          accessToken,
-        )
+        const [profileRequest, subscriptionRequest] = await Promise.allSettled([
+          fetchProfile(accessToken),
+          fetchMySubscription(accessToken),
+        ])
+
+        const seatLimit = profileRequest?.value?.data?.subscription?.plan?.seatLimit || 0
+        setSeatLimit(seatLimit)
+        
+
+        if (profileRequest.status === 'rejected') {
+          throw profileRequest.reason
+        }
 
         if (mounted) {
-          setProfile(extractOrganizationProfile(result))
+          setProfile(extractOrganizationProfile(profileRequest.value))
+          if (subscriptionRequest.status === 'fulfilled') {
+            setSubscriptionFromApi(extractMySubscription(subscriptionRequest.value))
+            setTotalUsers(extractTotalUsers(subscriptionRequest.value))
+          }
         }
       } catch (profileError) {
         if (mounted) {
@@ -166,7 +187,7 @@ const ProfilePage = () => {
   }
 
   const subscription =
-    profile?.subscription
+    subscriptionFromApi || profile?.subscription
 
   const plan =
     subscription?.plan
@@ -290,6 +311,21 @@ const ProfilePage = () => {
 
                 <p className="text-sm font-semibold text-slate-900">
                   {profile?.role || '-'}
+                </p>
+              </div>
+
+              {/* Total Users */}
+              <div className="rounded-xl border border-slate-200 p-4">
+                <div className="mb-2 flex items-center gap-2 text-slate-500">
+                  <Users size={17} />
+
+                  <span className="text-sm">
+                    Total Users
+                  </span>
+                </div>
+
+                <p className="text-sm font-semibold text-slate-900">
+                  {totalUsers + seatLimit ?? '-'}
                 </p>
               </div>
 
