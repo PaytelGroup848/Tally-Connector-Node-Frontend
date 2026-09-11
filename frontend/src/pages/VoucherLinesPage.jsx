@@ -193,18 +193,51 @@ function isHiddenField(field) {
   )
 }
 
-function getEntryFields(entries) {
-  const keys = new Set()
+function normalizeFieldKey(field) {
+  return String(field ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+}
 
-  entries.forEach((entry) => {
-    Object.keys(entry || {}).forEach((key) => {
-      if (!isHiddenField(key)) {
-        keys.add(key)
-      }
-    })
+function getUniqueFields(fields = []) {
+  const seenFields = new Set()
+  const uniqueFields = []
+
+  fields.forEach((field) => {
+    if (
+      typeof field !== 'string' ||
+      !field.trim() ||
+      isHiddenField(field)
+    ) {
+      return
+    }
+
+    const normalizedField =
+      normalizeFieldKey(field)
+
+    if (
+      normalizedField &&
+      !seenFields.has(normalizedField)
+    ) {
+      seenFields.add(normalizedField)
+      uniqueFields.push(field)
+    }
   })
 
-  return Array.from(keys)
+  return uniqueFields
+}
+
+function getEntryFields(entries) {
+  const keys = []
+
+  entries.forEach((entry) => {
+    keys.push(
+      ...Object.keys(entry || {}),
+    )
+  })
+
+  return getUniqueFields(keys)
 }
 
 function getEntryType(field) {
@@ -243,6 +276,7 @@ function getNextLayer(parentLayer) {
 
 function VoucherLinesPage({
   companyId,
+  companyName = '',
   voucherId: propVoucherId = '',
 }) {
   const accessToken = useAuthStore(
@@ -268,6 +302,7 @@ function VoucherLinesPage({
   }, [propVoucherId])
 
   const [rows, setRows] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
 
@@ -303,10 +338,26 @@ function VoucherLinesPage({
     companyId,
     pageSize,
     routeVoucherId,
+    searchQuery,
   ])
 
   const activeVoucherId =
     (routeVoucherId || '').trim()
+
+  const normalizedSearchQuery =
+    searchQuery.trim().toLowerCase()
+
+  const normalizedCompanyName =
+    companyName.trim().toLowerCase()
+
+  const isExactCompanySearch =
+    normalizedSearchQuery !== '' &&
+    normalizedSearchQuery === normalizedCompanyName
+
+  const activeSearchQuery =
+    isExactCompanySearch
+      ? activeVoucherId
+      : searchQuery.trim() || activeVoucherId
 
   useEffect(() => {
     if (!accessToken) {
@@ -343,7 +394,7 @@ function VoucherLinesPage({
             {
               page,
               limit: pageSize,
-              q: activeVoucherId,
+              q: activeSearchQuery,
             },
           )
 
@@ -440,13 +491,13 @@ function VoucherLinesPage({
   }, [
     accessToken,
     companyId,
-    activeVoucherId,
+    activeSearchQuery,
     page,
     pageSize,
   ])
 
   const fields = useMemo(() => {
-    const keys = new Set()
+    const keys = []
 
     rows.forEach((row) => {
       if (
@@ -456,16 +507,10 @@ function VoucherLinesPage({
         return
       }
 
-      Object.keys(row).forEach(
-        (key) => {
-          if (!isHiddenField(key)) {
-            keys.add(key)
-          }
-        },
-      )
+      keys.push(...Object.keys(row))
     })
 
-    return Array.from(keys)
+    return getUniqueFields(keys)
   }, [rows])
 
   const COLUMN_WIDTH = 220
@@ -540,11 +585,10 @@ function VoucherLinesPage({
       : []
 
   const detailFields = detailPopup
-    ? Object.keys(
-        detailPopup.row || {},
-      ).filter(
-        (key) =>
-          !isHiddenField(key),
+    ? getUniqueFields(
+        Object.keys(
+          detailPopup.row || {},
+        ),
       )
     : []
 
@@ -629,6 +673,8 @@ function VoucherLinesPage({
           <span className="text-[13px] text-[#17355f]">
             records
           </span>
+
+         
 
           <span className="ml-auto text-[12px] text-[#17355f]">
             Page {page} · {pageSize}{' '}

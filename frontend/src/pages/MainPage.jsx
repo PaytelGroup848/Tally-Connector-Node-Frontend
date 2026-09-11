@@ -323,7 +323,7 @@ function App() {
     if (entryPath === '/day-book') return <DayBookPage companyId={selectedCompany?.id} />
     if (entryPath === '/profit-loss') return <ProfitLossPage companyId={selectedCompany?.id} />
     if (entryPath === '/balance-sheet') return <BalanceSheetPage companyId={selectedCompany?.id} />
-    if (entryPath === '/voucher-lines') return <VoucherLinesPage companyId={selectedCompany?.id} />
+    if (entryPath === '/voucher-lines') return <VoucherLinesPage companyId={selectedCompany?.id} companyName={selectedCompany?.name} />
     if (flags.showReport) return <ReportListPage path={entryPath} companyId={selectedCompany?.id} />
     if (flags.showPayment) return <PaymentPage />
     if (flags.showReceiptNote) return <ReceiptNotePage />

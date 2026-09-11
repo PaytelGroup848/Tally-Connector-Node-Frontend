@@ -67,10 +67,10 @@ function SearchableDropdown({
   }, [value])
 
   useEffect(() => {
-    setQuery(value ?? defaultValue)
+    setQuery(value ?? defaultValue ?? '')
     setOpen(false)
     setShowAll(false)
-  }, [resetToken, value, defaultValue])
+  }, [resetToken])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -222,6 +222,8 @@ export function DocumentVoucherPage({
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
+  const [showSuccessAnimation, setShowSuccessAnimation] =
+    useState(false)
 
   const [customers, setCustomers] = useState([])
   const [stockItems, setStockItems] = useState([])
@@ -250,8 +252,19 @@ export function DocumentVoucherPage({
   const accessToken = useAuthStore(
     (state) => state.accessToken,
   )
+  const successTimerRef = useRef(null)
 
   const isSalesInvoice = title === 'Sales'
+  const showPageLoader =
+    isOptionsLoading || isSubmitting || showSuccessAnimation
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) {
+        window.clearTimeout(successTimerRef.current)
+      }
+    }
+  }, [])
 
   const defaultDate =
     title === 'Quotation'
@@ -522,6 +535,43 @@ export function DocumentVoucherPage({
     return ''
   }
 
+  const normalizeItemName = (
+    value,
+  ) =>
+    String(value ?? '')
+      .trim()
+      .toLowerCase()
+
+  const findStockItem = (
+    itemName,
+  ) => {
+    const normalizedItemName =
+      normalizeItemName(itemName)
+
+    if (!normalizedItemName) {
+      return null
+    }
+
+    return (
+      stockItems.find(
+        (item) =>
+          normalizeItemName(
+            getStockValue(item, [
+              'itemName',
+              'item_name',
+              'stockName',
+              'stock_name',
+              'stockItemName',
+              'stock_item_name',
+              'item',
+              'name',
+              'displayName',
+            ]),
+          ) === normalizedItemName,
+      ) || null
+    )
+  }
+
   const customerOptions = customers
     .map((customer) =>
       getDisplayValue(customer, [
@@ -739,11 +789,34 @@ export function DocumentVoucherPage({
   const partyOptions =
     quotationPartyOptions
 
+  const calculateRowAmount = (
+    row,
+  ) => {
+    const quantity =
+      Number(row.quantity) || 0
+    const rate =
+      Number(row.rate) || 0
+    const discountPercent =
+      Math.max(
+        0,
+        Math.min(
+          Number(row.discount) || 0,
+          100,
+        ),
+      )
+
+    const discountMultiplier =
+      1 - discountPercent / 100
+
+    return Math.max(
+      0,
+      quantity * rate * discountMultiplier,
+    )
+  }
+
   const subtotal = itemRows.reduce(
     (total, row) =>
-      total +
-      (Number(row.quantity) || 0) *
-        (Number(row.rate) || 0),
+      total + calculateRowAmount(row),
     0,
   )
 
@@ -751,21 +824,7 @@ export function DocumentVoucherPage({
     itemName,
   ) => {
     const matchingItem =
-      stockItems.find(
-        (item) =>
-          getStockValue(item, [
-            'itemName',
-            'item_name',
-            'stockName',
-            'stock_name',
-            'stockItemName',
-            'stock_item_name',
-            'item',
-            'name',
-            'displayName',
-          ]).toLowerCase() ===
-          itemName.toLowerCase(),
-      )
+      findStockItem(itemName)
 
     return matchingItem
       ? getStockValue(
@@ -778,6 +837,53 @@ export function DocumentVoucherPage({
             'mrp',
             'avgPurRate',
             'purchaseRate',
+          ],
+        )
+      : ''
+  }
+
+  const findStockUnits = (
+    itemName,
+  ) => {
+    const matchingItem =
+      findStockItem(itemName)
+
+    return matchingItem
+      ? getStockValue(
+          matchingItem,
+          [
+            'units',
+            'unit',
+            'unitName',
+            'unit_name',
+            'uom',
+            'stockUnit',
+            'stock_unit',
+            'itemUnit',
+            'item_unit',
+            'measure',
+          ],
+        )
+      : ''
+  }
+
+  const findStockHsnCode = (
+    itemName,
+  ) => {
+    const matchingItem =
+      findStockItem(itemName)
+
+    return matchingItem
+      ? getStockValue(
+          matchingItem,
+          [
+            'hsnCode',
+            'hsn_code',
+            'hsn',
+            'hsnCodeValue',
+            'hsn_code_value',
+            'itemHsn',
+            'item_hsn',
           ],
         )
       : ''
@@ -876,6 +982,12 @@ export function DocumentVoucherPage({
       {
         item: itemName,
         rate: matchingRate,
+        units: findStockUnits(
+          itemName,
+        ),
+        hsnCode: findStockHsnCode(
+          itemName,
+        ),
       },
     )
   }
@@ -963,6 +1075,7 @@ export function DocumentVoucherPage({
     const form =
       event.currentTarget
 
+    setShowSuccessAnimation(false)
     setIsSubmitting(true)
     setSubmitMessage('')
 
@@ -998,10 +1111,9 @@ export function DocumentVoucherPage({
         description:
           row.description || '',
         amount:
-          (Number(row.quantity) ||
-            0) *
-          (Number(row.rate) ||
-            0),
+          calculateRowAmount(
+            row,
+          ),
         taxInclusive:
           Boolean(
             row.taxInclusive,
@@ -1058,10 +1170,6 @@ export function DocumentVoucherPage({
         )
 
       if (commandId) {
-        setSubmitMessage(
-          `${voucherType} voucher submitted. Checking status...`,
-        )
-
         let latestStatus =
           ''
 
@@ -1090,12 +1198,6 @@ export function DocumentVoucherPage({
             extractCommandStatus(
               statusResponse,
             )
-
-          if (latestStatus) {
-            setSubmitMessage(
-              `Voucher status: ${latestStatus}`,
-            )
-          }
 
           const normalizedStatus =
             latestStatus.toLowerCase()
@@ -1137,6 +1239,19 @@ export function DocumentVoucherPage({
       )
 
       resetItemRows()
+
+      setShowSuccessAnimation(true)
+
+      if (successTimerRef.current) {
+        window.clearTimeout(
+          successTimerRef.current,
+        )
+      }
+
+      successTimerRef.current =
+        window.setTimeout(() => {
+          setShowSuccessAnimation(false)
+        }, 1600)
     } catch (error) {
       setSubmitMessage(
         error?.message ||
@@ -1166,7 +1281,30 @@ export function DocumentVoucherPage({
   }
 
   return (
-    <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] p-3 text-slate-900 sm:p-5">
+    <div className="voucher-page-animate relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-3 text-slate-900 sm:p-5">
+      {showPageLoader && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
+          <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
+            <div
+              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${
+                showSuccessAnimation
+                  ? 'border-t-green-600 animate-spin'
+                  : 'border-t-[#1a1f24] animate-spin'
+              }`}
+              aria-hidden="true"
+            />
+
+            <span className="mt-3 text-sm font-semibold text-slate-700">
+              {isSubmitting
+                ? 'Creating voucher...'
+                : showSuccessAnimation
+                  ? 'Voucher created successfully!'
+                  : 'Loading Sales Invoice...'}
+            </span>
+          </div>
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit}
         className="relative z-0 mx-auto max-w-[1440px] overflow-visible rounded-lg border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.06)]"
@@ -1451,12 +1589,9 @@ export function DocumentVoucherPage({
                 {itemRows.map(
                   (row, index) => {
                     const amount =
-                      (Number(
-                        row.quantity,
-                      ) || 0) *
-                      (Number(
-                        row.rate,
-                      ) || 0)
+                      calculateRowAmount(
+                        row,
+                      )
 
                     return (
                       <div
@@ -2073,9 +2208,14 @@ export function DocumentVoucherPage({
               }
               className="w-full rounded-lg bg-[#1a1f24] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(24,33,43,0.2)] transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
-              {isSubmitting
-                ? 'Creating...'
-                : 'Create Voucher'}
+              {isSubmitting ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/70 border-t-transparent" aria-hidden="true" />
+                  Creating...
+                </span>
+              ) : (
+                'Create Voucher'
+              )}
             </button>
           </div>
         </div>

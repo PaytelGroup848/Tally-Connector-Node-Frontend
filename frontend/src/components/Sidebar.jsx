@@ -32,7 +32,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
         <img className="h-[300px] w-[300px] shrink-0 object-contain " src={logo} alt="Cloudedata" />
         
       </button>
-      <nav className="overflow-y-auto px-3 py-4">
+      <nav className="sidebar-nav flex-1 overflow-y-auto px-3 py-4">
         {navItems.map(([IconComponent, label, expandable, badge, path]) => {
           const isDataBackupItem = label === 'Data Backup'
           const targetPath = label === 'Dashboard' ? '/dashboard' : `/${path}`

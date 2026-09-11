@@ -119,6 +119,22 @@
   .app-main { background: #f5f7f4; }
   .app-sidebar { background: linear-gradient(180deg, #0b365b 0%, #082b4b 45%, #061f38 100%); }
   .sidebar-brand { border-bottom: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03); }
+  .sidebar-nav { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.34) transparent; }
+  .voucher-page-animate { animation: voucher-page-fade-in 0.45s ease-out both; }
+  @keyframes voucher-page-fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .sidebar-nav::-webkit-scrollbar { width: 6px; }
+  .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.32); border-radius: 9999px; }
+  .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); }
   .sidebar-link.is-active { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14); }
   .sidebar-support { background: rgba(255,255,255,0.09); color: #d1dfeb; }
   .app-header { box-shadow: 0 1px 0 rgba(24,33,43,0.02); }

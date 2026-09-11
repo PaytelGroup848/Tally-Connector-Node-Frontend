@@ -288,20 +288,51 @@ function isHiddenField(field) {
   )
 }
 
+function normalizeFieldKey(field) {
+  return String(field ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+}
+
+function getUniqueFields(fields = []) {
+  const seenFields = new Set()
+  const uniqueFields = []
+
+  fields.forEach((field) => {
+    if (
+      typeof field !== 'string' ||
+      !field.trim() ||
+      isHiddenField(field)
+    ) {
+      return
+    }
+
+    const normalizedField =
+      normalizeFieldKey(field)
+
+    if (
+      normalizedField &&
+      !seenFields.has(normalizedField)
+    ) {
+      seenFields.add(normalizedField)
+      uniqueFields.push(field)
+    }
+  })
+
+  return uniqueFields
+}
+
 function getEntryFields(entries) {
-  const keys = new Set()
+  const keys = []
 
   entries.forEach((entry) => {
-    Object.keys(entry || {}).forEach(
-      (key) => {
-        if (!isHiddenField(key)) {
-          keys.add(key)
-        }
-      },
+    keys.push(
+      ...Object.keys(entry || {}),
     )
   })
 
-  return Array.from(keys)
+  return getUniqueFields(keys)
 }
 
 function getEntryType(field) {
@@ -489,32 +520,14 @@ function MyVouchersPage({
         setVouchers(nextVouchers)
 
         setKnownFields(
-          (currentFields) => {
-            const nextFields =
-              new Set(currentFields)
-
-            nextVouchers.forEach(
-              (voucher) => {
+          getUniqueFields(
+            nextVouchers.flatMap(
+              (voucher) =>
                 Object.keys(
                   voucher || {},
-                ).forEach((key) => {
-                  if (
-                    !isHiddenField(
-                      key,
-                    )
-                  ) {
-                    nextFields.add(
-                      key,
-                    )
-                  }
-                })
-              },
-            )
-
-            return Array.from(
-              nextFields,
-            )
-          },
+                ),
+            ),
+          ),
         )
 
         setTotalItems(total)
@@ -675,12 +688,7 @@ function MyVouchersPage({
   const fields = knownFields
 
   const COLUMN_WIDTH = 220
-  const ACTION_WIDTH = 100
 
-  /*
-   * Fixed widths keep the header, body cells
-   * and Action column aligned.
-   */
   const gridTemplate =
     fields.length > 0
       ? `${fields
@@ -688,8 +696,8 @@ function MyVouchersPage({
             () =>
               `${COLUMN_WIDTH}px`,
           )
-          .join(' ')} ${ACTION_WIDTH}px`
-      : `${ACTION_WIDTH}px`
+          .join(' ')}`
+      : '0px'
 
   const pageItems =
     totalPages <= 7
@@ -748,11 +756,10 @@ function MyVouchersPage({
 
   const detailFields =
     detailPopup
-      ? Object.keys(
-          detailPopup.row || {},
-        ).filter(
-          (key) =>
-            !isHiddenField(key),
+      ? getUniqueFields(
+          Object.keys(
+            detailPopup.row || {},
+          ),
         )
       : []
 
@@ -923,29 +930,23 @@ function MyVouchersPage({
             className="grid min-w-max border-b border-[#dfe7f0] bg-[#f4f7fb] px-4 py-3 text-[11px] font-semibold uppercase tracking-normal text-[#274b78]"
           >
             {fields.length > 0 ? (
-              <>
-                {fields.map(
-                  (field) => (
-                    <div
-                      key={field}
-                      className="box-border flex w-[220px] min-w-[220px] max-w-[220px] items-center overflow-hidden pr-4"
-                    >
-                      <span className="block whitespace-normal break-words">
-                        {formatFieldLabel(
-                          field,
-                        )}
-                      </span>
-                    </div>
-                  ),
-                )}
-
-                <div className="box-border flex w-[100px] min-w-[100px] max-w-[100px] items-center justify-start">
-                  Action
-                </div>
-              </>
+              fields.map(
+                (field) => (
+                  <div
+                    key={field}
+                    className="box-border flex w-[220px] min-w-[220px] max-w-[220px] items-center overflow-hidden pr-4"
+                  >
+                    <span className="block whitespace-normal break-words">
+                      {formatFieldLabel(
+                        field,
+                      )}
+                    </span>
+                  </div>
+                ),
+              )
             ) : (
-              <div className="w-[100px]">
-                Action
+              <div className="w-full">
+                No columns
               </div>
             )}
           </div>
@@ -1096,30 +1097,6 @@ function MyVouchersPage({
                       },
                     )}
 
-                    {/* VIEW ACTION */}
-                    <div className="flex w-[100px] min-w-[100px] max-w-[100px] items-start justify-start">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDetailPopup(
-                            {
-                              title:
-                                'Voucher Detail',
-                              row: voucher,
-                              layer:
-                                getNextLayer(
-                                  entryPopup?.layer ??
-                                    billAllocationPopup?.layer ??
-                                    MODAL_LAYER.entry,
-                                ),
-                            },
-                          )
-                        }
-                        className="inline-flex h-8 items-center justify-center rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                      >
-                        View
-                      </button>
-                    </div>
                   </div>
                 )
               },
