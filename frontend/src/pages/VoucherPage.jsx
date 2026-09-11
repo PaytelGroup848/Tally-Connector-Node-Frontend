@@ -17,6 +17,7 @@ function formatDate(dateString) {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'NA';
     return date.toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

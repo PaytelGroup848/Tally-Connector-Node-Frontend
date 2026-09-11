@@ -39,7 +39,34 @@ function formatLabel(key) {
 /*
  * Format values for display.
  */
-function formatValue(value) {
+function isDateField(field) {
+  const normalizedField = String(field || '')
+    .replace(/[_-\s]/g, '')
+    .toLowerCase()
+
+  return (
+    normalizedField.includes('date') ||
+    normalizedField.includes('time') ||
+    normalizedField.includes('timestamp') ||
+    normalizedField.includes('createdat') ||
+    normalizedField.includes('updatedat')
+  )
+}
+
+function formatIstDate(value) {
+  const date = new Date(value)
+
+  return Number.isNaN(date.getTime())
+    ? String(value)
+    : date.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+}
+
+function formatValue(value, field = '') {
   if (value === null || value === undefined || value === '') {
     return 'NA';
   }
@@ -50,6 +77,10 @@ function formatValue(value) {
     } catch {
       return String(value);
     }
+  }
+
+  if (isDateField(field)) {
+    return formatIstDate(value)
   }
 
   if (typeof value === 'number') {
@@ -533,13 +564,13 @@ function TrialBalancePage({ companyId }) {
                             className="max-h-24 overflow-y-auto whitespace-pre-wrap break-words leading-5 [overflow-wrap:anywhere]"
                             title={
                               typeof value === 'object'
-                                ? formatValue(value)
+                                ? formatValue(value, field)
                                 : String(
                                     value ?? ''
                                   )
                             }
                           >
-                            {formatValue(value)}
+                            {formatValue(value, field)}
                           </div>
 
                         </div>

@@ -16,7 +16,12 @@ function formatDate(value) {
 
   return Number.isNaN(date.getTime())
     ? '-'
-    : date.toLocaleDateString('en-GB')
+    : date.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
 }
 
 function UsersTable({

@@ -20,7 +20,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
   }
 
   return (
-    <aside className={`app-sidebar fixed left-0 top-0 z-30 flex h-screen shrink-0 flex-col bg-neutral-900 text-white transition-all duration-200 ${isCompact ? `${collapsed ? '-translate-x-full' : 'translate-x-0'} w-[200px]` : collapsed ? 'w-[58px]' : 'w-[200px]'}`} data-collapsed={collapsed}>
+    <aside className={`app-sidebar fixed left-0 top-0 z-30 flex h-screen shrink-0 flex-col text-white transition-all duration-200 ${isCompact ? `${collapsed ? '-translate-x-full' : 'translate-x-0'} w-[200px]` : collapsed ? 'w-[58px]' : 'w-[200px]'}`} data-collapsed={collapsed}>
       {isCompact && !collapsed && (
         <div className="flex justify-end px-3 pt-3">
           <button type="button" aria-label="Close sidebar" onClick={() => setSidebarCollapsed(true)} className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white transition hover:bg-white/10">
@@ -28,7 +28,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
           </button>
         </div>
       )}
-      <button type="button" className={`sidebar-brand flex h-[60px] w-full shrink-0 items-center gap-2 border-0 bg-black-200 px-2 text-left text-neutral-800 ${collapsed ? 'justify-center px-0' : ''}`} onClick={onDashboard} aria-label="Go to dashboard">
+      <button type="button" className={`sidebar-brand flex h-[60px] w-full shrink-0 items-center gap-2 border-0 px-2 text-left text-neutral-800 ${collapsed ? 'justify-center px-0' : ''}`} onClick={onDashboard} aria-label="Go to dashboard">
         <img className="h-[300px] w-[300px] shrink-0 object-contain " src={logo} alt="Cloudedata" />
         
       </button>

@@ -126,7 +126,12 @@ function formatDate(value) {
 
   return Number.isNaN(date.getTime())
     ? value
-    : date.toLocaleDateString('en-IN')
+    : date.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
 }
 
 function formatAmount(value) {

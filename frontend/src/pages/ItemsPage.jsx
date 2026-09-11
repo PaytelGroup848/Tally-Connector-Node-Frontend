@@ -30,23 +30,17 @@ const itemAliases = {
   updatedAt: ['updatedAt', 'updated_at', 'dateUpdated'],
 };
 
-// Helper: Convert UTC date string to IST (UTC+5:30) formatted string
+// Helper: Convert a date value to an IST date string
 function formatDateToIST(utcDate) {
   if (!utcDate) return 'NA';
   try {
     const date = new Date(utcDate);
     if (isNaN(date.getTime())) return 'NA';
-    const istOffset = 5.5 * 60; // in minutes
-    const localTime = date.getTime() + (date.getTimezoneOffset() * 60000);
-    const istTime = new Date(localTime + (istOffset * 60000));
-    return istTime.toLocaleString('en-IN', {
+    return date.toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
     });
   } catch {
     return 'NA';

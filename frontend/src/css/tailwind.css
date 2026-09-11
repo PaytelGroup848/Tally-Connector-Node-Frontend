@@ -117,10 +117,10 @@
 
 @layer components {
   .app-main { background: #f5f7f4; }
-  .app-sidebar { background: #18212b; }
-  .sidebar-brand { border-bottom: 1px solid #e7ebe7; }
+  .app-sidebar { background: linear-gradient(180deg, #0b365b 0%, #082b4b 45%, #061f38 100%); }
+  .sidebar-brand { border-bottom: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03); }
   .sidebar-link.is-active { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14); }
-  .sidebar-support { background: rgba(255,255,255,0.08); color: #a9b7b0; }
+  .sidebar-support { background: rgba(255,255,255,0.09); color: #d1dfeb; }
   .app-header { box-shadow: 0 1px 0 rgba(24,33,43,0.02); }
   .header-search:focus-within { border-color: #2da44e; box-shadow: 0 0 0 3px rgba(45,164,78,0.12); }
   .panel { border-radius: 12px; box-shadow: 0 8px 30px rgba(24,33,43,0.04); }

@@ -15,6 +15,9 @@ import {
   extractSales,
   extractSalesPagination,
   fetchCompanySales,
+  extractReceiptPagination,
+  extractReceipts,
+  fetchCompanyReceipts,
 } from '../services/companiesApi'
 
 import {
@@ -423,7 +426,7 @@ const isHiddenSalesField = (field) =>
   )
 
 // ============================================================
-// IST DATE/TIME FORMATTER
+// IST DATE FORMATTER
 // ============================================================
 
 const formatDateTimeIST = (value) => {
@@ -442,15 +445,11 @@ const formatDateTimeIST = (value) => {
     return String(value)
   }
 
-  return date.toLocaleString('en-IN', {
+  return date.toLocaleDateString('en-IN', {
     timeZone: 'Asia/Kolkata',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
   })
 }
 
@@ -1546,7 +1545,7 @@ function ReceivablesReport({
     ) {
       return columnKey ===
         'gstin'
-        ? 'NA'
+        ? '-'
         : '-'
     }
 
@@ -2644,34 +2643,21 @@ function SalesReport({
   // Hide ID / Tally ID fields.
   // ==========================================================
 
-  const salesColumns =
-    Array.from(
+  const salesColumns = (() => {
+    const columns = Array.from(
       new Set(
-        rows.flatMap(
-          (row) => {
-            if (
-              !row ||
-              typeof row !==
-                'object' ||
-              Array.isArray(
-                row
-              )
-            ) {
-              return []
-            }
-
-            return Object.keys(
-              row
-            ).filter(
-              (column) =>
-                !isHiddenSalesField(
-                  column
-                )
-            )
-          }
-        )
-      )
+        rows.flatMap((row) => {
+          if (!row || typeof row !== 'object' || Array.isArray(row)) return []
+          return Object.keys(row).filter((column) => !isHiddenSalesField(column))
+        }),
+      ),
     )
+    const narrationColumns = columns.filter((column) => column.toLowerCase() === 'narration')
+    return [
+      ...columns.filter((column) => column.toLowerCase() !== 'narration'),
+      ...narrationColumns,
+    ]
+  })()
 
   // ==========================================================
   // DISPLAY VALUE
@@ -3176,6 +3162,103 @@ function SalesReport({
   )
 }
 
+function CreditNoteReport({ companyId }) {
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const [query, setQuery] = useState('Greena')
+  const [startDate, setStartDate] = useState('2010-04-01')
+  const [endDate, setEndDate] = useState('2027-03-31')
+  const [rows, setRows] = useState([])
+  const [totalItems, setTotalItems] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    if (!accessToken || !companyId) {
+      setRows([])
+      setTotalItems(0)
+      setErrorMessage(accessToken ? 'No company is selected.' : 'Your session has expired. Please sign in again.')
+      return undefined
+    }
+
+    let mounted = true
+    setIsLoading(true)
+    setErrorMessage('')
+
+    fetchCompanyReceipts(accessToken, companyId, {
+      q: query,
+      from: startDate,
+      to: endDate,
+      page: currentPage,
+      limit: pageSize,
+    })
+      .then((response) => {
+        if (!mounted) return
+        const receipts = extractReceipts(response)
+        const pagination = extractReceiptPagination(response)
+        const responseTotal = Number(pagination.total ?? pagination.totalItems ?? pagination.totalRecords ?? pagination.count)
+        setRows(receipts)
+        setTotalItems(Number.isFinite(responseTotal) ? responseTotal : receipts.length)
+      })
+      .catch((error) => {
+        if (!mounted) return
+        setRows([])
+        setTotalItems(0)
+        setErrorMessage(error?.message || 'Unable to load credit note data.')
+      })
+      .finally(() => {
+        if (mounted) setIsLoading(false)
+      })
+
+    return () => { mounted = false }
+  }, [accessToken, companyId, currentPage, endDate, pageSize, query, startDate])
+
+  const columns = Array.from(new Set(rows.flatMap((row) => (
+    row && typeof row === 'object' && !Array.isArray(row) ? Object.keys(row) : []
+  ))))
+  const formatValue = (value) => value === null || value === undefined || value === ''
+    ? '-'
+    : typeof value === 'object' ? JSON.stringify(value) : String(value)
+  const label = (column) => column.replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+
+  return (
+    <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8]">
+      <div className="bg-white px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span className="block text-xs text-slate-600">Credit Note Data</span>
+            <strong className="mt-1 block text-xl font-bold text-slate-900">{totalItems} records</strong>
+          </div>
+          <DateRangeDisplay startDate={startDate} endDate={endDate} onChange={(from, to) => { setCurrentPage(1); setStartDate(from || startDate); setEndDate(to || endDate) }} />
+        </div>
+      </div>
+      <section className="mx-3 mt-2 overflow-hidden rounded-[6px] border border-white bg-white shadow-[0_3px_15px_rgba(24,33,43,0.06)]">
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <label className="flex h-9 w-full items-center rounded-lg border border-slate-200 px-3 text-sm text-slate-500 sm:w-64">
+              <input value={query} onChange={(event) => { setCurrentPage(1); setQuery(event.target.value) }} placeholder="Search customers" className="w-full bg-transparent outline-none placeholder:text-slate-400" />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-600"><span>Show</span><select value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setCurrentPage(1) }} className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none" aria-label="Rows per page">{[10, 20, 30, 50].map((limit) => <option key={limit} value={limit}>{limit}</option>)}</select><span>records</span></label>
+          </div>
+          <span className="text-xs text-slate-500">Page {currentPage} · {pageSize} per page</span>
+        </div>
+        {errorMessage && <div className="mx-4 mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">{errorMessage}</div>}
+        <div className="overflow-x-auto px-3 pb-1">
+          {isLoading ? <div className="flex min-h-[150px] items-center justify-center border-y border-slate-100 text-sm text-slate-500">Loading credit note data...</div> : (
+            <table className="min-w-[1200px] w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr>{columns.map((column) => <th key={column} className="whitespace-nowrap px-5 py-3 font-semibold">{label(column)}</th>)}</tr></thead>
+              <tbody className="divide-y divide-slate-100">{rows.length > 0 ? rows.map((row, rowIndex) => <tr key={row.id || row._id || rowIndex} className="text-xs text-slate-700 hover:bg-slate-50">{columns.map((column) => { const value = formatValue(row[column]); return <td key={`${rowIndex}-${column}`} title={value} className="max-w-[280px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">{value}</td> })}</tr>) : <tr><td colSpan={Math.max(columns.length, 1)} className="h-[150px] text-center text-sm text-slate-500">No credit note data available.</td></tr>}</tbody>
+            </table>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4">{Array.from({ length: totalPages }, (_, index) => index + 1).slice(0, 7).map((page) => <button key={page} type="button" disabled={isLoading} onClick={() => setCurrentPage(page)} className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium ${currentPage === page ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'} disabled:opacity-50`}>{page}</button>)}</div>
+      </section>
+    </div>
+  )
+}
+
 // ============================================================
 // GENERAL REPORT
 // ============================================================
@@ -3214,6 +3297,16 @@ function ReportListPage({
   if (path === '/sales') {
     return (
       <SalesReport
+        companyId={
+          companyId
+        }
+      />
+    )
+  }
+
+  if (path === '/creditnote') {
+    return (
+      <CreditNoteReport
         companyId={
           companyId
         }

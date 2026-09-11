@@ -38,7 +38,34 @@ function formatLabel(key) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-function formatValue(value) {
+function isDateField(field) {
+  const normalizedField = String(field || '')
+    .replace(/[_-\s]/g, '')
+    .toLowerCase()
+
+  return (
+    normalizedField.includes('date') ||
+    normalizedField.includes('time') ||
+    normalizedField.includes('timestamp') ||
+    normalizedField.includes('createdat') ||
+    normalizedField.includes('updatedat')
+  )
+}
+
+function formatIstDate(value) {
+  const date = new Date(value)
+
+  return Number.isNaN(date.getTime())
+    ? String(value)
+    : date.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+}
+
+function formatValue(value, field = '') {
   if (value === null || value === undefined || value === '') {
     return 'NA'
   }
@@ -49,6 +76,10 @@ function formatValue(value) {
     } catch {
       return String(value)
     }
+  }
+
+  if (isDateField(field)) {
+    return formatIstDate(value)
   }
 
   if (typeof value === 'number') {
@@ -292,8 +323,8 @@ function BalanceSheetPage({ companyId }) {
                   >
                     {fields.map((field) => (
                       <div key={field} className={tableCellClass}>
-                        <div className={tableTextClass} title={typeof row?.[field] === 'object' ? formatValue(row?.[field]) : String(row?.[field] ?? '')}>
-                          {formatValue(row?.[field])}
+                        <div className={tableTextClass} title={typeof row?.[field] === 'object' ? formatValue(row?.[field], field) : String(row?.[field] ?? '')}>
+                          {formatValue(row?.[field], field)}
                         </div>
                       </div>
                     ))}

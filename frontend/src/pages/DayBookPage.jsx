@@ -78,7 +78,34 @@ function formatLabel(key) {
  * FORMAT VALUE
  * =========================================================
  */
-function formatValue(value) {
+function isDateField(field) {
+  const normalizedField = String(field || '')
+    .replace(/[_-\s]/g, '')
+    .toLowerCase()
+
+  return (
+    normalizedField.includes('date') ||
+    normalizedField.includes('time') ||
+    normalizedField.includes('timestamp') ||
+    normalizedField.includes('createdat') ||
+    normalizedField.includes('updatedat')
+  )
+}
+
+function formatIstDate(value) {
+  const date = new Date(value)
+
+  return Number.isNaN(date.getTime())
+    ? String(value)
+    : date.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+}
+
+function formatValue(value, field = '') {
   if (
     value === null ||
     value === undefined ||
@@ -93,6 +120,10 @@ function formatValue(value) {
     } catch {
       return String(value)
     }
+  }
+
+  if (isDateField(field)) {
+    return formatIstDate(value)
   }
 
   if (typeof value === 'number') {
@@ -646,7 +677,7 @@ function DayBookPage({ companyId }) {
                         renderNestedTable(itemValue, depth + 1)
                       ) : (
                         <span className="whitespace-pre-wrap break-words">
-                          {formatValue(itemValue)}
+                          {formatValue(itemValue, key)}
                         </span>
                       )}
                     </td>
@@ -973,6 +1004,7 @@ function DayBookPage({ companyId }) {
                                     'object'
                                       ? formatValue(
                                           value,
+                                          field,
                                         )
                                       : String(
                                           value ??
@@ -982,6 +1014,7 @@ function DayBookPage({ companyId }) {
                                 >
                                   {formatValue(
                                     value,
+                                    field,
                                   )}
                                 </div>
                               </div>
