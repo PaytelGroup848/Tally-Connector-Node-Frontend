@@ -218,6 +218,9 @@ function PurchasePage({ companyId }) {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [pagination, setPagination] = useState({})
+  const [query, setQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
   const fields = tabs[activeTab]
 
@@ -312,343 +315,241 @@ function PurchasePage({ companyId }) {
         })
   }
 
+  const filteredPurchases = purchases.filter((purchase) => {
+    const searchableText = [
+      purchase?.voucherNumber,
+      purchase?.voucherNo,
+      purchase?.voucher_no,
+      purchase?.partyLedger,
+      purchase?.partyName,
+      purchase?.party_name,
+      purchase?.narration,
+      purchase?.voucherType,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+
+    return searchableText.includes(query.toLowerCase())
+  })
+
+  const totalPages = Math.max(1, Math.ceil(filteredPurchases.length / pageSize))
+  const safeCurrentPage = Math.min(currentPage, totalPages)
+
+  const paginatedPurchases = filteredPurchases.slice(
+    (safeCurrentPage - 1) * pageSize,
+    safeCurrentPage * pageSize,
+  )
+
   return (
-    <div className="min-h-screen bg-[#eef3f8] p-5">
-
-      <div className="mx-auto max-w-[1280px] rounded-lg bg-white shadow">
-
-        {/* ================================================= */}
-        {/* HEADER */}
-        {/* ================================================= */}
-
-        <div className="rounded-t-lg bg-[#63c45d] px-5 py-4 text-lg font-bold text-white">
-          Create Purchase Voucher
-        </div>
-
-        {/* ================================================= */}
-        {/* CONTENT */}
-        {/* ================================================= */}
-
-        <div className="bg-[#f5f7f4] p-5">
-          {errorMessage && (
-            <div className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-              {errorMessage}
-            </div>
-          )}
-
-          <div className="mb-5 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
-              <h2 className="text-sm font-semibold text-slate-800">
-                Purchases
-              </h2>
-
-              <span className="text-[11px] text-slate-500">
-                {pagination?.total ?? purchases.length} records
-              </span>
-            </div>
-
-            {isLoading ? (
-              <div className="flex min-h-[120px] items-center justify-center text-xs text-slate-500">
-                Loading purchases...
-              </div>
-            ) : purchases.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse text-left text-xs">
-                  <thead className="bg-slate-100 text-slate-600">
-                    <tr>
-                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
-                        Voucher No
-                      </th>
-
-                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
-                        Date
-                      </th>
-
-                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
-                        Party
-                      </th>
-
-                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
-                        Amount
-                      </th>
-
-                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {purchases.map((purchase, index) => {
-                      const voucherNumber = getPurchaseValue(
-                        purchase,
-                        [
-                          'voucherNumber',
-                          'voucherNo',
-                          'voucher_no',
-                          'invoiceNo',
-                          'invoice_no',
-                          'number',
-                        ],
-                      )
-
-                      const partyName = getPurchaseValue(
-                        purchase,
-                        [
-                          'partyName',
-                          'party_name',
-                          'party',
-                          'supplierName',
-                          'supplier_name',
-                          'partyLedger',
-                          'customerName',
-                          'ledgerName',
-                          'name',
-                        ],
-                      )
-
-                      const amount =
-                        purchase?.amount ??
-                        purchase?.total ??
-                        purchase?.grandTotal ??
-                        purchase?.totalAmount ??
-                        0
-
-                      const status =
-                        getPurchaseValue(
-                          purchase,
-                          ['status', 'voucherStatus', 'voucher_status', 'state'],
-                        )
-
-                      return (
-                        <tr
-                          key={
-                            purchase?._id ||
-                            purchase?.id ||
-                            `${voucherNumber}-${index}`
-                          }
-                          className="odd:bg-white even:bg-slate-50"
-                        >
-                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
-                            {voucherNumber}
-                          </td>
-
-                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
-                            {formatDate(
-                              purchase?.date || purchase?.voucherDate || purchase?.createdAt,
-                            )}
-                          </td>
-
-                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
-                            {partyName}
-                          </td>
-
-                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
-                            {formatCurrency(amount)}
-                          </td>
-
-                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
-                            {status}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="flex min-h-[120px] items-center justify-center text-xs text-slate-500">
-                No purchases found
-              </div>
-            )}
+    <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8]">
+      <div className="bg-white px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span className="block text-xs text-slate-600">
+              Purchase Data
+            </span>
+            <strong className="mt-1 block text-xl font-bold text-slate-900">
+              {filteredPurchases.length} records
+            </strong>
           </div>
 
-          {/* TOP FIELDS */}
-
-          <div className="grid gap-3 md:grid-cols-3">
-
-            <InputField
-              label="Voucher Type"
-              placeholder="Select Voucher Type"
-              search
-            />
-
-            <InputField
-              label="Party Name"
-              placeholder="Select Party"
-              search
-            />
-
-            <InputField
-              label="Ledger Type"
-              placeholder="Select Ledger"
-              search
-            />
-
-            <InputField
-              label="Voucher No"
-              placeholder="-"
-            />
-
-            <InputField
-              label="Date"
-              placeholder="Date"
-            />
-
+          <div className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+            Purchases
           </div>
-
-          {/* ================================================= */}
-          {/* ITEMS */}
-          {/* ================================================= */}
-
-          <ItemsTable />
-
-          {/* ================================================= */}
-          {/* LOWER SECTION */}
-          {/* ================================================= */}
-
-          <div className="mt-5 grid gap-4 xl:grid-cols-[1fr_330px]">
-
-            {/* LEFT */}
-
-            <div className="rounded-lg border bg-white">
-
-              {/* Narration */}
-
-              <div className="flex justify-between border-b px-4 py-3 text-sm">
-                <span>Narration</span>
-                <span>›</span>
-              </div>
-
-              {/* Advanced */}
-
-              <button
-                onClick={() =>
-                  setAdvancedOpen(!advancedOpen)
-                }
-                className="flex w-full justify-between border-b px-4 py-3 text-sm"
-              >
-                <span>Advanced Settings</span>
-
-                <span>
-                  {advancedOpen ? '⌄' : '›'}
-                </span>
-              </button>
-
-              {/* ADVANCED CONTENT */}
-
-              {advancedOpen && (
-
-                <div className="bg-[#f7f9f8] p-4">
-
-                  {/* TABS */}
-
-                  <div className="mb-4 grid grid-cols-4 border-b">
-
-                    {Object.keys(tabs).map((tab) => (
-
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`border-b-2 px-3 py-3 text-xs ${
-                          activeTab === tab
-                            ? 'border-green-600 bg-white font-semibold text-green-700'
-                            : 'border-transparent text-slate-600'
-                        }`}
-                      >
-                        {tab}
-                      </button>
-
-                    ))}
-
-                  </div>
-
-                  {/* FIELDS */}
-
-                  <div className="grid gap-3 md:grid-cols-2">
-
-                    {fields.map(([label, placeholder]) => (
-
-                      <InputField
-                        key={label}
-                        label={label}
-                        placeholder={placeholder}
-                        search
-                      />
-
-                    ))}
-
-                    <label className="md:col-span-2">
-
-                      <span className="text-xs font-medium">
-                        {activeTab === 'Dispatch Details'
-                          ? 'Dispatch Address'
-                          : activeTab === 'Order Details'
-                          ? 'Order Notes'
-                          : 'Address'}
-                      </span>
-
-                      <textarea
-                        className="mt-1 min-h-[80px] w-full rounded-md border border-slate-300 p-3 outline-none focus:border-green-600"
-                        placeholder="Enter details"
-                      />
-
-                    </label>
-
-                  </div>
-
-                </div>
-
-              )}
-
-            </div>
-
-            {/* RIGHT TOTAL */}
-
-            <div className="rounded-lg border bg-[#f1f8ef]">
-
-              <button className="w-full border-b p-3 text-left text-sm font-semibold">
-                + Add GST And Other Ledgers
-              </button>
-
-              <div className="space-y-3 p-4 text-sm">
-
-                <div className="flex justify-between">
-                  <span>Sub Total</span>
-                  <b>₹0</b>
-                </div>
-
-                <div className="flex justify-between border-t pt-2">
-                  <span>Taxes</span>
-                  <b>₹0</b>
-                </div>
-
-                <div className="flex justify-between border-t pt-2 text-base font-bold">
-                  <span>Grand Total</span>
-                  <b>₹0</b>
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
         </div>
-
-        {/* ================================================= */}
-        {/* BUTTON */}
-        {/* ================================================= */}
-
-        <div className="flex justify-end bg-[#f5f7f4] px-5 pb-5">
-
-          <button className="rounded-lg bg-[#1a1f24] px-5 py-3 text-sm font-semibold text-white">
-            Create Voucher
-          </button>
-
-        </div>
-
       </div>
+
+      <section className="mx-3 mt-2 overflow-hidden rounded-[6px] border border-white bg-white shadow-[0_3px_15px_rgba(24,33,43,0.06)]">
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <label className="flex h-9 w-full items-center rounded-lg border border-slate-200 px-3 text-sm text-slate-500 sm:w-64">
+              <span className="mr-2 text-slate-400">⌕</span>
+              <input
+                value={query}
+                onChange={(event) => {
+                  setCurrentPage(1)
+                  setQuery(event.target.value)
+                }}
+                placeholder="Search party ledger or voucher no."
+                className="w-full bg-transparent outline-none placeholder:text-slate-400"
+              />
+            </label>
+
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <span>Show</span>
+              <select
+                value={pageSize}
+                onChange={(event) => {
+                  setPageSize(Number(event.target.value))
+                  setCurrentPage(1)
+                }}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none"
+                aria-label="Rows per page"
+              >
+                {[10, 20, 30, 50].map((limit) => (
+                  <option key={limit} value={limit}>
+                    {limit}
+                  </option>
+                ))}
+              </select>
+              <span>records</span>
+            </label>
+          </div>
+
+          <span className="text-xs text-slate-500">
+            Page {safeCurrentPage} · {pageSize} per page
+          </span>
+        </div>
+
+        {errorMessage && (
+          <div className="mx-4 mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+            {errorMessage}
+          </div>
+        )}
+
+        <div className="overflow-x-auto px-3 pb-1">
+          {isLoading ? (
+            <div className="flex min-h-[150px] items-center justify-center border-y border-slate-100 text-sm text-slate-500">
+              Loading purchases...
+            </div>
+          ) : (
+            <table className="min-w-[1200px] w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
+                    Voucher No
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
+                    Date
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
+                    Party Ledger
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
+                    Amount
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
+                    Narration
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
+                    Voucher Type
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-100">
+                {paginatedPurchases.length > 0 ? (
+                  paginatedPurchases.map((purchase, index) => {
+                    const voucherNumber = getPurchaseValue(
+                      purchase,
+                      [
+                        'voucherNumber',
+                        'voucherNo',
+                        'voucher_no',
+                        'invoiceNo',
+                        'invoice_no',
+                        'number',
+                      ],
+                    )
+
+                    const partyLedger = getPurchaseValue(
+                      purchase,
+                      [
+                        'partyLedger',
+                        'partyName',
+                        'party_name',
+                        'party',
+                        'supplierName',
+                        'supplier_name',
+                        'customerName',
+                        'ledgerName',
+                        'name',
+                      ],
+                    )
+
+                    const amount =
+                      purchase?.amount ??
+                      purchase?.total ??
+                      purchase?.grandTotal ??
+                      purchase?.totalAmount ??
+                      0
+
+                    const narration = getPurchaseValue(
+                      purchase,
+                      ['narration', 'description', 'notes'],
+                    )
+
+                    const voucherType = getPurchaseValue(
+                      purchase,
+                      ['voucherType', 'voucher_type', 'type'],
+                    )
+
+                    return (
+                      <tr
+                        key={
+                          purchase?._id ||
+                          purchase?.id ||
+                          `${voucherNumber}-${index}`
+                        }
+                        className="text-xs text-slate-700 hover:bg-slate-50"
+                      >
+                        <td className="max-w-[240px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
+                          {voucherNumber}
+                        </td>
+                        <td className="px-5 py-3 leading-5 text-slate-700">
+                          {formatDate(
+                            purchase?.date || purchase?.voucherDate || purchase?.createdAt,
+                          )}
+                        </td>
+                        <td className="max-w-[240px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
+                          {partyLedger}
+                        </td>
+                        <td className="px-5 py-3 leading-5 text-slate-700">
+                          {formatCurrency(amount)}
+                        </td>
+                        <td className="max-w-[320px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
+                          {narration}
+                        </td>
+                        <td className="px-5 py-3 leading-5 text-slate-700">
+                          {voucherType}
+                        </td>
+                      </tr>
+                    )
+                  })
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="h-[150px] text-center text-sm text-slate-500"
+                    >
+                      No purchase data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4">
+          {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+            <button
+              key={page}
+              type="button"
+              disabled={isLoading || totalPages <= 1}
+              onClick={() => setCurrentPage(page)}
+              className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium ${
+                safeCurrentPage === page
+                  ? 'border-emerald-600 bg-emerald-600 text-white'
+                  : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
+              } disabled:opacity-50`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
