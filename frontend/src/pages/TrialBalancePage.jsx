@@ -390,7 +390,7 @@ function TrialBalancePage({ companyId }) {
               onChange={(event) => {
                 setQuery(event.target.value);
               }}
-              placeholder="Search ledger"
+              placeholder="Search name"
               className="w-full bg-transparent text-xs text-slate-700 outline-none placeholder:text-slate-400"
             />
 

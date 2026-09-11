@@ -182,7 +182,7 @@ function ItemsPage({ companyId }) {
             className="h-9 w-[min(100%,240px)] rounded-lg border border-slate-300 px-3 text-xs outline-none focus:border-green-500"
             value={query}
             onChange={(event) => { setQuery(event.target.value); setCurrentPage(1); }}
-            placeholder="Search items"
+            placeholder="Search item name"
           />
           <label className="flex items-center gap-2 text-xs text-slate-600">
             <span>Show</span>

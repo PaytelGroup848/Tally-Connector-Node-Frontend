@@ -806,7 +806,7 @@ function DayBookPage({ companyId }) {
                   event.target.value,
                 )
               }
-              placeholder="Search voucher or ledger"
+              placeholder="Search voucher number or party ledger"
               className="w-full bg-transparent text-xs text-slate-700 outline-none placeholder:text-slate-400"
             />
           </label>
