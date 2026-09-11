@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 
 // ============================================================
@@ -7,7 +8,7 @@ import { useState } from 'react'
 function Field({
   label,
   placeholder,
-  value,
+  value = '',
   readOnly = false,
   search = false,
   icon = null,
@@ -15,7 +16,19 @@ function Field({
 }) {
   return (
     <label className={`relative block min-w-0 ${className}`}>
-      <span className="absolute -top-[7px] left-3 z-10 bg-[#eef3f8] px-1.5 text-[12px] leading-none text-[#1e3a5f]">
+      <span
+        className="
+          absolute
+          -top-[7px]
+          left-3
+          z-10
+          bg-[#eef3f8]
+          px-1.5
+          text-[12px]
+          leading-none
+          text-[#1e3a5f]
+        "
+      >
         {label}
       </span>
 
@@ -42,13 +55,33 @@ function Field({
         />
 
         {search && (
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#97a2ad]">
+          <span
+            className="
+              pointer-events-none
+              absolute
+              right-3
+              top-1/2
+              -translate-y-1/2
+              text-[15px]
+              text-[#97a2ad]
+            "
+          >
             ⌕
           </span>
         )}
 
         {icon && (
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[14px] text-[#111827]">
+          <span
+            className="
+              pointer-events-none
+              absolute
+              right-3
+              top-1/2
+              -translate-y-1/2
+              text-[14px]
+              text-[#111827]
+            "
+          >
             {icon}
           </span>
         )}
@@ -63,7 +96,7 @@ function Field({
 
 function TableInput({
   placeholder,
-  value,
+  value = '',
   readOnly = false,
   search = false,
 }) {
@@ -91,7 +124,17 @@ function TableInput({
       />
 
       {search && (
-        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[13px] text-[#9ba5af]">
+        <span
+          className="
+            pointer-events-none
+            absolute
+            right-2
+            top-1/2
+            -translate-y-1/2
+            text-[13px]
+            text-[#9ba5af]
+          "
+        >
           ⌕
         </span>
       )}
@@ -127,9 +170,18 @@ function ItemsTable() {
 
   return (
     <div className="relative w-full overflow-x-auto">
-      <div className="min-w-[1080px] overflow-hidden rounded-[2px] border border-[#d1d9e0]">
-
+      <div
+        className="
+          min-w-[1080px]
+          overflow-hidden
+          rounded-[2px]
+          border
+          border-[#d1d9e0]
+        "
+      >
+        {/* ================================================== */}
         {/* TABLE HEADER */}
+        {/* ================================================== */}
 
         <div
           className="
@@ -138,47 +190,183 @@ function ItemsTable() {
             bg-[#edf0f3]
           "
         >
-          <div className="flex h-[31px] items-center border-r border-[#cbd3dc] px-2 text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              border-r
+              border-[#cbd3dc]
+              px-2
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             Items
           </div>
 
-          <div className="flex h-[31px] items-center justify-center border-r border-[#cbd3dc] text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              border-r
+              border-[#cbd3dc]
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             Qty
           </div>
 
-          <div className="flex h-[31px] items-center justify-center border-r border-[#cbd3dc] text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              border-r
+              border-[#cbd3dc]
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             Rate
           </div>
 
-          <div className="flex h-[31px] items-center justify-center border-r border-[#cbd3dc] px-2 text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              border-r
+              border-[#cbd3dc]
+              px-2
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             Units
           </div>
 
-          <div className="flex h-[31px] items-center justify-center border-r border-[#cbd3dc] text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              border-r
+              border-[#cbd3dc]
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             Disc %
           </div>
 
-          <div className="flex h-[31px] items-center justify-center border-r border-[#cbd3dc] px-2 text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              border-r
+              border-[#cbd3dc]
+              px-2
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             HSN Code
           </div>
 
-          <div className="flex h-[31px] items-center justify-center border-r border-[#cbd3dc] px-2 text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              border-r
+              border-[#cbd3dc]
+              px-2
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             Godown
           </div>
 
-          <div className="flex h-[31px] items-center justify-center border-r border-[#cbd3dc] px-2 text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              border-r
+              border-[#cbd3dc]
+              px-2
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             Description
           </div>
 
-          <div className="flex h-[31px] items-center justify-center border-r border-[#cbd3dc] px-2 text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              border-r
+              border-[#cbd3dc]
+              px-2
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             Amount
           </div>
 
-          <div className="flex h-[31px] items-center justify-center border-r border-[#cbd3dc] px-1 text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              border-r
+              border-[#cbd3dc]
+              px-1
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             Tax Incl.
           </div>
 
-          <div className="flex h-[31px] items-center justify-center text-[12px] font-semibold text-black">
+          <div
+            className="
+              flex
+              h-[31px]
+              items-center
+              justify-center
+              text-[12px]
+              font-semibold
+              text-black
+            "
+          >
             <button
               type="button"
               onClick={addRow}
@@ -196,13 +384,16 @@ function ItemsTable() {
                 text-white
                 hover:bg-[#333]
               "
+              aria-label="Add item row"
             >
               +
             </button>
           </div>
         </div>
 
+        {/* ================================================== */}
         {/* TABLE ROWS */}
+        {/* ================================================== */}
 
         {rows.map((row) => (
           <div
@@ -217,8 +408,15 @@ function ItemsTable() {
             "
           >
             {/* ITEM */}
-
-            <div className="flex items-center border-r border-[#d7dde3] p-2">
+            <div
+              className="
+                flex
+                items-center
+                border-r
+                border-[#d7dde3]
+                p-2
+              "
+            >
               <TableInput
                 placeholder="Search Item"
                 search
@@ -226,8 +424,15 @@ function ItemsTable() {
             </div>
 
             {/* QTY */}
-
-            <div className="flex items-center border-r border-[#d7dde3] p-2">
+            <div
+              className="
+                flex
+                items-center
+                border-r
+                border-[#d7dde3]
+                p-2
+              "
+            >
               <TableInput
                 value="0"
                 readOnly
@@ -235,8 +440,15 @@ function ItemsTable() {
             </div>
 
             {/* RATE */}
-
-            <div className="flex items-center border-r border-[#d7dde3] p-2">
+            <div
+              className="
+                flex
+                items-center
+                border-r
+                border-[#d7dde3]
+                p-2
+              "
+            >
               <TableInput
                 value="0"
                 readOnly
@@ -244,9 +456,17 @@ function ItemsTable() {
             </div>
 
             {/* UNITS */}
-
-            <div className="flex items-center border-r border-[#d7dde3] p-2">
+            <div
+              className="
+                flex
+                items-center
+                border-r
+                border-[#d7dde3]
+                p-2
+              "
+            >
               <select
+                defaultValue="-"
                 className="
                   h-[31px]
                   w-full
@@ -261,16 +481,23 @@ function ItemsTable() {
                   focus:border-[#57bd4f]
                 "
               >
-                <option>-</option>
-                <option>PCS</option>
-                <option>KG</option>
-                <option>BOX</option>
+                <option value="-">-</option>
+                <option value="PCS">PCS</option>
+                <option value="KG">KG</option>
+                <option value="BOX">BOX</option>
               </select>
             </div>
 
             {/* DISC */}
-
-            <div className="flex items-center border-r border-[#d7dde3] p-2">
+            <div
+              className="
+                flex
+                items-center
+                border-r
+                border-[#d7dde3]
+                p-2
+              "
+            >
               <TableInput
                 value="0"
                 readOnly
@@ -278,8 +505,15 @@ function ItemsTable() {
             </div>
 
             {/* HSN */}
-
-            <div className="flex items-center border-r border-[#d7dde3] p-2">
+            <div
+              className="
+                flex
+                items-center
+                border-r
+                border-[#d7dde3]
+                p-2
+              "
+            >
               <TableInput
                 placeholder="Search HSN"
                 search
@@ -287,8 +521,15 @@ function ItemsTable() {
             </div>
 
             {/* GODOWN */}
-
-            <div className="flex items-center border-r border-[#d7dde3] p-2">
+            <div
+              className="
+                flex
+                items-center
+                border-r
+                border-[#d7dde3]
+                p-2
+              "
+            >
               <TableInput
                 placeholder="Search Godown"
                 search
@@ -296,16 +537,30 @@ function ItemsTable() {
             </div>
 
             {/* DESCRIPTION */}
-
-            <div className="flex items-center border-r border-[#d7dde3] p-2">
+            <div
+              className="
+                flex
+                items-center
+                border-r
+                border-[#d7dde3]
+                p-2
+              "
+            >
               <TableInput
                 placeholder="Enter Notes"
               />
             </div>
 
             {/* AMOUNT */}
-
-            <div className="flex items-center border-r border-[#d7dde3] p-2">
+            <div
+              className="
+                flex
+                items-center
+                border-r
+                border-[#d7dde3]
+                p-2
+              "
+            >
               <TableInput
                 value="0"
                 readOnly
@@ -313,8 +568,15 @@ function ItemsTable() {
             </div>
 
             {/* TAX */}
-
-            <div className="flex items-center justify-center border-r border-[#d7dde3]">
+            <div
+              className="
+                flex
+                items-center
+                justify-center
+                border-r
+                border-[#d7dde3]
+              "
+            >
               <input
                 type="checkbox"
                 className="h-[14px] w-[14px] cursor-pointer"
@@ -322,7 +584,6 @@ function ItemsTable() {
             </div>
 
             {/* DELETE */}
-
             <div className="flex items-center justify-center">
               <button
                 type="button"
@@ -368,8 +629,15 @@ const advancedTabs = [
 function AdvancedContent({ activeTab }) {
   if (activeTab === "Buyer's Details") {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
+      <div
+        className="
+          grid
+          grid-cols-1
+          gap-4
+          sm:grid-cols-2
+          lg:grid-cols-3
+        "
+      >
         <Field
           label="Supplier Name"
           placeholder="Supplier Name"
@@ -410,15 +678,21 @@ function AdvancedContent({ activeTab }) {
           placeholder="Place of Supply"
           className="sm:col-span-2 lg:col-span-3"
         />
-
       </div>
     )
   }
 
   if (activeTab === 'Consignee Details') {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
+      <div
+        className="
+          grid
+          grid-cols-1
+          gap-4
+          sm:grid-cols-2
+          lg:grid-cols-3
+        "
+      >
         <Field
           label="Consignee Name"
           placeholder="Consignee Name"
@@ -451,15 +725,21 @@ function AdvancedContent({ activeTab }) {
           placeholder="Address"
           className="sm:col-span-2 lg:col-span-3"
         />
-
       </div>
     )
   }
 
   if (activeTab === 'Dispatch Details') {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
+      <div
+        className="
+          grid
+          grid-cols-1
+          gap-4
+          sm:grid-cols-2
+          lg:grid-cols-3
+        "
+      >
         <Field
           label="Dispatch From"
           placeholder="Dispatch From"
@@ -484,11 +764,6 @@ function AdvancedContent({ activeTab }) {
         />
 
         <Field
-          label="Transporter ID"
-          placeholder="Transporter ID"
-        />
-
-        <Field
           label="Dispatch Date"
           placeholder="Dispatch Date"
           icon="▣"
@@ -499,14 +774,20 @@ function AdvancedContent({ activeTab }) {
           placeholder="Dispatch Address"
           className="sm:col-span-2 lg:col-span-3"
         />
-
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
+    <div
+      className="
+        grid
+        grid-cols-1
+        gap-4
+        sm:grid-cols-2
+        lg:grid-cols-3
+      "
+    >
       <Field
         label="Date"
         placeholder="Order Date"
@@ -530,7 +811,19 @@ function AdvancedContent({ activeTab }) {
       />
 
       <label className="relative block min-w-0">
-        <span className="absolute -top-[7px] left-3 z-10 bg-[#f7f9f8] px-1.5 text-[12px] leading-none text-[#1e3a5f]">
+        <span
+          className="
+            absolute
+            -top-[7px]
+            left-3
+            z-10
+            bg-[#f7f9f8]
+            px-1.5
+            text-[12px]
+            leading-none
+            text-[#1e3a5f]
+          "
+        >
           Terms of Delivery
         </span>
 
@@ -554,7 +847,6 @@ function AdvancedContent({ activeTab }) {
           "
         />
       </label>
-
     </div>
   )
 }
@@ -576,8 +868,23 @@ export default function CreditNotePage() {
       {/* HEADER */}
       {/* ================================================== */}
 
-      <div className="flex h-[34px] items-center bg-[#45bd35] px-4">
-        <h1 className="text-[16px] font-bold leading-none text-white">
+      <div
+        className="
+          flex
+          h-[34px]
+          items-center
+          bg-[#45bd35]
+          px-4
+        "
+      >
+        <h1
+          className="
+            text-[16px]
+            font-bold
+            leading-none
+            text-white
+          "
+        >
           Create Credit Note Voucher
         </h1>
       </div>
@@ -592,8 +899,15 @@ export default function CreditNotePage() {
         {/* TOP FIELDS */}
         {/* ================================================= */}
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-4
+            md:grid-cols-2
+            xl:grid-cols-3
+          "
+        >
           <Field
             label="Voucher Type"
             placeholder="Credit Note"
@@ -628,14 +942,11 @@ export default function CreditNotePage() {
             icon="▣"
           />
 
-          {/* CREDIT NOTE EXTRA FIELD */}
-
           <Field
             label="Reason For Return"
             placeholder="Select Reason for return"
             search
           />
-
         </div>
 
         {/* ================================================= */}
@@ -650,30 +961,33 @@ export default function CreditNotePage() {
         {/* LOWER SECTION */}
         {/* ================================================= */}
 
-        <div className="mt-3 grid grid-cols-1 gap-2 xl:grid-cols-[minmax(0,1fr)_470px]">
-
+        <div
+          className="
+            mt-3
+            grid
+            grid-cols-1
+            gap-2
+            xl:grid-cols-[minmax(0,1fr)_470px]
+          "
+        >
           {/* ================================================= */}
           {/* LEFT SECTION */}
           {/* ================================================= */}
 
           <div className="min-w-0">
 
-            {/* NARRATION */}
-
-            <div className="flex h-[36px] items-center justify-between rounded-[4px] bg-white px-4 shadow-sm">
-              <span className="text-[13px] font-semibold text-[#101820]">
-                Narration
-              </span>
-
-              <span className="text-[23px] leading-none text-[#111]">
-                ›
-              </span>
-            </div>
-
+            {/* ================================================= */}
             {/* ADVANCED SETTINGS */}
+            {/* ================================================= */}
 
-            <div className="mt-2 overflow-hidden rounded-[4px] bg-white shadow-sm">
-
+            <div
+              className="
+                overflow-hidden
+                rounded-[4px]
+                bg-white
+                shadow-sm
+              "
+            >
               <button
                 type="button"
                 onClick={() =>
@@ -691,11 +1005,23 @@ export default function CreditNotePage() {
                   text-left
                 "
               >
-                <span className="text-[13px] font-semibold text-[#101820]">
+                <span
+                  className="
+                    text-[13px]
+                    font-semibold
+                    text-[#101820]
+                  "
+                >
                   Advanced Settings
                 </span>
 
-                <span className="text-[20px] leading-none text-[#111]">
+                <span
+                  className="
+                    text-[20px]
+                    leading-none
+                    text-[#111]
+                  "
+                >
                   {advancedOpen ? '⌄' : '›'}
                 </span>
               </button>
@@ -706,8 +1032,14 @@ export default function CreditNotePage() {
                   {/* TABS */}
 
                   <div className="overflow-x-auto">
-                    <div className="flex min-w-[570px] border-b border-[#d5dce2]">
-
+                    <div
+                      className="
+                        flex
+                        min-w-[570px]
+                        border-b
+                        border-[#d5dce2]
+                      "
+                    >
                       {advancedTabs.map((tab) => (
                         <button
                           key={tab}
@@ -731,7 +1063,6 @@ export default function CreditNotePage() {
                           {tab}
                         </button>
                       ))}
-
                     </div>
                   </div>
 
@@ -747,14 +1078,60 @@ export default function CreditNotePage() {
               )}
             </div>
 
+            {/* ================================================= */}
+            {/* NARRATION - LAST */}
+            {/* ================================================= */}
+
+            <div
+              className="
+                mt-2
+                flex
+                h-[36px]
+                items-center
+                justify-between
+                rounded-[4px]
+                bg-white
+                px-4
+                shadow-sm
+              "
+            >
+              <span
+                className="
+                  text-[13px]
+                  font-semibold
+                  text-[#101820]
+                "
+              >
+                Narration
+              </span>
+
+              <span
+                className="
+                  text-[23px]
+                  leading-none
+                  text-[#111]
+                "
+              >
+                ›
+              </span>
+            </div>
+
           </div>
 
           {/* ================================================= */}
           {/* TOTAL */}
           {/* ================================================= */}
 
-          <div className="h-fit min-w-0 rounded-[4px] bg-white p-4 shadow-sm">
-
+          <div
+            className="
+              h-fit
+              min-w-0
+              rounded-[4px]
+              bg-white
+              p-4
+              shadow-sm
+            "
+          >
             <button
               type="button"
               className="
@@ -767,31 +1144,80 @@ export default function CreditNotePage() {
               + Add GST And Other Ledgers
             </button>
 
-            <div className="mt-3 rounded-[2px] bg-[#f1fbef] px-4 py-3">
-
-              <div className="flex items-center justify-between text-[12px] text-[#52606d]">
+            <div
+              className="
+                mt-3
+                rounded-[2px]
+                bg-[#f1fbef]
+                px-4
+                py-3
+              "
+            >
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  text-[12px]
+                  text-[#52606d]
+                "
+              >
                 <span>
                   Sub Total
                 </span>
 
-                <span className="font-medium text-[#111]">
+                <span
+                  className="
+                    font-medium
+                    text-[#111]
+                  "
+                >
                   ₹0
                 </span>
               </div>
 
-              <div className="mt-2 flex items-center justify-between text-[12px] text-[#52606d]">
+              <div
+                className="
+                  mt-2
+                  flex
+                  items-center
+                  justify-between
+                  text-[12px]
+                  text-[#52606d]
+                "
+              >
                 <span>
                   Taxes
                 </span>
 
-                <span className="font-medium text-[#111]">
+                <span
+                  className="
+                    font-medium
+                    text-[#111]
+                  "
+                >
                   ₹0
                 </span>
               </div>
 
-              <div className="mt-3 border-t border-[#d6e4d3] pt-2">
-
-                <div className="flex items-center justify-between text-[16px] font-bold text-[#111]">
+              <div
+                className="
+                  mt-3
+                  border-t
+                  border-[#d6e4d3]
+                  pt-2
+                "
+              >
+                <div
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    text-[16px]
+                    font-bold
+                    text-[#111]
+                  "
+                >
                   <span>
                     Grand Total
                   </span>
@@ -800,7 +1226,6 @@ export default function CreditNotePage() {
                     ₹0
                   </span>
                 </div>
-
               </div>
             </div>
           </div>
@@ -812,8 +1237,19 @@ export default function CreditNotePage() {
       {/* FOOTER */}
       {/* ================================================== */}
 
-      <div className="mt-2 flex min-h-[62px] items-center justify-end border-t border-[#e3e7eb] bg-white px-4">
-
+      <div
+        className="
+          mt-2
+          flex
+          min-h-[62px]
+          items-center
+          justify-end
+          border-t
+          border-[#e3e7eb]
+          bg-white
+          px-4
+        "
+      >
         <button
           type="button"
           className="
@@ -830,7 +1266,6 @@ export default function CreditNotePage() {
         >
           Create Voucher
         </button>
-
       </div>
 
     </div>
