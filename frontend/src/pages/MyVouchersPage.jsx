@@ -120,7 +120,7 @@ function getVoucherCompanyName(voucher) {
 }
 
 function formatDate(value) {
-  if (!value) return 'NA'
+  if (!value) return '-'
 
   const date = new Date(value)
 
@@ -140,7 +140,7 @@ function formatAmount(value) {
     value === null ||
     value === undefined
   ) {
-    return 'NA'
+    return '-'
   }
 
   const numericValue = Number(value)
@@ -179,7 +179,7 @@ function formatApiValue(value, key) {
     value === undefined ||
     value === ''
   ) {
-    return 'NA'
+    return '-'
   }
 
   if (
@@ -288,51 +288,20 @@ function isHiddenField(field) {
   )
 }
 
-function normalizeFieldKey(field) {
-  return String(field ?? '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-}
-
-function getUniqueFields(fields = []) {
-  const seenFields = new Set()
-  const uniqueFields = []
-
-  fields.forEach((field) => {
-    if (
-      typeof field !== 'string' ||
-      !field.trim() ||
-      isHiddenField(field)
-    ) {
-      return
-    }
-
-    const normalizedField =
-      normalizeFieldKey(field)
-
-    if (
-      normalizedField &&
-      !seenFields.has(normalizedField)
-    ) {
-      seenFields.add(normalizedField)
-      uniqueFields.push(field)
-    }
-  })
-
-  return uniqueFields
-}
-
 function getEntryFields(entries) {
-  const keys = []
+  const keys = new Set()
 
   entries.forEach((entry) => {
-    keys.push(
-      ...Object.keys(entry || {}),
+    Object.keys(entry || {}).forEach(
+      (key) => {
+        if (!isHiddenField(key)) {
+          keys.add(key)
+        }
+      },
     )
   })
 
-  return getUniqueFields(keys)
+  return Array.from(keys)
 }
 
 function getEntryType(field) {
@@ -520,14 +489,32 @@ function MyVouchersPage({
         setVouchers(nextVouchers)
 
         setKnownFields(
-          getUniqueFields(
-            nextVouchers.flatMap(
-              (voucher) =>
+          (currentFields) => {
+            const nextFields =
+              new Set(currentFields)
+
+            nextVouchers.forEach(
+              (voucher) => {
                 Object.keys(
                   voucher || {},
-                ),
-            ),
-          ),
+                ).forEach((key) => {
+                  if (
+                    !isHiddenField(
+                      key,
+                    )
+                  ) {
+                    nextFields.add(
+                      key,
+                    )
+                  }
+                })
+              },
+            )
+
+            return Array.from(
+              nextFields,
+            )
+          },
         )
 
         setTotalItems(total)
@@ -689,6 +676,9 @@ function MyVouchersPage({
 
   const COLUMN_WIDTH = 220
 
+  /*
+   * Fixed widths keep the header and body cells aligned.
+   */
   const gridTemplate =
     fields.length > 0
       ? `${fields
@@ -697,7 +687,7 @@ function MyVouchersPage({
               `${COLUMN_WIDTH}px`,
           )
           .join(' ')}`
-      : '0px'
+      : ''
 
   const pageItems =
     totalPages <= 7
@@ -756,10 +746,11 @@ function MyVouchersPage({
 
   const detailFields =
     detailPopup
-      ? getUniqueFields(
-          Object.keys(
-            detailPopup.row || {},
-          ),
+      ? Object.keys(
+          detailPopup.row || {},
+        ).filter(
+          (key) =>
+            !isHiddenField(key),
         )
       : []
 
@@ -788,20 +779,8 @@ function MyVouchersPage({
       <section className="min-w-[1120px] border-t border-[#e5ebf2] bg-white">
         {/* FILTER BAR */}
         <div className="flex min-h-[70px] flex-wrap items-center gap-3 border-b border-[#e5ebf2] px-8 py-3">
-          {/* SEARCH */}
-          <label className="flex h-[38px] w-[256px] items-center rounded-lg border border-[#d6e0ec] px-3 text-[#7d8da5] focus-within:border-[#1bb88a]">
-            <input
-              className="w-full bg-transparent text-[13px] outline-none"
-              value={query}
-              onChange={(event) =>
-                setQuery(
-                  event.target.value,
-                )
-              }
-              placeholder="Search vouchers"
-            />
-          </label>
-
+         
+          
           {/* SHOW */}
           <span className="text-[13px] text-[#17355f]">
             Show
@@ -929,26 +908,16 @@ function MyVouchersPage({
             }}
             className="grid min-w-max border-b border-[#dfe7f0] bg-[#f4f7fb] px-4 py-3 text-[11px] font-semibold uppercase tracking-normal text-[#274b78]"
           >
-            {fields.length > 0 ? (
-              fields.map(
-                (field) => (
-                  <div
-                    key={field}
-                    className="box-border flex w-[220px] min-w-[220px] max-w-[220px] items-center overflow-hidden pr-4"
-                  >
-                    <span className="block whitespace-normal break-words">
-                      {formatFieldLabel(
-                        field,
-                      )}
-                    </span>
-                  </div>
-                ),
-              )
-            ) : (
-              <div className="w-full">
-                No columns
+            {fields.map((field) => (
+              <div
+                key={field}
+                className="box-border flex w-[220px] min-w-[220px] max-w-[220px] items-center overflow-hidden pr-4"
+              >
+                <span className="block whitespace-normal break-words">
+                  {formatFieldLabel(field)}
+                </span>
               </div>
-            )}
+            ))}
           </div>
 
           {/* TABLE BODY */}
@@ -968,7 +937,7 @@ function MyVouchersPage({
                     voucher,
                     'voucherNumber',
                     'voucher_number',
-                  ) || 'NA'
+                  ) || '-'
 
                 const rowKey =
                   voucher?._id ||

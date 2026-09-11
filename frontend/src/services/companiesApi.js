@@ -586,6 +586,54 @@ export function fetchCompanySales(
   )
 }
 
+export function fetchCompanyPurchases(
+  accessToken,
+  companyId,
+  { q = '', from = '', to = '', page = 1, limit = 20 } = {},
+) {
+  const params = new URLSearchParams({
+    q: String(q),
+    from: String(from),
+    to: String(to),
+    page: String(page),
+    limit: String(limit),
+  })
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/purchases?${params}`,
+    accessToken,
+  )
+}
+
+export function extractPurchases(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const purchaseKeys = ['purchases', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of purchaseKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractPurchasePagination(response) {
+  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
+  if (pagination && typeof pagination === 'object') return pagination
+  if (response?.data && typeof response.data === 'object') return response.data
+  return response && typeof response === 'object' ? response : {}
+}
+
 export function extractSales(response) {
   if (Array.isArray(response)) return response
 

@@ -222,6 +222,7 @@ export function DocumentVoucherPage({
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
+  const [submitError, setSubmitError] = useState(null)
   const [showSuccessAnimation, setShowSuccessAnimation] =
     useState(false)
 
@@ -1067,6 +1068,158 @@ export function DocumentVoucherPage({
     )
   }
 
+  const normalizeCommandKey = (
+    value,
+  ) =>
+    String(value ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+
+  const findFirstMeaningfulValue = (
+    source,
+    candidateKeys,
+  ) => {
+    const normalizedKeys = new Set(
+      candidateKeys.map(
+        (key) =>
+          normalizeCommandKey(key),
+      ),
+    )
+
+    const queue = [source]
+
+    while (queue.length > 0) {
+      const currentValue =
+        queue.shift()
+
+      if (
+        !currentValue ||
+        typeof currentValue !==
+          'object'
+      ) {
+        continue
+      }
+
+      for (const [key, value] of Object.entries(
+        currentValue,
+      )) {
+        const normalizedKey =
+          normalizeCommandKey(key)
+
+        if (
+          normalizedKeys.has(
+            normalizedKey,
+          ) &&
+          value !== null &&
+          value !== undefined &&
+          String(value).trim()
+        ) {
+          return String(value).trim()
+        }
+
+        if (
+          value &&
+          typeof value ===
+            'object'
+        ) {
+          queue.push(value)
+        }
+      }
+    }
+
+    return ''
+  }
+
+  const getCommandFailureDetails = (
+    response,
+    fallbackMessage,
+  ) => {
+    const commandRoot =
+      response?.data?.command ??
+      response?.command ??
+      response?.data ??
+      response ??
+      {}
+
+    const resultRoot =
+      commandRoot?.result ??
+      response?.result ??
+      {}
+
+    const title =
+      findFirstMeaningfulValue(commandRoot, [
+        'title',
+        'heading',
+        'errorTitle',
+      ]) ||
+      'Tally Voucher Creation Failed'
+
+    const message =
+      findFirstMeaningfulValue(commandRoot, [
+        'errorMessage',
+        'message',
+        'error',
+        'description',
+      ]) ||
+      fallbackMessage
+
+    const reason =
+      findFirstMeaningfulValue(resultRoot, [
+        'reason',
+        'rejectionReason',
+        'whyRejected',
+        'rejectedReason',
+      ]) ||
+      message
+
+    const action =
+      findFirstMeaningfulValue(resultRoot, [
+        'action',
+        'recommendedAction',
+        'fix',
+        'nextAction',
+        'whatToDo',
+      ]) ||
+      'Please review the voucher details and try again.'
+
+    const technicalDetails =
+      findFirstMeaningfulValue(commandRoot, [
+        'technicalDetails',
+        'technical_details',
+        'exceptions',
+        'exception',
+        'errors',
+      ]) ||
+      'Tally reported an exception during voucher creation.'
+
+    const voucherDetails =
+      resultRoot?.voucherDetails ||
+      commandRoot?.voucherDetails ||
+      {}
+
+    const exceptionCount =
+      Array.isArray(response?.exceptions)
+        ? response.exceptions.length
+        : Array.isArray(response?.data?.exceptions)
+          ? response.data.exceptions.length
+          : Array.isArray(commandRoot?.exceptions)
+            ? commandRoot.exceptions.length
+            : 0
+
+    return {
+      title,
+      message,
+      reason,
+      action,
+      voucherDetails,
+      technicalDetails:
+        exceptionCount > 0
+          ? `Tally reported ${exceptionCount} exception(s) during voucher creation.`
+          : technicalDetails,
+    }
+  }
+
   const handleSubmit = async (
     event,
   ) => {
@@ -1075,6 +1228,7 @@ export function DocumentVoucherPage({
     const form =
       event.currentTarget
 
+    setSubmitError(null)
     setShowSuccessAnimation(false)
     setIsSubmitting(true)
     setSubmitMessage('')
@@ -1169,10 +1323,10 @@ export function DocumentVoucherPage({
           commandResponse,
         )
 
-      if (commandId) {
-        let latestStatus =
-          ''
+      let latestStatus = ''
+      let latestStatusResponse = null
 
+      if (commandId) {
         for (
           let attempt = 0;
           attempt < 10;
@@ -1194,6 +1348,8 @@ export function DocumentVoucherPage({
               commandId,
             )
 
+          latestStatusResponse =
+            statusResponse
           latestStatus =
             extractCommandStatus(
               statusResponse,
@@ -1219,15 +1375,33 @@ export function DocumentVoucherPage({
             break
           }
         }
+      }
 
-        if (!latestStatus) {
-          setSubmitMessage(
-            `${voucherType} voucher submitted.`,
-          )
-        }
-      } else {
+      const normalizedLatestStatus =
+        latestStatus.toLowerCase()
+
+      if (
+        [
+          'failed',
+          'failure',
+          'error',
+          'cancelled',
+        ].includes(
+          normalizedLatestStatus,
+        )
+      ) {
+        setSubmitError(
+          getCommandFailureDetails(
+            latestStatusResponse,
+            `${voucherType} voucher submission failed.`,
+          ),
+        )
+        return
+      }
+
+      if (!latestStatus) {
         setSubmitMessage(
-          `${voucherType} voucher submitted, but command status is unavailable.`,
+          `${voucherType} voucher submitted.`,
         )
       }
 
@@ -1253,9 +1427,12 @@ export function DocumentVoucherPage({
           setShowSuccessAnimation(false)
         }, 1600)
     } catch (error) {
-      setSubmitMessage(
-        error?.message ||
-          'Unable to create sales invoice.',
+      setSubmitError(
+        getCommandFailureDetails(
+          error,
+          error?.message ||
+            'Unable to create sales invoice.',
+        ),
       )
     } finally {
       setIsSubmitting(false)
@@ -1278,7 +1455,38 @@ export function DocumentVoucherPage({
     resetItemRows()
 
     setSubmitMessage('')
+    setSubmitError(null)
   }
+
+  const failedVoucherDetails =
+    submitError?.voucherDetails || {}
+
+  const failedVoucherType =
+    failedVoucherDetails.voucherType ||
+    selectedVoucherType ||
+    'Sales'
+
+  const failedVoucherNumber =
+    failedVoucherDetails.voucherNumber ||
+    selectedVoucherNumber
+
+  const failedParty =
+    failedVoucherDetails.party ||
+    selectedParty ||
+    'Cash'
+
+  const failedAmount =
+    failedVoucherDetails.amount ??
+    subtotal
+
+  const failedCompany =
+    failedVoucherDetails.company ||
+    requestCompanyId ||
+    'Company'
+
+  const failedDate =
+    failedVoucherDetails.date ||
+    defaultDate
 
   return (
     <div className="voucher-page-animate relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-3 text-slate-900 sm:p-5">
@@ -1301,6 +1509,132 @@ export function DocumentVoucherPage({
                   ? 'Voucher created successfully!'
                   : 'Loading Sales Invoice...'}
             </span>
+          </div>
+        </div>
+      )}
+
+      {submitError && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="w-full max-w-[1100px] overflow-hidden rounded-xl border border-red-200 bg-red-50 shadow-[0_20px_60px_rgba(15,23,42,0.35)]">
+            <div className="flex items-center justify-between bg-[#f44336] px-4 py-3 text-white">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white/15 text-lg font-bold">
+                  !
+                </div>
+
+                <span className="text-[15px] font-bold">
+                  {submitError.title}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setSubmitError(null)
+                }
+                className="text-lg font-bold text-white/90 transition hover:text-white"
+                aria-label="Dismiss error"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4 p-4">
+              <div className="rounded-lg border border-red-200 bg-red-100/50 px-4 py-3 text-sm text-red-800">
+                {submitError.message}
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs text-slate-700">
+                  <div className="mb-1 font-semibold text-slate-500">
+                    Voucher
+                  </div>
+
+                  <div className="font-medium text-slate-800">
+                    {failedVoucherType}{' '}
+                    {failedVoucherNumber
+                      ? `#${failedVoucherNumber}`
+                      : ''}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs text-slate-700">
+                  <div className="mb-1 font-semibold text-slate-500">
+                    Party/Customer
+                  </div>
+
+                  <div className="font-medium text-slate-800">
+                    {failedParty}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs text-slate-700">
+                  <div className="mb-1 font-semibold text-slate-500">
+                    Amount
+                  </div>
+
+                  <div className="font-medium text-slate-800">
+                    ₹{Number(failedAmount || 0).toFixed(2)}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs text-slate-700">
+                  <div className="mb-1 font-semibold text-slate-500">
+                    Company
+                  </div>
+
+                  <div className="font-medium text-slate-800">
+                    {failedCompany}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs text-slate-700">
+                  <div className="mb-1 font-semibold text-slate-500">
+                    Date
+                  </div>
+
+                  <div className="font-medium text-slate-800">
+                    {failedDate}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-red-200 bg-white p-4">
+                <h3 className="mb-2 text-base font-bold text-red-700">
+                  Why Tally Rejected This Entry:
+                </h3>
+
+                <p className="text-sm leading-6 text-slate-700">
+                  {submitError.reason}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
+                <h3 className="mb-2 text-base font-bold text-sky-700">
+                  What You Need To Do Fix It:
+                </h3>
+
+                <p className="text-sm leading-6 text-slate-700">
+                  {submitError.action}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-100/50 px-4 py-3 text-xs text-red-700">
+                <span>
+                  Technical Details: {submitError.technicalDetails}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSubmitError(null)
+                  }
+                  className="rounded-lg bg-[#1a1f24] px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

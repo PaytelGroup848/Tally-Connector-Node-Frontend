@@ -1,4 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import useAuthStore from '../store/authStore'
+import {
+  extractPurchasePagination,
+  extractPurchases,
+  fetchCompanyPurchases,
+} from '../services/companiesApi'
 
 // ============================================================
 // FIELD DATA
@@ -198,14 +204,113 @@ function ItemsTable() {
 // MAIN COMPONENT
 // ============================================================
 
-function PurchasePage() {
+function PurchasePage({ companyId }) {
+  const accessToken = useAuthStore(
+    (state) => state.accessToken,
+  )
 
   const [advancedOpen, setAdvancedOpen] = useState(true)
 
   const [activeTab, setActiveTab] =
     useState('Supplier’s Details')
 
+  const [purchases, setPurchases] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [pagination, setPagination] = useState({})
+
   const fields = tabs[activeTab]
+
+  useEffect(() => {
+    if (!accessToken || !companyId) {
+      setPurchases([])
+      setPagination({})
+      setErrorMessage(
+        accessToken
+          ? 'No company selected.'
+          : 'Session expired. Please sign in.',
+      )
+      return undefined
+    }
+
+    let isMounted = true
+
+    setIsLoading(true)
+    setErrorMessage('')
+
+    fetchCompanyPurchases(accessToken, companyId, {
+      q: '',
+      from: '2010-04-01',
+      to: '2027-03-31',
+      page: 1,
+      limit: 20,
+    })
+      .then((response) => {
+        if (!isMounted) return
+
+        setPurchases(extractPurchases(response))
+        setPagination(extractPurchasePagination(response))
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setErrorMessage(
+            error?.message || 'Unable to load purchases',
+          )
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [accessToken, companyId])
+
+  const getPurchaseValue = (
+    purchase,
+    keys,
+  ) => {
+    for (const key of keys) {
+      const value = purchase?.[key]
+      if (
+        value !== null &&
+        value !== undefined &&
+        String(value).trim()
+      ) {
+        return String(value).trim()
+      }
+    }
+
+    return '-'
+  }
+
+  const formatCurrency = (value) => {
+    const numericValue = Number(value)
+
+    if (Number.isNaN(numericValue)) {
+      return '-'
+    }
+
+    return `₹ ${numericValue.toLocaleString('en-IN')}`
+  }
+
+  const formatDate = (value) => {
+    if (!value) return '-'
+
+    const date = new Date(value)
+
+    return Number.isNaN(date.getTime())
+      ? value
+      : date.toLocaleDateString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })
+  }
 
   return (
     <div className="min-h-screen bg-[#eef3f8] p-5">
@@ -225,6 +330,138 @@ function PurchasePage() {
         {/* ================================================= */}
 
         <div className="bg-[#f5f7f4] p-5">
+          {errorMessage && (
+            <div className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {errorMessage}
+            </div>
+          )}
+
+          <div className="mb-5 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
+              <h2 className="text-sm font-semibold text-slate-800">
+                Purchases
+              </h2>
+
+              <span className="text-[11px] text-slate-500">
+                {pagination?.total ?? purchases.length} records
+              </span>
+            </div>
+
+            {isLoading ? (
+              <div className="flex min-h-[120px] items-center justify-center text-xs text-slate-500">
+                Loading purchases...
+              </div>
+            ) : purchases.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse text-left text-xs">
+                  <thead className="bg-slate-100 text-slate-600">
+                    <tr>
+                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
+                        Voucher No
+                      </th>
+
+                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
+                        Date
+                      </th>
+
+                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
+                        Party
+                      </th>
+
+                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
+                        Amount
+                      </th>
+
+                      <th className="border-b border-slate-200 px-3 py-2 font-semibold">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {purchases.map((purchase, index) => {
+                      const voucherNumber = getPurchaseValue(
+                        purchase,
+                        [
+                          'voucherNumber',
+                          'voucherNo',
+                          'voucher_no',
+                          'invoiceNo',
+                          'invoice_no',
+                          'number',
+                        ],
+                      )
+
+                      const partyName = getPurchaseValue(
+                        purchase,
+                        [
+                          'partyName',
+                          'party_name',
+                          'party',
+                          'supplierName',
+                          'supplier_name',
+                          'partyLedger',
+                          'customerName',
+                          'ledgerName',
+                          'name',
+                        ],
+                      )
+
+                      const amount =
+                        purchase?.amount ??
+                        purchase?.total ??
+                        purchase?.grandTotal ??
+                        purchase?.totalAmount ??
+                        0
+
+                      const status =
+                        getPurchaseValue(
+                          purchase,
+                          ['status', 'voucherStatus', 'voucher_status', 'state'],
+                        )
+
+                      return (
+                        <tr
+                          key={
+                            purchase?._id ||
+                            purchase?.id ||
+                            `${voucherNumber}-${index}`
+                          }
+                          className="odd:bg-white even:bg-slate-50"
+                        >
+                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
+                            {voucherNumber}
+                          </td>
+
+                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
+                            {formatDate(
+                              purchase?.date || purchase?.voucherDate || purchase?.createdAt,
+                            )}
+                          </td>
+
+                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
+                            {partyName}
+                          </td>
+
+                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
+                            {formatCurrency(amount)}
+                          </td>
+
+                          <td className="border-b border-slate-200 px-3 py-2 text-slate-700">
+                            {status}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="flex min-h-[120px] items-center justify-center text-xs text-slate-500">
+                No purchases found
+              </div>
+            )}
+          </div>
 
           {/* TOP FIELDS */}
 

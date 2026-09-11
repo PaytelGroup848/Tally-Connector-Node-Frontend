@@ -20,7 +20,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
   }
 
   return (
-    <aside className={`app-sidebar fixed left-0 top-0 z-30 flex h-screen shrink-0 flex-col text-white transition-all duration-200 ${isCompact ? `${collapsed ? '-translate-x-full' : 'translate-x-0'} w-[200px]` : collapsed ? 'w-[58px]' : 'w-[200px]'}`} data-collapsed={collapsed}>
+    <aside className={`app-sidebar fixed left-0 top-0 z-30 flex h-screen shrink-0 flex-col overflow-hidden text-white transition-all duration-200 ${isCompact ? `${collapsed ? '-translate-x-full' : 'translate-x-0'} w-[200px]` : collapsed ? 'w-[58px]' : 'w-[200px]'}`} data-collapsed={collapsed}>
       {isCompact && !collapsed && (
         <div className="flex justify-end px-3 pt-3">
           <button type="button" aria-label="Close sidebar" onClick={() => setSidebarCollapsed(true)} className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white transition hover:bg-white/10">
@@ -32,7 +32,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
         <img className="h-[300px] w-[300px] shrink-0 object-contain " src={logo} alt="Cloudedata" />
         
       </button>
-      <nav className="sidebar-nav flex-1 overflow-y-auto px-3 py-4">
+      <nav className="sidebar-nav min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-4">
         {navItems.map(([IconComponent, label, expandable, badge, path]) => {
           const isDataBackupItem = label === 'Data Backup'
           const targetPath = label === 'Dashboard' ? '/dashboard' : `/${path}`
@@ -59,7 +59,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
               >
                 <span className="flex w-4 shrink-0 items-center justify-center text-center"><IconComponent className="h-4 w-4" /></span>{!collapsed && <><span>{label}</span>{badge && <em className="ml-auto rounded bg-red-500 px-1.5 py-0.5 text-[9px] not-italic text-white">{badge}</em>}{expandable && <Arrow />}</>}
               </a>
-              {!collapsed && submenuItems[label] && isNavExpanded(label, path) && <div className="flex flex-col pb-2 pl-8">{submenuItems[label].map(([item, itemPath]) => <a className={`px-2 py-1.5 text-[11px] no-underline ${isSubmenuActive(itemPath) ? 'text-green-500' : 'text-neutral-100 hover:text-green-400'}`} href={itemPath} onClick={(event) => { if (itemPath === '/create-voucher/Quotation') { onQuotation(event); return } handleNavClick(event, itemPath) }} key={item}>{item} <span className="float-right">›</span></a>)}</div>}
+              {!collapsed && submenuItems[label] && isNavExpanded(label, path) && <div className="flex flex-col pb-2 pl-8">{submenuItems[label].map(([item, itemPath]) => <a className={`px-2 py-1.5 text-[11px] no-underline ${isSubmenuActive(itemPath) ? 'text-green-500' : 'text-neutral-100 hover:text-green-400'}`} href={itemPath} onClick={(event) => { if (itemPath === '/create-voucher/Quotation') { onQuotation(event); return } handleNavClick(event, itemPath) }} key={item}>{item} <span className="float-right"></span></a>)}</div>}
             </div>
           )
         })}
