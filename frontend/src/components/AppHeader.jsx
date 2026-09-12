@@ -1,8 +1,18 @@
-﻿
-import { useState } from 'react'
-import { ChevronDown, Menu, Search, Smartphone, User } from 'lucide-react'
+﻿import { useState } from 'react'
+import {
+  ChevronDown,
+  Menu,
+  Search,
+  Smartphone,
+  User,
+} from 'lucide-react'
 
-const profileItems = ['Profile', 'All User', 'Download Invoice', 'Logout']
+const profileItems = [
+  'Profile',
+  'All User',
+  'Download Invoice',
+  'Logout',
+]
 
 function ConnectorStatusButton({
   rows = [],
@@ -12,7 +22,10 @@ function ConnectorStatusButton({
 }) {
   const [open, setOpen] = useState(false)
 
-  const syncMeta = Array.isArray(lastSyncMeta) ? lastSyncMeta[0] : lastSyncMeta
+  const syncMeta = Array.isArray(lastSyncMeta)
+    ? lastSyncMeta[0]
+    : lastSyncMeta
+
   const lastSyncValue =
     syncMeta?.completedAt ||
     syncMeta?.lastSync ||
@@ -39,6 +52,12 @@ function ConnectorStatusButton({
     }).format(date)
   })()
 
+  const isOnline = rows.some((row) =>
+    ['online', 'active', 'connected'].includes(
+      String(row?.status || '').toLowerCase(),
+    ),
+  )
+
   return (
     <div className="relative">
       <button
@@ -46,79 +65,118 @@ function ConnectorStatusButton({
         onClick={() => setOpen((value) => !value)}
         className="
           flex max-w-full items-center gap-2
-          rounded-full border border-slate-200 bg-white
-          px-3 py-1.5 text-[11px] font-semibold
-          text-slate-700 shadow-sm transition
-          hover:border-slate-300 hover:text-slate-900
+          rounded-xl border border-app-border
+          bg-white px-3 py-2
+          text-[11px] font-semibold text-app-text
+          shadow-sm transition
+          hover:border-slate-300
         "
       >
         <span
-          className={`h-2.5 w-2.5 rounded-full ${rows.some((row) => ['online', 'active', 'connected'].includes(String(row?.status || '').toLowerCase())) ? 'bg-emerald-500' : 'bg-red-500'}`}
+          className={`h-2.5 w-2.5 rounded-full ${
+            isOnline ? 'bg-emerald-500' : 'bg-red-500'
+          }`}
         />
 
         <span className="flex min-w-0 flex-col items-start leading-none">
-          <span className="truncate">Status</span>
-          <span className="mt-0.5 text-[9px] font-normal text-slate-500">
+          <span className="truncate">Connector Status</span>
+          <span className="mt-1 text-[9px] font-normal text-slate-500">
             Last sync: {lastSyncLabel}
           </span>
         </span>
 
-        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-700">
+        <span
+          className="
+            rounded-full bg-slate-100
+            px-1.5 py-0.5 text-[10px]
+            font-semibold text-slate-700
+          "
+        >
           {rows.length || 0}
         </span>
       </button>
 
       {open && (
-        <div className="absolute left-1/2 top-full z-50 mt-2 w-[calc(100vw-1rem)] max-w-[420px] -translate-x-1/2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl md:left-auto md:right-0 md:w-[420px] md:translate-x-0">
-          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+        <div
+          className="
+            absolute right-0 top-full z-50 mt-2
+            w-[min(420px,calc(100vw-1rem))]
+            overflow-hidden rounded-xl
+            border border-app-border bg-white
+            shadow-[0_18px_42px_rgba(15,23,42,0.14)]
+          "
+        >
+          <div
+            className="
+              flex items-center justify-between
+              border-b border-app-border
+              bg-slate-50 px-4 py-3
+            "
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-app-text-secondary">
               Connector Status
             </p>
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+
+            <span
+              className="
+                rounded-full bg-emerald-50 px-2.5 py-1
+                text-[10px] font-bold text-emerald-700
+              "
+            >
               Live
             </span>
           </div>
 
           {lastSyncMeta && (
-            <div className="grid grid-cols-1 gap-2 border-b border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-600 sm:grid-cols-2">
+            <div
+              className="
+                grid grid-cols-1 gap-3
+                border-b border-app-border
+                bg-white px-4 py-3
+                text-[11px] text-app-text-secondary
+                sm:grid-cols-2
+              "
+            >
               <div>
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                   Type
                 </span>
-                <span className="mt-1 block font-medium text-slate-800">
-                  {lastSyncMeta.type || 'N/A'}
+                <span className="mt-1 block font-medium text-app-text">
+                  {syncMeta?.type || 'N/A'}
                 </span>
               </div>
 
               <div>
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                   Status
                 </span>
-                <span className="mt-1 block font-medium text-slate-800">
-                  {lastSyncMeta.status || 'N/A'}
+                <span className="mt-1 block font-medium text-app-text">
+                  {syncMeta?.status || 'N/A'}
                 </span>
               </div>
 
-              <div className="col-span-2">
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              <div className="sm:col-span-2">
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                   Last Sync
                 </span>
-                <span className="mt-1 block font-medium text-slate-800">
+                <span className="mt-1 block font-medium text-app-text">
                   {lastSyncLabel}
                 </span>
               </div>
             </div>
           )}
 
-          <div className="max-h-[60vh] overflow-y-auto md:max-h-[320px]">
+          <div className="max-h-[320px] overflow-y-auto">
             {isConnectorStatusLoading ? (
-              <div className="px-3 py-4 text-sm text-slate-500">
+              <div className="px-4 py-5 text-sm text-slate-500">
                 Loading connector status...
               </div>
             ) : connectorStatusError ? (
-              <div className="px-3 py-4 text-sm text-red-600">{connectorStatusError}</div>
+              <div className="px-4 py-5 text-sm text-red-600">
+                {connectorStatusError}
+              </div>
             ) : rows.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-slate-500">
+              <div className="px-4 py-5 text-sm text-slate-500">
                 No connector status available.
               </div>
             ) : (
@@ -130,6 +188,7 @@ function ConnectorStatusButton({
                   `Connector ${index + 1}`
 
                 const status = connector?.status || 'UNKNOWN'
+
                 const lastHeartbeatValue =
                   connector?.lastHeartbeatAt ||
                   connector?.lastHeartbeat ||
@@ -141,7 +200,9 @@ function ConnectorStatusButton({
 
                   const date = new Date(lastHeartbeatValue)
 
-                  if (Number.isNaN(date.getTime())) return String(lastHeartbeatValue)
+                  if (Number.isNaN(date.getTime())) {
+                    return String(lastHeartbeatValue)
+                  }
 
                   return new Intl.DateTimeFormat('en-IN', {
                     timeZone: 'Asia/Kolkata',
@@ -154,45 +215,65 @@ function ConnectorStatusButton({
                   }).format(date)
                 })()
 
+                const statusKey = String(status).toLowerCase()
+
+                const statusClass =
+                  ['online', 'active', 'connected'].includes(statusKey)
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : ['offline', 'inactive', 'disconnected'].includes(statusKey)
+                      ? 'bg-red-50 text-red-700'
+                      : 'bg-amber-50 text-amber-700'
+
                 return (
                   <div
-                    key={`${connector?.deviceId || deviceName}-${index}`}
-                    className="border-b border-slate-100 px-3 py-2 last:border-b-0"
+                    key={`${deviceName}-${index}`}
+                    className="
+                      border-b border-app-border-light
+                      px-4 py-4 last:border-b-0
+                    "
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{deviceName}</p>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold text-app-text">
+                          {deviceName}
+                        </p>
+
+                        <p className="mt-1 text-[10px] text-slate-500">
+                          Tally connection
+                        </p>
                       </div>
 
                       <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                          ['online', 'active', 'connected'].includes(String(status).toLowerCase())
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : ['offline', 'inactive', 'disconnected'].includes(String(status).toLowerCase())
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-amber-100 text-amber-700'
-                        }`}
+                        className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusClass}`}
                       >
                         {status}
                       </span>
                     </div>
 
-                    <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-[11px]">
                       <div>
-                        <span className="mt-1 block">
+                        <p className="text-[10px] text-slate-400">
+                          Connection
+                        </p>
+
+                        <p className="mt-1 font-medium text-app-text">
                           {connector?.tallyConnected === true
                             ? 'Connected'
                             : connector?.tallyConnected === false
                               ? 'Disconnected'
                               : 'N/A'}
-                        </span>
+                        </p>
                       </div>
-                    </div>
 
-                    <div className="mt-2 text-[11px] text-slate-500">
-                      <span className="font-medium text-slate-600">Last Updated:</span>
-                      {' '}
-                      {formattedLastHeartbeat}
+                      <div>
+                        <p className="text-[10px] text-slate-400">
+                          Last Updated
+                        </p>
+
+                        <p className="mt-1 font-medium text-app-text">
+                          {formattedLastHeartbeat}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 )
@@ -229,34 +310,34 @@ function AppHeader({
 }) {
   return (
     <>
-      <header className="relative z-30 w-full border-b border-slate-300 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.05)]">
-        <div className="flex min-h-[60px] w-full items-stretch">
-
+      <header className="app-header w-full">
+        <div className="flex min-h-16 w-full items-stretch">
           {/* MENU */}
           <button
             type="button"
             aria-label="Menu"
             aria-expanded={!sidebarCollapsed}
-            onClick={() =>
-              setSidebarCollapsed((current) => !current)
-            }
+            onClick={() => setSidebarCollapsed((current) => !current)}
             className="
-              flex h-[60px] w-[58px] shrink-0 items-center justify-center
-              border-0 border-r border-slate-300
-              bg-white text-slate-700
-              transition hover:bg-slate-50 hover:text-slate-900
+              flex h-16 w-[60px] shrink-0
+              items-center justify-center
+              border-0 border-r border-app-border
+              bg-white text-app-text-secondary
+              transition hover:bg-slate-50 hover:text-app-text
             "
           >
-            <Menu className="h-4 w-4" />
+            <Menu className="h-5 w-5" />
           </button>
 
           {/* COMPANY */}
           <div
             className="
-              relative flex h-[60px] w-[clamp(190px,24vw,330px)]
-              min-w-[190px] shrink-0 items-center gap-2
-              border-r border-slate-300 bg-white px-4
-              transition hover:bg-slate-50
+              relative flex h-16
+              w-[clamp(210px,24vw,320px)]
+              min-w-[190px] shrink-0
+              items-center gap-3
+              border-r border-app-border
+              bg-white px-4
             "
             role="button"
             tabIndex={0}
@@ -265,13 +346,29 @@ function AppHeader({
               setShowCompanyMenu((current) => !current)
               setShowProfileMenu(false)
             }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                setShowCompanyMenu((current) => !current)
+                setShowProfileMenu(false)
+              }
+            }}
           >
+            <div
+              className="
+                grid h-8 w-8 shrink-0
+                place-items-center rounded-lg
+                bg-slate-50 text-app-text
+              "
+            >
+              <span className="text-sm font-bold">▦</span>
+            </div>
+
             <div className="min-w-0 flex-1">
-              <strong className="block truncate text-[13px] font-semibold text-slate-900">
+              <strong className="block truncate text-[12px] font-semibold text-app-text">
                 {selectedCompany?.name || 'NA'}
               </strong>
 
-              <span className="block truncate text-[10px] text-slate-500">
+              <span className="mt-0.5 block truncate text-[10px] text-slate-500">
                 {selectedCompany?.meta || ''}
               </span>
             </div>
@@ -282,30 +379,27 @@ function AppHeader({
               }`}
             />
 
-            {/* COMPANY DROPDOWN */}
             {showCompanyMenu && (
               <div
                 className="
-                  absolute left-0 top-[61px] z-50 w-[280px]
-                  overflow-hidden rounded-lg
-                  border border-slate-200 bg-white
-                  shadow-[0_10px_30px_rgba(15,23,42,0.12)]
+                  absolute left-0 top-[65px] z-50
+                  w-[300px] overflow-hidden
+                  rounded-xl border border-app-border
+                  bg-white shadow-[0_18px_42px_rgba(15,23,42,0.14)]
                 "
-                onClick={(event) =>
-                  event.stopPropagation()
-                }
+                onClick={(event) => event.stopPropagation()}
               >
-                <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="border-b border-app-border bg-slate-50 px-4 py-3">
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                     My Companies
                   </span>
                 </div>
 
-                <div className="max-h-[320px] overflow-y-auto p-1">
+                <div className="max-h-[320px] overflow-y-auto p-1.5">
                   {companyOptions?.map((company) => (
                     <button
                       type="button"
-                      key={company.id || company.name}
+                      key={company.id || company._id || company.name}
                       onClick={() => {
                         onCompanyClick?.(company)
 
@@ -316,16 +410,24 @@ function AppHeader({
                         setShowCompanyMenu(false)
                       }}
                       className="
-                        flex w-full items-start gap-3 rounded-md
-                        border-b border-transparent
-                        px-3 py-2.5 text-left
-                        transition
-                        hover:border-slate-100
+                        flex w-full items-center gap-3
+                        rounded-lg px-3 py-3
+                        text-left transition
                         hover:bg-slate-50
                       "
                     >
+                      <span
+                        className="
+                          grid h-8 w-8 shrink-0
+                          place-items-center rounded-lg
+                          bg-emerald-50 text-app-primary
+                        "
+                      >
+                        ▦
+                      </span>
+
                       <div className="min-w-0 flex-1">
-                        <strong className="block truncate text-xs font-semibold text-slate-800">
+                        <strong className="block truncate text-xs font-semibold text-app-text">
                           {company.name || 'NA'}
                         </strong>
 
@@ -333,6 +435,10 @@ function AppHeader({
                           {company.meta || ''}
                         </small>
                       </div>
+
+                      {company.isCurrent && (
+                        <span className="h-2 w-2 rounded-full bg-app-primary" />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -343,24 +449,24 @@ function AppHeader({
           {/* SEARCH */}
           <label
             className="
-              mx-4 my-auto flex h-9 min-w-[180px]
-              max-w-[360px] flex-1 items-center gap-2
-              rounded-md border border-slate-300
-              bg-white px-3 text-slate-400
+              mx-4 my-auto flex h-10 min-w-[180px]
+              max-w-[430px] flex-1 items-center gap-2
+              rounded-lg border border-app-border
+              bg-slate-50/50 px-3 text-slate-400
               transition
-              focus-within:border-green-600
-              focus-within:ring-2
-              focus-within:ring-green-100
+              focus-within:border-app-primary
+              focus-within:bg-white
+              focus-within:ring-2 focus-within:ring-emerald-100
             "
           >
             <Search className="h-4 w-4 shrink-0" />
 
             <input
               type="text"
-              placeholder="Search vouchers, ledgers, items"
+              placeholder="Search vouchers, ledgers, items..."
               className="
                 w-full min-w-0 bg-transparent
-                text-[11px] text-slate-800
+                text-[12px] text-app-text
                 outline-none
                 placeholder:text-slate-400
               "
@@ -368,33 +474,27 @@ function AppHeader({
           </label>
 
           {/* RIGHT ACTIONS */}
-          <div
-            className="
-              ml-auto flex h-[60px] shrink-0 items-stretch
-              border-l border-slate-300
-            "
-          >
+          <div className="ml-auto flex h-16 shrink-0 items-stretch">
             {/* LINK E-INVOICE */}
             <button
               type="button"
               onClick={() =>
-                onOpenEway
-                  ? onOpenEway()
-                  : setShowEway(true)
+                onOpenEway ? onOpenEway() : setShowEway?.(true)
               }
               className="
-                flex h-[60px] w-[92px] items-center
-                justify-center gap-2
-                border-0 border-r border-slate-300
-                bg-white text-[10px] text-slate-600
+                hidden h-16 w-[92px]
+                items-center justify-center gap-2
+                border-0 border-l border-r border-app-border
+                bg-white text-[10px] text-app-text-secondary
                 transition hover:bg-slate-50
+                md:flex
               "
             >
               <span
                 className="
-                  grid h-[19px] w-[19px] place-items-center
+                  grid h-5 w-5 place-items-center
                   rounded-full border border-red-400
-                  text-[11px] font-bold text-red-500
+                  text-[10px] font-bold text-red-500
                 "
               >
                 !
@@ -420,14 +520,15 @@ function AppHeader({
                   ))
               }
               className="
-                flex h-[60px] w-[100px] items-center
-                justify-center gap-2
-                border-0 border-r border-slate-300
-                bg-white text-[10px] text-slate-600
+                hidden h-16 w-[100px]
+                items-center justify-center gap-2
+                border-0 border-r border-app-border
+                bg-white text-[10px] text-app-text-secondary
                 transition hover:bg-slate-50
+                lg:flex
               "
             >
-              <Smartphone className="h-4 w-4 text-slate-600" />
+              <Smartphone className="h-4 w-4" />
 
               <span className="text-left leading-[13px]">
                 Mobile
@@ -439,58 +540,55 @@ function AppHeader({
             {/* CONNECTOR STATUS */}
             <div
               className="
-                flex h-[60px] min-w-[125px]
+                hidden h-16 min-w-[170px]
                 items-center justify-center
-                border-r border-slate-300
+                border-r border-app-border
                 bg-white px-2
+                lg:flex
               "
             >
               <ConnectorStatusButton
                 rows={connectorStatusRows}
                 lastSyncMeta={lastSyncMeta}
-                connectorStatusError={
-                  connectorStatusError
-                }
-                isConnectorStatusLoading={
-                  isConnectorStatusLoading
-                }
+                connectorStatusError={connectorStatusError}
+                isConnectorStatusLoading={isConnectorStatusLoading}
               />
             </div>
 
             {/* PROFILE */}
-            <div className="relative flex h-[60px] min-w-[76px] items-center justify-center">
+            <div className="relative flex h-16 min-w-[104px] items-center">
               <button
                 type="button"
                 aria-label="Open profile menu"
                 aria-expanded={showProfileMenu}
                 onClick={() => {
-                  setShowProfileMenu(
-                    (current) => !current,
-                  )
+                  setShowProfileMenu((current) => !current)
                   setShowCompanyMenu(false)
                 }}
                 className="
-                  flex h-[60px] w-full items-center
+                  flex h-16 w-full items-center
                   justify-center gap-2
-                  border-0 bg-white
+                  border-0 bg-white px-3
                   transition hover:bg-slate-50
                 "
               >
                 <span
                   className="
-                    grid h-8 w-8 place-items-center
-                    rounded-full border border-slate-200
+                    grid h-9 w-9 place-items-center
+                    rounded-full border border-app-border
                     bg-slate-50
                   "
                 >
-                  <User className="h-4 w-4 text-slate-600" />
+                  <User className="h-4 w-4 text-app-text-secondary" />
+                </span>
+
+                <span className="hidden text-[12px] font-semibold text-app-text sm:block">
+                  Admin
                 </span>
 
                 <ChevronDown
                   className={`h-4 w-4 text-slate-500 transition-transform ${
-                    showProfileMenu
-                      ? 'rotate-180'
-                      : ''
+                    showProfileMenu ? 'rotate-180' : ''
                   }`}
                 />
               </button>
@@ -498,19 +596,18 @@ function AppHeader({
               {showProfileMenu && (
                 <div
                   className="
-                    absolute right-0 top-[61px] z-50
-                    w-48 rounded-lg
-                    border border-slate-200
-                    bg-white p-1
-                    shadow-[0_10px_30px_rgba(15,23,42,0.12)]
+                    absolute right-0 top-[65px] z-50 w-52
+                    rounded-xl border border-app-border
+                    bg-white p-1.5
+                    shadow-[0_18px_42px_rgba(15,23,42,0.14)]
                   "
                   role="menu"
                 >
                   {profileItems.map((label) => (
                     <button
+                      key={label}
                       type="button"
                       role="menuitem"
-                      key={label}
                       onClick={() => {
                         setShowProfileMenu(false)
 
@@ -522,15 +619,13 @@ function AppHeader({
                           onAllUsersClick?.()
                         }
 
-                        if (
-                          label ===
-                          'Download Invoice'
-                        ) {
+                        if (label === 'Download Invoice') {
                           window.history.pushState(
                             {},
                             '',
                             '/download-invoice',
                           )
+                          window.dispatchEvent(new PopStateEvent('popstate'))
                         }
 
                         if (label === 'Logout') {
@@ -538,12 +633,11 @@ function AppHeader({
                         }
                       }}
                       className="
-                        block w-full rounded-md
-                        px-3 py-2.5 text-left text-xs
-                        text-slate-700
+                        block w-full rounded-lg
+                        px-3 py-2.5 text-left
+                        text-xs text-app-text-secondary
                         transition
-                        hover:bg-slate-50
-                        hover:text-slate-900
+                        hover:bg-slate-50 hover:text-app-text
                       "
                     >
                       {label}
@@ -556,25 +650,25 @@ function AppHeader({
         </div>
 
         {/* MOBILE SEARCH */}
-        <div className="hidden border-t border-slate-200 px-3 py-2 max-[1023px]:block">
+        <div className="border-t border-app-border-light px-3 py-2 lg:hidden">
           <label
             className="
-              flex h-9 w-full items-center gap-2
-              rounded-md border border-slate-300
-              bg-white px-3 text-slate-400
-              focus-within:border-green-600
-              focus-within:ring-2
-              focus-within:ring-green-100
+              flex h-10 w-full items-center gap-2
+              rounded-lg border border-app-border
+              bg-slate-50/50 px-3 text-slate-400
+              focus-within:border-app-primary
+              focus-within:bg-white
+              focus-within:ring-2 focus-within:ring-emerald-100
             "
           >
             <Search className="h-4 w-4 shrink-0" />
 
             <input
               type="text"
-              placeholder="Search vouchers, ledgers, items"
+              placeholder="Search vouchers, ledgers, items..."
               className="
                 w-full bg-transparent
-                text-[11px] text-slate-800
+                text-[12px] text-app-text
                 outline-none
                 placeholder:text-slate-400
               "
@@ -583,7 +677,6 @@ function AppHeader({
         </div>
       </header>
 
-      {/* OUTSIDE CLICK */}
       {showCompanyMenu && (
         <button
           className="fixed inset-0 z-20 cursor-default bg-transparent"

@@ -1,49 +1,108 @@
 import { useEffect, useState } from 'react'
+import {
+  ArrowUpRight,
+  Building2,
+  CalendarDays,
+  ChevronDown,
+  CreditCard,
+  FileText,
+  Landmark,
+  ReceiptText,
+  TrendingUp,
+  Users,
+} from 'lucide-react'
 
 const summaryMetrics = [
-  { label: 'CASH', value: '₹3,09,591', href: '/cash-bank/cash' },
-  { label: 'BANK', value: '₹8,406', href: '/cash-bank/bank' },
-  { label: 'INVENTORY AMOUNT', value: '₹ 0', href: '/items' },
-  { label: 'PAYABLES', value: '₹17,800', href: '/payables' },
+  { label: 'Cash & Bank', value: '₹ 3,18, -', href: '/cash-bank/cash', icon: Landmark },
+  { label: 'Inventory Amount', value: '₹ 0', href: '/items', icon: Building2 },
+  { label: 'Payables', value: '₹ 17,800', href: '/payables', icon: CreditCard },
+  { label: 'Outstanding', value: '₹ 2,65,430', href: '/receivables', icon: ReceiptText },
 ]
 
-const attentionItems = [
-  { label: 'INACTIVE CUSTOMERS', value: '20', href: '/inactive-customers' },
-  { label: 'INACTIVE STOCKS', value: '0', href: '/inactive-stocks' },
-  { label: 'PAYMENT REMINDERS', value: '0 Mobile Missing | 0 Email Missing', href: '/manage-reminders' },
+const chartData = [
+  { day: '1 Apr', sales: 25, receipt: 22 },
+  { day: '2 Apr', sales: 32, receipt: 28 },
+  { day: '3 Apr', sales: 40, receipt: 36 },
+  { day: '4 Apr', sales: 28, receipt: 33 },
+  { day: '5 Apr', sales: 43, receipt: 37 },
+  { day: '6 Apr', sales: 36, receipt: 32 },
+  { day: '7 Apr', sales: 40, receipt: 31 },
+  { day: '8 Apr', sales: 44, receipt: 36 },
+  { day: '9 Apr', sales: 51, receipt: 39 },
+  { day: '10 Apr', sales: 68, receipt: 55 },
 ]
 
-const monthLabels = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar']
-
-const agingBreakdown = [
-  ['0 - 45 Days', '#57e3b0'],
-  ['45 - 90 Days', '#ff8b8b'],
-  ['90 - 135 Days', '#ffbd98'],
-  ['135 - 180 Days', '#f8d77d'],
-  ['180 - 225 Days', '#a9a0e9'],
-  ['> 225 Days', '#70c1df'],
+const agingData = [
+  ['Current (0–30)', '₹ 1,32,500', '49.9%', 'bg-emerald-500'],
+  ['31–60 Days', '₹ 48,200', '18.2%', 'bg-amber-400'],
+  ['61–90 Days', '₹ 36,800', '13.9%', 'bg-orange-500'],
+  ['91–120 Days', '₹ 24,750', '9.3%', 'bg-orange-400'],
+  ['> 120 Days', '₹ 23,180', '8.7%', 'bg-blue-400'],
 ]
-
-function Arrow() {
-  return (
-    <span className="absolute right-3 top-[25px] text-[18px]" aria-hidden="true">
-      ›
-    </span>
-  )
-}
 
 function Panel({ title, action, children, className = '' }) {
   return (
     <section
-      className={`overflow-hidden rounded-xl border border-[#e1e5e7] bg-white shadow-[0_8px_30px_rgba(24,33,43,0.04)] ${className}`}
+      className={`
+        cloud-card overflow-hidden
+        ${className}
+      `}
     >
-      <header className="flex min-h-[35px] items-center border-b border-[#edf0f1] px-[13px] text-[13px]">
-        <strong className="flex items-center gap-[7px]">{title}</strong>
-        {action ?? <span className="ml-auto text-[18px]">⌄</span>}
+      <header className="flex min-h-12 items-center border-b border-app-border-light px-4 sm:px-5">
+        <h2 className="text-sm font-bold text-app-text">
+          {title}
+        </h2>
+
+        {action ?? (
+          <ChevronDown className="ml-auto h-4 w-4 text-slate-400" />
+        )}
       </header>
 
       {children}
     </section>
+  )
+}
+
+function MetricCard({ icon: Icon, label, value, change, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="
+        cloud-metric-card w-full text-left
+      "
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="
+            grid h-10 w-10 shrink-0 place-items-center
+            rounded-xl bg-emerald-50 text-app-primary
+          "
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-app-text-secondary">
+            {label}
+          </p>
+
+          <p className="mt-1 text-xl font-bold tracking-tight text-app-text">
+            {value}
+          </p>
+
+          <div className="mt-2 flex items-center gap-2 text-[11px]">
+            <span className="font-semibold text-app-success">
+              ↑ {change}
+            </span>
+
+            <span className="text-slate-400">
+              vs. last period
+            </span>
+          </div>
+        </div>
+      </div>
+    </button>
   )
 }
 
@@ -63,11 +122,13 @@ function DashboardPage({
     let animationFrame
 
     const startTime = performance.now()
-    const duration = 1500
+    const duration = 1000
 
     const animate = (currentTime) => {
-      const elapsed = currentTime - startTime
-      const progress = Math.min(elapsed / duration, 1)
+      const progress = Math.min(
+        (currentTime - startTime) / duration,
+        1,
+      )
 
       setReceivableProgress(Math.round(progress * 100))
 
@@ -78,278 +139,416 @@ function DashboardPage({
 
     animationFrame = requestAnimationFrame(animate)
 
-    return () => {
-      cancelAnimationFrame(animationFrame)
-    }
+    return () => cancelAnimationFrame(animationFrame)
   }, [])
 
   return (
-    <div className="grid grid-cols-1 gap-2 bg-[#f0f3f5] p-2 md:grid-cols-2 md:gap-x-3">
-      <Panel
-        title="Summary"
-        action={
+    <div className="min-h-[calc(100vh-64px)] bg-app-bg p-4 sm:p-5 lg:p-6">
+      <div className="mx-auto max-w-[1500px]">
+        {/* PAGE HEADER */}
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="cloud-page-title">
+            Dashboard
+          </h1>
+
+          <button
+            type="button"
+            className="
+              inline-flex h-10 items-center gap-2
+              rounded-lg border border-app-border
+              bg-white px-3 text-[11px]
+              font-semibold text-app-text-secondary
+              shadow-sm
+            "
+          >
+            <CalendarDays className="h-4 w-4" />
+            01 Apr 2025 – 10 Apr 2025
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          </button>
+        </div>
+
+        {/* KPI ROW */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            icon={TrendingUp}
+            label="Total Sales"
+            value="₹ 4,28,750"
+            change="12.5%"
+          />
+
+          <MetricCard
+            icon={FileText}
+            label="Total Receipts"
+            value="₹ 1,77,800"
+            change="8.2%"
+          />
+
+          <MetricCard
+            icon={CreditCard}
+            label="Total Payments"
+            value="₹ 1,24,560"
+            change="6.7%"
+          />
+
+          <MetricCard
+            icon={Landmark}
+            label="Cash & Bank Balance"
+            value="₹ 3,12,450"
+            change="15.3%"
+          />
+        </div>
+
+        {/* CHART + RECEIVABLES */}
+        <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_1fr]">
+          <Panel
+            title="Sales & Receipts"
+            action={
+              <div className="ml-auto flex items-center gap-1 rounded-lg bg-slate-50 p-1">
+                {['7D', '30D', '3M', '1Y'].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`
+                      rounded-md px-3 py-1.5
+                      text-[10px] font-semibold transition
+                      ${
+                        item === '30D'
+                          ? 'bg-app-primary text-white'
+                          : 'text-slate-500 hover:bg-white'
+                      }
+                    `}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            }
+          >
+            <div className="p-4 sm:p-5">
+              <div className="mb-4 flex flex-wrap items-center gap-4">
+                <span className="inline-flex items-center gap-2 text-[11px] text-app-text-secondary">
+                  <span className="h-2.5 w-2.5 rounded-full bg-app-primary" />
+                  Sales
+                </span>
+
+                <span className="inline-flex items-center gap-2 text-[11px] text-app-text-secondary">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-200" />
+                  Receipts
+                </span>
+              </div>
+
+              <div className="grid grid-cols-[35px_1fr] gap-2">
+                <div className="flex h-[220px] flex-col justify-between pb-6 text-[10px] text-slate-400">
+                  <span>1L</span>
+                  <span>80K</span>
+                  <span>60K</span>
+                  <span>40K</span>
+                  <span>20K</span>
+                  <span>0</span>
+                </div>
+
+                <div className="relative h-[220px]">
+                  <div className="absolute inset-0 bg-[repeating-linear-gradient(to_bottom,#edf2f7_0,#edf2f7_1px,transparent_1px,transparent_20%)]" />
+
+                  <div className="relative flex h-full items-end justify-between gap-2 pb-6">
+                    {chartData.map((item) => (
+                      <div
+                        key={item.day}
+                        className="flex h-full flex-1 items-end justify-center gap-1"
+                      >
+                        <div
+                          className="w-2.5 rounded-t-sm bg-app-primary"
+                          style={{
+                            height: `${item.sales * 2.35}px`,
+                          }}
+                        />
+
+                        <div
+                          className="w-2.5 rounded-t-sm bg-emerald-200"
+                          style={{
+                            height: `${item.receipt * 2.35}px`,
+                          }}
+                        />
+
+                        <span className="absolute bottom-0 text-[9px] text-slate-400">
+                          {item.day}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 rounded-lg bg-slate-50">
+                <div className="border-r border-app-border-light p-3">
+                  <p className="text-[10px] font-semibold uppercase text-app-text-secondary">
+                    Total Sales
+                  </p>
+                  <p className="mt-1 text-base font-bold text-app-text">
+                    ₹ 4,28,750
+                  </p>
+                  <p className="mt-1 text-[11px] font-semibold text-app-success">
+                    ↑ 12.5%
+                  </p>
+                </div>
+
+                <div className="p-3">
+                  <p className="text-[10px] font-semibold uppercase text-app-text-secondary">
+                    Total Receipts
+                  </p>
+                  <p className="mt-1 text-base font-bold text-app-text">
+                    ₹ 1,77,800
+                  </p>
+                  <p className="mt-1 text-[11px] font-semibold text-app-success">
+                    ↑ 8.2%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Panel>
+
+          <Panel
+            title="Receivables"
+            action={
+              <button
+                type="button"
+                className="ml-auto text-[11px] font-semibold text-blue-700"
+              >
+                View All
+              </button>
+            }
+          >
+            <div className="p-4 sm:p-5">
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-[155px_1fr]">
+                <div>
+                  <p className="text-xs font-semibold text-app-text-secondary">
+                    Total Outstanding
+                  </p>
+
+                  <p className="mt-1 text-xl font-bold text-app-text">
+                    ₹ 2,65,430
+                  </p>
+
+                  <div className="mt-6 flex justify-center">
+                    <div
+                      className="relative grid h-40 w-40 place-items-center rounded-full"
+                      style={{
+                        background: `conic-gradient(#10a66f ${receivableProgress}%, #e5edf3 ${receivableProgress}% 100%)`,
+                      }}
+                    >
+                      <div className="grid h-28 w-28 place-items-center rounded-full bg-white text-center">
+                        <div>
+                          <div className="text-sm font-bold text-app-text">
+                            ₹ 2,65,430
+                          </div>
+                          <div className="mt-1 text-[10px] text-slate-500">
+                            Total Outstanding
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {agingData.map(([label, amount, percentage, dot]) => (
+                    <div
+                      key={label}
+                      className="flex items-center gap-2 border-b border-app-border-light pb-3"
+                    >
+                      <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
+
+                      <span className="flex-1 text-[11px] text-app-text-secondary">
+                        {label}
+                      </span>
+
+                      <span className="text-[11px] font-semibold text-app-text">
+                        {amount}
+                      </span>
+
+                      <span className="w-10 text-right text-[10px] text-slate-400">
+                        {percentage}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-3 border-t border-app-border-light pt-4 text-center">
+                {[
+                  ['Total Customers', '12'],
+                  ['Active Customers', '9'],
+                  ['Overdue Customers', '3'],
+                ].map(([label, value], index) => (
+                  <div
+                    key={label}
+                    className={`px-2 ${
+                      index > 0 ? 'border-l border-app-border-light' : ''
+                    }`}
+                  >
+                    <p className="text-[10px] font-semibold text-app-text-secondary">
+                      {label}
+                    </p>
+                    <p
+                      className={`mt-1 text-lg font-bold ${
+                        label === 'Overdue Customers'
+                          ? 'text-red-500'
+                          : 'text-app-text'
+                      }`}
+                    >
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Panel>
+        </div>
+
+        {/* BOTTOM ROW */}
+        <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <Panel
+            title="Top Customers"
+            action={
+              <button
+                type="button"
+                className="ml-auto text-[11px] font-semibold text-blue-700"
+              >
+                View All
+              </button>
+            }
+          >
+            <div className="overflow-x-auto">
+              <table className="cloud-table min-w-[650px]">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Customer Name</th>
+                    <th>Sales (₹)</th>
+                    <th>Receipts (₹)</th>
+                    <th>Outstanding (₹)</th>
+                    <th>Days</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {[
+                    ['Rajesh Traders', '98,450', '78,200', '20,250', '12'],
+                    ['Metro Suppliers', '76,320', '45,600', '30,720', '18'],
+                    ['Global Enterprises', '62,180', '62,180', '0', '0'],
+                    ['Shree Distributors', '48,900', '32,400', '16,500', '25'],
+                    ['Sunrise Traders', '41,750', '20,200', '21,550', '32'],
+                  ].map((row, index) => (
+                    <tr key={row[0]}>
+                      <td>{index + 1}</td>
+                      <td className="font-semibold text-app-text">
+                        {row[0]}
+                      </td>
+                      <td>{row[1]}</td>
+                      <td>{row[2]}</td>
+                      <td>{row[3]}</td>
+                      <td>
+                        <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
+                          {row[4]}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+
+          <Panel
+            title="Day Book"
+            action={
+              <button
+                type="button"
+                className="ml-auto text-[11px] font-semibold text-blue-700"
+              >
+                View All
+              </button>
+            }
+          >
+            <div className="overflow-x-auto">
+              <table className="cloud-table min-w-[650px]">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Particulars</th>
+                    <th>Type</th>
+                    <th className="text-right">Amount (₹)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {[
+                    ['10 Apr 2025', 'Ramesh Kumar', 'Receipt', '25,000', 'Received'],
+                    ['10 Apr 2025', 'ABC Traders', 'Payment', '12,500', 'Paid'],
+                    ['10 Apr 2025', 'Sales Invoice #SI-0045', 'Sales', '48,750', 'Posted'],
+                    ['09 Apr 2025', 'Ganesh Suppliers', 'Payment', '18,200', 'Paid'],
+                    ['09 Apr 2025', 'Purchase Invoice #PI-0078', 'Purchase', '32,400', 'Posted'],
+                  ].map((row) => (
+                    <tr key={`${row[0]}-${row[1]}`}>
+                      <td className="whitespace-nowrap">{row[0]}</td>
+                      <td className="font-medium text-app-text">{row[1]}</td>
+                      <td>{row[2]}</td>
+                      <td className="text-right font-semibold text-app-text">
+                        {row[3]}
+                      </td>
+                      <td>
+                        <span
+                          className={`
+                            status-badge
+                            ${
+                              row[4] === 'Paid'
+                                ? 'status-paid'
+                                : row[4] === 'Received'
+                                  ? 'status-posted'
+                                  : 'status-posted'
+                            }
+                          `}
+                        >
+                          {row[4]}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+        </div>
+
+        {/* PRESERVE EXISTING DASHBOARD STATE/PROPS */}
+        <div className="sr-only">
           <select
             value={selectedPeriod}
             onChange={(event) => setSelectedPeriod(event.target.value)}
-            className="ml-auto border-0 bg-white text-[11px] outline-none"
+            aria-label="Dashboard period"
           >
-            <option>This Year (1st Apr ’26 - 31st Mar ’27)</option>
-            <option>This Month</option>
+            <option>This Year</option>
           </select>
-        }
-      >
-        <div className="grid grid-cols-2">
-          {summaryMetrics.map(({ label, value, href }, index) => (
-            <a
-              key={label}
-              href={href}
-              className={`relative flex min-h-[51px] cursor-pointer flex-col gap-1 border-b border-[#f0f1f2] px-[13px] py-[8px] text-left text-inherit no-underline ${
-                index % 2 === 0 ? 'border-r border-[#f0f1f2]' : ''
-              }`}
-            >
-              <span className="text-[10px] font-semibold text-[#8a8d8f]">{label}</span>
-              <b className="text-[12px]">{value}</b>
-              <Arrow />
-            </a>
-          ))}
+
+          <span>{activeTab}</span>
+          <span>{dayBookDate}</span>
+
+          <button type="button" onClick={openCustomDatePicker}>
+            Custom Date
+          </button>
+
+          <input
+            ref={customDateInput}
+            type="date"
+            value={dayBookDate || ''}
+            onChange={(event) => setDayBookDate(event.target.value)}
+          />
+
+          <Users />
+          <ArrowUpRight />
         </div>
-      </Panel>
-
-      <Panel
-        title={
-          <>
-            <span>Need Attention</span>
-            <i className="inline-grid h-[13px] w-[13px] place-items-center rounded-full bg-[#ec5671] text-[9px] font-normal text-white">
-              !
-            </i>
-          </>
-        }
-        className="min-h-[142px]"
-      >
-        <div className="grid grid-cols-2">
-          {attentionItems.map(({ label, value, href }, index) => (
-            <a
-              key={label}
-              href={href}
-              className={`relative flex min-h-[51px] cursor-pointer flex-col gap-1 border-b border-[#f0f1f2] px-[13px] py-[8px] text-left text-inherit no-underline ${
-                index % 2 === 0 ? 'border-r border-[#f0f1f2]' : ''
-              }`}
-            >
-              <span className="text-[10px] font-semibold text-[#8a8d8f]">{label}</span>
-              <b className="text-[12px]">{value}</b>
-              <Arrow />
-            </a>
-          ))}
-          <div className="relative flex min-h-[51px] flex-col gap-1 border-b border-[#f0f1f2] px-[13px] py-[8px] text-left">
-            <span className="text-[10px] font-semibold text-[#8a8d8f]">SMS CREDITS</span>
-            <b className="text-[12px]">10</b>
-          </div>
-        </div>
-      </Panel>
-
-      <Panel
-        title="Sales & Receipt"
-        action={
-          <select defaultValue="year" className="ml-auto border-0 bg-white text-[11px] outline-none">
-            <option value="year">This Year (1st Apr ’26 - 31st Mar ’27)</option>
-          </select>
-        }
-        className="min-h-[314px]"
-      >
-        <div className="flex gap-2 px-[13px] py-2">
-          <div className="flex-1 bg-[#fafafa] p-[7px] text-[11px]">
-            <span className="flex items-center justify-between gap-2">
-              <span>Total Sales</span>
-              <b>₹ 0</b>
-            </span>
-          </div>
-          <div className="flex-1 bg-[#fafafa] p-[7px] text-[11px]">
-            <span className="flex items-center justify-between gap-2">
-              <span>Total Receipt</span>
-              <b>₹ 0</b>
-            </span>
-          </div>
-        </div>
-
-        <div className="text-center text-[10px] text-[#8b8e90]">
-          <i className="ml-[12px] mr-[5px] inline-block h-[10px] w-[35px] align-middle bg-[#11be65]" />
-          Sales
-          <i className="ml-[12px] mr-[5px] inline-block h-[10px] w-[35px] align-middle bg-[#caffce]" />
-          Receipt
-        </div>
-
-        <div className="flex h-[164px] px-[14px] pt-[8px]">
-          <div className="flex flex-col justify-between pb-[18px] text-[9px] text-[#929597]">
-            <span>1.0</span>
-            <span>0.8</span>
-            <span>0.6</span>
-            <span>0.4</span>
-            <span>0.2</span>
-            <span>0</span>
-          </div>
-
-          <div className="relative ml-2 flex flex-1 items-end justify-between pb-[5px] text-[9px] text-[#8a8d8f]">
-            <div
-              className="absolute inset-x-0 top-[4px] bottom-[20px]"
-              style={{
-                background:
-                  'repeating-linear-gradient(to bottom, #edf0f1 0, #edf0f1 1px, transparent 1px, transparent 20%)',
-              }}
-            />
-            {monthLabels.map((month) => (
-              <span key={month} className="relative z-10">
-                {month}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 border-t border-[#eceeef] text-center">
-          <div className="flex flex-col gap-1 p-2">
-            <b className="text-[10px]">SALES THIS MONTH</b>
-            <strong className="text-[12px]">₹ 0</strong>
-            <span className="text-[12px] font-bold text-[#5c9b48]">
-              0% <small className="text-[10px] font-normal text-[#6f7274]">↗ vs Last Month</small>
-            </span>
-          </div>
-          <div className="flex flex-col gap-1 border-l border-[#eceeef] p-2">
-            <b className="text-[10px]">RECEIPT THIS MONTH</b>
-            <strong className="text-[12px]">₹ 0</strong>
-            <span className="text-[12px] font-bold text-[#5c9b48]">
-              0% <small className="text-[10px] font-normal text-[#6f7274]">↗ vs Last Month</small>
-            </span>
-          </div>
-        </div>
-      </Panel>
-
-      <Panel
-        title="Receivables"
-        action={<a href="#all" className="ml-auto text-[11px] text-slate-600">View All</a>}
-        className="min-h-[314px]"
-      >
-        <div className="flex min-h-[194px] gap-3 px-[13px] pb-[7px] pt-[11px]">
-          <div className="h-[22px] flex-1 bg-[#fafafa] p-[7px] text-[11px]">
-            <span className="flex items-center justify-between gap-2">
-              <span>Total Receivables</span>
-              <b>₹ 10,42,23,145</b>
-            </span>
-          </div>
-
-          <div className="flex min-h-[220px] w-full items-center justify-center py-2">
-            <div
-              className="relative flex h-[200px] w-[200px] items-center justify-center rounded-full"
-              style={{
-                background: `conic-gradient(#63b6ee ${receivableProgress}%, #e5e7eb ${receivableProgress}% 100%)`,
-                transition: 'background 0.05s linear',
-              }}
-            >
-              <div className="h-[138px] w-[138px] rounded-full bg-white" />
-            </div>
-          </div>
-
-          <div className="flex w-[47%] flex-col gap-[7px] pl-[20px] pt-[8px]">
-            {agingBreakdown.map(([label, color]) => (
-              <div key={label} className="flex items-center gap-2">
-                <i className="h-2 w-[35px]" style={{ background: color }} />
-                <span className="flex flex-1 items-center justify-between gap-2 text-right text-[10px]">
-                  <span>{label}</span>
-                  <b className="block text-[11px]">₹ 0</b>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 border-t border-[#eceeef] text-center">
-          {[
-            ['TOTAL OVERDUE AMOUNT', '₹ 0'],
-            ['PROJECTIONS IN 15 DAYS', '₹ 0'],
-            ['PROJECTIONS IN 60 DAYS', '₹ 0'],
-          ].map(([label, value], index) => (
-            <span
-              key={label}
-              className={`px-1 py-[10px] text-[9px] font-bold ${index > 0 ? 'border-l border-[#eceeef]' : ''}`}
-            >
-              {label}
-              <b className="mt-[5px] block text-[11px]">{value}</b>
-            </span>
-          ))}
-        </div>
-      </Panel>
-
-      <Panel title="Top 10" className="table-panel">
-        <div className="flex min-h-[41px] items-center gap-3 overflow-x-auto border-b border-[#eceeef] px-[9px]">
-          {['Customers', 'Suppliers', 'Items Sold By Quantity', 'Items Sold By Value', 'Item'].map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              className={`whitespace-nowrap border-0 bg-transparent p-2 text-[11px] text-[#777b7e] ${
-                activeTab === tab ? 'rounded-[3px] border border-[#aeb2b4] font-bold text-[#303234]' : ''
-              }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        <div className="p-5 text-center text-[#aaa]">No data available</div>
-      </Panel>
-
-      <Panel
-        title="Day Book"
-        action={
-          <div className="ml-auto flex items-center">
-            <button
-              type="button"
-              className={`border-0 bg-transparent p-2 text-[11px] text-[#777b7e] ${!dayBookDate ? 'rounded-[3px] border border-[#aeb2b4] font-bold text-[#303234]' : ''}`}
-              onClick={() => setDayBookDate('')}
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              className={`border-0 bg-transparent p-2 text-[11px] text-[#777b7e] ${dayBookDate === 'yesterday' ? 'rounded-[3px] border border-[#aeb2b4] font-bold text-[#303234]' : ''}`}
-              onClick={() => setDayBookDate('yesterday')}
-            >
-              Yesterday
-            </button>
-            <label
-              className={`relative inline-flex ${
-                dayBookDate && dayBookDate !== 'yesterday' ? 'rounded-[3px] border border-[#aeb2b4] font-bold text-[#303234]' : ''
-              }`}
-            >
-              <button type="button" className="relative z-10 border-0 bg-transparent p-2 text-[11px] text-[#777b7e]" onClick={openCustomDatePicker}>
-                Custom Date
-              </button>
-              <input
-                ref={customDateInput}
-                type="date"
-                value={dayBookDate !== 'yesterday' ? dayBookDate : ''}
-                onChange={(event) => setDayBookDate(event.target.value)}
-                aria-label="Select custom date"
-                className="absolute inset-0 z-0 h-full w-full cursor-pointer opacity-0"
-              />
-            </label>
-          </div>
-        }
-        className="table-panel"
-      >
-        <div className="grid grid-cols-4 border-b border-[#eceeef] p-3 text-[12px] font-semibold text-slate-700">
-          <b>Voucher</b>
-          <b>Particulars</b>
-          <b>Type</b>
-          <b>Amount</b>
-        </div>
-
-        <div className="p-5 text-center text-[#aaa]">
-          {dayBookDate === 'yesterday'
-            ? 'No vouchers for yesterday'
-            : dayBookDate
-              ? `No vouchers for ${dayBookDate}`
-              : 'No vouchers for today'}
-        </div>
-      </Panel>
+      </div>
     </div>
   )
 }

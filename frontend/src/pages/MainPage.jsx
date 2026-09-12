@@ -344,7 +344,7 @@ function App() {
     return <SectionPage path={currentPath} />
   }
 
-  return <div className="app-shell relative min-h-screen bg-slate-100 text-slate-900">
+  return <div className="app-shell relative min-h-screen bg-[#F5F8FC] text-[#102A43]">
     <Sidebar collapsed={sidebarCollapsed} isCompact={isCompact} setSidebarCollapsed={setSidebarCollapsed} currentPath={currentPath} showDashboard={flags.showDashboard} expandedNav={expandedNav} setExpandedNav={setExpandedNav} onDashboard={openDashboard} onQuotation={openQuotation} onNavigate={(path) => navigateTo(path)} />
     <main
       className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left,width] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}

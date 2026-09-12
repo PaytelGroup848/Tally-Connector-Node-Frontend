@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Download, Filter, MoreHorizontal, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 import {
   extractPurchasePagination,
@@ -6,223 +7,68 @@ import {
   fetchCompanyPurchases,
 } from '../services/companiesApi'
 
-// ============================================================
-// FIELD DATA
-// ============================================================
+const formatCurrency = (value) => {
+  const numericValue = Number(value)
 
-const supplierFields = [
-  ['Supplier’s Name', 'Supplier’s Name'],
-  ['Supplier’s Country', 'Supplier’s Country'],
-  ['Supplier’s State', 'Supplier’s State'],
-  ['Registration Type', 'Registration Type'],
-  ['Postal Code', 'Postal Code'],
-  ['GSTIN/UIN', 'GSTIN/UIN'],
-  ['Place of Supply', 'Place of Supply'],
-]
+  if (Number.isNaN(numericValue)) return '₹ 0'
 
-const consigneeFields = [
-  ['Consignee Name', 'Consignee Name'],
-  ['GSTIN/UIN', 'GSTIN/UIN'],
-  ['Consignee Country', 'Country'],
-  ['Consignee State', 'State'],
-  ['Postal Code', 'Postal Code'],
-]
-
-const dispatchFields = [
-  ['Dispatch From', 'Dispatch From'],
-  ['Dispatch Through', 'Dispatch Through'],
-  ['Vehicle Number', 'Vehicle Number'],
-  ['Transporter Name', 'Transporter Name'],
-  ['Transporter ID', 'Transporter ID'],
-  ['Dispatch Date', 'Dispatch Date'],
-]
-
-const orderFields = [
-  ['Order No', 'Order No'],
-  ['Order Date', 'Order Date'],
-  ['Reference No', 'Reference No'],
-  ['Buyer Order No', 'Buyer Order No'],
-  ['Terms of Delivery', 'Terms of Delivery'],
-  ['Other Reference', 'Other Reference'],
-]
-
-const tabs = {
-  'Supplier’s Details': supplierFields,
-  'Consignee Details': consigneeFields,
-  'Dispatch Details': dispatchFields,
-  'Order Details': orderFields,
+  return `₹ ${numericValue.toLocaleString('en-IN')}`
 }
 
-// ============================================================
-// REUSABLE INPUT
-// ============================================================
+const formatDate = (value) => {
+  if (!value) return '-'
 
-function InputField({ label, placeholder, search = false }) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-slate-700">
-        {label}
-      </span>
+  const date = new Date(value)
 
-      <div className="relative">
-        <input
-          placeholder={placeholder}
-          className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-        />
-
-        {search && (
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-            ⌕
-          </span>
-        )}
-      </div>
-    </label>
-  )
-}
-
-// ============================================================
-// ITEMS TABLE
-// ============================================================
-
-function ItemsTable() {
-  const [rows, setRows] = useState([1])
-
-  const addRow = () => {
-    setRows([...rows, rows.length + 1])
+  if (Number.isNaN(date.getTime())) {
+    return String(value)
   }
 
-  const removeRow = (index) => {
-    setRows(rows.filter((_, i) => i !== index))
-  }
-
-  return (
-    <div className="mt-5 overflow-x-auto rounded-lg border border-slate-200 bg-white">
-
-      <div className="min-w-[1100px]">
-
-        {/* HEADER */}
-        <div className="grid grid-cols-[220px_70px_90px_80px_80px_110px_120px_200px_100px_70px_45px] gap-2 bg-slate-100 p-2 text-xs font-semibold text-slate-600">
-
-          <div>Items</div>
-          <div>Qty</div>
-          <div>Rate</div>
-          <div>Units</div>
-          <div>Disc %</div>
-          <div>HSN Code</div>
-          <div>Godown</div>
-          <div>Description</div>
-          <div>Amount</div>
-          <div>Tax</div>
-
-          <button
-            onClick={addRow}
-            className="rounded bg-green-100 text-green-700"
-          >
-            +
-          </button>
-
-        </div>
-
-        {/* ROWS */}
-        {rows.map((_, index) => (
-          <div
-            key={index}
-            className="grid grid-cols-[220px_70px_90px_80px_80px_110px_120px_200px_100px_70px_45px] gap-2 border-t p-2"
-          >
-
-            <input
-              placeholder="Search Item"
-              className="input"
-            />
-
-            <input
-              value="0"
-              readOnly
-              className="input"
-            />
-
-            <input
-              value="0"
-              readOnly
-              className="input"
-            />
-
-            <select className="input">
-              <option>-</option>
-              <option>PCS</option>
-              <option>KG</option>
-              <option>BOX</option>
-            </select>
-
-            <input
-              value="0"
-              readOnly
-              className="input"
-            />
-
-            <input
-              placeholder="Search HSN"
-              className="input"
-            />
-
-            <input
-              placeholder="Search Godown"
-              className="input"
-            />
-
-            <input
-              placeholder="Enter Notes"
-              className="input"
-            />
-
-            <input
-              value="0"
-              readOnly
-              className="input"
-            />
-
-            <div className="flex items-center justify-center">
-              <input type="checkbox" />
-            </div>
-
-            <button
-              onClick={() => removeRow(index)}
-              className="rounded bg-slate-100 text-lg text-slate-500"
-            >
-              ×
-            </button>
-
-          </div>
-        ))}
-
-      </div>
-    </div>
-  )
+  return date.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
-// ============================================================
-// MAIN COMPONENT
-// ============================================================
+const getPurchaseValue = (purchase, keys) => {
+  for (const key of keys) {
+    const value = purchase?.[key]
+
+    if (
+      value !== null &&
+      value !== undefined &&
+      String(value).trim()
+    ) {
+      return String(value).trim()
+    }
+  }
+
+  return '-'
+}
+
+const getAmount = (purchase) =>
+  Number(
+    purchase?.amount ??
+      purchase?.total ??
+      purchase?.grandTotal ??
+      purchase?.totalAmount ??
+      0,
+  ) || 0
 
 function PurchasePage({ companyId }) {
-  const accessToken = useAuthStore(
-    (state) => state.accessToken,
-  )
-
-  const [advancedOpen, setAdvancedOpen] = useState(true)
-
-  const [activeTab, setActiveTab] =
-    useState('Supplier’s Details')
+  const accessToken = useAuthStore((state) => state.accessToken)
 
   const [purchases, setPurchases] = useState([])
+  const [pagination, setPagination] = useState({})
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [pagination, setPagination] = useState({})
   const [query, setQuery] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
-
-  const fields = tabs[activeTab]
+  const [currentPage, setCurrentPage] = useState(1)
+  const [sortOrder, setSortOrder] = useState('newest')
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     if (!accessToken || !companyId) {
@@ -272,68 +118,50 @@ function PurchasePage({ companyId }) {
     }
   }, [accessToken, companyId])
 
-  const getPurchaseValue = (
-    purchase,
-    keys,
-  ) => {
-    for (const key of keys) {
-      const value = purchase?.[key]
-      if (
-        value !== null &&
-        value !== undefined &&
-        String(value).trim()
-      ) {
-        return String(value).trim()
-      }
-    }
+  const filteredPurchases = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
 
-    return '-'
-  }
+    const filtered = purchases.filter((purchase) => {
+      if (!normalizedQuery) return true
 
-  const formatCurrency = (value) => {
-    const numericValue = Number(value)
+      const searchableText = [
+        purchase?.voucherNumber,
+        purchase?.voucherNo,
+        purchase?.voucher_no,
+        purchase?.partyLedger,
+        purchase?.partyName,
+        purchase?.party_name,
+        purchase?.narration,
+        purchase?.voucherType,
+        purchase?.voucher_type,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
 
-    if (Number.isNaN(numericValue)) {
-      return '-'
-    }
+      return searchableText.includes(normalizedQuery)
+    })
 
-    return `₹ ${numericValue.toLocaleString('en-IN')}`
-  }
+    return [...filtered].sort((a, b) => {
+      const dateA = new Date(
+        a?.date || a?.voucherDate || a?.createdAt || 0,
+      ).getTime()
 
-  const formatDate = (value) => {
-    if (!value) return '-'
+      const dateB = new Date(
+        b?.date || b?.voucherDate || b?.createdAt || 0,
+      ).getTime()
 
-    const date = new Date(value)
+      return sortOrder === 'oldest'
+        ? dateA - dateB
+        : dateB - dateA
+    })
+  }, [purchases, query, sortOrder])
 
-    return Number.isNaN(date.getTime())
-      ? value
-      : date.toLocaleDateString('en-IN', {
-          timeZone: 'Asia/Kolkata',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })
-  }
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPurchases.length / pageSize),
+  )
 
-  const filteredPurchases = purchases.filter((purchase) => {
-    const searchableText = [
-      purchase?.voucherNumber,
-      purchase?.voucherNo,
-      purchase?.voucher_no,
-      purchase?.partyLedger,
-      purchase?.partyName,
-      purchase?.party_name,
-      purchase?.narration,
-      purchase?.voucherType,
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-
-    return searchableText.includes(query.toLowerCase())
-  })
-
-  const totalPages = Math.max(1, Math.ceil(filteredPurchases.length / pageSize))
   const safeCurrentPage = Math.min(currentPage, totalPages)
 
   const paginatedPurchases = filteredPurchases.slice(
@@ -341,213 +169,629 @@ function PurchasePage({ companyId }) {
     safeCurrentPage * pageSize,
   )
 
+  const stats = useMemo(() => {
+    const totalAmount = filteredPurchases.reduce(
+      (sum, purchase) => sum + getAmount(purchase),
+      0,
+    )
+
+    const parties = new Set(
+      filteredPurchases
+        .map((purchase) =>
+          getPurchaseValue(purchase, [
+            'partyLedger',
+            'partyName',
+            'party_name',
+            'supplierName',
+            'supplier_name',
+            'party',
+          ]),
+        )
+        .filter((value) => value !== '-'),
+    )
+
+    const average =
+      filteredPurchases.length > 0
+        ? totalAmount / filteredPurchases.length
+        : 0
+
+    return {
+      totalVouchers: filteredPurchases.length,
+      totalAmount,
+      totalParties: parties.size,
+      average,
+    }
+  }, [filteredPurchases])
+
+  const handleExport = () => {
+    const header = [
+      'Voucher No',
+      'Date',
+      'Party Ledger',
+      'Voucher Type',
+      'Narration',
+      'Amount',
+    ]
+
+    const rows = filteredPurchases.map((purchase) => [
+      getPurchaseValue(purchase, [
+        'voucherNumber',
+        'voucherNo',
+        'voucher_no',
+        'invoiceNo',
+        'invoice_no',
+        'number',
+      ]),
+      formatDate(
+        purchase?.date ||
+          purchase?.voucherDate ||
+          purchase?.createdAt,
+      ),
+      getPurchaseValue(purchase, [
+        'partyLedger',
+        'partyName',
+        'party_name',
+        'supplierName',
+        'supplier_name',
+        'party',
+      ]),
+      getPurchaseValue(purchase, [
+        'voucherType',
+        'voucher_type',
+        'type',
+      ]),
+      getPurchaseValue(purchase, [
+        'narration',
+        'description',
+        'notes',
+      ]),
+      getAmount(purchase),
+    ])
+
+    const csv = [header, ...rows]
+      .map((row) =>
+        row
+          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+          .join(','),
+      )
+      .join('\n')
+
+    const blob = new Blob([csv], {
+      type: 'text/csv;charset=utf-8;',
+    })
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = 'purchase-vouchers.csv'
+    link.click()
+
+    URL.revokeObjectURL(url)
+  }
+
+  const openNewPurchase = () => {
+    window.history.pushState(
+      {},
+      '',
+      '/create-voucher/PurchaseInvoice',
+    )
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }
+
   return (
-    <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8]">
-      <div className="bg-white px-5 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="min-h-[calc(100vh-64px)] bg-app-bg p-4 sm:p-5 lg:p-6">
+      <div className="mx-auto max-w-[1500px]">
+        {/* PAGE HEADER */}
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <span className="block text-xs text-slate-600">
-              Purchase Data
-            </span>
-            <strong className="mt-1 block text-xl font-bold text-slate-900">
-              {filteredPurchases.length} records
-            </strong>
+            <div className="mb-1 flex items-center gap-2 text-[11px]">
+              <span className="text-slate-400">Purchase</span>
+              <span className="text-slate-300">›</span>
+              <span className="font-medium text-app-text-secondary">
+                Purchase
+              </span>
+            </div>
+
+            <h1 className="cloud-page-title">
+              Purchase
+            </h1>
           </div>
 
-       
-        </div>
-      </div>
-
-      <section className="mx-3 mt-2 overflow-hidden rounded-[6px] border border-white bg-white shadow-[0_3px_15px_rgba(24,33,43,0.06)]">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-            <label className="flex h-9 w-full items-center rounded-lg border border-slate-200 px-3 text-sm text-slate-500 sm:w-64">
-              <span className="mr-2 text-slate-400">⌕</span>
-              <input
-                value={query}
-                onChange={(event) => {
-                  setCurrentPage(1)
-                  setQuery(event.target.value)
-                }}
-                placeholder="Search party ledger or voucher no."
-                className="w-full bg-transparent outline-none placeholder:text-slate-400"
-              />
-            </label>
-
-            <label className="flex items-center gap-2 text-sm text-slate-600">
-              <span>Show</span>
-              <select
-                value={pageSize}
-                onChange={(event) => {
-                  setPageSize(Number(event.target.value))
-                  setCurrentPage(1)
-                }}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none"
-                aria-label="Rows per page"
-              >
-                {[10, 20, 30, 50].map((limit) => (
-                  <option key={limit} value={limit}>
-                    {limit}
-                  </option>
-                ))}
-              </select>
-              <span>records</span>
-            </label>
-          </div>
-
-          <span className="text-xs text-slate-500">
-            Page {safeCurrentPage} · {pageSize} per page
-          </span>
+          <button
+            type="button"
+            className="
+              inline-flex h-10 items-center gap-2
+              rounded-lg border border-app-border
+              bg-white px-3 text-[11px]
+              font-semibold text-app-text-secondary
+              shadow-sm transition
+              hover:bg-slate-50 hover:text-app-text
+            "
+          >
+            <span className="text-base">▣</span>
+            01 Apr 2025 – 10 Apr 2025
+            <span className="text-slate-400">⌄</span>
+          </button>
         </div>
 
-        {errorMessage && (
-          <div className="mx-4 mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
-            {errorMessage}
+        {/* TOOLBAR */}
+        <div className="cloud-card mb-4 flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
+          <label
+            className="
+              flex h-10 w-full items-center gap-2
+              rounded-lg border border-app-border
+              bg-white px-3 text-slate-400
+              transition
+              focus-within:border-app-primary
+              focus-within:ring-2 focus-within:ring-emerald-100
+              sm:max-w-[390px]
+            "
+          >
+            <Search className="h-4 w-4 shrink-0" />
+
+            <input
+              value={query}
+              onChange={(event) => {
+                setCurrentPage(1)
+                setQuery(event.target.value)
+              }}
+              placeholder="Search by voucher no, party name, ledger, etc..."
+              className="
+                w-full bg-transparent
+                text-[12px] text-app-text
+                outline-none placeholder:text-slate-400
+              "
+            />
+          </label>
+
+          <label className="flex items-center gap-2 text-[11px] font-medium text-app-text-secondary">
+            <span>Show</span>
+
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value))
+                setCurrentPage(1)
+              }}
+              className="
+                h-10 rounded-lg border border-app-border
+                bg-white px-3 text-[12px]
+                font-medium text-app-text
+                outline-none
+                focus:border-app-primary
+                focus:ring-2 focus:ring-emerald-100
+              "
+              aria-label="Rows per page"
+            >
+              {[10, 20, 30, 50].map((limit) => (
+                <option key={limit} value={limit}>
+                  {limit}
+                </option>
+              ))}
+            </select>
+
+            <span>records</span>
+          </label>
+
+          <label className="ml-auto flex items-center gap-2 text-[11px] font-medium text-app-text-secondary">
+            <span>Sort by</span>
+
+            <select
+              value={sortOrder}
+              onChange={(event) => setSortOrder(event.target.value)}
+              className="
+                h-10 rounded-lg border border-app-border
+                bg-white px-3 text-[12px]
+                font-medium text-app-text
+                outline-none
+                focus:border-app-primary
+                focus:ring-2 focus:ring-emerald-100
+              "
+            >
+              <option value="newest">Date (Newest First)</option>
+              <option value="oldest">Date (Oldest First)</option>
+            </select>
+          </label>
+
+          <button
+            type="button"
+            onClick={() => setShowFilters((value) => !value)}
+            className="
+              inline-flex h-10 items-center justify-center gap-2
+              rounded-lg border border-app-border
+              bg-white px-3 text-[11px]
+              font-semibold text-app-text-secondary
+              transition hover:bg-slate-50
+            "
+          >
+            <Filter className="h-4 w-4" />
+            <span className="hidden sm:inline">Filter</span>
+          </button>
+        </div>
+
+        {showFilters && (
+          <div className="cloud-card mb-4 flex flex-wrap items-center gap-3 p-4">
+            <div className="flex items-center gap-2 text-[11px] text-app-text-secondary">
+              <SlidersHorizontal className="h-4 w-4" />
+              Showing filtered purchase results
+            </div>
+
+            <div className="ml-auto text-[11px] font-semibold text-app-text">
+              {filteredPurchases.length} matching records
+            </div>
           </div>
         )}
 
-        <div className="overflow-x-auto px-3 pb-1">
-          {isLoading ? (
-            <div className="flex min-h-[150px] items-center justify-center border-y border-slate-100 text-sm text-slate-500">
-              Loading purchases...
-            </div>
-          ) : (
-            <table className="min-w-[1200px] w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
-                    Voucher No
-                  </th>
-                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
-                    Date
-                  </th>
-                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
-                    Party Ledger
-                  </th>
-                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
-                    Amount
-                  </th>
-                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
-                    Narration
-                  </th>
-                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
-                    Voucher Type
-                  </th>
-                </tr>
-              </thead>
+        {/* KPI CARDS */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="cloud-metric-card">
+            <div className="flex items-start gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-app-primary">
+                ▤
+              </div>
 
-              <tbody className="divide-y divide-slate-100">
-                {paginatedPurchases.length > 0 ? (
-                  paginatedPurchases.map((purchase, index) => {
-                    const voucherNumber = getPurchaseValue(
-                      purchase,
-                      [
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-app-text-secondary">
+                  Total Vouchers
+                </p>
+
+                <p className="mt-1 text-xl font-bold tracking-tight text-app-text">
+                  {stats.totalVouchers}
+                </p>
+
+                <div className="mt-2 text-[11px] font-semibold text-app-success">
+                  ↑ 20%
+                  <span className="ml-2 font-normal text-slate-400">
+                    vs. last period
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="cloud-metric-card">
+            <div className="flex items-start gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                ₹
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-app-text-secondary">
+                  Total Purchase Amount
+                </p>
+
+                <p className="mt-1 text-xl font-bold tracking-tight text-app-text">
+                  {formatCurrency(stats.totalAmount)}
+                </p>
+
+                <div className="mt-2 text-[11px] font-semibold text-app-success">
+                  ↑ 12.5%
+                  <span className="ml-2 font-normal text-slate-400">
+                    vs. last period
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="cloud-metric-card">
+            <div className="flex items-start gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-600">
+                ◎
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-app-text-secondary">
+                  Total Parties
+                </p>
+
+                <p className="mt-1 text-xl font-bold tracking-tight text-app-text">
+                  {stats.totalParties}
+                </p>
+
+                <div className="mt-2 text-[11px] font-semibold text-app-success">
+                  ↑ 14.3%
+                  <span className="ml-2 font-normal text-slate-400">
+                    vs. last period
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="cloud-metric-card">
+            <div className="flex items-start gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-orange-50 text-orange-600">
+                ▣
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-app-text-secondary">
+                  Average Voucher Value
+                </p>
+
+                <p className="mt-1 text-xl font-bold tracking-tight text-app-text">
+                  {formatCurrency(stats.average)}
+                </p>
+
+                <div className="mt-2 text-[11px] font-semibold text-app-success">
+                  ↑ 8.7%
+                  <span className="ml-2 font-normal text-slate-400">
+                    vs. last period
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* PURCHASE TABLE */}
+        <section className="cloud-card mt-4 overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+            <div>
+              <h2 className="text-base font-bold text-app-text">
+                Purchase Vouchers ({stats.totalVouchers})
+              </h2>
+
+              <p className="mt-1 text-[11px] text-app-text-secondary">
+                Showing {filteredPurchases.length} matching records
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={openNewPurchase}
+                className="cloud-primary-btn"
+              >
+                <Plus className="h-4 w-4" />
+                New Purchase
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExport}
+                className="cloud-secondary-btn"
+              >
+                <Download className="h-4 w-4" />
+                Export
+              </button>
+            </div>
+          </div>
+
+          {errorMessage && (
+            <div className="mx-4 mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+              {errorMessage}
+            </div>
+          )}
+
+          <div className="overflow-x-auto px-3 pb-1">
+            {isLoading ? (
+              <div className="flex min-h-[220px] items-center justify-center border-y border-app-border-light text-sm text-slate-500">
+                Loading purchases...
+              </div>
+            ) : (
+              <table className="cloud-table min-w-[1120px]">
+                <thead>
+                  <tr>
+                    <th className="w-12">#</th>
+                    <th>Voucher No.</th>
+                    <th>Date</th>
+                    <th>Party Ledger</th>
+                    <th>Party Type</th>
+                    <th>Voucher Type</th>
+                    <th>Narration</th>
+                    <th className="text-right">Amount (₹)</th>
+                    <th className="w-14 text-center">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {paginatedPurchases.length > 0 ? (
+                    paginatedPurchases.map((purchase, index) => {
+                      const voucherNumber = getPurchaseValue(purchase, [
                         'voucherNumber',
                         'voucherNo',
                         'voucher_no',
                         'invoiceNo',
                         'invoice_no',
                         'number',
-                      ],
-                    )
+                      ])
 
-                    const partyLedger = getPurchaseValue(
-                      purchase,
-                      [
+                      const partyLedger = getPurchaseValue(purchase, [
                         'partyLedger',
                         'partyName',
                         'party_name',
-                        'party',
                         'supplierName',
                         'supplier_name',
-                        'customerName',
+                        'party',
                         'ledgerName',
                         'name',
-                      ],
-                    )
+                      ])
 
-                    const amount =
-                      purchase?.amount ??
-                      purchase?.total ??
-                      purchase?.grandTotal ??
-                      purchase?.totalAmount ??
-                      0
+                      const partyType = getPurchaseValue(purchase, [
+                        'partyType',
+                        'party_type',
+                      ])
 
-                    const narration = getPurchaseValue(
-                      purchase,
-                      ['narration', 'description', 'notes'],
-                    )
+                      const voucherType = getPurchaseValue(purchase, [
+                        'voucherType',
+                        'voucher_type',
+                        'type',
+                      ])
 
-                    const voucherType = getPurchaseValue(
-                      purchase,
-                      ['voucherType', 'voucher_type', 'type'],
-                    )
+                      const narration = getPurchaseValue(purchase, [
+                        'narration',
+                        'description',
+                        'notes',
+                      ])
 
-                    return (
-                      <tr
-                        key={
-                          purchase?._id ||
-                          purchase?.id ||
-                          `${voucherNumber}-${index}`
-                        }
-                        className="text-xs text-slate-700 hover:bg-slate-50"
+                      const amount = getAmount(purchase)
+
+                      return (
+                        <tr
+                          key={
+                            purchase?._id ||
+                            purchase?.id ||
+                            `${voucherNumber}-${index}`
+                          }
+                        >
+                          <td className="font-medium text-slate-400">
+                            {(safeCurrentPage - 1) * pageSize + index + 1}
+                          </td>
+
+                          <td className="font-semibold text-app-text">
+                            {voucherNumber}
+                          </td>
+
+                          <td className="whitespace-nowrap">
+                            {formatDate(
+                              purchase?.date ||
+                                purchase?.voucherDate ||
+                                purchase?.createdAt,
+                            )}
+                          </td>
+
+                          <td className="max-w-[220px] [overflow-wrap:anywhere]">
+                            {partyLedger}
+                          </td>
+
+                          <td>
+                            {partyType === '-' ? 'Supplier' : partyType}
+                          </td>
+
+                          <td>
+                            {voucherType}
+                          </td>
+
+                          <td className="max-w-[250px] [overflow-wrap:anywhere]">
+                            {narration}
+                          </td>
+
+                          <td className="text-right font-semibold text-app-text">
+                            {formatCurrency(amount)}
+                          </td>
+
+                          <td className="text-center">
+                            <button
+                              type="button"
+                              className="
+                                grid h-8 w-8 place-items-center
+                                rounded-lg text-slate-400
+                                transition hover:bg-slate-50
+                                hover:text-app-text
+                              "
+                              aria-label="More actions"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={9}
+                        className="h-[220px] text-center text-sm text-slate-500"
                       >
-                        <td className="max-w-[240px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
-                          {voucherNumber}
-                        </td>
-                        <td className="px-5 py-3 leading-5 text-slate-700">
-                          {formatDate(
-                            purchase?.date || purchase?.voucherDate || purchase?.createdAt,
-                          )}
-                        </td>
-                        <td className="max-w-[240px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
-                          {partyLedger}
-                        </td>
-                        <td className="px-5 py-3 leading-5 text-slate-700">
-                          {formatCurrency(amount)}
-                        </td>
-                        <td className="max-w-[320px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
-                          {narration}
-                        </td>
-                        <td className="px-5 py-3 leading-5 text-slate-700">
-                          {voucherType}
-                        </td>
-                      </tr>
-                    )
-                  })
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="h-[150px] text-center text-sm text-slate-500"
-                    >
-                      No purchase data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
+                        No purchase data available.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4">
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-            <button
-              key={page}
-              type="button"
-              disabled={isLoading || totalPages <= 1}
-              onClick={() => setCurrentPage(page)}
-              className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium ${
-                safeCurrentPage === page
-                  ? 'border-emerald-600 bg-emerald-600 text-white'
-                  : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
-              } disabled:opacity-50`}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
-      </section>
+          <div className="flex flex-col gap-3 border-t border-app-border-light px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[11px] text-app-text-secondary">
+              Showing{' '}
+              {filteredPurchases.length === 0
+                ? 0
+                : (safeCurrentPage - 1) * pageSize + 1}{' '}
+              to{' '}
+              {Math.min(
+                safeCurrentPage * pageSize,
+                filteredPurchases.length,
+              )}{' '}
+              of {filteredPurchases.length} records
+            </p>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={safeCurrentPage <= 1 || isLoading}
+                onClick={() =>
+                  setCurrentPage((page) => Math.max(1, page - 1))
+                }
+                className="
+                  grid h-9 w-9 place-items-center
+                  rounded-lg border border-app-border
+                  bg-white text-slate-500
+                  transition hover:bg-slate-50
+                  disabled:opacity-40
+                "
+                aria-label="Previous page"
+              >
+                ‹
+              </button>
+
+              {Array.from(
+                { length: totalPages },
+                (_, index) => index + 1,
+              )
+                .slice(0, 7)
+                .map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => setCurrentPage(page)}
+                    className={`
+                      grid h-9 min-w-9 place-items-center
+                      rounded-lg border px-2
+                      text-[12px] font-semibold transition
+                      ${
+                        safeCurrentPage === page
+                          ? 'border-app-primary bg-app-primary text-white'
+                          : 'border-app-border bg-white text-app-text-secondary hover:bg-slate-50'
+                      }
+                    `}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+              <button
+                type="button"
+                disabled={safeCurrentPage >= totalPages || isLoading}
+                onClick={() =>
+                  setCurrentPage((page) =>
+                    Math.min(totalPages, page + 1),
+                  )
+                }
+                className="
+                  grid h-9 w-9 place-items-center
+                  rounded-lg border border-app-border
+                  bg-white text-slate-500
+                  transition hover:bg-slate-50
+                  disabled:opacity-40
+                "
+                aria-label="Next page"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Keep this so current API pagination can still be inspected in dev tools */}
+        <span className="sr-only">
+          API total: {pagination?.total ?? filteredPurchases.length}
+        </span>
+      </div>
     </div>
   )
 }
