@@ -489,3 +489,180 @@
     min-width: 820px;
   }
 }
+
+/* ============================================================
+   SIDEBAR SCROLLBAR + ACTIVE ICON ALIGNMENT FIX
+============================================================ */
+
+@layer components {
+  /* Use a real scrollbar that blends into the dark sidebar. */
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #385b76 #072b4b;
+    overscroll-behavior: contain;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: #072b4b;
+    border-radius: 9999px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: #385b76;
+    border: 1px solid #072b4b;
+    border-radius: 9999px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: #4d6f88;
+  }
+
+  /* If the existing Sidebar uses sidebar-nav, style it too. */
+  .app-sidebar .sidebar-nav {
+    scrollbar-width: thin;
+    scrollbar-color: #385b76 #072b4b;
+  }
+
+  .app-sidebar .sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .app-sidebar .sidebar-nav::-webkit-scrollbar-track {
+    background: #072b4b;
+  }
+
+  .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
+    background: #385b76;
+    border: 1px solid #072b4b;
+    border-radius: 9999px;
+  }
+
+  .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: #4d6f88;
+  }
+
+  /* Expanded links: stable height and consistent icon box. */
+  .app-sidebar .sidebar-link {
+    min-height: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+  }
+
+  /* Collapsed links: center every icon in the exact same 44px track. */
+  .app-sidebar[data-collapsed="true"] .sidebar-link {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 0;
+  }
+
+  /* Remove full-row active fill when collapsed. */
+  .app-sidebar[data-collapsed="true"] .sidebar-link.is-active {
+    background: transparent;
+  }
+
+  /* Put active green only around the icon when collapsed. */
+  .app-sidebar[data-collapsed="true"] .sidebar-link.is-active > span:first-child {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: #10a66f;
+    color: #ffffff;
+  }
+
+  /* Keep inactive icon box identical for perfect centering. */
+  .app-sidebar[data-collapsed="true"] .sidebar-link > span:first-child {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+  }
+
+  .app-sidebar[data-collapsed="true"] .sidebar-link > span:first-child > svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* No unwanted submenu indentation when collapsed. */
+  .app-sidebar[data-collapsed="true"] .sidebar-link + div {
+    display: none;
+  }
+
+  /* Remove accidental horizontal shift from scrollbar area. */
+  .app-sidebar {
+    overflow: hidden;
+  }
+
+  .app-sidebar .sidebar-nav {
+    width: 100%;
+    min-width: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  /* Header and main-content lock to the same 64px shell. */
+  .app-header {
+    height: 64px;
+    min-height: 64px;
+  }
+
+  .app-header > div:first-child {
+    height: 64px;
+    min-height: 64px;
+  }
+}
+
+/* ============================================================
+   PREVENT DESKTOP HEADER OVERFLOW
+============================================================ */
+
+@media (min-width: 1024px) and (max-width: 1250px) {
+  .app-header .max-w-\[390px\] {
+    max-width: 300px;
+  }
+
+  .app-header [class*="w-[250px]"] {
+    width: 220px;
+    min-width: 190px;
+  }
+
+  .app-header .w-\[175px\] {
+    width: 155px;
+  }
+
+  .app-header .w-\[96px\] {
+    width: 82px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .app-sidebar {
+    box-shadow: 10px 0 28px rgba(15, 23, 42, 0.18);
+  }
+}
+
+@media (max-width: 767px) {
+  .app-header {
+    height: auto;
+    min-height: 64px;
+  }
+}

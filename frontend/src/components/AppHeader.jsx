@@ -311,7 +311,7 @@ function AppHeader({
   return (
     <>
       <header className="app-header w-full">
-        <div className="flex min-h-16 w-full items-stretch">
+        <div className="flex h-16 min-h-16 w-full min-w-0 items-stretch overflow-hidden">
           {/* MENU */}
           <button
             type="button"
@@ -319,7 +319,7 @@ function AppHeader({
             aria-expanded={!sidebarCollapsed}
             onClick={() => setSidebarCollapsed((current) => !current)}
             className="
-              flex h-16 w-[60px] shrink-0
+              flex h-16 w-[56px] shrink-0
               items-center justify-center
               border-0 border-r border-app-border
               bg-white text-app-text-secondary
@@ -333,9 +333,8 @@ function AppHeader({
           <div
             className="
               relative flex h-16
-              w-[clamp(210px,24vw,320px)]
-              min-w-[190px] shrink-0
-              items-center gap-3
+              w-[250px] min-w-[210px]
+              shrink-0 items-center gap-3
               border-r border-app-border
               bg-white px-4
             "
@@ -447,8 +446,8 @@ function AppHeader({
           {/* SEARCH */}
           <label
             className="
-              mx-4 my-auto flex h-10 min-w-[180px]
-              max-w-[430px] flex-1 items-center gap-2
+              mx-4 my-auto flex h-10 min-w-0
+              max-w-[390px] flex-1 items-center gap-2
               rounded-lg border border-app-border
               bg-slate-50/50 px-3 text-slate-400
               transition
@@ -472,7 +471,7 @@ function AppHeader({
           </label>
 
           {/* RIGHT ACTIONS */}
-          <div className="ml-auto flex h-16 shrink-0 items-stretch">
+          <div className="ml-auto flex h-16 min-w-0 shrink-0 items-stretch">
             {/* LINK E-INVOICE */}
             <button
               type="button"
@@ -480,9 +479,9 @@ function AppHeader({
                 onOpenEway ? onOpenEway() : setShowEway?.(true)
               }
               className="
-                hidden h-16 w-[92px]
-                items-center justify-center gap-2
-                border-0 border-l border-r border-app-border
+                hidden h-16 w-[82px] shrink-0
+                items-center justify-center gap-1.5
+                border-0 border-r border-app-border
                 bg-white text-[10px] text-app-text-secondary
                 transition hover:bg-slate-50
                 md:flex
@@ -518,8 +517,8 @@ function AppHeader({
                   ))
               }
               className="
-                hidden h-16 w-[100px]
-                items-center justify-center gap-2
+                hidden h-16 w-[88px] shrink-0
+                items-center justify-center gap-1.5
                 border-0 border-r border-app-border
                 bg-white text-[10px] text-app-text-secondary
                 transition hover:bg-slate-50
@@ -538,7 +537,7 @@ function AppHeader({
             {/* CONNECTOR STATUS */}
             <div
               className="
-                hidden h-16 min-w-[170px]
+                hidden h-16 w-[175px] shrink-0
                 items-center justify-center
                 border-r border-app-border
                 bg-white px-2
@@ -554,7 +553,7 @@ function AppHeader({
             </div>
 
             {/* PROFILE */}
-            <div className="relative flex h-16 min-w-[104px] items-center">
+            <div className="relative flex h-16 w-[96px] shrink-0 items-center">
               <button
                 type="button"
                 aria-label="Open profile menu"
@@ -566,7 +565,7 @@ function AppHeader({
                 className="
                   flex h-16 w-full items-center
                   justify-center gap-2
-                  border-0 bg-white px-3
+                  border-0 bg-white px-2
                   transition hover:bg-slate-50
                 "
               >
@@ -580,7 +579,7 @@ function AppHeader({
                   <User className="h-4 w-4 text-app-text-secondary" />
                 </span>
 
-                <span className="hidden text-[12px] font-semibold text-app-text sm:block">
+                <span className="hidden text-[12px] font-semibold text-app-text md:block">
                   Admin
                 </span>
 
@@ -648,7 +647,7 @@ function AppHeader({
         </div>
 
         {/* MOBILE SEARCH */}
-        <div className="border-t border-app-border-light px-3 py-2 lg:hidden">
+        <div className="border-t border-app-border-light bg-white px-3 py-2 lg:hidden">
           <label
             className="
               flex h-10 w-full items-center gap-2

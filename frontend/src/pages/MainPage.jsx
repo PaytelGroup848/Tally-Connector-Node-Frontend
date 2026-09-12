@@ -344,13 +344,140 @@ function App() {
     return <SectionPage path={currentPath} />
   }
 
-  return <div className="app-shell relative min-h-screen bg-[#F5F8FC] text-[#102A43]">
-    <Sidebar collapsed={sidebarCollapsed} isCompact={isCompact} setSidebarCollapsed={setSidebarCollapsed} currentPath={currentPath} showDashboard={flags.showDashboard} expandedNav={expandedNav} setExpandedNav={setExpandedNav} onDashboard={openDashboard} onQuotation={openQuotation} onNavigate={(path) => navigateTo(path)} />
-    <main
-      className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left,width] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[68px] sidebar-collapsed' : 'ml-[228px]'}`}
-    >
-      <AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onCompanyClick={openCompanyDetails} onSelectCompany={selectCompany} onLogout={async () => { await logout(); window.location.replace('/') }} connectorStatusRows={connectorStatusRows} lastSyncMeta={lastSyncMeta} connectorStatusError={connectorStatusError} isConnectorStatusLoading={isConnectorStatusLoading} />{renderPage()}
-    </main>
+  return (
+    <div className="app-shell relative min-h-screen bg-app-bg text-app-text">
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        isCompact={isCompact}
+        setSidebarCollapsed={setSidebarCollapsed}
+        currentPath={currentPath}
+        showDashboard={flags.showDashboard}
+        expandedNav={expandedNav}
+        setExpandedNav={setExpandedNav}
+        onDashboard={openDashboard}
+        onQuotation={openQuotation}
+        onNavigate={(path) => navigateTo(path)}
+      />
+
+      <main
+        className={`
+          app-main relative min-h-screen min-w-0
+          transition-[margin-left,width] duration-200
+          ${
+            isCompact
+              ? 'ml-0 w-full'
+              : sidebarCollapsed
+                ? 'ml-[68px] sidebar-collapsed w-[calc(100%-68px)]'
+                : 'ml-[228px] w-[calc(100%-228px)]'
+          }
+        `}
+      >
+        <AppHeader
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarCollapsed={setSidebarCollapsed}
+          setShowEway={setShowEway}
+          onOpenEway={() => navigateTo('/eway')}
+          showProfileMenu={showProfileMenu}
+          setShowProfileMenu={setShowProfileMenu}
+          showCompanyMenu={showCompanyMenu}
+          setShowCompanyMenu={setShowCompanyMenu}
+          onProfileClick={() => navigateTo('/profile')}
+          onAllUsersClick={() => navigateTo('/all-users')}
+          onMobileVersionClick={openMobileVersion}
+          selectedCompany={selectedCompany}
+          companyOptions={companyOptions}
+          onAddCompany={handleCompanyAdd}
+          onCompanyClick={openCompanyDetails}
+          onSelectCompany={selectCompany}
+          onLogout={async () => {
+            await logout()
+            window.location.replace('/')
+          }}
+          connectorStatusRows={connectorStatusRows}
+          lastSyncMeta={lastSyncMeta}
+          connectorStatusError={connectorStatusError}
+          isConnectorStatusLoading={isConnectorStatusLoading}
+        />
+
+        {renderPage()}
+      </main>
+
+      <div className="fixed bottom-5 right-5 z-40">
+        {showQuickCreate && (
+          <div className="mb-3 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-app-border bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
+            <div className="flex items-center justify-between bg-app-navy px-3 py-2 text-white">
+              <span className="text-xs font-semibold">
+                Quick Create
+              </span>
+
+              <button
+                type="button"
+                aria-label="Close quick create"
+                onClick={() => setShowQuickCreate(false)}
+                className="ml-auto text-lg leading-none text-white/80 hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="max-h-[360px] overflow-y-auto bg-slate-50 p-2">
+              {quickCreateGroups.map((group) => (
+                <div
+                  key={group.title}
+                  className="mb-2 overflow-hidden rounded-lg border border-app-border bg-white last:mb-0"
+                >
+                  <div className="bg-slate-50 px-3 py-2 text-xs font-semibold text-app-text">
+                    {group.title}
+                  </div>
+
+                  <div className="p-1.5">
+                    {group.items.map(([label, targetPath]) => (
+                      <button
+                        key={`${group.title}-${label}`}
+                        type="button"
+                        onClick={() => {
+                          setShowQuickCreate(false)
+                          navigateTo(targetPath)
+                        }}
+                        className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-xs text-app-text-secondary transition hover:bg-slate-50 hover:text-app-text"
+                      >
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-bold text-app-primary">
+                          •
+                        </span>
+
+                        <span className="flex-1">
+                          {label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button
+          type="button"
+          aria-label="Quick create"
+          onClick={() => setShowQuickCreate((current) => !current)}
+          className="
+            grid h-14 w-14
+            place-items-center
+            rounded-full
+            bg-app-navy
+            text-3xl font-light
+            text-white
+            shadow-[0_10px_28px_rgba(15,23,42,0.25)]
+            transition
+            hover:scale-105
+          "
+        >
+          +
+        </button>
+      </div>
+    </div>
+  )
 
     <div className="fixed bottom-5 right-5 z-40">
       {showQuickCreate && (

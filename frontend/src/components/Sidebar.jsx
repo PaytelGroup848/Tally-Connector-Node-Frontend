@@ -94,12 +94,12 @@ function Sidebar({
         aria-label="Go to dashboard"
         className={`
           sidebar-brand flex h-[68px] w-full shrink-0
-          items-center gap-3 border-0 px-4 text-left
+          items-center gap-3 border-0 px-4 text-left justify-center
           ${collapsed ? 'justify-center px-0' : ''}
         `}
       >
         <img
-          className="h-auto max-h-[42px] w-auto max-w-[158px] shrink-0 object-contain"
+          className="h-auto max-h-[42px]  w-auto max-w-[158px] shrink-0 object-contain"
           src={logo}
           alt="Cloudedata"
         />

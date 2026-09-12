@@ -143,8 +143,8 @@ function DashboardPage({
   }, [])
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-app-bg p-4 sm:p-5 lg:p-6">
-      <div className="mx-auto max-w-[1500px]">
+    <div className="min-h-[calc(100vh-64px)] w-full min-w-0 overflow-x-hidden bg-app-bg p-4 sm:p-5 lg:p-6">
+      <div className="mx-auto w-full max-w-[1500px] min-w-0">
         {/* PAGE HEADER */}
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h1 className="cloud-page-title">
@@ -199,7 +199,7 @@ function DashboardPage({
         </div>
 
         {/* CHART + RECEIVABLES */}
-        <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_1fr]">
+        <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
           <Panel
             title="Sales & Receipts"
             action={
@@ -406,7 +406,7 @@ function DashboardPage({
         </div>
 
         {/* BOTTOM ROW */}
-        <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <Panel
             title="Top Customers"
             action={

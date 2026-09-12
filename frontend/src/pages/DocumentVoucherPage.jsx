@@ -1507,7 +1507,7 @@ export function DocumentVoucherPage({
                 ? 'Creating voucher...'
                 : showSuccessAnimation
                   ? 'Voucher created successfully!'
-                  : 'Loading Sales Invoice...'}
+                  : 'Loading ...'}
             </span>
           </div>
         </div>
