@@ -21,12 +21,24 @@ import {
   extractReceiptPagination,
   extractReceipts,
   fetchCompanyReceipts,
+  extractReceiptNotePagination,
+  extractReceiptNotes,
+  fetchCompanyReceiptNotes,
   extractSalesOrderPagination,
   extractSalesOrders,
   fetchCompanySalesOrders,
   extractDeliveryNotePagination,
   extractDeliveryNotes,
   fetchCompanyDeliveryNotes,
+  extractDebitNotePagination,
+  extractDebitNotes,
+  fetchCompanyDebitNotes,
+  extractPaymentPagination,
+  extractPayments,
+  fetchCompanyPayments,
+  extractPurchaseOrderPagination,
+  extractPurchaseOrders,
+  fetchCompanyPurchaseOrders,
 } from '../services/companiesApi'
 
 import {
@@ -3174,8 +3186,12 @@ function SalesReport({
 function CreditNoteReport({ companyId, reportType = 'creditnote' }) {
   const accessToken = useAuthStore((state) => state.accessToken)
   const isReceiptReport = reportType === 'receipt'
+  const isReceiptNoteReport = reportType === 'receiptnote'
   const isSalesOrderReport = reportType === 'salesorder'
   const isDeliveryNoteReport = reportType === 'deliverynote'
+  const isDebitNoteReport = reportType === 'debitnote'
+  const isPaymentReport = reportType === 'payment'
+  const isPurchaseOrderReport = reportType === 'purchaseorder'
   const effectiveCompanyId = companyId || (isReceiptReport ? '6aa0f66df858467a84d08d58' : isSalesOrderReport ? '' : '6aa38f546cd43af3d64fbc0d')
   const [query, setQuery] = useState('')
   const [startDate, setStartDate] = useState('2010-04-01')
@@ -3201,25 +3217,49 @@ function CreditNoteReport({ companyId, reportType = 'creditnote' }) {
 
     const fetchRecords = isReceiptReport
       ? fetchCompanyReceipts
-      : isSalesOrderReport
-        ? fetchCompanySalesOrders
-        : isDeliveryNoteReport
-          ? fetchCompanyDeliveryNotes
-        : fetchCompanyCreditNotes
+      : isReceiptNoteReport
+        ? fetchCompanyReceiptNotes
+        : isSalesOrderReport
+          ? fetchCompanySalesOrders
+          : isDeliveryNoteReport
+            ? fetchCompanyDeliveryNotes
+            : isDebitNoteReport
+              ? fetchCompanyDebitNotes
+              : isPaymentReport
+                ? fetchCompanyPayments
+                : isPurchaseOrderReport
+                  ? fetchCompanyPurchaseOrders
+                  : fetchCompanyCreditNotes
     const extractRecords = isReceiptReport
       ? extractReceipts
-      : isSalesOrderReport
-        ? extractSalesOrders
-        : isDeliveryNoteReport
-          ? extractDeliveryNotes
-        : extractCreditNotes
+      : isReceiptNoteReport
+        ? extractReceiptNotes
+        : isSalesOrderReport
+          ? extractSalesOrders
+          : isDeliveryNoteReport
+            ? extractDeliveryNotes
+            : isDebitNoteReport
+              ? extractDebitNotes
+              : isPaymentReport
+                ? extractPayments
+                : isPurchaseOrderReport
+                  ? extractPurchaseOrders
+                  : extractCreditNotes
     const extractPagination = isReceiptReport
       ? extractReceiptPagination
-      : isSalesOrderReport
-        ? extractSalesOrderPagination
-        : isDeliveryNoteReport
-          ? extractDeliveryNotePagination
-        : extractCreditNotePagination
+      : isReceiptNoteReport
+        ? extractReceiptNotePagination
+        : isSalesOrderReport
+          ? extractSalesOrderPagination
+          : isDeliveryNoteReport
+            ? extractDeliveryNotePagination
+            : isDebitNoteReport
+              ? extractDebitNotePagination
+              : isPaymentReport
+                ? extractPaymentPagination
+                : isPurchaseOrderReport
+                  ? extractPurchaseOrderPagination
+                  : extractCreditNotePagination
 
     fetchRecords(accessToken, effectiveCompanyId, {
       q: query,
@@ -3240,14 +3280,14 @@ function CreditNoteReport({ companyId, reportType = 'creditnote' }) {
         if (!mounted) return
         setRows([])
         setTotalItems(0)
-        setErrorMessage(error?.message || `Unable to load ${isReceiptReport ? 'receipt' : isSalesOrderReport ? 'sales order' : isDeliveryNoteReport ? 'delivery note' : 'credit note'} data.`)
+        setErrorMessage(error?.message || `Unable to load ${isReceiptReport ? 'receipt' : isReceiptNoteReport ? 'receipt note' : isSalesOrderReport ? 'sales order' : isDeliveryNoteReport ? 'delivery note' : isDebitNoteReport ? 'debit note' : isPaymentReport ? 'payment' : isPurchaseOrderReport ? 'purchase order' : 'credit note'} data.`)
       })
       .finally(() => {
         if (mounted) setIsLoading(false)
       })
 
     return () => { mounted = false }
-  }, [accessToken, effectiveCompanyId, currentPage, endDate, isDeliveryNoteReport, isReceiptReport, isSalesOrderReport, pageSize, query, startDate])
+  }, [accessToken, effectiveCompanyId, currentPage, endDate, isDeliveryNoteReport, isDebitNoteReport, isPaymentReport, isPurchaseOrderReport, isReceiptReport, isSalesOrderReport, pageSize, query, startDate])
 
   const columns = Array.from(new Set(rows.flatMap((row) => (
     row && typeof row === 'object' && !Array.isArray(row) ? Object.keys(row) : []
@@ -3271,7 +3311,7 @@ function CreditNoteReport({ companyId, reportType = 'creditnote' }) {
       <div className="bg-white px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <span className="block text-xs text-slate-600">{isReceiptReport ? 'Receipt Data' : isSalesOrderReport ? 'Sales Order Data' : isDeliveryNoteReport ? 'Delivery Note Data' : 'Credit Note Data'}</span>
+            <span className="block text-xs text-slate-600">{isReceiptReport ? 'Receipt Data' : isReceiptNoteReport ? 'Receipt Note Data' : isSalesOrderReport ? 'Sales Order Data' : isDeliveryNoteReport ? 'Delivery Note Data' : isDebitNoteReport ? 'Debit Note Data' : isPaymentReport ? 'Payment Data' : isPurchaseOrderReport ? 'Purchase Order Data' : 'Credit Note Data'}</span>
             <strong className="mt-1 block text-xl font-bold text-slate-900">{totalItems} records</strong>
           </div>
           <DateRangeDisplay startDate={startDate} endDate={endDate} onChange={(from, to) => { setCurrentPage(1); setStartDate(from || startDate); setEndDate(to || endDate) }} />
@@ -3289,10 +3329,10 @@ function CreditNoteReport({ companyId, reportType = 'creditnote' }) {
         </div>
         {errorMessage && <div className="mx-4 mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">{errorMessage}</div>}
         <div className="overflow-x-auto px-3 pb-1">
-          {isLoading ? <div className="flex min-h-[150px] items-center justify-center border-y border-slate-100 text-sm text-slate-500">Loading {isReceiptReport ? 'receipt' : isSalesOrderReport ? 'sales order' : isDeliveryNoteReport ? 'delivery note' : 'credit note'} data...</div> : (
+          {isLoading ? <div className="flex min-h-[150px] items-center justify-center border-y border-slate-100 text-sm text-slate-500">Loading {isReceiptReport ? 'receipt' : isReceiptNoteReport ? 'receipt note' : isSalesOrderReport ? 'sales order' : isDeliveryNoteReport ? 'delivery note' : isDebitNoteReport ? 'debit note' : isPaymentReport ? 'payment' : isPurchaseOrderReport ? 'purchase order' : 'credit note'} data...</div> : (
             <table className="min-w-[1200px] w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr>{orderedColumns.map((column) => <th key={column} className="whitespace-nowrap px-5 py-3 font-semibold">{label(column)}</th>)}</tr></thead>
-              <tbody className="divide-y divide-slate-100">{rows.length > 0 ? rows.map((row, rowIndex) => <tr key={row.id || row._id || rowIndex} className="text-xs text-slate-700 hover:bg-slate-50">{orderedColumns.map((column) => { const value = formatValue(row[column], column); return <td key={`${rowIndex}-${column}`} title={value} className="max-w-[280px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">{value}</td> })}</tr>) : <tr><td colSpan={Math.max(orderedColumns.length, 1)} className="h-[150px] text-center text-sm text-slate-500">No {isReceiptReport ? 'receipt' : isSalesOrderReport ? 'sales order' : isDeliveryNoteReport ? 'delivery note' : 'credit note'} data available.</td></tr>}</tbody>
+              <tbody className="divide-y divide-slate-100">{rows.length > 0 ? rows.map((row, rowIndex) => <tr key={row.id || row._id || rowIndex} className="text-xs text-slate-700 hover:bg-slate-50">{orderedColumns.map((column) => { const value = formatValue(row[column], column); return <td key={`${rowIndex}-${column}`} title={value} className="max-w-[280px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">{value}</td> })}</tr>) : <tr><td colSpan={Math.max(orderedColumns.length, 1)} className="h-[150px] text-center text-sm text-slate-500">No {isReceiptReport ? 'receipt' : isSalesOrderReport ? 'sales order' : isDeliveryNoteReport ? 'delivery note' : isDebitNoteReport ? 'debit note' : isPaymentReport ? 'payment' : isPurchaseOrderReport ? 'purchase order' : 'credit note'} data available.</td></tr>}</tbody>
             </table>
           )}
         </div>
@@ -3357,11 +3397,47 @@ function ReportListPage({
     )
   }
 
+  if (path === '/purchaseorder') {
+    return (
+      <CreditNoteReport
+        companyId={companyId}
+        reportType="purchaseorder"
+      />
+    )
+  }
+
+  if (path === '/payments') {
+    return (
+      <CreditNoteReport
+        companyId={companyId}
+        reportType="payment"
+      />
+    )
+  }
+
+  if (path === '/debitnote') {
+    return (
+      <CreditNoteReport
+        companyId={companyId}
+        reportType="debitnote"
+      />
+    )
+  }
+
   if (path === '/receipt') {
     return (
       <CreditNoteReport
         companyId={companyId}
         reportType="receipt"
+      />
+    )
+  }
+
+  if (path === '/receiptnote') {
+    return (
+      <CreditNoteReport
+        companyId={companyId}
+        reportType="receiptnote"
       />
     )
   }

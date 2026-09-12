@@ -427,6 +427,102 @@ export function extractReceiptPagination(response) {
   return response && typeof response === 'object' ? response : {}
 }
 
+export function fetchCompanyReceiptNotes(
+  accessToken,
+  companyId,
+  { q = '', from = '', to = '', page = 1, limit = 20 } = {},
+) {
+  const params = new URLSearchParams({
+    q: String(q),
+    from: String(from),
+    to: String(to),
+    page: String(page),
+    limit: String(limit),
+  })
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/receipt-notes?${params}`,
+    accessToken,
+  )
+}
+
+export function extractReceiptNotes(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const receiptNoteKeys = ['receiptNotes', 'receiptnotes', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of receiptNoteKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractReceiptNotePagination(response) {
+  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
+  if (pagination && typeof pagination === 'object') return pagination
+  if (response?.data && typeof response.data === 'object') return response.data
+  return response && typeof response === 'object' ? response : {}
+}
+
+export function fetchCompanyPayments(
+  accessToken,
+  companyId,
+  { q = '', from = '', to = '', page = 1, limit = 20 } = {},
+) {
+  const params = new URLSearchParams({
+    q: String(q),
+    from: String(from),
+    to: String(to),
+    page: String(page),
+    limit: String(limit),
+  })
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/payments?${params}`,
+    accessToken,
+  )
+}
+
+export function extractPayments(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const paymentKeys = ['payments', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of paymentKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractPaymentPagination(response) {
+  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
+  if (pagination && typeof pagination === 'object') return pagination
+  if (response?.data && typeof response.data === 'object') return response.data
+  return response && typeof response === 'object' ? response : {}
+}
+
 export function fetchCompanyCreditNotes(
   accessToken,
   companyId,
@@ -469,6 +565,54 @@ export function extractCreditNotes(response) {
 }
 
 export function extractCreditNotePagination(response) {
+  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
+  if (pagination && typeof pagination === 'object') return pagination
+  if (response?.data && typeof response.data === 'object') return response.data
+  return response && typeof response === 'object' ? response : {}
+}
+
+export function fetchCompanyDebitNotes(
+  accessToken,
+  companyId,
+  { q = '', from = '', to = '', page = 1, limit = 20 } = {},
+) {
+  const params = new URLSearchParams({
+    q: String(q),
+    from: String(from),
+    to: String(to),
+    page: String(page),
+    limit: String(limit),
+  })
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/debit-notes?${params}`,
+    accessToken,
+  )
+}
+
+export function extractDebitNotes(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const debitNoteKeys = ['debitNotes', 'debitnotes', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of debitNoteKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractDebitNotePagination(response) {
   const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
   if (pagination && typeof pagination === 'object') return pagination
   if (response?.data && typeof response.data === 'object') return response.data
@@ -609,6 +753,25 @@ export function fetchCompanyPurchases(
   )
 }
 
+export function fetchCompanyPurchaseOrders(
+  accessToken,
+  companyId,
+  { q = '', from = '', to = '', page = 1, limit = 20 } = {},
+) {
+  const params = new URLSearchParams({
+    q: String(q),
+    from: String(from),
+    to: String(to),
+    page: String(page),
+    limit: String(limit),
+  })
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/purchase-orders?${params}`,
+    accessToken,
+  )
+}
+
 export function extractPurchases(response) {
   if (Array.isArray(response)) return response
 
@@ -632,6 +795,35 @@ export function extractPurchases(response) {
 }
 
 export function extractPurchasePagination(response) {
+  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
+  if (pagination && typeof pagination === 'object') return pagination
+  if (response?.data && typeof response.data === 'object') return response.data
+  return response && typeof response === 'object' ? response : {}
+}
+
+export function extractPurchaseOrders(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const purchaseOrderKeys = ['purchaseOrders', 'purchaseorders', 'orders', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of purchaseOrderKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractPurchaseOrderPagination(response) {
   const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
   if (pagination && typeof pagination === 'object') return pagination
   if (response?.data && typeof response.data === 'object') return response.data

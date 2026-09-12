@@ -336,7 +336,7 @@ function App() {
     if (flags.showContra) return <ContraPage />
     if (flags.showDeliveryNote) return <DeliveryNotePage />
     if (flags.showPhysicalStock) return <PhysicalStockPage />
-    if (flags.showDebitNote) return <DebitNotePage />
+    if (flags.showDebitNote) return <DebitNotePage companyId={selectedCompany?.id} />
     if (flags.showCreditNote) return <CreditNotePage />
     if (flags.showSalesOrder) return <SalesOrderPage />
     if (flags.showQuotation) return <DocumentVoucherPage title="Quotation" />
