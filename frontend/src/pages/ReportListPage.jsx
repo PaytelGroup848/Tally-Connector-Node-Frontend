@@ -39,6 +39,12 @@ import {
   extractPurchaseOrderPagination,
   extractPurchaseOrders,
   fetchCompanyPurchaseOrders,
+  extractCash,
+  extractCashPagination,
+  fetchCompanyCash,
+  extractBank,
+  extractBankPagination,
+  fetchCompanyBank,
 } from '../services/companiesApi'
 
 import {
@@ -3183,6 +3189,494 @@ function SalesReport({
   )
 }
 
+function CashReport({ companyId }) {
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const [query, setQuery] = useState('')
+  const [rows, setRows] = useState([])
+  const [totalItems, setTotalItems] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    if (!accessToken || !companyId) {
+      setRows([])
+      setTotalItems(0)
+      setErrorMessage(accessToken ? 'No company is selected.' : 'Your session has expired. Please sign in again.')
+      return undefined
+    }
+
+    let mounted = true
+    setIsLoading(true)
+    setErrorMessage('')
+
+    fetchCompanyCash(accessToken, companyId, {
+      q: query,
+      page: currentPage,
+      limit: pageSize,
+    })
+      .then((response) => {
+        if (!mounted) return
+
+        const cashRows = extractCash(response)
+        const pagination = extractCashPagination(response)
+        const responseTotal = Number(
+          pagination.total ?? pagination.totalItems ?? pagination.totalRecords ?? pagination.count,
+        )
+
+        setRows(cashRows)
+        setTotalItems(Number.isFinite(responseTotal) ? responseTotal : cashRows.length)
+      })
+      .catch((error) => {
+        if (!mounted) return
+
+        setRows([])
+        setTotalItems(0)
+        setErrorMessage(error?.message || 'Unable to load cash data.')
+      })
+      .finally(() => {
+        if (mounted) {
+          setIsLoading(false)
+        }
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [accessToken, companyId, currentPage, pageSize, query])
+
+  const columns = Array.from(
+    new Set(
+      rows.flatMap((row) => {
+        if (!row || typeof row !== 'object' || Array.isArray(row)) return []
+        return Object.keys(row).filter((column) => !isHiddenSalesField(column))
+      }),
+    ),
+  )
+
+  const narrationColumns = columns.filter((column) => column.toLowerCase() === 'narration')
+  const orderedColumns = [
+    ...columns.filter((column) => column.toLowerCase() !== 'narration'),
+    ...narrationColumns,
+  ]
+
+  const formatValue = (value, column) => {
+    if (isDateTimeColumn(column)) return formatDateTimeIST(value)
+
+    return value === null || value === undefined || value === ''
+      ? '-'
+      : typeof value === 'object'
+        ? JSON.stringify(value)
+        : String(value)
+  }
+
+  const label = (column) =>
+    column
+      .replace(/[_-]+/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+
+  return (
+    <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8]">
+      <div className="bg-white px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span className="block text-xs text-slate-600">Cash Data</span>
+            <strong className="mt-1 block text-xl font-bold text-slate-900">{totalItems} records</strong>
+          </div>
+        </div>
+      </div>
+
+      <section className="mx-3 mt-2 overflow-hidden rounded-[6px] border border-white bg-white shadow-[0_3px_15px_rgba(24,33,43,0.06)]">
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <label className="flex h-9 w-full items-center rounded-lg border border-slate-200 px-3 text-sm text-slate-500 sm:w-64">
+              <Search size={15} strokeWidth={2} />
+              <input
+                value={query}
+                onChange={(event) => {
+                  setCurrentPage(1)
+                  setQuery(event.target.value)
+                }}
+                placeholder="Search voucher number"
+                className="ml-2 w-full bg-transparent outline-none placeholder:text-slate-400"
+              />
+            </label>
+
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <span className="whitespace-nowrap">Show</span>
+              <select
+                value={pageSize}
+                onChange={(event) => {
+                  setPageSize(Number(event.target.value))
+                  setCurrentPage(1)
+                }}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-emerald-500"
+                aria-label="Rows per page"
+              >
+                {[10, 20, 30, 50].map((limit) => (
+                  <option key={limit} value={limit}>
+                    {limit}
+                  </option>
+                ))}
+              </select>
+              <span className="whitespace-nowrap">records</span>
+            </label>
+          </div>
+
+          <span className="text-xs text-slate-500">
+            Page {currentPage} · {pageSize} per page
+          </span>
+        </div>
+
+        {errorMessage && (
+          <div className="mx-4 mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+            {errorMessage}
+          </div>
+        )}
+
+        <div className="overflow-x-auto px-3 pb-1">
+          {isLoading ? (
+            <div className="flex min-h-[150px] items-center justify-center border-y border-slate-100 text-sm text-slate-500">
+              Loading cash data...
+            </div>
+          ) : (
+            <table className="min-w-[1200px] w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  {orderedColumns.map((column) => (
+                    <th key={column} className="whitespace-nowrap px-5 py-3 font-semibold">
+                      {label(column)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-100">
+                {rows.length > 0 ? (
+                  rows.map((row, rowIndex) => (
+                    <tr
+                      key={row.id || row._id || rowIndex}
+                      className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      {orderedColumns.map((column) => {
+                        const value = formatValue(row?.[column], column)
+
+                        return (
+                          <td
+                            key={`${rowIndex}-${column}`}
+                            title={value}
+                            className="max-w-[280px] px-5 py-3 leading-5 [overflow-wrap:anywhere]"
+                          >
+                            {value}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={Math.max(orderedColumns.length, 1)}
+                      className="h-[150px] text-center text-sm text-slate-500"
+                    >
+                      No cash data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4">
+          <button
+            type="button"
+            disabled={isLoading || currentPage === 1}
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            title="Previous page"
+            aria-label="Previous page"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          {Array.from({ length: Math.min(totalPages, 7) }, (_, index) => index + 1).map((page) => (
+            <button
+              key={page}
+              type="button"
+              disabled={isLoading}
+              onClick={() => setCurrentPage(page)}
+              className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
+                currentPage === page
+                  ? 'border-emerald-600 bg-emerald-600 text-white'
+                  : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
+              } disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            type="button"
+            disabled={isLoading || currentPage === totalPages}
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            title="Next page"
+            aria-label="Next page"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function BankReport({ companyId }) {
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const [query, setQuery] = useState('')
+  const [rows, setRows] = useState([])
+  const [totalItems, setTotalItems] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    if (!accessToken || !companyId) {
+      setRows([])
+      setTotalItems(0)
+      setErrorMessage(accessToken ? 'No company is selected.' : 'Your session has expired. Please sign in again.')
+      return undefined
+    }
+
+    let mounted = true
+    setIsLoading(true)
+    setErrorMessage('')
+
+    fetchCompanyBank(accessToken, companyId, {
+      q: query,
+      page: currentPage,
+      limit: pageSize,
+    })
+      .then((response) => {
+        if (!mounted) return
+
+        const bankRows = extractBank(response)
+        const pagination = extractBankPagination(response)
+        const responseTotal = Number(
+          pagination.total ?? pagination.totalItems ?? pagination.totalRecords ?? pagination.count,
+        )
+
+        setRows(bankRows)
+        setTotalItems(Number.isFinite(responseTotal) ? responseTotal : bankRows.length)
+      })
+      .catch((error) => {
+        if (!mounted) return
+
+        setRows([])
+        setTotalItems(0)
+        setErrorMessage(error?.message || 'Unable to load bank data.')
+      })
+      .finally(() => {
+        if (mounted) setIsLoading(false)
+      })
+
+    return () => { mounted = false }
+  }, [accessToken, companyId, currentPage, pageSize, query])
+
+  const columns = Array.from(
+    new Set(
+      rows.flatMap((row) => {
+        if (!row || typeof row !== 'object' || Array.isArray(row)) return []
+        return Object.keys(row).filter((column) => !isHiddenSalesField(column))
+      }),
+    ),
+  )
+
+  const narrationColumns = columns.filter((column) => column.toLowerCase() === 'narration')
+  const orderedColumns = [
+    ...columns.filter((column) => column.toLowerCase() !== 'narration'),
+    ...narrationColumns,
+  ]
+
+  const formatValue = (value, column) => {
+    if (isDateTimeColumn(column)) return formatDateTimeIST(value)
+
+    return value === null || value === undefined || value === ''
+      ? '-'
+      : typeof value === 'object'
+        ? JSON.stringify(value)
+        : String(value)
+  }
+
+  const label = (column) =>
+    column
+      .replace(/[_-]+/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+
+  return (
+    <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8]">
+      <div className="bg-white px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span className="block text-xs text-slate-600">Bank Data</span>
+            <strong className="mt-1 block text-xl font-bold text-slate-900">{totalItems} records</strong>
+          </div>
+        </div>
+      </div>
+
+      <section className="mx-3 mt-2 overflow-hidden rounded-[6px] border border-white bg-white shadow-[0_3px_15px_rgba(24,33,43,0.06)]">
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <label className="flex h-9 w-full items-center rounded-lg border border-slate-200 px-3 text-sm text-slate-500 sm:w-64">
+              <Search size={15} strokeWidth={2} />
+              <input
+                value={query}
+                onChange={(event) => {
+                  setCurrentPage(1)
+                  setQuery(event.target.value)
+                }}
+                placeholder="Search account or bank"
+                className="ml-2 w-full bg-transparent outline-none placeholder:text-slate-400"
+              />
+            </label>
+
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <span className="whitespace-nowrap">Show</span>
+              <select
+                value={pageSize}
+                onChange={(event) => {
+                  setPageSize(Number(event.target.value))
+                  setCurrentPage(1)
+                }}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-emerald-500"
+                aria-label="Rows per page"
+              >
+                {[10, 20, 30, 50].map((limit) => (
+                  <option key={limit} value={limit}>
+                    {limit}
+                  </option>
+                ))}
+              </select>
+              <span className="whitespace-nowrap">records</span>
+            </label>
+          </div>
+
+          <span className="text-xs text-slate-500">
+            Page {currentPage} · {pageSize} per page
+          </span>
+        </div>
+
+        {errorMessage && (
+          <div className="mx-4 mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+            {errorMessage}
+          </div>
+        )}
+
+        <div className="overflow-x-auto px-3 pb-1">
+          {isLoading ? (
+            <div className="flex min-h-[150px] items-center justify-center border-y border-slate-100 text-sm text-slate-500">
+              Loading bank data...
+            </div>
+          ) : (
+            <table className="min-w-[1200px] w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  {orderedColumns.map((column) => (
+                    <th key={column} className="whitespace-nowrap px-5 py-3 font-semibold">
+                      {label(column)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-100">
+                {rows.length > 0 ? (
+                  rows.map((row, rowIndex) => (
+                    <tr
+                      key={row.id || row._id || rowIndex}
+                      className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      {orderedColumns.map((column) => {
+                        const value = formatValue(row?.[column], column)
+
+                        return (
+                          <td
+                            key={`${rowIndex}-${column}`}
+                            title={value}
+                            className="max-w-[280px] px-5 py-3 leading-5 [overflow-wrap:anywhere]"
+                          >
+                            {value}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={Math.max(orderedColumns.length, 1)}
+                      className="h-[150px] text-center text-sm text-slate-500"
+                    >
+                      No bank data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4">
+          <button
+            type="button"
+            disabled={isLoading || currentPage === 1}
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            title="Previous page"
+            aria-label="Previous page"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          {Array.from({ length: Math.min(totalPages, 7) }, (_, index) => index + 1).map((page) => (
+            <button
+              key={page}
+              type="button"
+              disabled={isLoading}
+              onClick={() => setCurrentPage(page)}
+              className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
+                currentPage === page
+                  ? 'border-emerald-600 bg-emerald-600 text-white'
+                  : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
+              } disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            type="button"
+            disabled={isLoading || currentPage === totalPages}
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            title="Next page"
+            aria-label="Next page"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
 function CreditNoteReport({ companyId, reportType = 'creditnote' }) {
   const accessToken = useAuthStore((state) => state.accessToken)
   const isReceiptReport = reportType === 'receipt'
@@ -3383,6 +3877,22 @@ function ReportListPage({
         companyId={
           companyId
         }
+      />
+    )
+  }
+
+  if (path === '/cash-bank/cash') {
+    return (
+      <CashReport
+        companyId={companyId}
+      />
+    )
+  }
+
+  if (path === '/cash-bank/bank') {
+    return (
+      <BankReport
+        companyId={companyId}
       />
     )
   }

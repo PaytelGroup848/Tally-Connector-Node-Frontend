@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
 @layer base {
-  :root { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; color: #18212b; background: #f5f7f4; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+  :root { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; color: #18212b; background: #eef3f8; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
   * { box-sizing: border-box; }
-  body { margin: 0; min-width: 320px; background: #f5f7f4; }
-  #root { min-height: 100vh; }
+  html { background: #eef3f8; }
+  body { margin: 0; min-width: 320px; background: #eef3f8; overflow-x: hidden; }
+  #root { min-height: 100vh; width: 100%; overflow-x: hidden; }
 }
 
 @theme {
@@ -37,7 +38,7 @@
     @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(24,33,43,0.04)];
   }
   .items-card, .particulars-card, .stock-card, .config-card, .list-card, .report-card, .workspace-card {
-    @apply mx-auto w-[calc(100%-2rem)] max-w-6xl;
+    @apply mx-auto w-[calc(100%-2rem)] max-w-[1400px];
   }
   .items-scroll { @apply max-w-full overflow-x-auto; }
   .item-row, .particular-row, .stock-row { @apply border-b border-slate-100; }
@@ -57,15 +58,15 @@
 @layer components {
   .page-surface { @apply min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900; }
   .page-toolbar { @apply flex min-h-14 flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-5 py-2.5; }
-  .page-card { @apply mx-5 mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(24,33,43,0.04)]; }
+  .page-card { @apply mx-auto mt-3 w-[calc(100%-2rem)] max-w-[1400px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(24,33,43,0.04)]; }
   .page-tabs { @apply flex flex-wrap gap-1 border-b border-slate-200 bg-slate-50 p-1; }
   .page-tabs button { @apply rounded-md px-3 py-2 text-xs text-slate-600 transition hover:bg-white hover:text-green-700; }
   .section-page { @apply min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900; }
-  .section-heading { @apply mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4; }
+  .section-heading { @apply mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4; }
   .section-heading h1 { @apply m-0 text-lg font-semibold tracking-tight; }
   .section-heading p { @apply m-1 text-xs text-slate-500; }
-  .section-page .workspace-card { @apply mx-auto mt-3 w-full max-w-6xl; }
-  .workspace-toolbar { @apply flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-4; }
+  .section-page .workspace-card { @apply mx-auto mt-3 w-full max-w-[1400px]; }
+  .workspace-toolbar { @apply mx-auto flex w-full max-w-[1400px] flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-4; }
   .workspace-toolbar .search-box { @apply ml-auto flex h-9 w-[min(100%,240px)] items-center gap-2 rounded-lg border border-slate-300 px-3 text-slate-400; }
   .workspace-toolbar input { @apply w-full bg-transparent text-xs outline-none; }
   .outline-action { @apply rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-green-500 hover:text-green-700; }
@@ -116,8 +117,69 @@
 }
 
 @layer components {
-  .app-main { background: #f5f7f4; }
+  .app-main {
+    background: #f5f7f4;
+    min-width: 0;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  .app-shell {
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
   .app-sidebar { background: linear-gradient(180deg, #0b365b 0%, #082b4b 45%, #061f38 100%); }
+  @media (max-width: 1023px) {
+    .app-shell { display: block; }
+    .app-main { margin-left: 0 !important; width: 100% !important; }
+    .app-header { gap: 0; }
+    .app-header .header-search { order: 3; width: calc(100% - 0.5rem) !important; max-width: none; margin: 0.5rem !important; }
+    .app-header > * { min-width: 0; }
+    .page-card,
+    .items-card,
+    .particulars-card,
+    .stock-card,
+    .config-card,
+    .list-card,
+    .report-card,
+    .workspace-card { overflow-x: auto; }
+  }
+  @media (max-width: 767px) {
+    .page-surface,
+    .section-page,
+    .receipt-page,
+    .journal-page,
+    .stock-page,
+    .stock-journal-page,
+    .quotation-page,
+    .eway-page {
+      padding: 0.75rem;
+    }
+    .page-toolbar,
+    .section-heading,
+    .workspace-toolbar {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    .page-card,
+    .items-card,
+    .particulars-card,
+    .stock-card,
+    .config-card,
+    .list-card,
+    .report-card,
+    .workspace-card {
+      width: auto;
+      margin-left: 0;
+      margin-right: 0;
+      max-width: none;
+    }
+    .report-group h2,
+    .report-group a {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
   .sidebar-brand { border-bottom: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03); }
   .sidebar-nav { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.34) transparent; }
   .voucher-page-animate { animation: voucher-page-fade-in 0.45s ease-out both; }

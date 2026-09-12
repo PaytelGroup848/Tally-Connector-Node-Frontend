@@ -163,6 +163,101 @@ export function fetchCompanyById(accessToken, companyId) {
   return request(`/companies/${encodeURIComponent(companyId)}`, accessToken)
 }
 
+export function fetchCompanyCash(
+  accessToken,
+  companyId,
+  { q = '', from = '', to = '', page = 1, limit = 20 } = {},
+) {
+  const params = new URLSearchParams({
+    q: String(q),
+    page: String(page),
+    limit: String(limit),
+  })
+
+  if (from) params.set('from', String(from))
+  if (to) params.set('to', String(to))
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/cash?${params}`,
+    accessToken,
+  )
+}
+
+export function extractCash(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const cashKeys = ['cash', 'cashTransactions', 'transactions', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of cashKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractCashPagination(response) {
+  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
+  if (pagination && typeof pagination === 'object') return pagination
+  if (response?.data && typeof response.data === 'object') return response.data
+  return response && typeof response === 'object' ? response : {}
+}
+
+export function fetchCompanyBank(
+  accessToken,
+  companyId,
+  { q = '', page = 1, limit = 20 } = {},
+) {
+  const params = new URLSearchParams({
+    q: String(q),
+    page: String(page),
+    limit: String(limit),
+  })
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/bank?${params}`,
+    accessToken,
+  )
+}
+
+export function extractBank(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const bankKeys = ['bank', 'bankAccounts', 'accounts', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of bankKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractBankPagination(response) {
+  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
+  if (pagination && typeof pagination === 'object') return pagination
+  if (response?.data && typeof response.data === 'object') return response.data
+  return response && typeof response === 'object' ? response : {}
+}
+
 export function fetchCompanyLedgers(accessToken, companyId, { page = 1, limit = 20, q = '' } = {}) {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q.trim()) params.set('q', q.trim())

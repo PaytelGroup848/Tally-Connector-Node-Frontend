@@ -365,7 +365,7 @@ const MyCompanyDetailsPage = () => {
           ================================================= */}
 
           <div className="border-b border-slate-100 px-6 py-6 sm:px-8 lg:px-10">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
 
               {/* Company identity */}
 
@@ -391,7 +391,7 @@ const MyCompanyDetailsPage = () => {
 
               {/* Status */}
 
-              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5">
+              <div className="inline-flex w-fit items-center gap-2 self-start rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
 
                 <span className="text-xs font-semibold text-emerald-700">

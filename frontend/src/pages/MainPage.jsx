@@ -346,7 +346,14 @@ function App() {
 
   return <div className="app-shell relative min-h-screen bg-slate-100 text-slate-900">
     <Sidebar collapsed={sidebarCollapsed} isCompact={isCompact} setSidebarCollapsed={setSidebarCollapsed} currentPath={currentPath} showDashboard={flags.showDashboard} expandedNav={expandedNav} setExpandedNav={setExpandedNav} onDashboard={openDashboard} onQuotation={openQuotation} onNavigate={(path) => navigateTo(path)} />
-    <main className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}><AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onCompanyClick={openCompanyDetails} onSelectCompany={selectCompany} onLogout={async () => { await logout(); window.location.replace('/') }} connectorStatusRows={connectorStatusRows} lastSyncMeta={lastSyncMeta} connectorStatusError={connectorStatusError} isConnectorStatusLoading={isConnectorStatusLoading} />{renderPage()}</main>
+    <main
+      className={`app-main relative min-h-screen min-w-0 flex-1 transition-[margin-left,width] duration-200 ${isCompact ? 'ml-0' : sidebarCollapsed ? 'ml-[58px]' : 'ml-[200px]'}`}
+      style={{
+        width: isCompact ? '100%' : `calc(100% - ${sidebarCollapsed ? 58 : 200}px)`,
+      }}
+    >
+      <AppHeader sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} setShowEway={setShowEway} onOpenEway={() => navigateTo('/eway')} showProfileMenu={showProfileMenu} setShowProfileMenu={setShowProfileMenu} showCompanyMenu={showCompanyMenu} setShowCompanyMenu={setShowCompanyMenu} onProfileClick={() => navigateTo('/profile')} onAllUsersClick={() => navigateTo('/all-users')} onMobileVersionClick={openMobileVersion} selectedCompany={selectedCompany} companyOptions={companyOptions} onAddCompany={handleCompanyAdd} onCompanyClick={openCompanyDetails} onSelectCompany={selectCompany} onLogout={async () => { await logout(); window.location.replace('/') }} connectorStatusRows={connectorStatusRows} lastSyncMeta={lastSyncMeta} connectorStatusError={connectorStatusError} isConnectorStatusLoading={isConnectorStatusLoading} />{renderPage()}
+    </main>
 
     <div className="fixed bottom-5 right-5 z-40">
       {showQuickCreate && (

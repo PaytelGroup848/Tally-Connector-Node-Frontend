@@ -29,8 +29,7 @@ function Sidebar({ collapsed, isCompact, setSidebarCollapsed, currentPath, showD
         </div>
       )}
       <button type="button" className={`sidebar-brand flex h-[60px] w-full shrink-0 items-center gap-2 border-0 px-2 text-left text-neutral-800 ${collapsed ? 'justify-center px-0' : ''}`} onClick={onDashboard} aria-label="Go to dashboard">
-        <img className="h-[300px] w-[300px] shrink-0 object-contain " src={logo} alt="Cloudedata" />
-        
+        <img className="h-auto max-h-[36px] w-auto max-w-[140px] shrink-0 object-contain" src={logo} alt="Cloudedata" />
       </button>
       <nav className="sidebar-nav min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-4">
         {navItems.map(([IconComponent, label, expandable, badge, path]) => {

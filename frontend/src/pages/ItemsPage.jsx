@@ -81,7 +81,7 @@ function ItemsPage({ companyId }) {
   const [endDate, setEndDate] = useState('2027-03-31');
   const [stockItems, setStockItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
