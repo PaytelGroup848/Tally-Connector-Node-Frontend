@@ -58,6 +58,7 @@
   body,
   #root {
     min-height: 100%;
+    width: 100%;
   }
 
   html {
@@ -81,6 +82,11 @@
   button {
     cursor: pointer;
   }
+
+  img,
+  svg {
+    display: block;
+  }
 }
 
 /* ============================================================
@@ -89,11 +95,19 @@
 
 @layer components {
   .app-shell {
-    @apply min-h-screen min-w-0 max-w-[100vw] overflow-x-hidden bg-app-bg;
+    @apply min-h-screen
+      min-w-0
+      max-w-[100vw]
+      overflow-x-hidden
+      bg-app-bg;
   }
 
   .app-main {
-    @apply min-h-screen min-w-0 w-full overflow-x-hidden bg-app-bg;
+    @apply min-h-screen
+      min-w-0
+      w-full
+      overflow-x-hidden
+      bg-app-bg;
   }
 
   /* ==========================================================
@@ -101,47 +115,76 @@
   ========================================================== */
 
   .app-sidebar {
-    @apply fixed left-0 top-0 z-40
-      h-screen shrink-0 overflow-hidden
-      bg-gradient-to-b
-      from-[#092f52]
-      via-[#072b4b]
-      to-[#062640]
-      text-white;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 70;
+
+    width: 228px;
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background:
+      linear-gradient(
+        180deg,
+        #092f52 0%,
+        #072b4b 48%,
+        #062640 100%
+      );
+
+    color: #ffffff;
   }
 
   .sidebar-brand {
-    @apply flex h-16 shrink-0
+    @apply flex
+      h-16
+      min-h-16
+      shrink-0
       items-center
-      border-b border-white/10
+      border-b
+      border-white/10
       bg-white/[0.025]
       px-4;
   }
 
   .sidebar-nav {
-    @apply min-h-0 flex-1
+    @apply min-h-0
+      flex-1
       overflow-x-hidden
       overflow-y-auto
-      px-3 py-4;
+      px-3
+      py-4;
   }
 
   .sidebar-link {
-    @apply flex h-[42px] w-full
-      items-center gap-3
+    @apply flex
+      h-[44px]
+      min-h-[44px]
+      w-full
+      items-center
+      gap-3
       rounded-lg
       px-3
-      text-left text-[13px]
+      text-left
+      text-[13px]
       font-medium
       no-underline
-      transition-all duration-200;
+      transition-all
+      duration-200;
   }
 
   .sidebar-link:hover {
-    @apply bg-white/10 text-white;
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
   }
 
   .sidebar-link.is-active {
-    @apply bg-app-primary text-white;
+    background: #10a66f;
+    color: #ffffff;
   }
 
   /* ==========================================================
@@ -149,12 +192,19 @@
   ========================================================== */
 
   .app-header {
-    @apply sticky top-0 z-30
-      h-16 min-h-16
-      w-full
-      border-b border-app-border
-      bg-white
-      shadow-[0_1px_3px_rgba(15,23,42,0.04)];
+    position: sticky;
+    top: 0;
+    z-index: 60;
+
+    width: 100%;
+    min-height: 64px;
+    height: 64px;
+
+    border-bottom: 1px solid #dce5ee;
+    background: #ffffff;
+
+    box-shadow:
+      0 1px 3px rgba(15, 23, 42, 0.04);
   }
 
   /* ==========================================================
@@ -163,7 +213,8 @@
 
   .cloud-card {
     @apply rounded-xl
-      border border-app-border
+      border
+      border-app-border
       bg-white
       shadow-[0_4px_18px_rgba(30,64,90,0.045)];
   }
@@ -171,7 +222,8 @@
   .cloud-metric-card {
     @apply min-h-[108px]
       rounded-xl
-      border border-app-border
+      border
+      border-app-border
       bg-white
       p-4
       text-left
@@ -188,7 +240,8 @@
   .cloud-input {
     @apply h-10
       rounded-lg
-      border border-app-border
+      border
+      border-app-border
       bg-white
       px-3
       text-[12px]
@@ -206,7 +259,8 @@
   ========================================================== */
 
   .cloud-primary-btn {
-    @apply inline-flex h-10
+    @apply inline-flex
+      h-10
       items-center
       justify-center
       gap-2
@@ -225,12 +279,14 @@
   }
 
   .cloud-secondary-btn {
-    @apply inline-flex h-10
+    @apply inline-flex
+      h-10
       items-center
       justify-center
       gap-2
       rounded-lg
-      border border-app-border
+      border
+      border-app-border
       bg-white
       px-4
       text-[12px]
@@ -264,13 +320,16 @@
   ========================================================== */
 
   .cloud-table {
-    @apply w-full border-collapse text-left;
+    @apply w-full
+      border-collapse
+      text-left;
   }
 
   .cloud-table thead th {
     @apply h-10
       whitespace-nowrap
-      border-b border-app-border
+      border-b
+      border-app-border
       bg-slate-50
       px-4
       text-[10px]
@@ -281,12 +340,15 @@
   }
 
   .cloud-table tbody tr {
-    @apply transition hover:bg-slate-50/70;
+    @apply transition
+      hover:bg-slate-50/70;
   }
 
   .cloud-table tbody td {
-    @apply border-b border-app-border-light
-      px-4 py-3
+    @apply border-b
+      border-app-border-light
+      px-4
+      py-3
       text-[12px]
       text-app-text-secondary;
   }
@@ -306,19 +368,23 @@
   }
 
   .status-posted {
-    @apply bg-emerald-50 text-emerald-700;
+    @apply bg-emerald-50
+      text-emerald-700;
   }
 
   .status-paid {
-    @apply bg-blue-50 text-blue-700;
+    @apply bg-blue-50
+      text-blue-700;
   }
 
   .status-pending {
-    @apply bg-amber-50 text-amber-700;
+    @apply bg-amber-50
+      text-amber-700;
   }
 
   .status-overdue {
-    @apply bg-red-50 text-red-700;
+    @apply bg-red-50
+      text-red-700;
   }
 
   /* ==========================================================
@@ -340,7 +406,6 @@
 
   /* ==========================================================
      COMMON OLD APP COMPONENTS
-     Keeps the remaining pages aligned with the new system.
   ========================================================== */
 
   .items-card,
@@ -353,7 +418,8 @@
   .report-group {
     @apply overflow-hidden
       rounded-xl
-      border border-app-border
+      border
+      border-app-border
       bg-white
       shadow-[0_4px_18px_rgba(30,64,90,0.045)];
   }
@@ -363,27 +429,33 @@
   .receipt-form,
   .stock-header {
     @apply mx-auto
-      grid w-full
+      grid
+      w-full
       max-w-6xl
       gap-4
       rounded-xl
-      border border-app-border
+      border
+      border-app-border
       bg-white
       p-5
       shadow-[0_4px_18px_rgba(30,64,90,0.045)];
   }
 
   .voucher-details {
-    @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-4;
+    @apply grid-cols-1
+      md:grid-cols-2
+      lg:grid-cols-4;
   }
 
   .journal-form,
   .receipt-form {
-    @apply grid-cols-1 md:grid-cols-2;
+    @apply grid-cols-1
+      md:grid-cols-2;
   }
 
   .stock-header {
-    @apply grid-cols-1 md:grid-cols-3;
+    @apply grid-cols-1
+      md:grid-cols-3;
   }
 
   .voucher-details label,
@@ -409,7 +481,8 @@
       min-h-10
       w-full
       rounded-lg
-      border border-app-border
+      border
+      border-app-border
       bg-white
       px-3
       text-sm
@@ -443,18 +516,21 @@
   }
 
   .page-toolbar {
-    @apply flex min-h-16
+    @apply flex
+      min-h-16
       flex-wrap
       items-center
       gap-3
-      border-b border-app-border-light
+      border-b
+      border-app-border-light
       bg-white
-      px-4 py-3;
+      px-4
+      py-3;
   }
 }
 
 /* ============================================================
-   SHELL ALIGNMENT
+   DESKTOP SHELL ALIGNMENT
 ============================================================ */
 
 @media (min-width: 1024px) {
@@ -463,176 +539,216 @@
     width: calc(100% - 228px);
   }
 
+  /*
+   * When Sidebar component adds this class to the main area:
+   * <main className="app-main sidebar-collapsed">
+   */
   .app-shell .app-main.sidebar-collapsed {
     margin-left: 68px;
     width: calc(100% - 68px);
   }
+
+  /*
+   * When Sidebar itself is collapsed.
+   */
+  .app-sidebar.is-collapsed {
+    width: 68px;
+  }
 }
+
+/* ============================================================
+   SIDEBAR SCROLLBAR
+============================================================ */
+
+@layer components {
+  .sidebar-scroll,
+  .app-sidebar .sidebar-nav {
+    scrollbar-width: thin;
+    scrollbar-color: #385b76 #072b4b;
+    overscroll-behavior: contain;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar,
+  .app-sidebar .sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-track,
+  .app-sidebar .sidebar-nav::-webkit-scrollbar-track {
+    background: #072b4b;
+    border-radius: 9999px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb,
+  .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
+    background: #385b76;
+    border-radius: 9999px;
+    border: 1px solid #072b4b;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover,
+  .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: #4d6f88;
+  }
+
+  /* ==========================================================
+     SIDEBAR LINKS
+  ========================================================== */
+
+  .app-sidebar .sidebar-link {
+    min-height: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border-radius: 8px;
+  }
+
+  /*
+   * The first child is the icon wrapper.
+   * Keeping it at a fixed size gives perfect icon alignment.
+   */
+  .app-sidebar .sidebar-link > span:first-child {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+    border-radius: 9px;
+  }
+
+  .app-sidebar .sidebar-link > span:first-child > svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ==========================================================
+     COLLAPSED SIDEBAR
+  ========================================================== */
+
+  .app-sidebar[data-collapsed="true"] {
+    width: 68px;
+  }
+
+  .app-sidebar[data-collapsed="true"] .sidebar-brand {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .app-sidebar[data-collapsed="true"] .sidebar-nav {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .app-sidebar[data-collapsed="true"] .sidebar-link {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+
+    margin-left: auto;
+    margin-right: auto;
+
+    justify-content: center;
+
+    padding-left: 0;
+    padding-right: 0;
+
+    gap: 0;
+  }
+
+  /*
+   * Hide label/text in collapsed state.
+   * This targets common Sidebar layouts where the label
+   * is a sibling after the icon.
+   */
+  .app-sidebar[data-collapsed="true"] .sidebar-link > span:not(:first-child),
+  .app-sidebar[data-collapsed="true"] .sidebar-link > p,
+  .app-sidebar[data-collapsed="true"] .sidebar-link > strong {
+    display: none;
+  }
+
+  /*
+   * Hide submenu containers in collapsed state.
+   */
+  .app-sidebar[data-collapsed="true"] .sidebar-link + div {
+    display: none;
+  }
+
+  /*
+   * Inactive icon.
+   */
+  .app-sidebar[data-collapsed="true"] .sidebar-link
+    > span:first-child {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    border-radius: 9px;
+    background: transparent;
+  }
+
+  /*
+   * ACTIVE:
+   * Green background stays exactly around the icon,
+   * instead of stretching across the complete sidebar.
+   */
+  .app-sidebar[data-collapsed="true"]
+    .sidebar-link.is-active {
+    background: transparent;
+  }
+
+  .app-sidebar[data-collapsed="true"]
+    .sidebar-link.is-active
+    > span:first-child {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+    background: #10a66f;
+    color: #ffffff;
+  }
+
+  /* ==========================================================
+     MOBILE SIDEBAR
+  ========================================================== */
+
+  .app-sidebar.mobile-open {
+    z-index: 90;
+  }
+}
+
+/* ============================================================
+   TABLET / MOBILE SHELL
+============================================================ */
 
 @media (max-width: 1023px) {
   .app-shell .app-main {
     margin-left: 0 !important;
     width: 100% !important;
   }
-}
 
-/* ============================================================
-   MOBILE
-============================================================ */
-
-@media (max-width: 767px) {
-  .cloud-page-title {
-    @apply text-[22px];
-  }
-
-  .cloud-table {
-    min-width: 820px;
-  }
-}
-
-/* ============================================================
-   SIDEBAR SCROLLBAR + ACTIVE ICON ALIGNMENT FIX
-============================================================ */
-
-@layer components {
-  /* Use a real scrollbar that blends into the dark sidebar. */
-  .sidebar-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: #385b76 #072b4b;
-    overscroll-behavior: contain;
-  }
-
-  .sidebar-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .sidebar-scroll::-webkit-scrollbar-track {
-    background: #072b4b;
-    border-radius: 9999px;
-  }
-
-  .sidebar-scroll::-webkit-scrollbar-thumb {
-    background: #385b76;
-    border: 1px solid #072b4b;
-    border-radius: 9999px;
-  }
-
-  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-    background: #4d6f88;
-  }
-
-  /* If the existing Sidebar uses sidebar-nav, style it too. */
-  .app-sidebar .sidebar-nav {
-    scrollbar-width: thin;
-    scrollbar-color: #385b76 #072b4b;
-  }
-
-  .app-sidebar .sidebar-nav::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .app-sidebar .sidebar-nav::-webkit-scrollbar-track {
-    background: #072b4b;
-  }
-
-  .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
-    background: #385b76;
-    border: 1px solid #072b4b;
-    border-radius: 9999px;
-  }
-
-  .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
-    background: #4d6f88;
-  }
-
-  /* Expanded links: stable height and consistent icon box. */
-  .app-sidebar .sidebar-link {
-    min-height: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    border-radius: 8px;
-  }
-
-  /* Collapsed links: center every icon in the exact same 44px track. */
-  .app-sidebar[data-collapsed="true"] .sidebar-link {
-    width: 44px;
-    height: 44px;
-    min-height: 44px;
-    margin-left: auto;
-    margin-right: auto;
-    justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
-    gap: 0;
-  }
-
-  /* Remove full-row active fill when collapsed. */
-  .app-sidebar[data-collapsed="true"] .sidebar-link.is-active {
-    background: transparent;
-  }
-
-  /* Put active green only around the icon when collapsed. */
-  .app-sidebar[data-collapsed="true"] .sidebar-link.is-active > span:first-child {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9px;
-    background: #10a66f;
-    color: #ffffff;
-  }
-
-  /* Keep inactive icon box identical for perfect centering. */
-  .app-sidebar[data-collapsed="true"] .sidebar-link > span:first-child {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9px;
-  }
-
-  .app-sidebar[data-collapsed="true"] .sidebar-link > span:first-child > svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  /* No unwanted submenu indentation when collapsed. */
-  .app-sidebar[data-collapsed="true"] .sidebar-link + div {
-    display: none;
-  }
-
-  /* Remove accidental horizontal shift from scrollbar area. */
   .app-sidebar {
-    overflow: hidden;
+    z-index: 90;
   }
 
-  .app-sidebar .sidebar-nav {
-    width: 100%;
-    min-width: 0;
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  /* Header and main-content lock to the same 64px shell. */
-  .app-header {
-    height: 64px;
-    min-height: 64px;
-  }
-
-  .app-header > div:first-child {
-    height: 64px;
-    min-height: 64px;
+  .app-sidebar[data-collapsed="true"] {
+    width: 68px;
   }
 }
 
 /* ============================================================
-   PREVENT DESKTOP HEADER OVERFLOW
+   DESKTOP HEADER WIDTH FIX
 ============================================================ */
 
 @media (min-width: 1024px) and (max-width: 1250px) {
@@ -649,20 +765,112 @@
     width: 155px;
   }
 
+  .app-header .w-\[185px\] {
+    width: 165px;
+  }
+
   .app-header .w-\[96px\] {
     width: 82px;
   }
 }
 
+/* ============================================================
+   TABLET
+============================================================ */
+
 @media (max-width: 1023px) {
+  .app-header {
+    z-index: 80;
+
+    min-height: 64px;
+    height: auto;
+  }
+
   .app-sidebar {
-    box-shadow: 10px 0 28px rgba(15, 23, 42, 0.18);
+    box-shadow:
+      10px 0 28px rgba(15, 23, 42, 0.18);
   }
 }
 
+/* ============================================================
+   MOBILE
+============================================================ */
+
 @media (max-width: 767px) {
+  .cloud-page-title {
+    @apply text-[22px];
+  }
+
+  .cloud-table {
+    min-width: 820px;
+  }
+
   .app-header {
-    height: auto;
     min-height: 64px;
+    height: auto;
+  }
+
+  .app-header > div:first-child {
+    height: 64px;
+    min-height: 64px;
+  }
+
+  /*
+   * Smaller company selector on phones.
+   */
+  .app-header [class*="w-[250px]"] {
+    width: auto;
+    min-width: 0;
+    max-width: 210px;
+  }
+
+  /*
+   * Hide less-important desktop controls.
+   */
+  .app-header .w-\[82px\],
+  .app-header .w-\[88px\],
+  .app-header .w-\[175px\],
+  .app-header .w-\[185px\] {
+    display: none;
+  }
+
+  /*
+   * Profile should remain compact.
+   */
+  .app-header .w-\[96px\] {
+    width: 58px;
+  }
+
+  /*
+   * Company dropdown fits phone width.
+   */
+  .app-header [class*="w-[300px]"] {
+    width: min(300px, calc(100vw - 16px));
+  }
+}
+
+/* ============================================================
+   VERY SMALL PHONES
+============================================================ */
+
+@media (max-width: 480px) {
+  .app-header [class*="w-[250px]"] {
+    max-width: 175px;
+  }
+
+  .app-header .w-\[96px\] {
+    width: 52px;
+  }
+
+  .app-header .h-9 {
+    height: 34px;
+  }
+
+  .app-header .w-9 {
+    width: 34px;
+  }
+
+  .cloud-page-title {
+    @apply text-[20px];
   }
 }

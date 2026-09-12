@@ -402,6 +402,7 @@ function App() {
         {renderPage()}
       </main>
 
+      ```jsx
       <div className="fixed bottom-5 right-5 z-40">
         {showQuickCreate && (
           <div className="mb-3 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-app-border bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
@@ -478,54 +479,7 @@ function App() {
       </div>
     </div>
   )
-
-    <div className="fixed bottom-5 right-5 z-40">
-      {showQuickCreate && (
-        <div className="mb-3 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
-          <div className="flex items-center justify-between bg-[#101010] px-3 py-2 text-white">
-
-            <button type="button" aria-label="Close quick create" onClick={() => setShowQuickCreate(false)} className="ml-auto text-lg leading-none text-white/80 hover:text-white">×</button>
-          </div>
-          <div className="max-h-[360px] overflow-y-auto bg-slate-100 p-2">
-            {quickCreateGroups.map((group) => (
-              <div key={group.title} className="mb-2 overflow-hidden rounded-md border border-slate-200 bg-white">
-                <div className="bg-[#101010] px-3 py-2 text-sm font-semibold text-white">{group.title}</div>
-                <div className="p-1.5">
-                  {group.items.map(([label, targetPath]) => (
-                    <button
-                      key={`${group.title}-${label}`}
-                      type="button"
-                      onClick={() => {
-                        setShowQuickCreate(false)
-                        if (targetPath.startsWith('/create-voucher/')) {
-                          navigateTo(targetPath)
-                          return
-                        }
-                        navigateTo(targetPath)
-                      }}
-                      className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100"
-                    >
-                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-700">•</span>
-                      <span className="flex-1">{label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <button
-        type="button"
-        aria-label="Quick create"
-        onClick={() => setShowQuickCreate((current) => !current)}
-        className="grid h-14 w-14 place-items-center rounded-full bg-[#111827] text-3xl font-light text-white shadow-[0_10px_28px_rgba(17,24,39,0.35)] transition hover:scale-105"
-      >
-        +
-      </button>
-    </div>
-  </div>
 }
 
 export default App
+
