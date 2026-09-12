@@ -436,9 +436,7 @@ function AppHeader({
                         </small>
                       </div>
 
-                      {company.isCurrent && (
-                        <span className="h-2 w-2 rounded-full bg-app-primary" />
-                      )}
+                     
                     </button>
                   ))}
                 </div>

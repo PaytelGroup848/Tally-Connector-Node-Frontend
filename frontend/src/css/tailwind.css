@@ -1,21 +1,26 @@
 @import "tailwindcss";
 
 /* ============================================================
-   CLOUDBIZ-STYLE DESIGN SYSTEM
+   CLOUD DATA / CLOUDBIZ UI SYSTEM
 ============================================================ */
 
 @theme {
   --color-app-primary: #10a66f;
   --color-app-primary-hover: #0b935f;
+
   --color-app-navy: #092f52;
   --color-app-navy-dark: #062640;
+
   --color-app-bg: #f5f8fc;
   --color-app-surface: #ffffff;
+
   --color-app-text: #102a43;
   --color-app-text-secondary: #61758a;
   --color-app-text-muted: #8ba0b3;
+
   --color-app-border: #dce5ee;
   --color-app-border-light: #edf2f7;
+
   --color-app-success: #0fa968;
   --color-app-danger: #ef4444;
   --color-app-warning: #f59e0b;
@@ -27,17 +32,32 @@
 
 @layer base {
   :root {
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", sans-serif;
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+
     color: #102a43;
     background: #f5f8fc;
+
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   * {
     box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
   }
 
   html {
@@ -61,83 +81,228 @@
   button {
     cursor: pointer;
   }
-
-  #root {
-    min-height: 100vh;
-    width: 100%;
-    overflow-x: hidden;
-  }
 }
 
 /* ============================================================
-   REUSABLE CLOUD UI
+   GLOBAL SHELL
 ============================================================ */
 
 @layer components {
+  .app-shell {
+    @apply min-h-screen min-w-0 max-w-[100vw] overflow-x-hidden bg-app-bg;
+  }
+
+  .app-main {
+    @apply min-h-screen min-w-0 w-full overflow-x-hidden bg-app-bg;
+  }
+
+  /* ==========================================================
+     SIDEBAR
+  ========================================================== */
+
+  .app-sidebar {
+    @apply fixed left-0 top-0 z-40
+      h-screen shrink-0 overflow-hidden
+      bg-gradient-to-b
+      from-[#092f52]
+      via-[#072b4b]
+      to-[#062640]
+      text-white;
+  }
+
+  .sidebar-brand {
+    @apply flex h-16 shrink-0
+      items-center
+      border-b border-white/10
+      bg-white/[0.025]
+      px-4;
+  }
+
+  .sidebar-nav {
+    @apply min-h-0 flex-1
+      overflow-x-hidden
+      overflow-y-auto
+      px-3 py-4;
+  }
+
+  .sidebar-link {
+    @apply flex h-[42px] w-full
+      items-center gap-3
+      rounded-lg
+      px-3
+      text-left text-[13px]
+      font-medium
+      no-underline
+      transition-all duration-200;
+  }
+
+  .sidebar-link:hover {
+    @apply bg-white/10 text-white;
+  }
+
+  .sidebar-link.is-active {
+    @apply bg-app-primary text-white;
+  }
+
+  /* ==========================================================
+     HEADER
+  ========================================================== */
+
+  .app-header {
+    @apply sticky top-0 z-30
+      h-16 min-h-16
+      w-full
+      border-b border-app-border
+      bg-white
+      shadow-[0_1px_3px_rgba(15,23,42,0.04)];
+  }
+
+  /* ==========================================================
+     CARDS
+  ========================================================== */
+
   .cloud-card {
-    @apply rounded-xl border border-app-border bg-white
+    @apply rounded-xl
+      border border-app-border
+      bg-white
       shadow-[0_4px_18px_rgba(30,64,90,0.045)];
   }
 
+  .cloud-metric-card {
+    @apply min-h-[108px]
+      rounded-xl
+      border border-app-border
+      bg-white
+      p-4
+      text-left
+      shadow-[0_4px_18px_rgba(30,64,90,0.045)]
+      transition
+      hover:-translate-y-px
+      hover:shadow-[0_8px_22px_rgba(30,64,90,0.07)];
+  }
+
+  /* ==========================================================
+     INPUTS
+  ========================================================== */
+
   .cloud-input {
-    @apply h-10 rounded-lg border border-app-border
-      bg-white px-3 text-[12px] text-app-text
-      outline-none transition
+    @apply h-10
+      rounded-lg
+      border border-app-border
+      bg-white
+      px-3
+      text-[12px]
+      text-app-text
+      outline-none
+      transition
       placeholder:text-slate-400
       focus:border-app-primary
       focus:ring-2
       focus:ring-emerald-100;
   }
 
+  /* ==========================================================
+     BUTTONS
+  ========================================================== */
+
   .cloud-primary-btn {
-    @apply inline-flex h-10 items-center justify-center gap-2
-      rounded-lg bg-app-primary px-4
-      text-[12px] font-semibold text-white
-      shadow-sm transition
+    @apply inline-flex h-10
+      items-center
+      justify-center
+      gap-2
+      rounded-lg
+      bg-app-primary
+      px-4
+      text-[12px]
+      font-semibold
+      text-white
+      shadow-sm
+      transition
       hover:bg-app-primary-hover
-      focus:outline-none focus:ring-2 focus:ring-emerald-200;
+      focus:outline-none
+      focus:ring-2
+      focus:ring-emerald-200;
   }
 
   .cloud-secondary-btn {
-    @apply inline-flex h-10 items-center justify-center gap-2
-      rounded-lg border border-app-border
-      bg-white px-4
-      text-[12px] font-semibold text-app-text-secondary
-      transition hover:bg-slate-50 hover:text-app-text;
+    @apply inline-flex h-10
+      items-center
+      justify-center
+      gap-2
+      rounded-lg
+      border border-app-border
+      bg-white
+      px-4
+      text-[12px]
+      font-semibold
+      text-app-text-secondary
+      transition
+      hover:bg-slate-50
+      hover:text-app-text;
   }
 
+  /* ==========================================================
+     PAGE TITLES
+  ========================================================== */
+
   .cloud-page-title {
-    @apply text-2xl font-bold tracking-tight text-app-text lg:text-[26px];
+    @apply m-0
+      text-[25px]
+      font-bold
+      leading-tight
+      tracking-[-0.025em]
+      text-app-text;
   }
 
   .cloud-page-subtitle {
-    @apply text-xs text-app-text-secondary;
+    @apply text-xs
+      text-app-text-secondary;
   }
+
+  /* ==========================================================
+     TABLE
+  ========================================================== */
 
   .cloud-table {
     @apply w-full border-collapse text-left;
   }
 
   .cloud-table thead th {
-    @apply h-10 border-b border-app-border
-      bg-slate-50 px-4
-      text-[10px] font-semibold uppercase tracking-wide
+    @apply h-10
+      whitespace-nowrap
+      border-b border-app-border
+      bg-slate-50
+      px-4
+      text-[10px]
+      font-semibold
+      uppercase
+      tracking-wide
       text-app-text-secondary;
-  }
-
-  .cloud-table tbody td {
-    @apply border-b border-app-border-light
-      px-4 py-3.5
-      text-[12px] text-app-text-secondary;
   }
 
   .cloud-table tbody tr {
     @apply transition hover:bg-slate-50/70;
   }
 
+  .cloud-table tbody td {
+    @apply border-b border-app-border-light
+      px-4 py-3
+      text-[12px]
+      text-app-text-secondary;
+  }
+
+  /* ==========================================================
+     STATUS
+  ========================================================== */
+
   .status-badge {
-    @apply inline-flex min-h-6 items-center rounded-full
-      px-2.5 text-[10px] font-semibold;
+    @apply inline-flex
+      min-h-6
+      items-center
+      rounded-full
+      px-2.5
+      text-[10px]
+      font-semibold;
   }
 
   .status-posted {
@@ -156,6 +321,10 @@
     @apply bg-red-50 text-red-700;
   }
 
+  /* ==========================================================
+     PAGE CONTAINERS
+  ========================================================== */
+
   .page-surface,
   .section-page,
   .receipt-page,
@@ -163,69 +332,16 @@
   .stock-page,
   .stock-journal-page,
   .quotation-page,
-  .eway-page,
-  .reference-reports {
-    @apply min-h-[calc(100vh-64px)] bg-app-bg text-app-text;
+  .eway-page {
+    @apply min-h-[calc(100vh-64px)]
+      bg-app-bg
+      text-app-text;
   }
 
-  .page-toolbar {
-    @apply flex min-h-16 flex-wrap items-center gap-3
-      border-b border-app-border-light bg-white px-4 py-3;
-  }
-
-  .page-card {
-    @apply mx-auto mt-4 w-[calc(100%-2rem)] max-w-[1400px]
-      overflow-hidden rounded-xl border border-app-border
-      bg-white shadow-[0_4px_18px_rgba(30,64,90,0.045)];
-  }
-
-  .page-tabs {
-    @apply flex flex-wrap gap-1 border-b border-app-border
-      bg-slate-50 p-1;
-  }
-
-  .page-tabs button {
-    @apply rounded-md px-3 py-2 text-xs text-slate-600
-      transition hover:bg-white hover:text-app-primary;
-  }
-
-  .section-heading {
-    @apply mx-auto flex w-full max-w-[1400px]
-      flex-wrap items-center justify-between gap-4
-      border-b border-app-border-light bg-white px-5 py-4;
-  }
-
-  .section-heading h1 {
-    @apply m-0 text-2xl font-bold tracking-tight text-app-text;
-  }
-
-  .section-heading p {
-    @apply mt-1 text-xs text-app-text-secondary;
-  }
-
-  .workspace-toolbar {
-    @apply mx-auto flex w-full max-w-[1400px]
-      flex-wrap items-center gap-3
-      border-b border-app-border-light px-4 py-3;
-  }
-
-  .workspace-toolbar .search-box {
-    @apply ml-auto flex h-10 w-[min(100%,320px)]
-      items-center gap-2 rounded-lg
-      border border-app-border bg-white px-3 text-slate-400;
-  }
-
-  .workspace-toolbar input {
-    @apply w-full bg-transparent text-xs outline-none
-      placeholder:text-slate-400;
-  }
-
-  .outline-action {
-    @apply rounded-lg border border-app-border
-      bg-white px-3 py-2 text-xs font-semibold
-      text-app-text-secondary transition
-      hover:border-emerald-300 hover:text-app-primary;
-  }
+  /* ==========================================================
+     COMMON OLD APP COMPONENTS
+     Keeps the remaining pages aligned with the new system.
+  ========================================================== */
 
   .items-card,
   .particulars-card,
@@ -234,30 +350,27 @@
   .report-card,
   .workspace-card,
   .stock-card,
-  .report-group,
-  .voucher-details,
-  .journal-form,
-  .receipt-form,
-  .stock-header {
-    @apply overflow-hidden rounded-xl border border-app-border
-      bg-white shadow-[0_4px_18px_rgba(30,64,90,0.045)];
-  }
-
-  .items-card,
-  .particulars-card,
-  .stock-card,
-  .config-card,
-  .list-card,
-  .report-card,
-  .workspace-card {
-    @apply mx-auto w-[calc(100%-2rem)] max-w-[1400px];
+  .report-group {
+    @apply overflow-hidden
+      rounded-xl
+      border border-app-border
+      bg-white
+      shadow-[0_4px_18px_rgba(30,64,90,0.045)];
   }
 
   .voucher-details,
   .journal-form,
   .receipt-form,
   .stock-header {
-    @apply mx-auto grid w-full max-w-6xl gap-4 p-5;
+    @apply mx-auto
+      grid w-full
+      max-w-6xl
+      gap-4
+      rounded-xl
+      border border-app-border
+      bg-white
+      p-5
+      shadow-[0_4px_18px_rgba(30,64,90,0.045)];
   }
 
   .voucher-details {
@@ -277,7 +390,10 @@
   .journal-form label,
   .receipt-form label,
   .stock-header label {
-    @apply min-w-0 text-xs font-medium text-app-text-secondary;
+    @apply min-w-0
+      text-xs
+      font-medium
+      text-app-text-secondary;
   }
 
   .voucher-details input,
@@ -289,254 +405,87 @@
   .receipt-form textarea,
   .stock-header input,
   .stock-header select {
-    @apply mt-1 min-h-10 w-full rounded-lg border border-app-border
-      bg-white px-3 text-sm text-app-text outline-none transition
-      focus:border-app-primary focus:ring-2 focus:ring-emerald-100;
-  }
-
-  .items-scroll {
-    @apply max-w-full overflow-x-auto;
-  }
-
-  .item-row,
-  .particular-row,
-  .stock-row {
-    @apply border-b border-app-border-light;
-  }
-
-  .item-row input,
-  .item-row select,
-  .particular-row input,
-  .particular-row select,
-  .stock-row input,
-  .stock-row select {
-    @apply rounded-md border border-app-border
-      bg-white px-2 outline-none
-      focus:border-app-primary focus:ring-2 focus:ring-emerald-100;
-  }
-
-  .accordion-list,
-  .totals-card {
-    @apply rounded-lg border border-app-border bg-white;
-  }
-
-  .accordion {
-    @apply flex w-full items-center justify-between
-      border-b border-app-border-light bg-white
-      px-4 py-3 text-left text-sm font-medium text-app-text;
+    @apply mt-1
+      min-h-10
+      w-full
+      rounded-lg
+      border border-app-border
+      bg-white
+      px-3
+      text-sm
+      text-app-text
+      outline-none
+      transition
+      focus:border-app-primary
+      focus:ring-2
+      focus:ring-emerald-100;
   }
 
   .create-voucher,
   .primary-action,
   .save-config,
   .eway-portal-button {
-    @apply inline-flex min-h-10 items-center justify-center
-      rounded-lg bg-app-primary px-4
-      text-xs font-semibold text-white transition
-      hover:bg-app-primary-hover focus:outline-none
-      focus:ring-2 focus:ring-emerald-200;
+    @apply inline-flex
+      min-h-10
+      items-center
+      justify-center
+      rounded-lg
+      bg-app-primary
+      px-4
+      text-xs
+      font-semibold
+      text-white
+      transition
+      hover:bg-app-primary-hover
+      focus:outline-none
+      focus:ring-2
+      focus:ring-emerald-200;
   }
 
-  .voucher-actions,
-  .receipt-actions,
-  .journal-actions,
-  .stock-actions {
-    @apply flex justify-end gap-3 p-4;
+  .page-toolbar {
+    @apply flex min-h-16
+      flex-wrap
+      items-center
+      gap-3
+      border-b border-app-border-light
+      bg-white
+      px-4 py-3;
+  }
+}
+
+/* ============================================================
+   SHELL ALIGNMENT
+============================================================ */
+
+@media (min-width: 1024px) {
+  .app-shell .app-main {
+    margin-left: 228px;
+    width: calc(100% - 228px);
   }
 
-  .report-group h2 {
-    @apply m-0 border-b border-app-border
-      bg-slate-50 px-5 py-4
-      text-sm font-semibold text-app-text;
-  }
-
-  .report-group a {
-    @apply block border-b border-app-border-light
-      px-5 py-3.5 text-sm text-app-text-secondary
-      no-underline transition
-      hover:bg-emerald-50 hover:text-app-primary;
-  }
-
-  .plan-overlay {
-    @apply fixed inset-0 z-50 grid place-items-center
-      bg-black/50 p-4;
-  }
-
-  .plan-modal {
-    @apply w-full max-w-lg rounded-xl bg-white shadow-xl;
-  }
-
-  .page-surface,
-  .section-page,
-  .receipt-page,
-  .journal-page,
-  .stock-page,
-  .stock-journal-page,
-  .quotation-page,
-  .eway-page {
-    @apply p-5;
-  }
-
-  .item-heading,
-  .particulars-head {
-    @apply bg-slate-50 text-[10px]
-      uppercase tracking-wide text-app-text-secondary;
-  }
-
-  .add-row,
-  .add-ledger {
-    @apply border-0 bg-emerald-50 px-4 py-3
-      text-xs font-semibold text-app-primary transition
-      hover:bg-emerald-100;
-  }
-
-  .toggle-control {
-    @apply relative h-7 w-12 cursor-pointer rounded-full
-      border-0 bg-slate-300 p-0 transition-colors
-      focus:outline-none focus:ring-2 focus:ring-emerald-200;
-  }
-
-  .toggle-control.is-on {
-    @apply bg-app-primary;
-  }
-
-  .toggle-thumb {
-    @apply absolute left-1 top-1 h-5 w-5
-      rounded-full bg-white shadow-sm transition-transform;
-  }
-
-  .toggle-control.is-on .toggle-thumb {
-    @apply translate-x-5;
-  }
-
-  .radio-control {
-    @apply relative mr-4 inline-flex min-h-8 cursor-pointer
-      items-center justify-start border-0 bg-transparent
-      p-0 pl-7 text-left text-xs text-app-text-secondary
-      transition hover:text-app-primary;
-  }
-
-  .radio-dot {
-    @apply absolute left-0 top-1/2 grid h-5 w-5
-      -translate-y-1/2 place-items-center
-      rounded-full bg-slate-200 transition-colors;
-  }
-
-  .radio-control.is-selected .radio-dot {
-    @apply bg-app-primary;
-  }
-
-  .radio-control.is-selected .radio-dot::after {
-    content: "";
-    @apply h-2.5 w-2.5 rounded-full bg-white;
-  }
-
-  .app-main {
-    @apply min-w-0 w-full overflow-x-hidden bg-app-bg;
-  }
-
-  .app-shell {
-    @apply min-w-0 max-w-[100vw] overflow-x-hidden bg-app-bg;
-  }
-
-  .app-sidebar {
-    @apply bg-gradient-to-b from-[#092f52] via-[#072b4b] to-[#062640];
-  }
-
-  .sidebar-brand {
-    @apply border-b border-white/10 bg-white/[0.03];
-  }
-
-  .sidebar-nav {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
-  }
-
-  .sidebar-link.is-active {
-    @apply bg-app-primary text-white;
-  }
-
-  .app-header {
-    @apply sticky top-0 z-30 border-b border-app-border
-      bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)];
-  }
-
-  .cloud-metric-card {
-    @apply rounded-xl border border-app-border bg-white p-4
-      shadow-[0_4px_18px_rgba(30,64,90,0.045)]
-      transition hover:-translate-y-px
-      hover:shadow-[0_8px_22px_rgba(30,64,90,0.07)];
+  .app-shell .app-main.sidebar-collapsed {
+    margin-left: 68px;
+    width: calc(100% - 68px);
   }
 }
 
 @media (max-width: 1023px) {
-  .app-shell {
-    display: block;
-  }
-
-  .app-main {
+  .app-shell .app-main {
     margin-left: 0 !important;
     width: 100% !important;
   }
-
-  .page-card,
-  .items-card,
-  .particulars-card,
-  .stock-card,
-  .config-card,
-  .list-card,
-  .report-card,
-  .workspace-card {
-    overflow-x: auto;
-  }
 }
+
+/* ============================================================
+   MOBILE
+============================================================ */
 
 @media (max-width: 767px) {
-  .page-surface,
-  .section-page,
-  .receipt-page,
-  .journal-page,
-  .stock-page,
-  .stock-journal-page,
-  .quotation-page,
-  .eway-page {
-    padding: 0.75rem;
+  .cloud-page-title {
+    @apply text-[22px];
   }
 
-  .page-toolbar,
-  .section-heading,
-  .workspace-toolbar {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
-
-  .page-card,
-  .items-card,
-  .particulars-card,
-  .stock-card,
-  .config-card,
-  .list-card,
-  .report-card,
-  .workspace-card {
-    width: auto;
-    margin-left: 0;
-    margin-right: 0;
-    max-width: none;
-  }
-}
-
-.voucher-page-animate {
-  animation: voucher-page-fade-in 0.35s ease-out both;
-}
-
-@keyframes voucher-page-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .cloud-table {
+    min-width: 820px;
   }
 }
