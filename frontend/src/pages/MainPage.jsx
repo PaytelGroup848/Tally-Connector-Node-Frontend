@@ -260,7 +260,11 @@ function App() {
   }
 
   const openMobileVersion = () => {
-    window.open('/mobile-version', '_blank', 'width=390,height=844,noopener,noreferrer')
+    window.open(
+      '/dashboard',
+      '_blank',
+      'width=390,height=844,noopener,noreferrer',
+    )
   }
 
   const openDashboard = (event) => {

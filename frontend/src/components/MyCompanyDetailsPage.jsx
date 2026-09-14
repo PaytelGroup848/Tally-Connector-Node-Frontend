@@ -154,18 +154,18 @@ const MyCompanyDetailsPage = () => {
       icon: Building2,
       description: 'Registered Tally company',
     },
-    {
-      label: 'Tally Company GUID',
-      key: 'tallyCompanyGuid',
-      icon: Hash,
-      description: 'Tally unique identifier',
-    },
-    {
-      label: 'Linked Connector ID',
-      key: 'linkedByConnectorId',
-      icon: Link2,
-      description: 'Connected through',
-    },
+    // {
+    //   label: 'Tally Company GUID',
+    //   key: 'tallyCompanyGuid',
+    //   icon: Hash,
+    //   description: 'Tally unique identifier',
+    // },
+    // {
+    //   label: 'Linked Connector ID',
+    //   key: 'linkedByConnectorId',
+    //   icon: Link2,
+    //   description: 'Connected through',
+    // },
   ]
 
   /* =====================================================
@@ -389,15 +389,7 @@ const MyCompanyDetailsPage = () => {
                 </div>
               </div>
 
-              {/* Status */}
-
-              <div className="inline-flex w-fit items-center gap-2 self-start rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-
-                <span className="text-xs font-semibold text-emerald-700">
-                  Connected
-                </span>
-              </div>
+              
             </div>
           </div>
 

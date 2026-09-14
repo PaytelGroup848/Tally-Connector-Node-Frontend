@@ -9,6 +9,21 @@ import {
 } from '../services/membersApi'
 import useAuthStore from '../store/authStore'
 
+const ROLE_OPTIONS = [
+  {
+    value: 'ACCOUNTANT',
+    label: 'Accountant',
+  },
+  {
+    value: 'ADMIN',
+    label: 'Admin',
+  },
+  {
+    value: 'VIEWER',
+    label: 'Viewer',
+  },
+]
+
 function formatDate(value) {
   if (!value) return '-'
 
@@ -23,6 +38,10 @@ function formatDate(value) {
         year: 'numeric',
       })
 }
+
+/* ============================================================
+   USERS TABLE
+============================================================ */
 
 function UsersTable({
   users,
@@ -47,7 +66,9 @@ function UsersTable({
 
   const removeUser = async (user) => {
     if (!user.hasPersistedId) {
-      setError('This member has no database ID and cannot be removed.')
+      setError(
+        'This member has no database ID and cannot be removed.',
+      )
       return
     }
 
@@ -63,7 +84,10 @@ function UsersTable({
       setDeletingId(user.id)
       setError('')
 
-      await deleteMember(accessToken, user.id)
+      await deleteMember(
+        accessToken,
+        user.id,
+      )
 
       onDelete(user.id)
     } catch (deleteError) {
@@ -84,13 +108,17 @@ function UsersTable({
 
   const startEdit = (user) => {
     setEditingId(user.id)
-    setEditingRole(user.role)
+    setEditingRole(
+      user.role || 'ACCOUNTANT',
+    )
     setError('')
   }
 
   const saveRole = async (user) => {
     if (!user.hasPersistedId) {
-      setError('This member has no database ID and cannot be updated.')
+      setError(
+        'This member has no database ID and cannot be updated.',
+      )
       return
     }
 
@@ -160,7 +188,7 @@ function UsersTable({
                 Created At
               </th>
 
-              <th className="w-[140px] whitespace-nowrap px-4 pr-8 py-3 text-right">
+              <th className="w-[180px] whitespace-nowrap px-4 pr-8 py-3 text-right">
                 Action
               </th>
             </tr>
@@ -190,20 +218,48 @@ function UsersTable({
                   {/* ROLE */}
                   <td className="px-4 py-4">
                     {isEditing ? (
-                      <input
+                      <select
                         value={editingRole}
-                        onChange={(
-                          event,
-                        ) =>
+                        onChange={(event) =>
                           setEditingRole(
-                            event.target
-                              .value,
+                            event.target.value,
                           )
                         }
                         disabled={isSaving}
                         autoFocus
-                        className="w-full max-w-[220px] rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-500"
-                      />
+                        className="
+                          w-full
+                          max-w-[220px]
+                          rounded-md
+                          border border-slate-300
+                          bg-white
+                          px-3 py-2
+                          text-sm
+                          text-slate-800
+                          outline-none
+                          focus:border-slate-500
+                          focus:ring-2
+                          focus:ring-slate-200
+                          disabled:cursor-not-allowed
+                          disabled:bg-slate-100
+                          cursor-pointer
+                        "
+                      >
+                        {ROLE_OPTIONS.map(
+                          (roleOption) => (
+                            <option
+                              key={
+                                roleOption.value
+                              }
+                              value={
+                                roleOption.value
+                              }
+                            >
+                              {roleOption.label}
+                            </option>
+                          ),
+                        )}
+                      </select>
                     ) : (
                       user.role || '-'
                     )}
@@ -211,7 +267,7 @@ function UsersTable({
 
                   {/* STATUS */}
                   <td className="px-4 py-4">
-                    {user.status}
+                    {user.status || '-'}
                   </td>
 
                   {/* CREATED AT */}
@@ -222,7 +278,7 @@ function UsersTable({
                   </td>
 
                   {/* ACTION */}
-                  <td className="w-[140px] px-4 py-4">
+                  <td className="w-[180px] px-4 py-4">
                     <div className="flex min-h-[32px] items-center justify-end gap-3">
                       {isEditing ? (
                         <>
@@ -230,14 +286,21 @@ function UsersTable({
                           <button
                             type="button"
                             onClick={() =>
-                              saveRole(
-                                user,
-                              )
+                              saveRole(user)
                             }
-                            disabled={
-                              isSaving
-                            }
-                            className="rounded-md bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={isSaving}
+                            className="
+                              rounded-md
+                              bg-slate-900
+                              px-3 py-2
+                              text-xs
+                              font-semibold
+                              text-white
+                              transition
+                              hover:bg-slate-800
+                              disabled:cursor-not-allowed
+                              disabled:opacity-50
+                            "
                           >
                             {isSaving
                               ? 'Saving...'
@@ -250,10 +313,20 @@ function UsersTable({
                             onClick={
                               cancelEdit
                             }
-                            disabled={
-                              isSaving
-                            }
-                            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={isSaving}
+                            className="
+                              rounded-md
+                              border border-slate-300
+                              bg-white
+                              px-3 py-2
+                              text-xs
+                              font-semibold
+                              text-slate-700
+                              transition
+                              hover:bg-slate-100
+                              disabled:cursor-not-allowed
+                              disabled:opacity-50
+                            "
                           >
                             Cancel
                           </button>
@@ -264,13 +337,21 @@ function UsersTable({
                           <button
                             type="button"
                             onClick={() =>
-                              startEdit(
-                                user,
-                              )
+                              startEdit(user)
                             }
                             title="Edit role"
                             aria-label="Edit role"
-                            className="flex h-8 w-8 items-center justify-center text-[19px] text-slate-600 transition hover:text-slate-900"
+                            className="
+                              flex
+                              h-8
+                              w-8
+                              items-center
+                              justify-center
+                              text-[19px]
+                              text-slate-600
+                              transition
+                              hover:text-slate-900
+                            "
                           >
                             ✎
                           </button>
@@ -279,16 +360,24 @@ function UsersTable({
                           <button
                             type="button"
                             onClick={() =>
-                              removeUser(
-                                user,
-                              )
+                              removeUser(user)
                             }
-                            disabled={
-                              isDeleting
-                            }
+                            disabled={isDeleting}
                             title="Delete user"
                             aria-label="Delete user"
-                            className="flex h-8 w-8 items-center justify-center text-[18px] text-red-500 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="
+                              flex
+                              h-8
+                              w-8
+                              items-center
+                              justify-center
+                              text-[18px]
+                              text-red-500
+                              transition
+                              hover:text-red-700
+                              disabled:cursor-not-allowed
+                              disabled:opacity-50
+                            "
                           >
                             {isDeleting
                               ? '…'
@@ -318,6 +407,10 @@ function UsersTable({
     </div>
   )
 }
+
+/* ============================================================
+   ADD USER MODAL
+============================================================ */
 
 function AddUserModal({
   accessToken,
@@ -428,7 +521,13 @@ function AddUserModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-2xl leading-none text-slate-400 transition hover:text-slate-700"
+            className="
+              text-2xl
+              leading-none
+              text-slate-400
+              transition
+              hover:text-slate-700
+            "
           >
             ×
           </button>
@@ -448,32 +547,70 @@ function AddUserModal({
               value={email}
               onChange={(event) =>
                 setEmail(
-                  event.target
-                    .value,
+                  event.target.value,
                 )
               }
               disabled={loading}
               placeholder="user@example.com"
-              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-slate-500 disabled:bg-slate-100"
+              className="
+                mt-2
+                w-full
+                rounded-lg
+                border border-slate-300
+                px-3 py-2.5
+                font-normal
+                outline-none
+                focus:border-slate-500
+                focus:ring-2
+                focus:ring-slate-200
+                disabled:bg-slate-100
+              "
             />
           </label>
 
-          {/* TYPE */}
+          {/* ROLE */}
           <label className="block text-sm font-semibold text-slate-700">
-            Type
+            Role
 
-            <input
+            <select
               value={role}
               onChange={(event) =>
                 setRole(
-                  event.target
-                    .value,
+                  event.target.value,
                 )
               }
               disabled={loading}
-              placeholder="ACCOUNTANT"
-              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-slate-500 disabled:bg-slate-100"
-            />
+              className="
+                mt-2
+                w-full
+                rounded-lg
+                border border-slate-300
+                bg-white
+                px-3 py-2.5
+                font-normal
+                text-slate-800
+                outline-none
+                focus:border-slate-500
+                focus:ring-2
+                focus:ring-slate-200
+                disabled:cursor-not-allowed
+                disabled:bg-slate-100
+                cursor-pointer
+              "
+            >
+              {ROLE_OPTIONS.map(
+                (roleOption) => (
+                  <option
+                    key={roleOption.value}
+                    value={
+                      roleOption.value
+                    }
+                  >
+                    {roleOption.label}
+                  </option>
+                ),
+              )}
+            </select>
           </label>
 
           {/* ERROR */}
@@ -489,7 +626,18 @@ function AddUserModal({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded-[10px] border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+              className="
+                rounded-[10px]
+                border border-slate-300
+                bg-white
+                px-4 py-2
+                text-sm
+                font-semibold
+                text-slate-700
+                transition
+                hover:bg-slate-100
+                disabled:opacity-50
+              "
             >
               Cancel
             </button>
@@ -497,7 +645,17 @@ function AddUserModal({
             <button
               type="submit"
               disabled={loading}
-              className="rounded-[10px] bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
+              className="
+                rounded-[10px]
+                bg-slate-900
+                px-4 py-2
+                text-sm
+                font-semibold
+                text-white
+                transition
+                hover:bg-slate-800
+                disabled:opacity-50
+              "
             >
               {loading
                 ? 'Inviting...'
@@ -509,6 +667,10 @@ function AddUserModal({
     </div>
   )
 }
+
+/* ============================================================
+   ALL USERS PAGE
+============================================================ */
 
 function AllUsersPage() {
   const accessToken = useAuthStore(
@@ -525,7 +687,9 @@ function AllUsersPage() {
     useState(false)
 
   const [loading, setLoading] =
-    useState(() => Boolean(accessToken))
+    useState(() =>
+      Boolean(accessToken),
+    )
 
   const [error, setError] =
     useState('')
@@ -539,6 +703,8 @@ function AllUsersPage() {
       }
     }
 
+    setLoading(true)
+
     fetchMembers(accessToken)
       .then((response) => {
         if (!mounted) return
@@ -546,16 +712,22 @@ function AllUsersPage() {
         setUsers(
           extractMembers(
             response,
-          ).map(
-            normalizeMember,
-          ),
+          ).map(normalizeMember),
         )
-        setUsersToken(accessToken)
+
+        setUsersToken(
+          accessToken,
+        )
+
+        setError('')
       })
       .catch((loadError) => {
         if (!mounted) return
 
-        setUsersToken(accessToken)
+        setUsersToken(
+          accessToken,
+        )
+
         setError(
           loadError?.message ||
             'Failed to load users.',
@@ -610,22 +782,22 @@ function AllUsersPage() {
 
   const isLoadingUsers =
     loading ||
-    Boolean(accessToken && usersToken !== accessToken)
+    Boolean(
+      accessToken &&
+        usersToken !== accessToken,
+    )
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef1f1] p-4 md:p-5">
-
       <div className="rounded-[14px] border border-slate-200 bg-[#f4f4f4] p-4 shadow-sm md:p-5">
 
         {/* PAGE HEADER */}
         <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-
           <h1 className="text-[26px] font-bold tracking-tight text-slate-800">
             All Users
           </h1>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-
             <div className="text-[14px] text-slate-600">
               Total Users-
 
@@ -637,11 +809,18 @@ function AllUsersPage() {
             <button
               type="button"
               onClick={() =>
-                setShowAddUser(
-                  true,
-                )
+                setShowAddUser(true)
               }
-              className="rounded-[10px] bg-slate-900 px-4 py-2 text-[14px] font-semibold text-white transition hover:bg-slate-800"
+              className="
+                rounded-[10px]
+                bg-slate-900
+                px-4 py-2
+                text-[14px]
+                font-semibold
+                text-white
+                transition
+                hover:bg-slate-800
+              "
             >
               + Add User
             </button>
@@ -679,9 +858,7 @@ function AllUsersPage() {
         <AddUserModal
           accessToken={accessToken}
           onClose={() =>
-            setShowAddUser(
-              false,
-            )
+            setShowAddUser(false)
           }
           onSuccess={(user) =>
             setUsers((current) => [

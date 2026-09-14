@@ -25,9 +25,10 @@ function loadRazorpay() {
   }
 
   return new Promise((resolve, reject) => {
-    const existingScript = document.querySelector(
-      `script[src="${RAZORPAY_SCRIPT_URL}"]`,
-    )
+    const existingScript =
+      document.querySelector(
+        `script[src="${RAZORPAY_SCRIPT_URL}"]`,
+      )
 
     if (existingScript) {
       existingScript.addEventListener(
@@ -122,11 +123,6 @@ const CheckoutPage = ({
 
   /* =======================================================
      FEATURE COLUMN COUNT
-
-     <= 4  → 2 columns
-     5-8   → 2 columns
-     9-12  → 3 columns
-     13+   → 4 columns on large screens
   ======================================================= */
 
   const featureGridClass =
@@ -398,10 +394,13 @@ const CheckoutPage = ({
                     verification?.data ||
                     {}
 
-                  if (authStore?.accessToken) {
+                  if (
+                    authStore?.accessToken
+                  ) {
                     const normalizedUser = {
                       ...(authStore.user || {}),
                       ...(verifiedUser || {}),
+
                       activeSubscription:
                         verifiedUser?.activeSubscription === true ||
                         verifiedUser?.subscriptionActive === true ||
@@ -415,21 +414,25 @@ const CheckoutPage = ({
                             verifiedUser?.subscription?.status ||
                             verifiedUser?.plan?.status ||
                             '',
-                        ).toLowerCase() === 'active' ||
+                        ).toLowerCase() ===
+                          'active' ||
                         String(
                           verifiedUser?.subscriptionStatus ||
                             verifiedUser?.status ||
                             verifiedUser?.subscription?.status ||
                             verifiedUser?.plan?.status ||
                             '',
-                        ).toLowerCase() === 'paid' ||
+                        ).toLowerCase() ===
+                          'paid' ||
                         String(
                           verifiedUser?.subscriptionStatus ||
                             verifiedUser?.status ||
                             verifiedUser?.subscription?.status ||
                             verifiedUser?.plan?.status ||
                             '',
-                        ).toLowerCase() === 'success',
+                        ).toLowerCase() ===
+                          'success',
+
                       subscriptionActive:
                         verifiedUser?.subscriptionActive === true ||
                         verifiedUser?.activeSubscription === true ||
@@ -443,33 +446,39 @@ const CheckoutPage = ({
                             verifiedUser?.subscription?.status ||
                             verifiedUser?.plan?.status ||
                             '',
-                        ).toLowerCase() === 'active' ||
+                        ).toLowerCase() ===
+                          'active' ||
                         String(
                           verifiedUser?.subscriptionStatus ||
                             verifiedUser?.status ||
                             verifiedUser?.subscription?.status ||
                             verifiedUser?.plan?.status ||
                             '',
-                        ).toLowerCase() === 'paid' ||
+                        ).toLowerCase() ===
+                          'paid' ||
                         String(
                           verifiedUser?.subscriptionStatus ||
                             verifiedUser?.status ||
                             verifiedUser?.subscription?.status ||
                             verifiedUser?.plan?.status ||
                             '',
-                        ).toLowerCase() === 'success',
+                        ).toLowerCase() ===
+                          'success',
+
                       subscriptionStatus:
                         verifiedUser?.subscriptionStatus ||
                         verifiedUser?.status ||
                         verifiedUser?.subscription?.status ||
                         verifiedUser?.plan?.status ||
                         'active',
+
                       status:
                         verifiedUser?.status ||
                         verifiedUser?.subscriptionStatus ||
                         verifiedUser?.subscription?.status ||
                         verifiedUser?.plan?.status ||
                         'active',
+
                       paymentVerified: true,
                     }
 
@@ -490,18 +499,15 @@ const CheckoutPage = ({
                     '',
                     '/dashboard',
                   )
+
                   window.dispatchEvent(
-                    new PopStateEvent('popstate'),
+                    new PopStateEvent(
+                      'popstate',
+                    ),
                   )
                 } catch (
                   error
                 ) {
-                  /* ===================================
-                     VERIFICATION FAILED
-
-                     STAY ON CHECKOUT
-                  =================================== */
-
                   setOrderMessage(
                     error?.message ||
                       'Payment verification failed.',
@@ -604,13 +610,11 @@ const CheckoutPage = ({
           flex-col
         "
       >
-
         {/* =================================================
             BACK BUTTON
         ================================================= */}
 
         <div className="shrink-0">
-
           <button
             type="button"
             onClick={onBack}
@@ -636,7 +640,6 @@ const CheckoutPage = ({
               sm:text-xs
             "
           >
-
             <ArrowRight
               className="
                 h-3
@@ -648,9 +651,7 @@ const CheckoutPage = ({
             />
 
             Back to plans
-
           </button>
-
         </div>
 
         {/* =================================================
@@ -668,7 +669,6 @@ const CheckoutPage = ({
             lg:gap-4
           "
         >
-
           {/* =================================================
               LEFT SIDE
           ================================================= */}
@@ -686,7 +686,6 @@ const CheckoutPage = ({
               shadow-[0_12px_35px_rgba(15,23,42,0.07)]
             "
           >
-
             {/* =================================================
                 LEFT HEADER
             ================================================= */}
@@ -703,7 +702,6 @@ const CheckoutPage = ({
                 lg:px-6
               "
             >
-
               <div
                 className="
                   mb-1
@@ -717,7 +715,6 @@ const CheckoutPage = ({
               >
                 Checkout
               </div>
-
             </div>
 
             {/* =================================================
@@ -738,7 +735,6 @@ const CheckoutPage = ({
                 lg:px-6
               "
             >
-
               {/* =================================================
                   SELECTED PLAN
               ================================================= */}
@@ -754,7 +750,6 @@ const CheckoutPage = ({
                   sm:p-4
                 "
               >
-
                 <div
                   className="
                     flex
@@ -763,9 +758,7 @@ const CheckoutPage = ({
                     gap-3
                   "
                 >
-
                   <div className="min-w-0">
-
                     <div
                       className="
                         text-[8px]
@@ -789,11 +782,26 @@ const CheckoutPage = ({
                         sm:text-xl
                       "
                     >
-                      {
-                        selectedPlanData?.name
-                      }
+                      {selectedPlanData?.name}
                     </div>
 
+                    {/* =================================================
+                        PLAN DESCRIPTION
+                    ================================================= */}
+
+                    <div
+                      className="
+                        mt-1
+                        text-[10px]
+                        font-medium
+                        leading-4
+                        text-green-700
+                        sm:text-xs
+                      "
+                    >
+                      {selectedPlanData?.description ||
+                        'Plan details'}
+                    </div>
                   </div>
 
                   <div
@@ -812,15 +820,12 @@ const CheckoutPage = ({
                       sm:w-10
                     "
                   >
-
                     <PlanIcon
                       planName={
                         selectedPlanData?.name
                       }
                     />
-
                   </div>
-
                 </div>
 
                 {/* =================================================
@@ -836,7 +841,6 @@ const CheckoutPage = ({
                     sm:mt-3
                   "
                 >
-
                   {/* DURATION */}
 
                   <div
@@ -847,7 +851,6 @@ const CheckoutPage = ({
                       sm:p-2.5
                     "
                   >
-
                     <div
                       className="
                         text-[8px]
@@ -874,7 +877,6 @@ const CheckoutPage = ({
                         selectedDurationData?.fullLabel
                       }
                     </div>
-
                   </div>
 
                   {/* BASE PRICE */}
@@ -887,7 +889,6 @@ const CheckoutPage = ({
                       sm:p-2.5
                     "
                   >
-
                     <div
                       className="
                         text-[8px]
@@ -915,11 +916,8 @@ const CheckoutPage = ({
                         basePlanPrice,
                       )}
                     </div>
-
                   </div>
-
                 </div>
-
               </div>
 
               {/* =================================================
@@ -939,7 +937,6 @@ const CheckoutPage = ({
                   sm:p-4
                 "
               >
-
                 <div
                   className="
                     flex
@@ -948,9 +945,7 @@ const CheckoutPage = ({
                     gap-3
                   "
                 >
-
                   <div className="min-w-0">
-
                     <div
                       className="
                         text-[8px]
@@ -993,7 +988,6 @@ const CheckoutPage = ({
                       )}{' '}
                       per seat
                     </div>
-
                   </div>
 
                   {/* COUNTER */}
@@ -1016,7 +1010,6 @@ const CheckoutPage = ({
                       sm:py-1.5
                     "
                   >
-
                     <button
                       type="button"
                       onClick={() =>
@@ -1045,9 +1038,7 @@ const CheckoutPage = ({
                       "
                       aria-label="Decrease seats"
                     >
-                      <Minus
-                        size={13}
-                      />
+                      <Minus size={13} />
                     </button>
 
                     <span
@@ -1089,13 +1080,9 @@ const CheckoutPage = ({
                       "
                       aria-label="Increase seats"
                     >
-                      <Plus
-                        size={13}
-                      />
+                      <Plus size={13} />
                     </button>
-
                   </div>
-
                 </div>
 
                 {/* SEAT TOTAL */}
@@ -1113,7 +1100,6 @@ const CheckoutPage = ({
                     sm:pt-3
                   "
                 >
-
                   <span
                     className="
                       text-[10px]
@@ -1138,9 +1124,7 @@ const CheckoutPage = ({
                       extraSeatTotal,
                     )}
                   </span>
-
                 </div>
-
               </div>
 
               {/* =================================================
@@ -1164,7 +1148,6 @@ const CheckoutPage = ({
                   sm:p-4
                 "
               >
-
                 {/* FEATURES HEADER */}
 
                 <div
@@ -1176,7 +1159,6 @@ const CheckoutPage = ({
                     gap-2
                   "
                 >
-
                   <div
                     className="
                       text-[10px]
@@ -1203,14 +1185,9 @@ const CheckoutPage = ({
                       selectedPlanData?.name
                     }
                   </div>
-
                 </div>
 
-                {/* =================================================
-                    FEATURES
-
-                    NO SCROLLBAR
-                ================================================= */}
+                {/* FEATURES */}
 
                 <div
                   className={`
@@ -1225,7 +1202,6 @@ const CheckoutPage = ({
                     sm:gap-y-2
                   `}
                 >
-
                   {features.map(
                     (feature) => (
                       <div
@@ -1237,7 +1213,6 @@ const CheckoutPage = ({
                           gap-1.5
                         "
                       >
-
                         <div
                           className="
                             mt-0.5
@@ -1254,15 +1229,11 @@ const CheckoutPage = ({
                             sm:w-4
                           "
                         >
-
                           <Check
                             size={8}
                             strokeWidth={3}
                           />
-
                         </div>
-
-                        {/* BOLD FEATURE TEXT */}
 
                         <span
                           className="
@@ -1284,7 +1255,6 @@ const CheckoutPage = ({
                             feature
                           }
                         </span>
-
                       </div>
                     ),
                   )}
@@ -1303,13 +1273,9 @@ const CheckoutPage = ({
                       No features available
                     </div>
                   )}
-
                 </div>
-
               </div>
-
             </div>
-
           </section>
 
           {/* =================================================
@@ -1333,13 +1299,11 @@ const CheckoutPage = ({
               lg:p-6
             "
           >
-
             {/* =================================================
                 SUMMARY HEADER
             ================================================= */}
 
             <div className="shrink-0">
-
               <div
                 className="
                   text-[8px]
@@ -1364,6 +1328,20 @@ const CheckoutPage = ({
                 Your order
               </h2>
 
+              {/* PLAN DESCRIPTION IN SUMMARY */}
+
+              <p
+                className="
+                  mt-1
+                  text-[9px]
+                  leading-4
+                  text-green-100/80
+                  sm:text-[10px]
+                "
+              >
+                {selectedPlanData?.description ||
+                  'Plan details'}
+              </p>
             </div>
 
             {/* =================================================
@@ -1379,7 +1357,6 @@ const CheckoutPage = ({
                 sm:space-y-3
               "
             >
-
               {/* PLAN */}
 
               <div
@@ -1393,7 +1370,6 @@ const CheckoutPage = ({
                   sm:text-xs
                 "
               >
-
                 <span>
                   {
                     selectedPlanData?.name
@@ -1407,7 +1383,6 @@ const CheckoutPage = ({
                     basePlanPrice,
                   )}
                 </span>
-
               </div>
 
               {/* EXTRA SEATS */}
@@ -1423,7 +1398,6 @@ const CheckoutPage = ({
                   sm:text-xs
                 "
               >
-
                 <span>
                   Extra seats
                 </span>
@@ -1439,7 +1413,6 @@ const CheckoutPage = ({
                     addonPricePerSeat,
                   )}
                 </span>
-
               </div>
 
               {/* DURATION */}
@@ -1455,7 +1428,6 @@ const CheckoutPage = ({
                   sm:text-xs
                 "
               >
-
                 <span>
                   Duration
                 </span>
@@ -1465,7 +1437,6 @@ const CheckoutPage = ({
                     selectedDurationData?.label
                   }
                 </span>
-
               </div>
 
               {/* SUBTOTAL */}
@@ -1478,7 +1449,6 @@ const CheckoutPage = ({
                   sm:pt-3
                 "
               >
-
                 <div
                   className="
                     flex
@@ -1488,7 +1458,6 @@ const CheckoutPage = ({
                     text-green-100
                   "
                 >
-
                   <span className="text-[10px] sm:text-xs">
                     Subtotal
                   </span>
@@ -1500,11 +1469,8 @@ const CheckoutPage = ({
                         extraSeatTotal,
                     )}
                   </span>
-
                 </div>
-
               </div>
-
             </div>
 
             {/* =================================================
@@ -1521,7 +1487,6 @@ const CheckoutPage = ({
                 sm:mt-4
               "
             >
-
               <div
                 className="
                   text-[8px]
@@ -1543,9 +1508,7 @@ const CheckoutPage = ({
                   gap-2
                 "
               >
-
                 <div>
-
                   <div
                     className="
                       text-[10px]
@@ -1582,7 +1545,6 @@ const CheckoutPage = ({
                     )}{' '}
                     each
                   </div>
-
                 </div>
 
                 <div
@@ -1598,9 +1560,7 @@ const CheckoutPage = ({
                     extraSeatTotal,
                   )}
                 </div>
-
               </div>
-
             </div>
 
             {/* =================================================
@@ -1618,7 +1578,6 @@ const CheckoutPage = ({
                 sm:p-4
               "
             >
-
               <div
                 className="
                   text-[8px]
@@ -1655,7 +1614,6 @@ const CheckoutPage = ({
               >
                 Base plan + additional seats
               </div>
-
             </div>
 
             {/* =================================================
@@ -1696,7 +1654,6 @@ const CheckoutPage = ({
                 sm:pt-4
               "
             >
-
               <button
                 type="button"
                 onClick={
@@ -1730,7 +1687,6 @@ const CheckoutPage = ({
                   sm:text-sm
                 "
               >
-
                 {isCreatingOrder
                   ? 'Processing...'
                   : 'Confirm & Pay'}
@@ -1738,7 +1694,6 @@ const CheckoutPage = ({
                 <ArrowRight
                   size={14}
                 />
-
               </button>
 
               <p
@@ -1753,11 +1708,8 @@ const CheckoutPage = ({
               >
                 Secure billing • No hidden fees
               </p>
-
             </div>
-
           </aside>
-
         </div>
       </div>
     </div>

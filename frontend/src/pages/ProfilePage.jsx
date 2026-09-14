@@ -51,7 +51,7 @@ const ProfilePage = () => {
 
         const seatLimit = profileRequest?.value?.data?.subscription?.plan?.seatLimit || 0
         setSeatLimit(seatLimit)
-        
+
 
         if (profileRequest.status === 'rejected') {
           throw profileRequest.reason
@@ -68,7 +68,7 @@ const ProfilePage = () => {
         if (mounted) {
           setError(
             profileError?.message ||
-              'Unable to load profile',
+            'Unable to load profile',
           )
         }
       } finally {
@@ -84,8 +84,8 @@ const ProfilePage = () => {
   }, [accessToken])
 
   /*
-   * Format date as DD/MM/YYYY
-   */
+  * Format date as DD/MM/YYYY
+  */
   const formatDate = (date) => {
     if (!date) return '-'
 
@@ -104,16 +104,16 @@ const ProfilePage = () => {
   }
 
   /*
-   * Calculate subscription period
-   *
-   * Formula:
-   * Expiry Date - Purchase Date
-   *
-   * Result:
-   * 30 Days
-   * 365 Days
-   * etc.
-   */
+  * Calculate subscription period
+  *
+  * Formula:
+  * Expiry Date - Purchase Date
+  *
+  * Result:
+  * 30 Days
+  * 365 Days
+  * etc.
+  */
   const calculateSubscriptionPeriod = (
     purchaseDate,
     expiryDate,
@@ -137,7 +137,7 @@ const ProfilePage = () => {
 
     const differenceInDays = Math.ceil(
       differenceInMilliseconds /
-        (1000 * 60 * 60 * 24),
+      (1000 * 60 * 60 * 24),
     )
 
     if (differenceInDays < 0) {
@@ -188,23 +188,23 @@ const ProfilePage = () => {
     subscription?.plan
 
   /*
-   * Active subscription
-   */
+  * Active subscription
+  */
   const isActive =
     subscription?.status === 'ACTIVE' &&
     subscription?.active === true
 
   /*
-   * Email from authStore
-   */
+  * Email from authStore
+  */
   const email =
     user?.email ||
     user?.user?.email ||
     '-'
 
   /*
-   * Dates
-   */
+  * Dates
+  */
   const purchaseDate =
     subscription?.fromDate
 
@@ -212,8 +212,8 @@ const ProfilePage = () => {
     subscription?.toDate
 
   /*
-   * Subscription period
-   */
+  * Subscription period
+  */
   const subscriptionPeriod =
     calculateSubscriptionPeriod(
       purchaseDate,
@@ -221,11 +221,11 @@ const ProfilePage = () => {
     )
 
   /*
-   * Plan features
-   *
-   * API:
-   * subscription.plan.features
-   */
+  * Plan features
+  *
+  * API:
+  * subscription.plan.features
+  */
   const features =
     plan?.features || []
 
@@ -246,33 +246,32 @@ const ProfilePage = () => {
         </div>
 
         {/* Page Header */}
-       
+
 
         {/* Main Card */}
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
           {/* Green Header */}
-          <div className="bg-gradient-to-r from-green-600 to-emerald-500 p-6">
-            <div className="flex items-center gap-4 justify-center">
+          <div className="flex flex-col items-center justify-center bg-gradient-to-r from-green-600 to-emerald-500 p-6 text-center">
 
-              {/* User Icon */}
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-green-600 shadow">
-                <User size={30} />
-              </div>
-
-              {/* Header Text */}
-              <div>
-                <h2 className="text-xl font-bold text-white sm:text-2xl justify-center flex items-center">
-                  Owner Profile
-                </h2>
-
-                <p className="mt-1 text-sm text-green-50">
-                  Account and subscription information
-                </p>
-              </div>
-
+            {/* User Icon / Logo */}
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-green-600 shadow-lg">
+              <User size={36} />
             </div>
+
+            {/* Header Text */}
+            <div className="mt-4">
+              <h2 className="text-xl font-bold text-white sm:text-2xl">
+                Owner Profile
+              </h2>
+
+              <p className="mt-1 text-sm text-green-50">
+                Account and subscription information
+              </p>
+            </div>
+
           </div>
+
 
           {/* Profile Information */}
           <div className="p-6">

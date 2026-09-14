@@ -41,18 +41,38 @@ const fallbackPlans = [
 
     pricingOptions: [
       {
+        durationMonths: 1,
+        price: 417,
+        discountPercent: 0,
+        addonPricePerSeat: 83,
+      },
+      {
+        durationMonths: 3,
+        price: 1188,
+        discountPercent: 5,
+        addonPricePerSeat: 238,
+      },
+      {
+        durationMonths: 6,
+        price: 2252,
+        discountPercent: 10,
+        addonPricePerSeat: 450,
+      },
+      {
         durationMonths: 12,
         price: 5000,
         discountPercent: 0,
+        addonPricePerSeat: 1000,
       },
       {
         durationMonths: 36,
         price: 11250,
         discountPercent: 25,
+        addonPricePerSeat: 2250,
       },
     ],
 
-    addonPricePerSeat: 999,
+    addonPricePerSeat: 1000,
   },
 
   {
@@ -75,18 +95,38 @@ const fallbackPlans = [
 
     pricingOptions: [
       {
+        durationMonths: 1,
+        price: 250,
+        discountPercent: 0,
+        addonPricePerSeat: 50,
+      },
+      {
+        durationMonths: 3,
+        price: 712,
+        discountPercent: 5,
+        addonPricePerSeat: 142,
+      },
+      {
+        durationMonths: 6,
+        price: 1350,
+        discountPercent: 10,
+        addonPricePerSeat: 270,
+      },
+      {
         durationMonths: 12,
         price: 3000,
         discountPercent: 0,
+        addonPricePerSeat: 600,
       },
       {
         durationMonths: 36,
         price: 7200,
         discountPercent: 25,
+        addonPricePerSeat: 1440,
       },
     ],
 
-    addonPricePerSeat: 999,
+    addonPricePerSeat: 600,
   },
 
   {
@@ -114,18 +154,38 @@ const fallbackPlans = [
 
     pricingOptions: [
       {
+        durationMonths: 1,
+        price: 583,
+        discountPercent: 0,
+        addonPricePerSeat: 117,
+      },
+      {
+        durationMonths: 3,
+        price: 1662,
+        discountPercent: 5,
+        addonPricePerSeat: 332,
+      },
+      {
+        durationMonths: 6,
+        price: 3148,
+        discountPercent: 10,
+        addonPricePerSeat: 630,
+      },
+      {
         durationMonths: 12,
         price: 7000,
         discountPercent: 0,
+        addonPricePerSeat: 1400,
       },
       {
         durationMonths: 36,
         price: 15750,
         discountPercent: 25,
+        addonPricePerSeat: 3150,
       },
     ],
 
-    addonPricePerSeat: 999,
+    addonPricePerSeat: 1400,
   },
 ]
 
@@ -879,59 +939,51 @@ function PlansPage() {
     )
   }
 
+  /* =========================================================
+     CHECKOUT PAGE
+  ========================================================= */
+
   if (isCheckoutOpen) {
     return (
       <CheckoutPage
         selectedPlanData={
           selectedPlanData
         }
-
         selectedDurationData={
           selectedDurationData
         }
-
         accessToken={
           accessToken
         }
-
         extraSeats={
           extraSeats
         }
-
         setExtraSeats={
           setExtraSeats
         }
-
         basePlanPrice={
           basePlanPrice
         }
-
         addonPricePerSeat={
           additionalSeatRate
         }
-
         extraSeatTotal={
           extraSeatTotal
         }
-
         totalAmount={
           totalAmount
         }
-
         onBack={() =>
           setIsCheckoutOpen(
             false,
           )
         }
-
         PlanIcon={
           PlanIcon
         }
-
         featureLabels={
           featureLabels
         }
-
         formatPrice={
           formatPrice
         }
@@ -953,7 +1005,6 @@ function PlansPage() {
         ================================================= */}
 
         <div className="shrink-0 text-center">
-
           <div className="mb-1 inline-flex items-center rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[8px] font-bold uppercase tracking-[0.18em] text-green-700 sm:text-[9px]">
             Flexible Plans
           </div>
@@ -968,7 +1019,6 @@ function PlansPage() {
             management tools designed
             for your workflow.
           </p>
-
         </div>
 
         {/* =================================================
@@ -987,9 +1037,7 @@ function PlansPage() {
         ================================================= */}
 
         <div className="mt-2 flex shrink-0 justify-center sm:mt-3">
-
           <div className="inline-flex flex-wrap justify-center gap-0.5 rounded-xl border border-green-100 bg-white p-1 shadow-sm">
-
             {durations.map(
               (duration) => {
                 const isAvailable =
@@ -1036,9 +1084,7 @@ function PlansPage() {
                           : 'cursor-not-allowed text-slate-300'
                     }`}
                   >
-                    {
-                      duration.label
-                    }
+                    {duration.label}
 
                     {!isAvailable && (
                       <span className="ml-0.5 text-[7px]">
@@ -1049,9 +1095,7 @@ function PlansPage() {
                 )
               },
             )}
-
           </div>
-
         </div>
 
         {/* =================================================
@@ -1059,10 +1103,7 @@ function PlansPage() {
         ================================================= */}
 
         <p className="mt-0.5 shrink-0 text-center text-[8px] text-slate-400 sm:text-[9px]">
-
-          {
-            selectedDurationData?.fullLabel
-          }
+          {selectedDurationData?.fullLabel}
 
           {selectedDuration ===
             36 && (
@@ -1070,7 +1111,6 @@ function PlansPage() {
               Save 25%
             </span>
           )}
-
         </p>
 
         {/* =================================================
@@ -1078,7 +1118,6 @@ function PlansPage() {
         ================================================= */}
 
         <div className="mt-2 min-h-0 flex-1 sm:mt-3">
-
           <div className="grid h-full grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
 
             {visiblePlans.map(
@@ -1121,15 +1160,6 @@ function PlansPage() {
                     ? plan.features.length
                     : 0
 
-                /*
-                 * More features = more columns.
-                 *
-                 * 1-8 features:
-                 * 2 columns
-                 *
-                 * 9+ features:
-                 * 3 columns on larger screens
-                 */
                 const featureColumns =
                   featureCount > 8
                     ? 'grid-cols-2 lg:grid-cols-3'
@@ -1164,7 +1194,9 @@ function PlansPage() {
 
                     <div className="shrink-0 p-3 pb-2.5 sm:p-4 sm:pb-3 lg:p-5 lg:pb-3">
 
-                      <div className="flex min-h-[46px] items-start gap-2.5 sm:min-h-[50px] sm:gap-3">
+                      <div className="flex min-h-[62px] items-start gap-2.5 sm:min-h-[68px] sm:gap-3">
+
+                        {/* PLAN ICON */}
 
                         <PlanIcon
                           planName={
@@ -1172,18 +1204,19 @@ function PlansPage() {
                           }
                         />
 
+                        {/* PLAN TITLE + DESCRIPTION */}
+
                         <div className="min-w-0 flex-1 pr-12">
 
                           <h2 className="truncate text-base font-bold leading-tight text-[#143D2A] sm:text-lg">
-                            {
-                              plan.name
-                            }
+                            {plan.name}
                           </h2>
 
-                          <p className="mt-0.5 line-clamp-2 text-[9px] leading-3.5 text-slate-500 sm:text-[10px] sm:leading-4">
-                            {
-                              plan.description
-                            }
+                          {/* DESCRIPTION */}
+
+                          <p className="mt-1 line-clamp-2 text-[10px] font-medium leading-4 text-green-700 sm:text-[11px] sm:leading-4">
+                            {plan.description ||
+                              'Plan details'}
                           </p>
 
                         </div>
@@ -1199,7 +1232,6 @@ function PlansPage() {
                         {pricing ? (
                           <>
                             <div className="flex items-end gap-1">
-
                               <span className="text-2xl font-extrabold leading-none tracking-tight text-[#143D2A] sm:text-3xl lg:text-4xl">
                                 ₹
                                 {formatPrice(
@@ -1213,7 +1245,6 @@ function PlansPage() {
                                   selectedDurationData?.label
                                 }
                               </span>
-
                             </div>
 
                             {pricing.discountPercent >
@@ -1225,7 +1256,6 @@ function PlansPage() {
                                 % OFF
                               </div>
                             )}
-
                           </>
                         ) : (
                           <div className="text-xl font-bold text-slate-300">
@@ -1266,9 +1296,7 @@ function PlansPage() {
 
                         {pricing && (
                           <ArrowRight
-                            size={
-                              13
-                            }
+                            size={13}
                           />
                         )}
                       </button>
@@ -1287,7 +1315,7 @@ function PlansPage() {
 
                     <div className="flex min-h-0 flex-1 flex-col p-3 pt-2.5 sm:p-4 sm:pt-3 lg:p-5 lg:pt-3">
 
-                      {/* HEADER */}
+                      {/* FEATURES HEADER */}
 
                       <div className="flex shrink-0 items-center justify-between gap-2">
 
@@ -1301,10 +1329,8 @@ function PlansPage() {
                             size={10}
                           />
 
-                          {
-                            plan.seatLimit ||
-                            1
-                          }{' '}
+                          {plan.seatLimit ||
+                            1}{' '}
                           seat
                           {(plan.seatLimit ||
                             1) > 1
@@ -1317,7 +1343,6 @@ function PlansPage() {
 
                       {/* =================================================
                           FEATURES
-                          NO SCROLL
                       ================================================= */}
 
                       <div
@@ -1333,7 +1358,6 @@ function PlansPage() {
                           sm:gap-y-2
                         `}
                       >
-
                         {(
                           plan.features ||
                           []
@@ -1349,9 +1373,7 @@ function PlansPage() {
                               <div className="mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600 sm:h-4 sm:w-4">
 
                                 <Check
-                                  size={
-                                    8
-                                  }
+                                  size={8}
                                   strokeWidth={
                                     3
                                   }
@@ -1361,19 +1383,16 @@ function PlansPage() {
 
                               <span className="min-w-0 break-words text-[8px] leading-3 text-slate-600 sm:text-[9px] sm:leading-3.5 lg:text-[10px]">
 
-                                {
-                                  featureLabels?.[
-                                    feature
-                                  ] ||
-                                    feature
-                                }
+                                {featureLabels?.[
+                                  feature
+                                ] ||
+                                  feature}
 
                               </span>
 
                             </div>
                           ),
                         )}
-
                       </div>
 
                       {/* =================================================
@@ -1387,7 +1406,6 @@ function PlansPage() {
                           <div className="flex items-center justify-between gap-2">
 
                             <div className="min-w-0">
-
                               <span className="block text-[8px] font-semibold text-green-700 sm:text-[9px] lg:text-[10px]">
                                 Additional seat
                               </span>
@@ -1396,11 +1414,9 @@ function PlansPage() {
                                 Per additional
                                 user
                               </span>
-
                             </div>
 
                             <span className="shrink-0 text-xs font-bold text-[#143D2A] sm:text-sm">
-
                               ₹
                               {formatPrice(
                                 planSeatRate,
@@ -1409,7 +1425,6 @@ function PlansPage() {
                               <span className="ml-1 text-[7px] font-medium text-slate-500 sm:text-[8px]">
                                 / seat
                               </span>
-
                             </span>
 
                           </div>
@@ -1426,7 +1441,6 @@ function PlansPage() {
             )}
 
           </div>
-
         </div>
 
         {/* =================================================

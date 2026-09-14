@@ -107,8 +107,9 @@ function ConnectorStatusButton({
         "
       >
         <span
-          className={`h-2.5 w-2.5 shrink-0 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'
-            }`}
+          className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+            isOnline ? 'bg-emerald-500' : 'bg-red-500'
+          }`}
         />
 
         <span className="flex min-w-0 flex-1 flex-col items-start justify-center leading-none">
@@ -138,8 +139,9 @@ function ConnectorStatusButton({
         </span>
 
         <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform ${open ? 'rotate-180' : ''
-            }`}
+          className={`h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform ${
+            open ? 'rotate-180' : ''
+          }`}
         />
       </button>
 
@@ -263,10 +265,10 @@ function ConnectorStatusButton({
                 ].includes(statusKey)
                   ? 'bg-emerald-50 text-emerald-700'
                   : [
-                    'offline',
-                    'inactive',
-                    'disconnected',
-                  ].includes(statusKey)
+                        'offline',
+                        'inactive',
+                        'disconnected',
+                      ].includes(statusKey)
                     ? 'bg-red-50 text-red-700'
                     : 'bg-amber-50 text-amber-700'
 
@@ -411,6 +413,10 @@ function AppHeader({
     if (!company) return
 
     onSelectCompany?.(company)
+    const companyId = getCompanyId(company)
+    if (companyId) {
+      onNavigate?.(`/company-details/${encodeURIComponent(companyId)}`)
+    }
     closeAllDropdowns()
   }
 
@@ -557,9 +563,10 @@ function AppHeader({
                   shrink-0
                   text-slate-500
                   transition-transform
-                  ${showCompanyMenu
-                    ? 'rotate-180'
-                    : ''
+                  ${
+                    showCompanyMenu
+                      ? 'rotate-180'
+                      : ''
                   }
                 `}
               />
@@ -628,7 +635,7 @@ function AppHeader({
                         companyId &&
                         selectedCompanyId &&
                         String(companyId) ===
-                        String(selectedCompanyId)
+                          String(selectedCompanyId)
 
                       return (
                         <button
@@ -645,9 +652,10 @@ function AppHeader({
                             px-3 py-3
                             text-left
                             transition
-                            ${isSelected
-                              ? 'bg-emerald-50'
-                              : 'hover:bg-slate-50'
+                            ${
+                              isSelected
+                                ? 'bg-emerald-50'
+                                : 'hover:bg-slate-50'
                             }
                           `}
                         >
@@ -662,16 +670,17 @@ function AppHeader({
                               rounded-lg
                               text-[10px]
                               font-bold
-                              ${isSelected
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-slate-100 text-slate-500'
+                              ${
+                                isSelected
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-slate-100 text-slate-500'
                               }
                             `}
                           >
                             {String(
                               company?.name ||
-                              company?.companyName ||
-                              'C',
+                                company?.companyName ||
+                                'C',
                             )
                               .trim()
                               .charAt(0)
@@ -685,9 +694,10 @@ function AppHeader({
                                 block truncate
                                 text-xs
                                 font-semibold
-                                ${isSelected
-                                  ? 'text-emerald-800'
-                                  : 'text-app-text'
+                                ${
+                                  isSelected
+                                    ? 'text-emerald-800'
+                                    : 'text-app-text'
                                 }
                               `}
                             >
@@ -843,14 +853,15 @@ function AppHeader({
             {/* MOBILE VERSION */}
             <button
               type="button"
-              onClick={() => {
-                if (onMobileVersionClick) {
-                  onMobileVersionClick()
-                  return
-                }
-
-                window.location.href = '/dashboard'
-              }}
+              onClick={
+                onMobileVersionClick ??
+                (() =>
+                  window.open(
+                    '/mobile-version',
+                    '_blank',
+                    'noopener,noreferrer',
+                  ))
+              }
               className="
                 hidden h-16 w-[82px]
                 shrink-0
@@ -952,9 +963,10 @@ function AppHeader({
                     shrink-0
                     text-slate-500
                     transition-transform
-                    ${showProfileMenu
-                      ? 'rotate-180'
-                      : ''
+                    ${
+                      showProfileMenu
+                        ? 'rotate-180'
+                        : ''
                     }
                   `}
                 />
@@ -1052,6 +1064,87 @@ function AppHeader({
               "
             />
           </label>
+        </div>
+
+        {/* ====================================================
+            MOBILE ACTIONS
+        ===================================================== */}
+        <div
+          className="
+            flex
+            min-h-16
+            border-t
+            border-app-border-light
+            bg-white
+            lg:hidden
+          "
+        >
+          <button
+            type="button"
+            onClick={() =>
+              onOpenEway
+                ? onOpenEway()
+                : setShowEway?.(true)
+            }
+            className="
+              flex
+              min-w-0
+              flex-1
+              items-center
+              justify-center
+              gap-1.5
+              border-r border-app-border
+              bg-white
+              text-[9px]
+              leading-3
+              text-app-text-secondary
+              transition
+              hover:bg-slate-50
+            "
+          >
+            <span
+              className="
+                flex h-5 w-5
+                shrink-0
+                items-center
+                justify-center
+                rounded-full
+                border border-red-400
+                text-[10px]
+                font-bold
+                text-red-500
+              "
+            >
+              !
+            </span>
+
+            <span>
+              Link
+              <br />
+              eInvoice
+            </span>
+          </button>
+
+          <div
+            className="
+              flex
+              min-w-0
+              flex-1
+              items-center
+              justify-center
+              bg-white
+              px-2
+            "
+          >
+            <ConnectorStatusButton
+              rows={connectorStatusRows}
+              lastSyncMeta={lastSyncMeta}
+              connectorStatusError={connectorStatusError}
+              isConnectorStatusLoading={
+                isConnectorStatusLoading
+              }
+            />
+          </div>
         </div>
       </header>
 
