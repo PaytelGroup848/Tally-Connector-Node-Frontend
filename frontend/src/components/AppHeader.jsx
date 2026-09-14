@@ -1,5 +1,4 @@
-﻿
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import {
   ChevronDown,
   Menu,
@@ -130,7 +129,7 @@ function ConnectorStatusButton({
       {open && (
         <div
           className="
-            absolute right-0 top-full z-[200]
+            absolute right-0 top-full z-[300]
             mt-2
             w-[min(420px,calc(100vw-16px))]
             overflow-hidden
@@ -345,13 +344,19 @@ function AppHeader({
   selectedCompany,
   companyOptions = [],
   onSelectCompany,
-  onCompanyClick,
   onLogout,
   connectorStatusRows = [],
   lastSyncMeta = null,
   connectorStatusError = '',
   isConnectorStatusLoading = false,
 }) {
+  const getCompanyId = (company) =>
+    company?.id ||
+    company?._id ||
+    company?.companyId ||
+    company?.company_id ||
+    null
+
   const toggleCompanyMenu = () => {
     setShowCompanyMenu((current) => !current)
     setShowProfileMenu(false)
@@ -362,13 +367,20 @@ function AppHeader({
     setShowCompanyMenu(false)
   }
 
-  const handleCompanySelect = (company) => {
-    if (onCompanyClick) {
-      onCompanyClick(company)
-    } else {
-      onSelectCompany?.(company)
-    }
+  /* ============================================================
+     COMPANY SELECTION
+     FIX:
+     Always call onSelectCompany so parent state changes.
+     Then call onCompanyClick when provided.
+  ============================================================ */
 
+  const handleCompanySelect = (company) => {
+    if (!company) return
+
+    // Update parent selected company state
+    onSelectCompany?.(company)
+
+    // Close dropdown
     setShowCompanyMenu(false)
   }
 
@@ -403,7 +415,7 @@ function AppHeader({
 
   return (
     <>
-      <header className="app-header relative w-full">
+      <header className="app-header relative z-[150] w-full">
         {/* ====================================================
             TOP ROW
         ===================================================== */}
@@ -419,7 +431,15 @@ function AppHeader({
           {/* ==================================================
               MENU
           =================================================== */}
-          <div className="flex h-16 w-14 shrink-0 items-center justify-center border-r border-app-border">
+          <div
+            className="
+              flex h-16 w-14
+              shrink-0
+              items-center
+              justify-center
+              border-r border-app-border
+            "
+          >
             <button
               type="button"
               aria-label="Toggle sidebar"
@@ -467,28 +487,13 @@ function AppHeader({
                 flex h-full w-full
                 items-center
                 gap-3
-                px-3.5
+                px-5
                 text-left
                 outline-none
+                transition
+                hover:bg-slate-50
               "
             >
-              {/* COMPANY ICON */}
-              <span
-                className="
-                  flex h-9 w-9
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-lg
-                  bg-slate-50
-                  text-app-text
-                "
-              >
-                <span className="text-sm font-bold">
-                  ▦
-                </span>
-              </span>
-
               {/* COMPANY TEXT */}
               <span className="min-w-0 flex-1">
                 <strong
@@ -500,7 +505,9 @@ function AppHeader({
                     text-app-text
                   "
                 >
-                  {selectedCompany?.name || 'NA'}
+                  {selectedCompany?.name ||
+                    selectedCompany?.companyName ||
+                    'NA'}
                 </strong>
 
                 <span
@@ -511,7 +518,9 @@ function AppHeader({
                     text-slate-500
                   "
                 >
-                  {selectedCompany?.meta || ''}
+                  {selectedCompany?.meta ||
+                    selectedCompany?.city ||
+                    ''}
                 </span>
               </span>
 
@@ -530,14 +539,16 @@ function AppHeader({
               />
             </button>
 
-            {/* COMPANY DROPDOWN */}
+            {/* ==================================================
+                COMPANY DROPDOWN
+            =================================================== */}
             {showCompanyMenu && (
               <div
                 className="
                   absolute
                   left-2
                   top-[62px]
-                  z-[200]
+                  z-[400]
                   w-[300px]
                   overflow-hidden
                   rounded-xl
@@ -546,29 +557,52 @@ function AppHeader({
                   shadow-[0_18px_42px_rgba(15,23,42,0.14)]
                 "
               >
-                <div className="border-b border-app-border bg-slate-50 px-4 py-3">
-                  <p className="m-0 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                {/* DROPDOWN HEADER */}
+                <div
+                  className="
+                    border-b
+                    border-app-border
+                    bg-slate-50
+                    px-4
+                    py-3
+                  "
+                >
+                  <p
+                    className="
+                      m-0
+                      text-[10px]
+                      font-semibold
+                      uppercase
+                      tracking-wide
+                      text-slate-500
+                    "
+                  >
                     My Companies
                   </p>
                 </div>
 
+                {/* COMPANY LIST */}
                 <div className="max-h-[320px] overflow-y-auto p-1.5">
                   {companyOptions.length === 0 ? (
                     <div className="px-3 py-4 text-xs text-slate-500">
                       No companies available.
                     </div>
                   ) : (
-                    companyOptions.map((company) => {
+                    companyOptions.map((company, index) => {
+                      const companyId = getCompanyId(company)
+
                       const key =
-                        company?.id ||
-                        company?._id ||
-                        company?.name
+                        companyId ||
+                        company?.name ||
+                        `company-${index}`
+
+                      const selectedCompanyId = getCompanyId(selectedCompany)
 
                       const isSelected =
-                        company?.id ===
-                          selectedCompany?.id ||
-                        company?._id ===
-                          selectedCompany?._id
+                        companyId &&
+                        selectedCompanyId &&
+                        String(companyId) ===
+                          String(selectedCompanyId)
 
                       return (
                         <button
@@ -577,7 +611,7 @@ function AppHeader({
                           onClick={() =>
                             handleCompanySelect(company)
                           }
-                          className="
+                          className={`
                             flex w-full
                             items-center
                             gap-3
@@ -585,35 +619,94 @@ function AppHeader({
                             px-3 py-3
                             text-left
                             transition
-                            hover:bg-slate-50
-                          "
+                            ${
+                              isSelected
+                                ? 'bg-emerald-50'
+                                : 'hover:bg-slate-50'
+                            }
+                          `}
                         >
+                          {/* COMPANY ICON */}
                           <span
-                            className="
-                              flex h-8 w-8
+                            className={`
+                              flex
+                              h-8 w-8
                               shrink-0
                               items-center
                               justify-center
                               rounded-lg
-                              bg-emerald-50
-                              text-app-primary
-                            "
+                              text-[10px]
+                              font-bold
+                              ${
+                                isSelected
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-slate-100 text-slate-500'
+                              }
+                            `}
                           >
-                            ▦
+                            {String(
+                              company?.name ||
+                                company?.companyName ||
+                                'C',
+                            )
+                              .trim()
+                              .charAt(0)
+                              .toUpperCase()}
                           </span>
 
+                          {/* COMPANY NAME */}
                           <span className="min-w-0 flex-1">
-                            <strong className="block truncate text-xs font-semibold text-app-text">
-                              {company?.name || 'NA'}
+                            <strong
+                              className={`
+                                block truncate
+                                text-xs
+                                font-semibold
+                                ${
+                                  isSelected
+                                    ? 'text-emerald-800'
+                                    : 'text-app-text'
+                                }
+                              `}
+                            >
+                              {company?.name ||
+                                company?.companyName ||
+                                'NA'}
                             </strong>
 
-                            <small className="mt-0.5 block truncate text-[10px] text-slate-500">
-                              {company?.meta || ''}
+                            <small
+                              className="
+                                mt-0.5
+                                block
+                                truncate
+                                text-[10px]
+                                text-slate-500
+                              "
+                            >
+                              {company?.meta ||
+                                company?.city ||
+                                company?.address ||
+                                ''}
                             </small>
                           </span>
 
+                          {/* SELECTED CHECK */}
                           {isSelected && (
-                            <span className="h-2 w-2 shrink-0 rounded-full bg-app-primary" />
+                            <span
+                              className="
+                                flex
+                                h-5 w-5
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-full
+                                bg-emerald-500
+                                text-[10px]
+                                font-bold
+                                text-white
+                              "
+                            >
+                              ✓
+                            </span>
                           )}
                         </button>
                       )
@@ -853,7 +946,7 @@ function AppHeader({
                     absolute
                     right-0
                     top-[62px]
-                    z-[200]
+                    z-[400]
                     w-52
                     overflow-hidden
                     rounded-xl
@@ -952,7 +1045,22 @@ function AppHeader({
           className="
             fixed
             inset-0
-            z-[100]
+            z-[250]
+            cursor-default
+            bg-transparent
+          "
+        />
+      )}
+
+      {showProfileMenu && (
+        <button
+          type="button"
+          aria-label="Close profile menu"
+          onClick={() => setShowProfileMenu(false)}
+          className="
+            fixed
+            inset-0
+            z-[250]
             cursor-default
             bg-transparent
           "

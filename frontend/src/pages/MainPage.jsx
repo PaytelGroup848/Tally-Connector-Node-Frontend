@@ -78,6 +78,7 @@ function App() {
       isCurrent: true,
     }
   })
+  const selectedCompanyRef = useRef(selectedCompany)
   const [connectorStatusRows, setConnectorStatusRows] = useState([])
   const [lastSyncMeta, setLastSyncMeta] = useState(null)
   const [connectorStatusError, setConnectorStatusError] = useState('')
@@ -207,10 +208,20 @@ function App() {
         if (companies.length === 0) return
 
         const storedCompanyId = typeof window !== 'undefined' ? window.localStorage.getItem(selectedCompanyStorageKey) : null
-        const selectedCompanyId = getCompanyId(selectedCompany)
+        const selectedCompanyState = selectedCompanyRef.current
+        const selectedCompanyId = getCompanyId(selectedCompanyState)
+        const selectedCompanyName = String(
+          selectedCompanyState?.name ||
+          selectedCompanyState?.companyName ||
+          '',
+        ).trim().toLowerCase()
         const currentCompany = companies.find((company) => {
           const companyId = getCompanyId(company)
-          return companyId && (String(companyId) === String(storedCompanyId || selectedCompanyId))
+          const companyName = String(company?.name || '').trim().toLowerCase()
+          return (
+            (companyId && String(companyId) === String(storedCompanyId || selectedCompanyId)) ||
+            (selectedCompanyName && companyName === selectedCompanyName)
+          )
         }) || companies[0]
         const remainingCompanies = companies.filter((company) => company !== currentCompany)
         setSelectedCompany({ ...currentCompany, isCurrent: true })
@@ -257,15 +268,6 @@ function App() {
     setShowEway(false)
   }
 
-  const openCompanyDetails = (company) => {
-    const companyId = getCompanyId(company)
-    if (!companyId) return
-    setSelectedCompany(company)
-    window.localStorage.setItem(selectedCompanyStorageKey, String(companyId))
-    setShowCompanyMenu(false)
-    navigateTo(`/company-details/${encodeURIComponent(companyId)}`)
-  }
-
   const flags = getRouteFlags(currentPath)
   const entryPath = flags.normalizedPath
 
@@ -283,10 +285,22 @@ function App() {
   }
 
   const selectCompany = (company) => {
+    if (!company) return
+
     const companyId = getCompanyId(company)
-    if (!companyId) return
-    setSelectedCompany(company)
-    window.localStorage.setItem(selectedCompanyStorageKey, String(companyId))
+    const nextCompany = { ...company, isCurrent: true }
+    selectedCompanyRef.current = nextCompany
+    setSelectedCompany(nextCompany)
+    setCompanyOptions((current) => current.map((option) => ({
+      ...option,
+      isCurrent: option === company || (
+        companyId && getCompanyId(option) &&
+        String(getCompanyId(option)) === String(companyId)
+      ),
+    })))
+    if (typeof window !== 'undefined' && companyId) {
+      window.localStorage.setItem(selectedCompanyStorageKey, String(companyId))
+    }
     setShowCompanyMenu(false)
   }
 
@@ -387,7 +401,6 @@ function App() {
           selectedCompany={selectedCompany}
           companyOptions={companyOptions}
           onAddCompany={handleCompanyAdd}
-          onCompanyClick={openCompanyDetails}
           onSelectCompany={selectCompany}
           onLogout={async () => {
             await logout()
