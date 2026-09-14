@@ -112,7 +112,7 @@ const LoginPage = () => {
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
-                placeholder="Enter 6-digit OTP"
+                placeholder="Enter OTP"
                 value={otp}
                 onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))}
                 required

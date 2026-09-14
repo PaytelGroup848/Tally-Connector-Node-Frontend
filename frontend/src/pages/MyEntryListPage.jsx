@@ -485,7 +485,7 @@ function MyEntryListPage({ path }) {
               type="button"
               onClick={handleAddNew}
             >
-              ⊕　Add New
+              + Add New
             </button>
           )}
 

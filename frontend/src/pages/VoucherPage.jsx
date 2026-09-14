@@ -160,7 +160,7 @@ function VoucherPage({ companyId }) {
               type="button"
               onClick={handleAddNew}
             >
-              ⊕ Add New
+              + Add New
             </button>
           </div>
 

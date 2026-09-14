@@ -395,6 +395,7 @@ function App() {
           setShowProfileMenu={setShowProfileMenu}
           showCompanyMenu={showCompanyMenu}
           setShowCompanyMenu={setShowCompanyMenu}
+          onNavigate={navigateTo}
           onProfileClick={() => navigateTo('/profile')}
           onAllUsersClick={() => navigateTo('/all-users')}
           onMobileVersionClick={openMobileVersion}

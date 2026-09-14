@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import {
   ChevronDown,
   Menu,
@@ -25,6 +25,25 @@ function ConnectorStatusButton({
   isConnectorStatusLoading = false,
 }) {
   const [open, setOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    const handleRouteChange = () => setOpen(false)
+    const handleOutsideClick = (event) => {
+      if (!open) return
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false)
+      }
+    }
+
+    window.addEventListener('popstate', handleRouteChange)
+    document.addEventListener('mousedown', handleOutsideClick)
+
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange)
+      document.removeEventListener('mousedown', handleOutsideClick)
+    }
+  }, [open])
 
   const syncMeta = Array.isArray(lastSyncMeta)
     ? lastSyncMeta[0]
@@ -69,7 +88,7 @@ function ConnectorStatusButton({
   )
 
   return (
-    <div className="relative flex items-center">
+    <div ref={menuRef} className="relative flex items-center">
       <button
         type="button"
         aria-label="Open connector status"
@@ -88,9 +107,8 @@ function ConnectorStatusButton({
         "
       >
         <span
-          className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-            isOnline ? 'bg-emerald-500' : 'bg-red-500'
-          }`}
+          className={`h-2.5 w-2.5 shrink-0 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-red-500'
+            }`}
         />
 
         <span className="flex min-w-0 flex-1 flex-col items-start justify-center leading-none">
@@ -120,9 +138,8 @@ function ConnectorStatusButton({
         </span>
 
         <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform ${
-            open ? 'rotate-180' : ''
-          }`}
+          className={`h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform ${open ? 'rotate-180' : ''
+            }`}
         />
       </button>
 
@@ -246,10 +263,10 @@ function ConnectorStatusButton({
                 ].includes(statusKey)
                   ? 'bg-emerald-50 text-emerald-700'
                   : [
-                        'offline',
-                        'inactive',
-                        'disconnected',
-                      ].includes(statusKey)
+                    'offline',
+                    'inactive',
+                    'disconnected',
+                  ].includes(statusKey)
                     ? 'bg-red-50 text-red-700'
                     : 'bg-amber-50 text-amber-700'
 
@@ -340,6 +357,7 @@ function AppHeader({
   setShowCompanyMenu,
   onProfileClick,
   onAllUsersClick,
+  onNavigate,
   onMobileVersionClick,
   selectedCompany,
   companyOptions = [],
@@ -357,6 +375,16 @@ function AppHeader({
     company?.company_id ||
     null
 
+  useEffect(() => {
+    const handleRouteClose = () => {
+      setShowCompanyMenu(false)
+      setShowProfileMenu(false)
+    }
+
+    window.addEventListener('popstate', handleRouteClose)
+    return () => window.removeEventListener('popstate', handleRouteClose)
+  }, [setShowCompanyMenu, setShowProfileMenu])
+
   const toggleCompanyMenu = () => {
     setShowCompanyMenu((current) => !current)
     setShowProfileMenu(false)
@@ -365,6 +393,11 @@ function AppHeader({
   const toggleProfileMenu = () => {
     setShowProfileMenu((current) => !current)
     setShowCompanyMenu(false)
+  }
+
+  const closeAllDropdowns = () => {
+    setShowCompanyMenu(false)
+    setShowProfileMenu(false)
   }
 
   /* ============================================================
@@ -377,34 +410,27 @@ function AppHeader({
   const handleCompanySelect = (company) => {
     if (!company) return
 
-    // Update parent selected company state
     onSelectCompany?.(company)
-
-    // Close dropdown
-    setShowCompanyMenu(false)
+    closeAllDropdowns()
   }
 
   const handleProfileAction = (label) => {
-    setShowProfileMenu(false)
+    closeAllDropdowns()
 
     if (label === 'Profile') {
+      onNavigate?.('/profile')
       onProfileClick?.()
       return
     }
 
     if (label === 'All User') {
+      onNavigate?.('/all-users')
       onAllUsersClick?.()
       return
     }
 
     if (label === 'Download Invoice') {
-      window.history.pushState(
-        {},
-        '',
-        '/download-invoice',
-      )
-
-      window.dispatchEvent(new PopStateEvent('popstate'))
+      onNavigate?.('/download-invoice')
       return
     }
 
@@ -426,6 +452,7 @@ function AppHeader({
             items-stretch
             overflow-visible
             bg-white
+            px-2
           "
         >
           {/* ==================================================
@@ -530,10 +557,9 @@ function AppHeader({
                   shrink-0
                   text-slate-500
                   transition-transform
-                  ${
-                    showCompanyMenu
-                      ? 'rotate-180'
-                      : ''
+                  ${showCompanyMenu
+                    ? 'rotate-180'
+                    : ''
                   }
                 `}
               />
@@ -602,7 +628,7 @@ function AppHeader({
                         companyId &&
                         selectedCompanyId &&
                         String(companyId) ===
-                          String(selectedCompanyId)
+                        String(selectedCompanyId)
 
                       return (
                         <button
@@ -619,10 +645,9 @@ function AppHeader({
                             px-3 py-3
                             text-left
                             transition
-                            ${
-                              isSelected
-                                ? 'bg-emerald-50'
-                                : 'hover:bg-slate-50'
+                            ${isSelected
+                              ? 'bg-emerald-50'
+                              : 'hover:bg-slate-50'
                             }
                           `}
                         >
@@ -637,17 +662,16 @@ function AppHeader({
                               rounded-lg
                               text-[10px]
                               font-bold
-                              ${
-                                isSelected
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-slate-100 text-slate-500'
+                              ${isSelected
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-slate-100 text-slate-500'
                               }
                             `}
                           >
                             {String(
                               company?.name ||
-                                company?.companyName ||
-                                'C',
+                              company?.companyName ||
+                              'C',
                             )
                               .trim()
                               .charAt(0)
@@ -661,10 +685,9 @@ function AppHeader({
                                 block truncate
                                 text-xs
                                 font-semibold
-                                ${
-                                  isSelected
-                                    ? 'text-emerald-800'
-                                    : 'text-app-text'
+                                ${isSelected
+                                  ? 'text-emerald-800'
+                                  : 'text-app-text'
                                 }
                               `}
                             >
@@ -820,15 +843,14 @@ function AppHeader({
             {/* MOBILE VERSION */}
             <button
               type="button"
-              onClick={
-                onMobileVersionClick ??
-                (() =>
-                  window.open(
-                    '/mobile-version',
-                    '_blank',
-                    'noopener,noreferrer',
-                  ))
-              }
+              onClick={() => {
+                if (onMobileVersionClick) {
+                  onMobileVersionClick()
+                  return
+                }
+
+                window.location.href = '/dashboard'
+              }}
               className="
                 hidden h-16 w-[82px]
                 shrink-0
@@ -930,10 +952,9 @@ function AppHeader({
                     shrink-0
                     text-slate-500
                     transition-transform
-                    ${
-                      showProfileMenu
-                        ? 'rotate-180'
-                        : ''
+                    ${showProfileMenu
+                      ? 'rotate-180'
+                      : ''
                     }
                   `}
                 />
@@ -1045,7 +1066,7 @@ function AppHeader({
           className="
             fixed
             inset-0
-            z-[250]
+            z-[100]
             cursor-default
             bg-transparent
           "
@@ -1060,7 +1081,7 @@ function AppHeader({
           className="
             fixed
             inset-0
-            z-[250]
+            z-[100]
             cursor-default
             bg-transparent
           "

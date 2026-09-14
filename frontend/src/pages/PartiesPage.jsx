@@ -80,10 +80,10 @@ function PartiesPage() {
               ☆ Favourite
             </button>
             <button type="button" onClick={handleAddNew} className="rounded-md bg-[#1a1f24] px-3 py-2 text-xs font-semibold text-white">
-              ⊕ Add New
+              + Add New
             </button>
             <button type="button" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
-              ▣ View PDF
+               View PDF
             </button>
           </div>
 

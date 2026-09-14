@@ -253,7 +253,7 @@ const ProfilePage = () => {
 
           {/* Green Header */}
           <div className="bg-gradient-to-r from-green-600 to-emerald-500 p-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 justify-center">
 
               {/* User Icon */}
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-green-600 shadow">
@@ -262,7 +262,7 @@ const ProfilePage = () => {
 
               {/* Header Text */}
               <div>
-                <h2 className="text-xl font-bold text-white sm:text-2xl">
+                <h2 className="text-xl font-bold text-white sm:text-2xl justify-center flex items-center">
                   Owner Profile
                 </h2>
 
