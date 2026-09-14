@@ -1,133 +1,638 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Phone,
+  Mail,
+} from 'lucide-react'
 
-const initialRows = [
-  ['Amit Traders', '₹ 18,500', 'Due Today', '15 Days', '₹ 18,500', 'Active'],
-  ['Bharat Metals', '₹ 24,000', 'Past Due', '30 Days', '₹ 24,000', 'Active'],
-  ['Classic Garments', '₹ 12,750', 'Not Due', '5 Days', '₹ 12,750', 'Active'],
-  ['Delhi Packaging', '₹ 31,200', 'Past Due', '45 Days', '₹ 31,200', 'Active'],
-  ['Fortune Foods', '₹ 9,850', 'Not Due', '7 Days', '₹ 9,850', 'Active'],
-  ['Green Leaf Agro', '₹ 7,200', 'Due Today', '10 Days', '₹ 7,200', 'Active'],
-  ['Himalaya Retail', '₹ 14,600', 'Not Due', '12 Days', '₹ 14,600', 'Active'],
-  ['India Steel Works', '₹ 42,900', 'Past Due', '60 Days', '₹ 42,900', 'Active'],
-  ['Jain Furnitures', '₹ 8,150', 'Due Today', '8 Days', '₹ 8,150', 'Active'],
-  ['Krishna Enterprises', '₹ 11,400', 'Past Due', '24 Days', '₹ 11,400', 'Active'],
-]
+import useAuthStore from '../store/authStore'
+import { fetchParties } from '../services/partiesApi'
 
-function PartiesPage() {
-  const [rows, setRows] = useState(initialRows)
-  const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState('All')
-  const [statusMessage, setStatusMessage] = useState('')
+function formatDate(value) {
+  if (!value) return '-'
 
-  const filterOptions = ['All', 'Due Today', 'Not Due', 'Past Due']
+  const date = new Date(value)
 
-  const visibleRows = useMemo(() => rows.filter((row) => {
-    const matchesQuery = row[0].toLowerCase().includes(query.toLowerCase())
-    const matchesFilter = filter === 'All' || row[2] === filter
-    return matchesQuery && matchesFilter
-  }), [rows, query, filter])
-
-  const handleFavourite = (partyName) => {
-    setStatusMessage(`${partyName} added to favourites`)
-    setTimeout(() => setStatusMessage(''), 1800)
+  if (Number.isNaN(date.getTime())) {
+    return '-'
   }
 
-  const handleRemove = (partyName) => {
-    setRows((currentRows) => currentRows.filter(([name]) => name !== partyName))
-    setStatusMessage(`${partyName} removed from list`)
-    setTimeout(() => setStatusMessage(''), 1800)
+  return date.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+}
+
+function formatAmount(value) {
+  const amount = Number(value)
+
+  if (!Number.isFinite(amount)) {
+    return '0.00'
   }
 
-  const handleAddNew = () => {
-    window.history.pushState({}, '', '/parties/add-new')
-    window.dispatchEvent(new PopStateEvent('popstate'))
+  return new Intl.NumberFormat('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
+}
+
+function getCompanyId(company) {
+  return (
+    company?.id ||
+    company?._id ||
+    company?.companyId ||
+    company?.company_id ||
+    null
+  )
+}
+
+function PartiesPage({
+  selectedCompany,
+}) {
+  const accessToken = useAuthStore(
+    (state) => state.accessToken,
+  )
+
+  const [parties, setParties] =
+    useState([])
+
+  const [page, setPage] =
+    useState(1)
+
+  const [limit] =
+    useState(50)
+
+  const [total, setTotal] =
+    useState(0)
+
+  const [search, setSearch] =
+    useState('')
+
+  const [loading, setLoading] =
+    useState(false)
+
+  const [error, setError] =
+    useState('')
+
+  const companyId =
+    getCompanyId(selectedCompany)
+
+  useEffect(() => {
+    if (!accessToken || !companyId) {
+      setParties([])
+      setTotal(0)
+      return
+    }
+
+    let mounted = true
+
+    const loadParties = async () => {
+      try {
+        setLoading(true)
+        setError('')
+
+        const response =
+          await fetchParties({
+            accessToken,
+            companyId,
+            page,
+            limit,
+            q: search,
+          })
+
+        if (!mounted) {
+          return
+        }
+
+        const items =
+          response?.data?.items
+
+        const totalCount =
+          response?.data?.total
+
+        setParties(
+          Array.isArray(items)
+            ? items
+            : [],
+        )
+
+        setTotal(
+          Number.isFinite(
+            Number(totalCount),
+          )
+            ? Number(totalCount)
+            : 0,
+        )
+      } catch (requestError) {
+        if (!mounted) {
+          return
+        }
+
+        setParties([])
+        setTotal(0)
+
+        setError(
+          requestError?.message ||
+            'Failed to load parties.',
+        )
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadParties()
+
+    return () => {
+      mounted = false
+    }
+  }, [
+    accessToken,
+    companyId,
+    page,
+    limit,
+    search,
+  ])
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(total / limit),
+  )
+
+  const startItem =
+    total === 0
+      ? 0
+      : (page - 1) * limit + 1
+
+  const endItem =
+    Math.min(
+      page * limit,
+      total,
+    )
+
+  const handleSearchChange = (
+    event,
+  ) => {
+    setPage(1)
+    setSearch(event.target.value)
+  }
+
+  const handlePrevious = () => {
+    setPage((current) =>
+      Math.max(1, current - 1),
+    )
+  }
+
+  const handleNext = () => {
+    setPage((current) =>
+      Math.min(
+        totalPages,
+        current + 1,
+      ),
+    )
   }
 
   return (
-    <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
-      <div className="mx-auto max-w-[1280px]">
-        <div className="flex flex-wrap items-center gap-3 rounded-t-lg border border-slate-200 bg-white px-4 py-4 shadow-[0_8px_24px_rgba(24,33,43,0.04)]">
-          <div className="min-w-[120px] text-[11px] text-slate-700">
-            <span className="block">Receivables</span>
-            <strong className="text-sm text-slate-900">₹ 0</strong>
+    <div className="min-h-screen bg-[#eef1f1] p-4 md:p-5">
+      <div className="rounded-[14px] border border-slate-200 bg-[#f4f4f4] p-4 shadow-sm md:p-5">
+
+        {/* ==================================================
+            HEADER
+        ================================================== */}
+
+        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-[26px] font-bold tracking-tight text-slate-800">
+              Parties
+            </h1>
+
+            <p className="mt-1 text-sm text-slate-500">
+              {selectedCompany?.name ||
+                selectedCompany?.companyName ||
+                'Selected company'}
+            </p>
           </div>
-          <div className="min-w-[120px] text-[11px] text-slate-700">
-            <span className="block">Payables</span>
-            <strong className="text-sm text-slate-900">₹ 17,800</strong>
-          </div>
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            {filterOptions.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setFilter(option)}
-                className={filter === option ? 'rounded-md border border-slate-900 bg-white px-3 py-2 text-[11px] font-medium text-slate-800' : 'rounded-md border border-transparent bg-transparent px-3 py-2 text-[11px] text-slate-700'}
-              >
-                {option}
-              </button>
-            ))}
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="text-sm text-slate-600">
+              Total Parties
+
+              <strong className="ml-1 font-bold text-slate-800">
+                {total}
+              </strong>
+            </div>
+
+            {/* SEARCH */}
+
+            <div className="flex h-10 w-full min-w-0 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 sm:w-[320px]">
+              <Search
+                size={17}
+                className="shrink-0 text-slate-400"
+              />
+
+              <input
+                type="text"
+                value={search}
+                onChange={
+                  handleSearchChange
+                }
+                placeholder="Search parties..."
+                className="
+                  min-w-0
+                  flex-1
+                  bg-transparent
+                  text-sm
+                  text-slate-800
+                  outline-none
+                  placeholder:text-slate-400
+                "
+              />
+            </div>
           </div>
         </div>
 
-        <section className="overflow-hidden rounded-b-lg border border-slate-200 bg-white shadow-[0_8px_24px_rgba(24,33,43,0.04)]">
-          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-5 py-3">
-            <label className="flex h-9 min-w-[210px] flex-1 items-center gap-2 rounded-md border border-slate-300 bg-slate-50 px-3 text-slate-400">
-              <span>⌕</span>
-              <input className="w-full bg-transparent text-xs outline-none placeholder:text-slate-400" placeholder="Search party" value={query} onChange={(event) => setQuery(event.target.value)} />
-            </label>
-            <span className="text-xs text-slate-700">Rows per page: 10 ⌄</span>
-            <button type="button" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
-              ☆ Favourite
-            </button>
-            <button type="button" onClick={handleAddNew} className="rounded-md bg-[#1a1f24] px-3 py-2 text-xs font-semibold text-white">
-              + Add New
-            </button>
-            <button type="button" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
-               View PDF
-            </button>
+        {/* ==================================================
+            NO COMPANY
+        ================================================== */}
+
+        {!companyId && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-6 text-center text-sm text-amber-700">
+            Please select a company to
+            view parties.
           </div>
+        )}
 
-          {statusMessage && <div className="border-b border-green-200 bg-green-50 px-5 py-2 text-xs text-green-700">{statusMessage}</div>}
+        {/* ==================================================
+            ERROR
+        ================================================== */}
 
-          <div className="overflow-x-auto">
-            <div className="grid min-w-[900px] grid-cols-[2.2fr_1fr_1fr_1fr_1.2fr_1fr] gap-3 bg-[#edf2f6] px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
-              <b>Party Name</b>
-              <b>Last Sold Date</b>
-              <b>Credit Limit</b>
-              <b>Credit Days</b>
-              <b>Closing Balance</b>
-              <b>Action</b>
-            </div>
+        {companyId && error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
 
-            {visibleRows.length > 0 ? (
-              visibleRows.map(([name, lastSold, creditLimit, creditDays, balance, status]) => (
-                <div key={name} className="grid min-w-[900px] grid-cols-[2.2fr_1fr_1fr_1fr_1.2fr_1fr] gap-3 border-t border-slate-200 px-5 py-3 text-xs text-slate-700">
-                  <span className="font-medium text-slate-900">{name}</span>
-                  <span>-</span>
-                  <span>{creditLimit}</span>
-                  <span>{creditDays}</span>
-                  <span className={balance.includes('Dr') ? 'text-red-600' : 'text-emerald-600'}>{balance}</span>
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => handleFavourite(name)} className="rounded border border-slate-300 bg-white px-2 py-1 font-medium text-slate-700 hover:border-slate-400">
-                      Star
-                    </button>
-                    <button type="button" onClick={() => handleRemove(name)} className="rounded border border-slate-300 bg-white px-2 py-1 font-medium text-slate-700 hover:border-slate-400">
-                      Remove
-                    </button>
-                    <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold text-emerald-700">{status}</span>
-                  </div>
+        {/* ==================================================
+            LOADING
+        ================================================== */}
+
+        {companyId && loading && (
+          <div className="rounded-xl border border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
+            Loading parties...
+          </div>
+        )}
+
+        {/* ==================================================
+            TABLE
+        ================================================== */}
+
+        {companyId &&
+          !loading &&
+          !error && (
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+
+              <div className="overflow-x-auto">
+                <table className="min-w-[1100px] w-full border-collapse">
+
+                  <thead className="bg-[#eef1f3]">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        Party
+                      </th>
+
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        GSTIN
+                      </th>
+
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        Phone
+                      </th>
+
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        Email
+                      </th>
+
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        Address
+                      </th>
+
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        Closing Balance
+                      </th>
+
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        Credit Limit
+                      </th>
+
+                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        Credit Days
+                      </th>
+
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        Last Sold
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {parties.map(
+                      (party) => {
+                        const balance =
+                          Number(
+                            party?.closingBalance,
+                          ) || 0
+
+                        const isNegative =
+                          balance < 0
+
+                        return (
+                          <tr
+                            key={
+                              party?._id ||
+                              party?.tallyExternalId
+                            }
+                            className="
+                              border-t
+                              border-slate-200
+                              transition
+                              hover:bg-slate-50
+                            "
+                          >
+                            {/* PARTY */}
+
+                            <td className="px-4 py-4">
+                              <div className="min-w-[220px]">
+                                <p className="font-semibold text-slate-800">
+                                  {party?.partyName ||
+                                    '-'}
+                                </p>
+
+                                <p className="mt-1 text-[10px] text-slate-400">
+                                  {party?.tallyExternalId ||
+                                    '-'}
+                                </p>
+                              </div>
+                            </td>
+
+                            {/* GSTIN */}
+
+                            <td className="px-4 py-4 text-sm text-slate-600">
+                              {party?.gstin ||
+                                '-'}
+                            </td>
+
+                            {/* PHONE */}
+
+                            <td className="px-4 py-4">
+                              {party?.phone ? (
+                                <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                                  <Phone
+                                    size={13}
+                                    className="text-slate-400"
+                                  />
+
+                                  <span>
+                                    {
+                                      party.phone
+                                    }
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-slate-400">
+                                  -
+                                </span>
+                              )}
+                            </td>
+
+                            {/* EMAIL */}
+
+                            <td className="px-4 py-4">
+                              {party?.email ? (
+                                <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                                  <Mail
+                                    size={13}
+                                    className="text-slate-400"
+                                  />
+
+                                  <span className="max-w-[220px] truncate">
+                                    {
+                                      party.email
+                                    }
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-slate-400">
+                                  -
+                                </span>
+                              )}
+                            </td>
+
+                            {/* ADDRESS */}
+
+                            <td className="px-4 py-4">
+                              {party?.address ? (
+                                <div className="flex max-w-[260px] items-start gap-1.5 text-sm text-slate-600">
+                                  <MapPin
+                                    size={13}
+                                    className="mt-0.5 shrink-0 text-slate-400"
+                                  />
+
+                                  <span className="line-clamp-2">
+                                    {
+                                      party.address
+                                    }
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-slate-400">
+                                  -
+                                </span>
+                              )}
+                            </td>
+
+                            {/* CLOSING BALANCE */}
+
+                            <td className="px-4 py-4 text-right">
+                              <span
+                                className={`font-semibold ${
+                                  isNegative
+                                    ? 'text-red-600'
+                                    : balance > 0
+                                      ? 'text-emerald-700'
+                                      : 'text-slate-600'
+                                }`}
+                              >
+                                ₹
+                                {formatAmount(
+                                  Math.abs(
+                                    balance,
+                                  ),
+                                )}
+
+                                {isNegative
+                                  ? ' Dr'
+                                  : balance >
+                                      0
+                                    ? ' Cr'
+                                    : ''}
+                              </span>
+                            </td>
+
+                            {/* CREDIT LIMIT */}
+
+                            <td className="px-4 py-4 text-right text-sm text-slate-600">
+                              {party?.creditLimit ===
+                              null
+                                ? '-'
+                                : `₹${formatAmount(
+                                    party.creditLimit,
+                                  )}`}
+                            </td>
+
+                            {/* CREDIT DAYS */}
+
+                            <td className="px-4 py-4 text-center text-sm text-slate-600">
+                              {party?.creditDays ===
+                              null
+                                ? '-'
+                                : party.creditDays}
+                            </td>
+
+                            {/* LAST SOLD */}
+
+                            <td className="px-4 py-4 text-sm text-slate-600">
+                              {formatDate(
+                                party?.lastSoldDate,
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      },
+                    )}
+
+                    {parties.length ===
+                      0 && (
+                      <tr>
+                        <td
+                          colSpan={9}
+                          className="px-4 py-10 text-center text-sm text-slate-500"
+                        >
+                          {search
+                            ? `No parties found for "${search}".`
+                            : 'No parties found.'}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ==================================================
+                  PAGINATION
+              ================================================== */}
+
+              <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+
+                <p className="text-xs text-slate-500">
+                  Showing{' '}
+                  <span className="font-semibold text-slate-700">
+                    {startItem}
+                  </span>{' '}
+                  to{' '}
+                  <span className="font-semibold text-slate-700">
+                    {endItem}
+                  </span>{' '}
+                  of{' '}
+                  <span className="font-semibold text-slate-700">
+                    {total}
+                  </span>{' '}
+                  parties
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={
+                      handlePrevious
+                    }
+                    disabled={
+                      page <= 1 ||
+                      loading
+                    }
+                    className="
+                      inline-flex
+                      items-center
+                      gap-1
+                      rounded-lg
+                      border
+                      border-slate-300
+                      bg-white
+                      px-3
+                      py-2
+                      text-xs
+                      font-semibold
+                      text-slate-700
+                      transition
+                      hover:bg-slate-100
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                    "
+                  >
+                    <ChevronLeft
+                      size={15}
+                    />
+
+                    Previous
+                  </button>
+
+                  <span className="min-w-[80px] text-center text-xs font-semibold text-slate-600">
+                    Page {page} of{' '}
+                    {totalPages}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={
+                      page >=
+                        totalPages ||
+                      loading
+                    }
+                    className="
+                      inline-flex
+                      items-center
+                      gap-1
+                      rounded-lg
+                      border
+                      border-slate-300
+                      bg-white
+                      px-3
+                      py-2
+                      text-xs
+                      font-semibold
+                      text-slate-700
+                      transition
+                      hover:bg-slate-100
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                    "
+                  >
+                    Next
+
+                    <ChevronRight
+                      size={15}
+                    />
+                  </button>
                 </div>
-              ))
-            ) : (
-              <div className="flex min-h-[120px] items-center justify-center px-5 py-6 text-sm text-slate-500">No matching parties found</div>
-            )}
-          </div>
-
-          <footer className="flex items-center justify-between border-t border-slate-200 bg-white px-5 py-3 text-xs text-slate-700">
-            <span>{visibleRows.length ? `1-${visibleRows.length} of ${rows.length}` : '0 of 0'}</span>
-            <span>‹ <b>1</b> ›</span>
-          </footer>
-        </section>
+              </div>
+            </div>
+          )}
       </div>
     </div>
   )
