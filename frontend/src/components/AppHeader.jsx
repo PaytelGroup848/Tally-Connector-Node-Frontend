@@ -953,9 +953,7 @@ function AppHeader({
                   <User className="h-4 w-4 text-app-text-secondary" />
                 </span>
 
-                <span className="hidden text-[11px] font-semibold text-app-text xl:block">
-                  Admin
-                </span>
+               
 
                 <ChevronDown
                   className={`
