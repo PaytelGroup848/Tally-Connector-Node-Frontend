@@ -1,11 +1,11 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL
+  'https://connector.cloudata.in'
 
 export async function fetchParties({
   accessToken,
   companyId,
   page = 1,
-  limit = 50,
+  limit = 20,
   q = '',
 }) {
   if (!accessToken) {
@@ -23,7 +23,9 @@ export async function fetchParties({
   })
 
   const response = await fetch(
-    `${API_BASE_URL}/companies/${companyId}/parties?${params.toString()}`,
+    `${API_BASE_URL}/api/companies/${encodeURIComponent(
+      companyId,
+    )}/parties?${params.toString()}`,
     {
       method: 'GET',
       headers: {
@@ -39,6 +41,7 @@ export async function fetchParties({
   if (!response.ok) {
     throw new Error(
       data?.message ||
+        data?.error ||
         `Failed to fetch parties (${response.status})`,
     )
   }
