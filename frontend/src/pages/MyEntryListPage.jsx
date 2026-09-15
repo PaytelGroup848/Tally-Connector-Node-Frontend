@@ -2,11 +2,6 @@ import { useState } from 'react'
 import DateRangePicker from '../components/DateRangePicker'
 
 const pages = {
-  '/tracking-report': [
-    'Tracking Report',
-    ['Users', 'Email', 'Mobile'],
-    [['', '', '+ 917011022899']],
-  ],
 
   '/my-stock-items': [
     'My Stock Items',
@@ -80,8 +75,7 @@ function MyEntryListPage({ path }) {
   const [showMore, setShowMore] =
     useState(false)
 
-  const [title, columns, rows] =
-    pages[path] || pages['/tracking-report']
+ 
 
   const invoiceTabs =
     title === 'My Invoices' ||

@@ -22,6 +22,7 @@ import CreateItemPage from './CreateItemPage'
 import CreatePartyPage from './CreatePartyPage'
 import MyEntryListPage from './MyEntryListPage'
 import MyVouchersPage from './MyVouchersPage'
+import NotFoundPage from './NotFoundPage'
 import PartiesPage from './PartiesPage'
 import PaymentPage from './PaymentPage'
 import PurchasePage from './PurchasePage'
@@ -44,6 +45,7 @@ import MangaeReminderPage from './ManageReminderPage'
 import InactiveStocksPage from './InactiveStocksPage'
 import DataBackupPage from './DataBackupPage'
 import PlansPage from './PlansPage'
+import VouchersPage from './VouchersPage'
 import MyCompanyDetailsPage from '../components/MyCompanyDetailsPage'
 import { getRouteFlags } from '../routes/routeConfig'
 import {
@@ -327,10 +329,11 @@ function App() {
     if (flags.showCreatePartyPage) return <CreatePartyPage />
     if (flags.showItemsPage) return <ItemsPage companyId={selectedCompany?.id} />
     if (flags.showPartiesPage) return <PartiesPage selectedCompany={selectedCompany} />
-    if (flags.showMyVouchersPage) return <MyVouchersPage companyId={selectedCompany?.id} />
+    if (flags.showMyVouchersPage) return <MyVouchersPage companyId={getCompanyId(selectedCompany)} title={currentPath === '/my-quotations' ? 'My Quotations' : currentPath === '/my-invoices' ? 'My Invoices' : currentPath === '/my-parties' ? 'My Parties' : currentPath === '/my-stock-items' ? 'My Stock Items' : 'My Vouchers'} voucherType={currentPath === '/my-quotations' ? 'Quotation' : currentPath === '/my-invoices' ? 'Invoice' : currentPath === '/my-vouchers' ? 'Sales' : ''} commandType={currentPath === '/my-parties' ? 'CREATE_PARTY' : currentPath === '/my-stock-items' ? 'CREATE_STOCK_ITEM' : 'CREATE_VOUCHER'} />
     if (flags.showManageReminderPage) return <ManageReminderPage />
     if (flags.showEntryList) return <MyEntryListPage path={entryPath} />
     if (flags.showGstPage) return <GstSearchPage />
+    if (flags.showVouchersPage) return <VouchersPage companyId={getCompanyId(selectedCompany)} />
     if (flags.showConfigurationsPage) return <ConfigurationsPage />
     if (flags.showAllUsersPage) return <AllUsersPage />
     if (flags.showAddUserPage) return <AddUserPage />
@@ -359,7 +362,7 @@ function App() {
     if (flags.showSalesOrder) return <SalesOrderPage />
     if (flags.showQuotation) return <DocumentVoucherPage title="Quotation" />
     if (flags.showSalesVoucher) return <DocumentVoucherPage title="Sales" companyId={selectedCompany?.id} />
-    return <SectionPage path={currentPath} />
+    return <NotFoundPage path={currentPath} />
   }
 
   return (
@@ -381,12 +384,11 @@ function App() {
         className={`
           app-main relative min-h-screen min-w-0
           transition-[margin-left,width] duration-200
-          ${
-            isCompact
-              ? 'ml-0 w-full'
-              : sidebarCollapsed
-                ? 'ml-[68px] sidebar-collapsed w-[calc(100%-68px)]'
-                : 'ml-[228px] w-[calc(100%-228px)]'
+          ${isCompact
+            ? 'ml-0 w-full'
+            : sidebarCollapsed
+              ? 'ml-[68px] sidebar-collapsed w-[calc(100%-68px)]'
+              : 'ml-[228px] w-[calc(100%-228px)]'
           }
         `}
       >
@@ -420,7 +422,7 @@ function App() {
         {renderPage()}
       </main>
 
-      ```jsx
+
       <div className="fixed bottom-5 right-5 z-40">
         {showQuickCreate && (
           <div className="mb-3 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-app-border bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
@@ -481,18 +483,17 @@ function App() {
           aria-label="Quick create"
           onClick={() => setShowQuickCreate((current) => !current)}
           className="
-            grid h-14 w-14
-            place-items-center
-            rounded-full
-            bg-app-navy
-            text-3xl font-light
-            text-white
-            shadow-[0_10px_28px_rgba(15,23,42,0.25)]
-            transition
-            hover:scale-105
-          "
+          flex h-14 w-14
+          items-center justify-center
+          rounded-full
+          bg-app-navy
+          text-3xl font-light leading-none
+          text-white
+          shadow-[0_10px_28px_rgba(15,23,42,0.25)]
+          transition
+          hover:scale-105"
         >
-          +
+          <span className="-translate-y-[2px]">+</span>
         </button>
       </div>
     </div>

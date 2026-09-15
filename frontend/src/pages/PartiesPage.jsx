@@ -304,7 +304,7 @@ function PartiesPage({
                 outline: 'none',
               }}
             >
-              <option value={20}>
+              <option value={10}>
                 10
               </option>
               <option value={20}>
@@ -418,7 +418,7 @@ function PartiesPage({
                 >
 
                   <th className="party-th">
-                    PARTY
+                    PARTY NAME
                   </th>
 
                   <th className="party-th">

@@ -1,4 +1,4 @@
-const entryListPaths = new Set(['/tracking-report', '/my-stock-items', '/my-ledgers', '/my-invoices', '/my-eway-bill', '/my-quotations'])
+const entryListPaths = new Set([ '/my-stock-items', '/my-ledgers', '/my-invoices', '/my-eway-bill', '/my-quotations'])
 const reportPaths = new Set(['/sales', '/purchase', '/purchaseorder', '/payables', '/payments', '/debitnote', '/creditnote', '/receivables', '/collect-payments', '/receivablesnew', '/receipt', '/receiptnote', '/deliverynote', '/salesorder', '/trial-balance', '/day-book', '/cash/voucher-list/cash-in-hand', '/cash-bank/cash', '/cash-bank/bank', '/bank/voucher-list/bank-accounts'])
 
 export function getRouteFlags(path) {
@@ -23,6 +23,7 @@ export function getRouteFlags(path) {
     showDashboard: normalizedPath === '/dashboard',
     showReportsPage: normalizedPath === '/reports',
     showItemsPage: normalizedPath === '/items',
+    showVouchersPage: normalizedPath === '/vouchers',
     showPartiesPage: normalizedPath === '/parties',
     showMyVouchersPage: normalizedPath === '/my-vouchers',
     showEntryList: entryListPaths.has(normalizedPath),

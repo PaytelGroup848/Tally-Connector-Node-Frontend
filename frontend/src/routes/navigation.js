@@ -26,6 +26,7 @@ export const navItems = [
   [Package, 'Items', false, false, 'items'],
   [BarChart3, 'Reports', true, false, 'reports'],
   [ClipboardList, 'My Entries', true, false, 'my-entries'],
+  [FileText, 'Vouchers', false, false, 'vouchers'],
   [Settings, 'Configurations', false, false, 'configurations'],
   [Search, 'GST Search', false, 'NEW', 'gst-search'],
   [DatabaseBackup, 'Data Backup', false, false, 'data-backup'],
@@ -37,5 +38,5 @@ export const submenuItems = {
   Purchase: [['Purchase', '/purchase'], ['Debit Note', '/debitNote'], ['Payment', '/payments'], ['Payables', '/payables'], ['Purchase Order', '/purchaseorder'], ['Receipt Note', '/receiptNote']],
   Reports: [['Trial Balance', '/trial-balance'], ['Day Book', '/day-book'], ['Profit & Loss', '/profit-loss'], ['Balance Sheet', '/balance-sheet'], ['Voucher Lines', '/voucher-lines']],
   'Cash & Bank': [['Cash', '/cash-bank/cash'], ['Bank', '/cash-bank/bank']],
-  'My Entries': [['My Vouchers', '/my-vouchers'], ['My Quotations', '/my-quotations'], ['My eWay Bills', '/my-eway-bill'], ['My Invoices', '/my-invoices'], ['My Parties', '/my-parties'], ['My Stock Items', '/my-stock-items'],['Tracking Report', '/tracking-report']],
+  'My Entries': [['My Vouchers', '/my-vouchers'], ['My Quotations', '/my-quotations'], ['My eWay Bills', '/my-eway-bill'], ['My Invoices', '/my-invoices'], ['My Parties', '/my-parties'], ['My Stock Items', '/my-stock-items']],
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import {
   extractVoucherPagination,
@@ -36,8 +37,36 @@ function formatFieldLabel(key) {
 
 function formatFieldValue(value) {
   if (value === null || value === undefined || value === '') return 'NA';
-  if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
+}
+
+function isStructuredValue(value) {
+  return value !== null && typeof value === 'object';
+}
+
+function isViewableField(key, value) {
+  const normalizedKey = String(key).toLowerCase();
+  const isErrorField =
+    normalizedKey.includes('error') ||
+    normalizedKey.includes('message');
+
+  const hasErrorValue =
+    value !== null &&
+    value !== undefined &&
+    String(value).trim().toLowerCase() !== '' &&
+    String(value).trim().toLowerCase() !== 'na';
+
+  return isStructuredValue(value) || (isErrorField && hasErrorValue);
+}
+
+function getDetailEntries(value) {
+  if (Array.isArray(value)) {
+    return value.map((item, index) => [String(index + 1), item]);
+  }
+
+  return value && typeof value === 'object'
+    ? Object.entries(value)
+    : [];
 }
 
 // =====================================================================
@@ -50,11 +79,12 @@ function VoucherPage({ companyId }) {
   const [vouchers, setVouchers] = useState([]);
   const [query, setQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [detail, setDetail] = useState(null);
 
   const columns = vouchers.length > 0
     ? Object.keys(vouchers[0]).map((key) => ({ key, label: formatFieldLabel(key) }))
@@ -118,45 +148,45 @@ function VoucherPage({ companyId }) {
         ? [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
         : [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
 
-  // Navigate to create voucher (dummy – replace with your routing)
   const handleAddNew = () => {
-    // Example: window.history.pushState({}, '', '/vouchers/create');
-    // window.dispatchEvent(new PopStateEvent('popstate'));
-    alert('Navigate to create voucher form');
+    window.history.pushState({}, '', '/create-voucher/sales');
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   return (
-    <div className="min-h-[calc(100vh-60px)] overflow-x-auto bg-[#eaf0f5] text-slate-900">
-      <div className="min-w-[1080px]">
-        {/* Green Title Bar */}
-        <div className="flex h-[40px] items-center bg-[#49bd3f] px-4">
-          <h1 className="text-[16px] font-bold text-white">Vouchers</h1>
-        </div>
-
-        <div className="px-3 pb-[70px] pt-3">
-          {/* Toolbar */}
-          <div className="mb-3 flex flex-wrap items-center gap-4">
+    <div className="min-h-[calc(100vh-60px)] overflow-x-auto bg-[#f8fafc] text-[#17355f]">
+      <div className="px-3 py-3 sm:px-5 sm:py-4">
+        <section className="min-w-[1120px] border-t border-[#e5ebf2] bg-white">
+          <div className="flex min-h-[70px] flex-wrap items-center gap-3 border-b border-[#e5ebf2] px-4 py-3 sm:px-8">
             <input
-              className="h-9 w-[min(100%,240px)] rounded-lg border border-slate-300 px-3 text-xs outline-none focus:border-green-500"
+              className="h-9 w-[245px] rounded-lg border border-[#d9e2ed] px-3 text-xs outline-none focus:border-[#17355f]"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(event) => setQuery(event.target.value)}
               placeholder="Search vouchers..."
             />
-            <label className="flex items-center gap-2 text-xs text-slate-600">
+
+            <label className="flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px]">
               <span>Show</span>
               <select
                 value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                className="h-9 rounded-lg border border-slate-300 bg-white px-2"
+                onChange={(event) => setPageSize(Number(event.target.value))}
+                className="h-[38px] rounded-lg border border-[#10b981] bg-white px-3 text-xs outline-none"
               >
                 {[10, 20, 30, 50].map((size) => (
-                  <option key={size} value={size}>{size}</option>
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
                 ))}
               </select>
               <span>records</span>
             </label>
+
+            <div className="hidden min-w-0 flex-1 lg:block" />
+
+            <span className="text-xs">Page {currentPage} · {pageSize} per page</span>
+
             <button
-              className="ml-auto rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+              className="rounded-md bg-[#1d1f22] px-4 py-2 text-xs font-semibold text-white transition hover:bg-black"
               type="button"
               onClick={handleAddNew}
             >
@@ -165,47 +195,75 @@ function VoucherPage({ companyId }) {
           </div>
 
           {errorMessage && (
-            <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            <div className="mx-8 mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
               {errorMessage}
             </div>
           )}
 
-          {/* Table */}
-          <div className="overflow-x-auto border border-slate-300 bg-white">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-100 text-xs font-semibold text-slate-700">
+          <div className="mx-8 overflow-x-auto rounded-lg border border-[#dfe7f0]">
+            <table className="min-w-[1120px] table-fixed text-left">
+              <thead className="bg-[#f4f7fb] text-[11px] font-semibold uppercase text-[#274b78]">
                 <tr>
-                  {columns.map((col) => (
-                    <th key={col.key} className="whitespace-nowrap px-4 py-3">
-                      {col.label}
+                  {columns.map((column) => (
+                    <th
+                      key={column.key}
+                      className="w-[220px] min-w-[220px] max-w-[220px] border-l border-[#dfe7f0] px-4 py-3"
+                    >
+                      <span className="block whitespace-normal break-words">
+                        {column.label}
+                      </span>
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="text-xs text-[#17355f]">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={Math.max(columns.length, 1)} className="px-4 py-8 text-center text-xs text-slate-500">
+                    <td colSpan={Math.max(columns.length, 1)} className="h-[120px] text-center text-slate-500">
                       Loading vouchers...
                     </td>
                   </tr>
                 ) : vouchers.length > 0 ? (
-                  vouchers.map((voucher) => (
-                    <tr key={voucher._id || voucher.guid || voucher.id} className="text-xs text-slate-700 hover:bg-slate-50">
+                  vouchers.map((voucher, index) => (
+                    <tr
+                      key={voucher._id || voucher.guid || voucher.id || index}
+                      className="border-b border-[#e5ebf2] odd:bg-white even:bg-[#fbfdff] hover:bg-slate-50"
+                    >
                       {columns.map((column) => (
-                        <td key={column.key} className="whitespace-nowrap px-4 py-3">
-                          {column.key.toLowerCase().includes('date')
-                            ? formatDate(voucher[column.key])
-                            : column.key.toLowerCase().includes('amount')
-                              ? formatCurrency(voucher[column.key])
-                              : formatFieldValue(voucher[column.key])}
+                        <td
+                          key={column.key}
+                          className="w-[220px] min-w-[220px] max-w-[220px] border-l border-[#e5ebf2] px-4 py-3 align-top"
+                        >
+                          <div className="max-w-full whitespace-pre-wrap break-words leading-5">
+                            {isViewableField(
+                              column.key,
+                              voucher[column.key],
+                            ) ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDetail({
+                                    title: column.label,
+                                    value: voucher[column.key],
+                                  })
+                                }
+                                className="inline-flex min-h-8 items-center rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                              >
+                                View
+                              </button>
+                            ) : column.key.toLowerCase().includes('date')
+                              ? formatDate(voucher[column.key])
+                              : column.key.toLowerCase().includes('amount')
+                                ? formatCurrency(voucher[column.key])
+                                : formatFieldValue(voucher[column.key])}
+                          </div>
                         </td>
                       ))}
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={Math.max(columns.length, 1)} className="px-4 py-8 text-center text-xs text-slate-500">
+                    <td colSpan={Math.max(columns.length, 1)} className="h-[120px] text-center text-xs text-slate-500">
                       No vouchers found.
                     </td>
                   </tr>
@@ -214,46 +272,93 @@ function VoucherPage({ companyId }) {
             </table>
           </div>
 
-          {/* Pagination */}
-          <footer className="mt-4 flex flex-wrap items-center justify-center gap-2">
-            {pageItems.map((page, idx) =>
-              page === '...' ? (
-                <span key={`ellipsis-${idx}`} className="px-1 text-sm text-slate-400">…</span>
-              ) : (
-                <button
-                  key={page}
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => setCurrentPage(page)}
-                  className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium ${
-                    currentPage === page
-                      ? 'border-emerald-600 bg-emerald-600 text-white'
-                      : 'border-slate-200 text-slate-700 hover:bg-emerald-50'
-                  } disabled:cursor-not-allowed disabled:opacity-50`}
-                >
-                  {page}
-                </button>
-              )
-            )}
+          <footer className="flex flex-wrap items-center justify-center gap-6 border-t border-[#e5ebf2] px-8 py-4 text-xs">
+            <span>
+              {totalItems === 0
+                ? '0-0 of 0'
+                : `${(currentPage - 1) * pageSize + 1}-${Math.min((currentPage - 1) * pageSize + vouchers.length, totalItems)} of ${totalItems}`}
+            </span>
+
+            <div className="flex items-center gap-2">
+              {pageItems.map((page, index) =>
+                page === '...' ? (
+                  <span key={`ellipsis-${index}`} className="px-1 text-[#71819a]">...</span>
+                ) : (
+                  <button
+                    key={page}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => setCurrentPage(page)}
+                    className={currentPage === page
+                      ? 'h-9 w-9 rounded-md border border-[#059669] bg-[#059669] font-semibold text-white'
+                      : 'h-9 w-9 rounded-md border border-[#d9e2ed] bg-white text-[#17355f] transition hover:border-[#10a878] hover:text-[#10a878] disabled:opacity-50'}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
+            </div>
           </footer>
-          <div className="pt-3 text-center text-xs text-slate-500">
-            {totalItems === 0
-              ? '0 of 0'
-              : `${((currentPage - 1) * pageSize) + 1} - ${Math.min((currentPage - 1) * pageSize + vouchers.length, totalItems)} of ${totalItems}`}
+        </section>
+      </div>
+
+      {detail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <h2 className="text-base font-semibold text-slate-900">
+                {detail.title}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setDetail(null)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:bg-slate-100"
+                aria-label="Close details"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="overflow-auto p-4">
+              <div className="overflow-hidden rounded-lg border border-[#dfe7f0]">
+                {getDetailEntries(detail.value).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="grid grid-cols-[180px_1fr] items-start border-b border-[#e5ebf2] px-4 py-3 text-xs last:border-b-0 odd:bg-white even:bg-[#fbfdff]"
+                  >
+                    <strong className="pr-4 text-[#274b78]">
+                      {Array.isArray(detail.value)
+                        ? `Item ${key}`
+                        : formatFieldLabel(key)}
+                    </strong>
+                    <span className="whitespace-pre-wrap break-words text-[#17355f]">
+                      {isStructuredValue(value)
+                        ? 'Nested details available'
+                        : formatFieldValue(value)}
+                    </span>
+                  </div>
+                ))}
+
+                {getDetailEntries(detail.value).length === 0 && (
+                  <div className="whitespace-pre-wrap break-words px-4 py-4 text-sm text-[#17355f]">
+                    {formatFieldValue(detail.value)}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end border-t border-slate-200 px-5 py-3">
+              <button
+                type="button"
+                onClick={() => setDetail(null)}
+                className="rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* Floating Action Button */}
-        <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-end border-t border-slate-200 bg-white px-6 py-2">
-          <button
-            type="button"
-            className="rounded-md bg-[#1d1f22] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_5px_15px_rgba(0,0,0,0.16)] hover:bg-black"
-            onClick={handleAddNew}
-          >
-            + New Voucher
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

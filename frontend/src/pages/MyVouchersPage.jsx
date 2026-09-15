@@ -1,1675 +1,448 @@
 import { useEffect, useMemo, useState } from 'react'
 import useAuthStore from '../store/authStore'
 import {
-  extractVoucherPagination,
-  extractVouchers,
-  fetchCompanyVouchers,
+  deleteCompanyCommand,
+  extractCommands,
+  fetchCompanyCommands,
 } from '../services/companiesApi'
 
-const MODAL_LAYER = {
-  entry: 1000,
-  billAllocation: 1100,
-  detail: 1200,
+function normalizeKey(key) {
+  return String(key).trim().toLowerCase().replace(/[^a-z0-9]/g, '')
 }
 
-const hiddenFields = new Set([
-  // Mongo / internal IDs
-  '_id',
-  'id',
-  '_v',
-  'V',
-  'v',
+function formatLabel(key) {
+  if (normalizeKey(key) === 'payload') return 'Details'
 
-  // Voucher IDs
-  'voucherId',
-  'voucher_id',
-  'voucherID',
-
-  // Internal / system fields
-  'createdAt',
-  'created_at',
-  'tallyExternalId',
-  'tallyExternalID',
-  'tally_external_id',
-  'alterId',
-  'alterID',
-  'alter_id',
-  'companyId',
-  'organizationId',
-  'raw',
-  'source',
-
-  // Technical fields
-  'effectiveDate',
-  'effective_date',
-  'date',
-  'guid',
-  'GUID',
-])
-
-function getVoucherValue(voucher, ...keys) {
-  for (const key of keys) {
-    if (
-      voucher?.[key] !== undefined &&
-      voucher?.[key] !== null
-    ) {
-      return voucher[key]
-    }
-  }
-
-  return ''
-}
-
-function getVoucherCompanyName(voucher) {
-  if (!voucher || typeof voucher !== 'object') {
-    return ''
-  }
-
-  const companyNameKeys = [
-    'companyName',
-    'company_name',
-    'company',
-    'tallyCompanyName',
-    'tally_company_name',
-    'partyName',
-    'party_name',
-    'party',
-    'customerName',
-    'customer_name',
-    'ledgerName',
-    'ledger_name',
-    'accountName',
-    'account_name',
-    'name',
-  ]
-
-  for (const key of companyNameKeys) {
-    const value = voucher?.[key]
-
-    if (
-      typeof value === 'string' &&
-      value.trim()
-    ) {
-      return value.trim()
-    }
-
-    if (
-      value &&
-      typeof value === 'object'
-    ) {
-      const nestedName =
-        value.name ||
-        value.companyName ||
-        value.company_name ||
-        value.tallyCompanyName ||
-        value.partyName ||
-        value.customerName ||
-        value.accountName ||
-        value.ledgerName
-
-      if (
-        typeof nestedName === 'string' &&
-        nestedName.trim()
-      ) {
-        return nestedName.trim()
-      }
-    }
-  }
-
-  return ''
+  return String(key)
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
 function formatDate(value) {
-  if (!value) return '-'
+  if (!value) return 'NA'
 
-  const date = new Date(value)
-
-  return Number.isNaN(date.getTime())
-    ? value
-    : date.toLocaleDateString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
-}
-
-function formatAmount(value) {
-  if (
-    value === '' ||
-    value === null ||
-    value === undefined
-  ) {
-    return '-'
-  }
-
-  const numericValue = Number(value)
-
-  if (Number.isNaN(numericValue)) {
-    return String(value)
-  }
-
-  return `₹ ${numericValue.toLocaleString('en-IN')}`
-}
-
-function formatFieldLabel(key) {
-  return String(key)
-    .replace(
-      /([a-z])([A-Z])/g,
-      '$1 $2',
-    )
-    .replace(
-      /[_-]+/g,
-      ' ',
-    )
-    .replace(
-      /\s+/g,
-      ' ',
-    )
-    .replace(
-      /\b\w/g,
-      (letter) =>
-        letter.toUpperCase(),
-    )
-}
-
-function formatApiValue(value, key) {
-  if (
-    value === null ||
-    value === undefined ||
-    value === ''
-  ) {
-    return '-'
-  }
-
-  if (
-    Array.isArray(value) &&
-    value.length === 0
-  ) {
-    return 'NA'
-  }
-
-  if (
-    typeof value === 'object'
-  ) {
-    try {
-      return JSON.stringify(
-        value,
-        null,
-        2,
+  const rawValue = String(value).trim()
+  const dateValue = /^\d{4}-\d{2}-\d{2}$/.test(rawValue)
+    ? new Date(
+        Number(rawValue.slice(0, 4)),
+        Number(rawValue.slice(5, 7)) - 1,
+        Number(rawValue.slice(8, 10)),
       )
-    } catch {
-      return String(value)
-    }
+    : new Date(rawValue)
+
+  if (Number.isNaN(dateValue.getTime())) return String(value)
+
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    dateStyle: 'medium',
+  }).format(dateValue)
+}
+
+function isStructured(value) {
+  return value !== null && typeof value === 'object'
+}
+
+function isViewableField(key, value) {
+  const normalizedKey = normalizeKey(key)
+
+  const hasMessageValue =
+    value !== null &&
+    value !== undefined &&
+    String(value).trim().toLowerCase() !== '' &&
+    String(value).trim().toLowerCase() !== 'na'
+
+  return (
+    isStructured(value) ||
+    ((normalizedKey.includes('error') ||
+      normalizedKey.includes('message')) &&
+      hasMessageValue)
+  )
+}
+
+function getViewLabel(key) {
+  const normalizedKey = normalizeKey(key)
+
+  if (normalizedKey === 'payload') return 'View details'
+
+  return normalizedKey.includes('error') || normalizedKey.includes('message')
+    ? 'View error'
+    : 'View result'
+}
+
+function getStatusClasses(key, value) {
+  const normalizedKey = normalizeKey(key)
+  const isStatusField =
+    normalizedKey === 'status' ||
+    normalizedKey === 'state' ||
+    normalizedKey === 'commandstatus'
+
+  if (!isStatusField) return ''
+
+  const status = String(value ?? '').trim().toLowerCase()
+
+  if (status === 'pending') return 'font-semibold text-amber-600'
+  if (status === 'sent') return 'font-semibold text-blue-600'
+  if (status === 'done') return 'font-semibold text-emerald-600'
+  if (status === 'failed') return 'font-semibold text-red-600'
+
+  return 'font-semibold text-slate-600'
+}
+
+function getDetailEntries(value) {
+  if (Array.isArray(value)) {
+    return value.map((item, index) => [String(index + 1), item])
   }
 
-  const normalizedKey =
-    String(key || '').toLowerCase()
+  return value && typeof value === 'object'
+    ? Object.entries(value)
+    : []
+}
 
+function formatValue(value, key = '') {
+  if (value === null || value === undefined || value === '') return '-'
+
+  const normalizedKey = normalizeKey(key)
   if (
     normalizedKey.includes('date') ||
-    normalizedKey.includes('at')
+    normalizedKey.includes('time') ||
+    normalizedKey.endsWith('at')
   ) {
     return formatDate(value)
   }
 
-  if (
-    normalizedKey.includes('amount') ||
-    normalizedKey === 'total'
-  ) {
-    return formatAmount(value)
-  }
-
+  if (typeof value === 'number') return value.toLocaleString('en-IN')
   return String(value)
 }
 
-function isJsonString(value) {
-  if (typeof value !== 'string') {
-    return false
-  }
+function getColumns(rows) {
+  const columns = []
+  const seen = new Set()
 
-  const trimmed = value.trim()
+  rows.forEach((row) => {
+    Object.keys(row || {}).forEach((key) => {
+      const normalizedKey = normalizeKey(key)
+      const hidden =
+        normalizedKey === 'id' ||
+        normalizedKey.endsWith('id') ||
+        normalizedKey.endsWith('guid') ||
+          normalizedKey === 'vouchernumber' ||
+          normalizedKey === 'type' ||
+          normalizedKey === 'vouchertype' ||
+          normalizedKey === 'completedat'
 
-  if (
-    !trimmed ||
-    !(
-      trimmed.startsWith('{') ||
-      trimmed.startsWith('[')
-    )
-  ) {
-    return false
-  }
-
-  try {
-    JSON.parse(trimmed)
-    return true
-  } catch {
-    return false
-  }
-}
-
-function normalizeStructuredValue(value) {
-  if (
-    typeof value === 'string' &&
-    isJsonString(value)
-  ) {
-    try {
-      return JSON.parse(value)
-    } catch {
-      return value
-    }
-  }
-
-  return value
-}
-
-function isStructuredValue(value) {
-  const normalizedValue =
-    normalizeStructuredValue(value)
-
-  return (
-    normalizedValue !== null &&
-    normalizedValue !== undefined &&
-    typeof normalizedValue === 'object'
-  )
-}
-
-function isHiddenField(field) {
-  const normalizedKey =
-    String(field)
-      .trim()
-      .toLowerCase()
-
-  return Array.from(hiddenFields).some(
-    (hiddenField) =>
-      String(hiddenField)
-        .trim()
-        .toLowerCase() === normalizedKey,
-  )
-}
-
-function getEntryFields(entries) {
-  const keys = new Set()
-
-  entries.forEach((entry) => {
-    Object.keys(entry || {}).forEach(
-      (key) => {
-        if (!isHiddenField(key)) {
-          keys.add(key)
-        }
-      },
-    )
+      if (!hidden && normalizedKey && !seen.has(normalizedKey)) {
+        seen.add(normalizedKey)
+        columns.push(key)
+      }
+    })
   })
 
-  return Array.from(keys)
+  return columns
 }
 
-function getEntryType(field) {
-  const normalizedField =
-    field
-      .replace(/[_-]+/g, '')
-      .toLowerCase()
-
-  if (
-    normalizedField ===
-    'inventoryentries'
-  ) {
-    return 'Inventory Entries'
+function getDetailTableColumns(value) {
+  if (!Array.isArray(value) || value.length === 0 || !value.every(isStructured)) {
+    return []
   }
 
-  if (
-    normalizedField ===
-    'ledgerentries'
-  ) {
-    return 'Ledger Entries'
+  return getColumns(value)
+}
+
+function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', commandType = '' }) {
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const isQuotationPage = voucherType === 'Quotation'
+  const isSimpleCommandPage = commandType === 'CREATE_PARTY' || commandType === 'CREATE_STOCK_ITEM'
+  const isCommandEntryPage = isQuotationPage || voucherType === 'Invoice' || isSimpleCommandPage
+  const [commands, setCommands] = useState([])
+  const [query, setQuery] = useState('')
+  const [status, setStatus] = useState(isCommandEntryPage ? '' : 'PENDING')
+  const [fromDate, setFromDate] = useState('2010-09-01')
+  const [toDate, setToDate] = useState('2026-09-15')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
+  const [deletingCommandId, setDeletingCommandId] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [detailStack, setDetailStack] = useState([])
+
+  const openDetail = (title, value) => {
+    setDetailStack((currentStack) => [
+      ...currentStack,
+      { title, value },
+    ])
   }
 
-  return ''
-}
-
-function isBillAllocationsField(field) {
-  return (
-    field
-      .replace(/[_-]+/g, '')
-      .toLowerCase() ===
-    'billallocations'
-  )
-}
-
-function getNextLayer(parentLayer) {
-  return (parentLayer ?? MODAL_LAYER.entry) + 100
-}
-
-function MyVouchersPage({
-  companyId,
-}) {
-  const accessToken =
-    useAuthStore(
-      (state) => state.accessToken,
-    )
-
-  const [query, setQuery] =
-    useState('')
-
-  const [filter, setFilter] =
-    useState('All')
-
-  const [type, setType] =
-    useState('All')
-
-  const [startDate, setStartDate] =
-    useState('2010-04-01')
-
-  const [endDate, setEndDate] =
-    useState('2027-03-31')
-
-  const [vouchers, setVouchers] =
-    useState([])
-
-  const [knownFields, setKnownFields] =
-    useState([])
-
-  const [page, setPage] =
-    useState(1)
-
-  const [pageSize, setPageSize] =
-    useState(20)
-
-  const [totalItems, setTotalItems] =
-    useState(0)
-
-  const [totalPages, setTotalPages] =
-    useState(1)
-
-  const [isLoading, setIsLoading] =
-    useState(false)
-
-  const [errorMessage, setErrorMessage] =
-    useState('')
-
-  const [entryPopup, setEntryPopup] =
-    useState(null)
-
-  const [
-    billAllocationPopup,
-    setBillAllocationPopup,
-  ] = useState(null)
-
-  const [detailPopup, setDetailPopup] =
-    useState(null)
-
-  const filters = [
-    'All',
-    'Pending',
-    'Completed',
-  ]
-
-  const types = [
-    'All',
-    'Sales',
-    'Purchase',
-    'Receipt',
-    'Payment',
-    'Journal',
-  ]
+  const closeDetail = () => {
+    setDetailStack((currentStack) => currentStack.slice(0, -1))
+  }
 
   useEffect(() => {
     setPage(1)
-    setKnownFields([])
-  }, [
-    query,
-    startDate,
-    endDate,
-    companyId,
-    pageSize,
-  ])
+  }, [companyId, status, query, fromDate, toDate, pageSize])
 
   useEffect(() => {
-    if (
-      !accessToken ||
-      !companyId
-    ) {
-      setVouchers([])
-      setKnownFields([])
+    if (!accessToken || !companyId) {
+      setCommands([])
       setTotalItems(0)
       setTotalPages(1)
+      setErrorMessage(accessToken ? 'No company selected.' : 'Session expired. Please sign in.')
+      return undefined
+    }
 
-      setErrorMessage(
-        accessToken
-          ? 'No company selected.'
-          : 'Session expired. Please sign in.',
-      )
-
+    if (!isSimpleCommandPage && fromDate && toDate && fromDate >= toDate) {
+      setCommands([])
+      setTotalItems(0)
+      setTotalPages(1)
+      setErrorMessage('From date cannot be greater than To date.')
       return undefined
     }
 
     let isMounted = true
-
     setIsLoading(true)
     setErrorMessage('')
 
-    fetchCompanyVouchers(
-      accessToken,
-      companyId,
-      {
-        page,
-        limit: pageSize,
-        q: query,
-        startDate,
-        endDate,
-      },
-    )
+    fetchCompanyCommands(accessToken, companyId, {
+      type: commandType,
+      voucherType,
+      status: isSimpleCommandPage ? '' : status.trim().toUpperCase(),
+      page,
+      limit: pageSize,
+      q: query.trim(),
+      ...(isSimpleCommandPage ? {} : { from: fromDate, to: toDate }),
+    })
       .then((response) => {
         if (!isMounted) return
 
-        const pagination =
-          extractVoucherPagination(
-            response,
-          )
-
+        const nextCommands = extractCommands(response)
+        const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data || response
         const total = Number(
-          pagination.total ||
-            pagination.totalItems ||
-            pagination.totalRecords ||
-            pagination.count ||
-            0,
+          pagination?.total ??
+            pagination?.totalItems ??
+            pagination?.totalRecords ??
+            response?.total ??
+            nextCommands.length,
+        )
+        const pages = Number(
+          pagination?.totalPages ??
+            pagination?.pages ??
+            Math.ceil(total / pageSize),
         )
 
-        const limit = Number(
-          pagination.limit ||
-            pagination.pageSize ||
-            pageSize,
-        )
-
-        const nextVouchers =
-          extractVouchers(
-            response,
-          )
-
-        setVouchers(nextVouchers)
-
-        setKnownFields(
-          (currentFields) => {
-            const nextFields =
-              new Set(currentFields)
-
-            nextVouchers.forEach(
-              (voucher) => {
-                Object.keys(
-                  voucher || {},
-                ).forEach((key) => {
-                  if (
-                    !isHiddenField(
-                      key,
-                    )
-                  ) {
-                    nextFields.add(
-                      key,
-                    )
-                  }
-                })
-              },
-            )
-
-            return Array.from(
-              nextFields,
-            )
-          },
-        )
-
-        setTotalItems(total)
-
-        setTotalPages(
-          Number(
-            pagination.totalPages ||
-              pagination.pages ||
-              Math.ceil(
-                total / limit,
-              ) ||
-              1,
-          ),
-        )
+        setCommands(nextCommands)
+        setTotalItems(Number.isFinite(total) ? total : nextCommands.length)
+        setTotalPages(Number.isFinite(pages) && pages > 0 ? pages : 1)
       })
       .catch((error) => {
-        if (isMounted) {
-          setErrorMessage(
-            error?.message ||
-              'Unable to load vouchers',
-          )
-        }
+        if (!isMounted) return
+        setCommands([])
+        setTotalItems(0)
+        setTotalPages(1)
+        setErrorMessage(error?.message || 'Unable to load vouchers')
       })
       .finally(() => {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+        if (isMounted) setIsLoading(false)
       })
 
     return () => {
       isMounted = false
     }
-  }, [
-    accessToken,
-    companyId,
-    endDate,
-    page,
-    pageSize,
-    query,
-    startDate,
-  ])
+  }, [accessToken, companyId, commandType, isQuotationPage, voucherType, status, query, fromDate, toDate, page, pageSize])
 
-  const visibleRows =
-    useMemo(() => {
-      return vouchers.filter(
-        (voucher) => {
-          const voucherType =
-            String(
-              getVoucherValue(
-                voucher,
-                'voucherType',
-                'voucher_type',
-                'type',
-              ),
-            )
+  const columns = useMemo(() => getColumns(commands), [commands])
+  const pageItems = totalPages <= 7
+    ? Array.from({ length: totalPages }, (_, index) => index + 1)
+    : [1, '...', page - 1, page, page + 1, '...', totalPages]
 
-          const status =
-            String(
-              getVoucherValue(
-                voucher,
-                'status',
-                'voucherStatus',
-                'voucher_status',
-              ),
-            )
+  const getCommandId = (command) =>
+    command?._id ||
+    command?.commandId ||
+    command?.command_id ||
+    command?.id ||
+    ''
 
-          const companyName =
-            String(
-              getVoucherCompanyName(
-                voucher,
-              ) || '',
-            ).toLowerCase()
+  const isPendingCommand = (command) => {
+    const status = String(
+      command?.status ||
+        command?.state ||
+        command?.commandStatus ||
+        command?.command_status ||
+        '',
+    ).toLowerCase()
 
-          const fallbackSearchValue =
-            JSON.stringify(
-              voucher,
-            ).toLowerCase()
+    return status === 'pending'
+  }
 
-          const normalizedQuery =
-            query
-              .trim()
-              .toLowerCase()
+  const handleDelete = async (command) => {
+    const commandId = getCommandId(command)
+    if (!commandId || deletingCommandId) return
 
-          const matchesSearch =
-            !normalizedQuery ||
-            companyName.includes(
-              normalizedQuery,
-            ) ||
-            fallbackSearchValue.includes(
-              normalizedQuery,
-            )
+    if (!window.confirm('Delete this pending command?')) return
 
-          const matchesFilter =
-            filter === 'All' ||
-            status.toLowerCase() ===
-              filter.toLowerCase()
-
-          const matchesType =
-            type === 'All' ||
-            voucherType.toLowerCase() ===
-              type.toLowerCase()
-
-          const effectiveDate =
-            voucher?.effectiveDate
-
-          const effectiveDateValue =
-            effectiveDate
-              ? new Date(
-                  effectiveDate,
-                )
-              : null
-
-          const hasValidEffectiveDate =
-            effectiveDateValue &&
-            !Number.isNaN(
-              effectiveDateValue.getTime(),
-            )
-
-          const matchesStartDate =
-            !startDate ||
-            (
-              hasValidEffectiveDate &&
-              effectiveDateValue >=
-                new Date(
-                  `${startDate}T00:00:00`,
-                )
-            )
-
-          const matchesEndDate =
-            !endDate ||
-            (
-              hasValidEffectiveDate &&
-              effectiveDateValue <=
-                new Date(
-                  `${endDate}T23:59:59.999`,
-                )
-            )
-
-          return (
-            matchesSearch &&
-            matchesFilter &&
-            matchesType &&
-            hasValidEffectiveDate &&
-            matchesStartDate &&
-            matchesEndDate
-          )
-        },
+    try {
+      setDeletingCommandId(String(commandId))
+      setErrorMessage('')
+      await deleteCompanyCommand(accessToken, companyId, commandId)
+      setCommands((currentCommands) =>
+        currentCommands.filter(
+          (item) => String(getCommandId(item)) !== String(commandId),
+        ),
       )
-    }, [
-      endDate,
-      filter,
-      query,
-      startDate,
-      type,
-      vouchers,
-    ])
-
-  const fields = knownFields
-
-  const COLUMN_WIDTH = 220
-
-  /*
-   * Fixed widths keep the header and body cells aligned.
-   */
-  const gridTemplate =
-    fields.length > 0
-      ? `${fields
-          .map(
-            () =>
-              `${COLUMN_WIDTH}px`,
-          )
-          .join(' ')}`
-      : ''
-
-  const pageItems =
-    totalPages <= 7
-      ? Array.from(
-          {
-            length:
-              totalPages,
-          },
-          (_, index) =>
-            index + 1,
-        )
-      : page <= 4
-        ? [
-            1,
-            2,
-            3,
-            4,
-            5,
-            '...',
-            totalPages,
-          ]
-        : page >=
-            totalPages - 3
-          ? [
-              1,
-              '...',
-              totalPages - 4,
-              totalPages - 3,
-              totalPages - 2,
-              totalPages - 1,
-              totalPages,
-            ]
-          : [
-              1,
-              '...',
-              page - 1,
-              page,
-              page + 1,
-              '...',
-              totalPages,
-            ]
-
-  const entryFields =
-    entryPopup
-      ? getEntryFields(
-          entryPopup.entries,
-        )
-      : []
-
-  const billAllocationFields =
-    billAllocationPopup
-      ? getEntryFields(
-          billAllocationPopup.entries,
-        )
-      : []
-
-  const detailFields =
-    detailPopup
-      ? Object.keys(
-          detailPopup.row || {},
-        ).filter(
-          (key) =>
-            !isHiddenField(key),
-        )
-      : []
-
-  const recordStart =
-    totalItems > 0
-      ? (page - 1) * pageSize + 1
-      : 0
-
-  const recordEnd =
-    totalItems > 0
-      ? Math.min(
-          page * pageSize,
-          totalItems,
-        )
-      : 0
+      setTotalItems((currentTotal) => Math.max(0, currentTotal - 1))
+    } catch (error) {
+      setErrorMessage(error?.message || 'Unable to delete command')
+    } finally {
+      setDeletingCommandId('')
+    }
+  }
 
   return (
     <div className="min-h-[calc(100vh-60px)] overflow-x-auto bg-[#f8fafc] text-[#17355f]">
-      {/* ERROR */}
-      {errorMessage && (
-        <div className="mx-8 mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-          {errorMessage}
-        </div>
-      )}
-
-      <section className="min-w-[1120px] border-t border-[#e5ebf2] bg-white">
-        {/* FILTER BAR */}
-        <div className="flex min-h-[70px] flex-wrap items-center gap-3 border-b border-[#e5ebf2] px-8 py-3">
-         
-          
-          {/* SHOW */}
-          <span className="text-[13px] text-[#17355f]">
-            Show
-          </span>
-
-          <select
-            value={pageSize}
-            onChange={(event) =>
-              setPageSize(
-                Number(
-                  event.target.value,
-                ),
-              )
-            }
-            className="h-[38px] rounded-lg border border-[#10b981] bg-white px-3 text-[13px] text-[#17355f] outline-none"
-          >
-            {[10, 20, 30, 50].map(
-              (size) => (
-                <option
-                  key={size}
-                  value={size}
-                >
-                  {size}
-                </option>
-              ),
-            )}
-          </select>
-
-          <span className="text-[13px] text-[#17355f]">
-            records
-          </span>
-
-          {/* DATE FILTER */}
-          <div className="ml-auto flex shrink-0 items-center gap-2">
+      <div className="px-3 py-3 sm:px-5 sm:py-4">
+        <section className="min-w-[1120px] border-t border-[#e5ebf2] bg-white">
+          <div className="flex min-h-[70px] min-w-max flex-nowrap items-center gap-3 border-b border-[#e5ebf2] px-4 py-3 sm:px-8">
             <input
-              type="date"
-              value={startDate}
-              onChange={(event) =>
-                setStartDate(
-                  event.target.value,
-                )
-              }
-              className="h-[38px] w-[125px] rounded-md border border-[#bfcfe2] bg-white px-2 text-[11px] text-[#17355f] outline-none focus:border-[#10b981]"
-              aria-label="From date"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search party ledger or voucher number"
+              className="h-[38px] w-[280px] shrink-0 rounded-lg border border-[#d9e2ed] bg-white px-3 text-[12px] text-slate-700 outline-none focus:border-[#17355f] focus:ring-1 focus:ring-[#17355f]/20"
             />
 
-            <span className="text-[11px] text-[#17355f]">
-              to
-            </span>
+            <label className="flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px]">
+              <span>Show</span>
+              <select
+                value={pageSize}
+                onChange={(event) =>
+                  setPageSize(Number(event.target.value))
+                }
+                className="h-[38px] w-[64px] cursor-pointer rounded-lg border border-[#10b981] bg-white px-2 text-[12px] text-slate-700 outline-none"
+              >
+                {[10, 20, 30, 50].map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <span>rows</span>
+            </label>
 
-            <input
-              type="date"
-              value={endDate}
-              min={startDate}
-              onChange={(event) =>
-                setEndDate(
-                  event.target.value,
-                )
-              }
-              className="h-[38px] w-[125px] rounded-md border border-[#bfcfe2] bg-white px-2 text-[11px] text-[#17355f] outline-none focus:border-[#10b981]"
-              aria-label="To date"
-            />
+            {!isSimpleCommandPage && <label className="mx-10 flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px]">
+              <span>Status</span>
+              <select
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+                className="h-[38px] min-w-[150px] cursor-pointer rounded-lg border border-[#10b981] bg-white px-3 text-[12px] text-slate-700 outline-none"
+              >
+                <option value="">All statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="SENT">Sent</option>
+                <option value="DONE">Done</option>
+                <option value="FAILED">Failed</option>
+              </select>
+            </label>}
+
+            <div className="hidden min-w-0 flex-1 lg:block" />
+
+            {!isSimpleCommandPage && <label className="flex items-center gap-2 text-[12px]">
+              From
+              <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]" />
+            </label>}
+            {!isSimpleCommandPage && <label className="flex items-center gap-2 text-[12px]">
+              To
+              <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]" />
+            </label>}
+            <span className="text-[12px]">Page {page} · {pageSize} per page</span>
           </div>
 
-          <span className="text-[12px] text-[#17355f]">
-            Page {page} · {pageSize}{' '}
-            per page
-          </span>
-        </div>
+          {errorMessage && <div className="mx-8 mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{errorMessage}</div>}
 
-        {/* STATUS / TYPE FILTER */}
-        <div className="flex items-center gap-2 px-8 py-2 text-xs">
-          {filters.map(
-            (option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() =>
-                  setFilter(
-                    option,
-                  )
-                }
-                className={
-                  filter === option
-                    ? 'border-b-2 border-[#10b981] px-2 py-1 font-semibold text-[#17355f]'
-                    : 'px-2 py-1 text-[#71819a]'
-                }
-              >
-                {option}
-              </button>
-            ),
-          )}
-
-          <select
-            value={type}
-            onChange={(event) =>
-              setType(
-                event.target.value,
-              )
-            }
-            className="ml-2 h-8 rounded border border-[#d6e0ec] bg-white px-2 text-xs text-[#17355f] outline-none"
-          >
-            {types.map(
-              (option) => (
-                <option
-                  key={option}
-                  value={option}
-                >
-                  {option === 'All'
-                    ? 'Voucher Type'
-                    : option}
-                </option>
-              ),
-            )}
-          </select>
-        </div>
-
-        {/* MAIN TABLE */}
-        <div className="mx-8 overflow-x-auto rounded-lg border border-[#dfe7f0]">
-          {/* TABLE HEADER */}
-          <div
-            style={{
-              gridTemplateColumns:
-                gridTemplate,
-            }}
-            className="grid min-w-max border-b border-[#dfe7f0] bg-[#f4f7fb] px-4 py-3 text-[11px] font-semibold uppercase tracking-normal text-[#274b78]"
-          >
-            {fields.map((field) => (
-              <div
-                key={field}
-                className="box-border flex w-[220px] min-w-[220px] max-w-[220px] items-center overflow-hidden pr-4"
-              >
-                <span className="block whitespace-normal break-words">
-                  {formatFieldLabel(field)}
-                </span>
+          <div className="mx-8 overflow-x-auto rounded-lg border border-[#dfe7f0]">
+            <div className="min-w-max">
+              <div className="grid border-b border-[#dfe7f0] bg-[#f4f7fb] px-4 py-3 text-[11px] font-semibold uppercase text-[#274b78]" style={{ gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, 180px) 120px` }}>
+                {columns.map((column) => <div key={column} className="w-[180px] min-w-[180px] max-w-[180px] border-l border-[#dfe7f0] pr-3">{formatLabel(column)}</div>)}
+                <div className="w-[120px] min-w-[120px] max-w-[120px] border-l border-[#dfe7f0]">Action</div>
               </div>
-            ))}
-          </div>
 
-          {/* TABLE BODY */}
-          {isLoading ? (
-            <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center px-4 py-3 text-center text-xs text-slate-500">
-              Loading vouchers...
-            </div>
-          ) : visibleRows.length >
-            0 ? (
-            visibleRows.map(
-              (
-                voucher,
-                index,
-              ) => {
-                const voucherNumber =
-                  getVoucherValue(
-                    voucher,
-                    'voucherNumber',
-                    'voucher_number',
-                  ) || '-'
-
-                const rowKey =
-                  voucher?._id ||
-                  voucher?.id ||
-                  voucher?.guid ||
-                  `${voucherNumber}-${index}`
-
-                return (
-                  <div
-                    key={rowKey}
-                    style={{
-                      gridTemplateColumns:
-                        gridTemplate,
-                    }}
-                    className="grid min-w-max items-start border-b border-[#e5ebf2] px-4 py-3 text-[12px] text-[#17355f] last:border-b-0 odd:bg-white even:bg-[#fbfdff]"
-                  >
-                    {fields.map(
-                      (field) => {
-                        const cellValue =
-                          normalizeStructuredValue(
-                            voucher?.[
-                              field
-                            ],
-                          )
-
-                        const isStructured =
-                          isStructuredValue(
-                            voucher?.[
-                              field
-                            ],
-                          )
-
-                        const entryCount =
-                          Array.isArray(
-                            cellValue,
-                          )
-                            ? cellValue.length
-                            : 0
-
-                        return (
-                          <div
-                            key={field}
-                            className="box-border flex w-[220px] min-w-[220px] max-w-[220px] items-start overflow-hidden pr-4"
-                          >
-                            {/* INVENTORY / LEDGER ENTRIES */}
-                            {Array.isArray(
-                              cellValue,
-                            ) &&
-                            entryCount > 0 &&
-                            getEntryType(
-                              field,
-                            ) ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setEntryPopup(
-                                    {
-                                      title:
-                                        getEntryType(
-                                          field,
-                                        ),
-                                      entries:
-                                        cellValue,
-                                      layer:
-                                        getNextLayer(
-                                          detailPopup?.layer ??
-                                            entryPopup?.layer ??
-                                            billAllocationPopup?.layer ??
-                                            MODAL_LAYER.entry,
-                                        ),
-                                    },
-                                  )
-                                }
-                                className="inline-flex min-h-8 items-center rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold leading-tight text-sky-700 transition hover:bg-sky-100"
-                              >
-                                View{' '}
-                                {
-                                  entryCount
-                                }{' '}
-                                entries
-                              </button>
-                            ) : isStructured ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setEntryPopup(
-                                    {
-                                      title:
-                                        formatFieldLabel(
-                                          field,
-                                        ),
-                                      entries:
-                                        Array.isArray(
-                                          cellValue,
-                                        )
-                                          ? cellValue
-                                          : [
-                                              cellValue,
-                                            ],
-                                      layer:
-                                        getNextLayer(
-                                          detailPopup?.layer ??
-                                            entryPopup?.layer ??
-                                            billAllocationPopup?.layer ??
-                                            MODAL_LAYER.entry,
-                                        ),
-                                    },
-                                  )
-                                }
-                                className="inline-flex min-h-8 items-center rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold leading-tight text-sky-700 transition hover:bg-sky-100"
-                              >
-                                View
-                              </button>
-                            ) : (
-                              <pre className="m-0 max-h-28 w-full overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
-                                {formatApiValue(
-                                  voucher?.[
-                                    field
-                                  ],
-                                  field,
-                                )}
-                              </pre>
-                            )}
-                          </div>
-                        )
-                      },
-                    )}
-
+              {isLoading ? (
+                <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center text-xs text-slate-500">Loading vouchers...</div>
+              ) : commands.length > 0 ? commands.map((command, index) => (
+                <div key={getCommandId(command) || index} className="grid min-w-max items-start border-b border-[#e5ebf2] px-4 py-3 text-[12px] last:border-b-0 odd:bg-white even:bg-[#fbfdff]" style={{ gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, 180px) 120px` }}>
+                  {columns.map((column) => {
+                    const value = command?.[column]
+                    return <div key={column} className="w-[180px] min-w-[180px] max-w-[180px] border-l border-[#e5ebf2] pr-3">
+                      {isViewableField(column, value) ? <button type="button" onClick={() => openDetail(formatLabel(column), value)} className="rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700">{getViewLabel(column)}</button> : <span className={getStatusClasses(column, value)}>{formatValue(value, column)}</span>}
+                    </div>
+                  })}
+                  <div className="w-[120px] min-w-[120px] max-w-[120px] border-l border-[#e5ebf2]">
+                    {isPendingCommand(command) && getCommandId(command) ? (
+                      <button
+                        type="button"
+                        disabled={deletingCommandId === String(getCommandId(command))}
+                        onClick={() => handleDelete(command)}
+                        className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {deletingCommandId === String(getCommandId(command)) ? 'Deleting...' : 'Delete'}
+                      </button>
+                    ) : null}
                   </div>
-                )
-              },
-            )
-          ) : (
-            <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center px-4 py-3 text-center text-xs text-slate-500">
-              No data available
-            </div>
-          )}
-        </div>
-
-        {/* PAGINATION */}
-        <footer className="flex flex-wrap items-center justify-center gap-6 border-t border-[#e5ebf2] px-8 py-4 text-xs text-[#17355f]">
-          <span>
-            {totalItems
-              ? `${recordStart}-${recordEnd} of ${totalItems}`
-              : '0-0 of 0'}
-          </span>
-
-          <div className="flex items-center gap-2">
-            {pageItems.map(
-              (
-                pageNumber,
-                index,
-              ) =>
-                pageNumber ===
-                '...' ? (
-                  <span
-                    key={`ellipsis-${index}`}
-                    className="flex h-9 w-5 items-center justify-center text-[#71819a]"
-                  >
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={pageNumber}
-                    type="button"
-                    disabled={isLoading}
-                    onClick={() =>
-                      setPage(
-                        pageNumber,
-                      )
-                    }
-                    className={
-                      pageNumber === page
-                        ? 'h-9 w-9 rounded-md border border-[#059669] bg-[#059669] font-semibold text-white shadow-sm'
-                        : 'h-9 w-9 rounded-md border border-[#d9e2ed] bg-white text-[#17355f] transition hover:border-[#10a878] hover:text-[#10a878]'
-                    }
-                  >
-                    {pageNumber}
-                  </button>
-                ),
-            )}
-          </div>
-        </footer>
-      </section>
-
-      {/* INVENTORY / LEDGER POPUP */}
-      {entryPopup && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4"
-          style={{ zIndex: entryPopup?.layer ?? MODAL_LAYER.entry }}
-          role="dialog"
-          aria-modal="true"
-          aria-label={
-            entryPopup.title
-          }
-        >
-          <div className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-            {/* HEADER */}
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <div>
-                <h2 className="text-base font-semibold text-slate-900">
-                  {
-                    entryPopup.title
-                  }
-                </h2>
-
-                <p className="mt-1 text-xs text-slate-500">
-                  {
-                    entryPopup.entries
-                      .length
-                  }{' '}
-                  entries
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setEntryPopup(
-                    null,
-                  )
-                }
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                aria-label="Close entries"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* TABLE */}
-            <div className="overflow-auto p-4">
-              {entryPopup.entries
-                .length > 0 ? (
-                <table className="min-w-max table-fixed border-collapse text-left text-xs">
-                  <colgroup>
-                    {entryFields.map(
-                      (field) => (
-                        <col
-                          key={field}
-                          style={{
-                            width:
-                              COLUMN_WIDTH,
-                          }}
-                        />
-                      ),
-                    )}
-                  </colgroup>
-
-                  <thead className="sticky top-0 z-10 bg-slate-100">
-                    <tr>
-                      {entryFields.map(
-                        (field) => (
-                          <th
-                            key={field}
-                            style={{
-                              width:
-                                COLUMN_WIDTH,
-                              minWidth:
-                                COLUMN_WIDTH,
-                              maxWidth:
-                                COLUMN_WIDTH,
-                            }}
-                            className="border border-slate-200 px-3 py-2 text-left align-top text-[11px] font-semibold uppercase text-slate-600"
-                          >
-                            {formatFieldLabel(
-                              field,
-                            )}
-                          </th>
-                        ),
-                      )}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {entryPopup.entries.map(
-                      (
-                        entry,
-                        index,
-                      ) => (
-                        <tr
-                          key={
-                            entry?._id ||
-                            entry?.id ||
-                            index
-                          }
-                          className="align-top even:bg-slate-50"
-                        >
-                          {entryFields.map(
-                            (
-                              field,
-                            ) => (
-                              <td
-                                key={field}
-                                style={{
-                                  width:
-                                    COLUMN_WIDTH,
-                                  minWidth:
-                                    COLUMN_WIDTH,
-                                  maxWidth:
-                                    COLUMN_WIDTH,
-                                }}
-                                className="align-top border border-slate-200 px-3 py-2"
-                              >
-                                {Array.isArray(
-                                  entry?.[
-                                    field
-                                  ],
-                                ) &&
-                                entry[
-                                  field
-                                ].length >
-                                  0 &&
-                                isBillAllocationsField(
-                                  field,
-                                ) ? (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setBillAllocationPopup(
-                                        {
-                                          title:
-                                            'Bill Allocations',
-                                          entries:
-                                            entry[
-                                              field
-                                            ],
-                                          layer:
-                                            getNextLayer(
-                                              entryPopup?.layer ??
-                                                MODAL_LAYER.entry,
-                                            ),
-                                        },
-                                      )
-                                    }
-                                    className="inline-flex min-h-8 items-center rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold leading-tight text-sky-700 transition hover:bg-sky-100"
-                                  >
-                                    View{' '}
-                                    {
-                                      entry[
-                                        field
-                                      ].length
-                                    }{' '}
-                                    allocations
-                                  </button>
-                                ) : (
-                                  <pre className="m-0 max-h-32 w-full overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
-                                    {formatApiValue(
-                                      entry?.[
-                                        field
-                                      ],
-                                      field,
-                                    )}
-                                  </pre>
-                                )}
-                              </td>
-                            ),
-                          )}
-                        </tr>
-                      ),
-                    )}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="flex min-h-[120px] items-center justify-center text-xs text-slate-500">
-                  No data
                 </div>
-              )}
-            </div>
-
-            {/* CLOSE */}
-            <div className="flex justify-end border-t border-slate-200 px-5 py-3">
-              <button
-                type="button"
-                onClick={() =>
-                  setEntryPopup(
-                    null,
-                  )
-                }
-                className="rounded-md bg-slate-800 px-5 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
-              >
-                Close
-              </button>
+              )) : <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center text-xs text-slate-500">No vouchers found.</div>}
             </div>
           </div>
-        </div>
-      )}
 
-      {/* BILL ALLOCATION POPUP */}
-      {billAllocationPopup && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4"
-          style={{ zIndex: billAllocationPopup?.layer ?? MODAL_LAYER.billAllocation }}
-          role="dialog"
-          aria-modal="true"
-          aria-label={
-            billAllocationPopup.title
-          }
-        >
+          <footer className="flex flex-wrap items-center justify-center gap-6 border-t border-[#e5ebf2] px-8 py-4 text-xs">
+            <span>{totalItems ? `${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, totalItems)} of ${totalItems}` : '0-0 of 0'}</span>
+            <div className="flex items-center gap-2">
+              <button type="button" disabled={isLoading || page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="h-9 w-9 rounded-md border border-[#d9e2ed] disabled:opacity-40">&lt;</button>
+              {pageItems.map((pageNumber, index) => pageNumber === '...' ? <span key={`ellipsis-${index}`}>...</span> : <button key={pageNumber} type="button" disabled={isLoading} onClick={() => setPage(pageNumber)} className={pageNumber === page ? 'h-9 w-9 rounded-md border border-[#059669] bg-[#059669] text-white' : 'h-9 w-9 rounded-md border border-[#d9e2ed]'}>{pageNumber}</button>)}
+              <button type="button" disabled={isLoading || page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} className="h-9 w-9 rounded-md border border-[#d9e2ed] disabled:opacity-40">&gt;</button>
+            </div>
+          </footer>
+        </section>
+      </div>
+
+      {detailStack.map((detail, index) => (
+        <div key={`${detail.title}-${index}`} className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4" style={{ zIndex: 1000 + index * 100 }}>
           <div className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-            {/* HEADER */}
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+            <div className="flex items-start justify-between border-b border-[#dfe7f0] px-5 py-4">
               <div>
-                <h2 className="text-base font-semibold text-slate-900">
-                  {
-                    billAllocationPopup.title
-                  }
-                </h2>
-
-                <p className="mt-1 text-xs text-slate-500">
-                  {
-                    billAllocationPopup
-                      .entries.length
-                  }{' '}
-                  allocations
-                </p>
+                <h2 className="text-[15px] font-semibold text-slate-900">{detail.title}</h2>
+                <p className="mt-1 text-[11px] text-slate-500">{Array.isArray(detail.value) ? `${detail.value.length} entries` : 'Details'}</p>
               </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setBillAllocationPopup(
-                    null,
-                  )
-                }
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                aria-label="Close bill allocations"
-              >
-                ×
-              </button>
+              <button type="button" aria-label="Close details" onClick={closeDetail} className="flex h-9 w-9 items-center justify-center rounded-md border border-[#d9e2ed] text-lg leading-none text-slate-500 transition hover:bg-slate-50">x</button>
             </div>
-
-            {/* TABLE */}
-            <div className="overflow-auto p-4">
-              {billAllocationPopup
-                .entries.length >
-              0 ? (
-                <table className="min-w-max table-fixed border-collapse text-left text-xs">
-                  <colgroup>
-                    {billAllocationFields.map(
-                      (field) => (
-                        <col
-                          key={field}
-                          style={{
-                            width:
-                              COLUMN_WIDTH,
-                          }}
-                        />
-                      ),
-                    )}
-                  </colgroup>
-
-                  <thead className="sticky top-0 z-10 bg-slate-100">
-                    <tr>
-                      {billAllocationFields.map(
-                        (field) => (
-                          <th
-                            key={field}
-                            style={{
-                              width:
-                                COLUMN_WIDTH,
-                              minWidth:
-                                COLUMN_WIDTH,
-                              maxWidth:
-                                COLUMN_WIDTH,
-                            }}
-                            className="border border-slate-200 px-3 py-2 text-left align-top text-[11px] font-semibold uppercase text-slate-600"
-                          >
-                            {formatFieldLabel(
-                              field,
-                            )}
-                          </th>
-                        ),
-                      )}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {billAllocationPopup.entries.map(
-                      (
-                        allocation,
-                        index,
-                      ) => (
-                        <tr
-                          key={
-                            allocation?._id ||
-                            allocation?.id ||
-                            index
-                          }
-                          className="align-top even:bg-slate-50"
-                        >
-                          {billAllocationFields.map(
-                            (
-                              field,
-                            ) => (
-                              <td
-                                key={field}
-                                style={{
-                                  width:
-                                    COLUMN_WIDTH,
-                                  minWidth:
-                                    COLUMN_WIDTH,
-                                  maxWidth:
-                                    COLUMN_WIDTH,
-                                }}
-                                className="align-top border border-slate-200 px-3 py-2"
-                              >
-                                <pre className="m-0 max-h-32 overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
-                                  {formatApiValue(
-                                    allocation?.[
-                                      field
-                                    ],
-                                    field,
-                                  )}
-                                </pre>
-                              </td>
-                            ),
-                          )}
-                        </tr>
-                      ),
-                    )}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="flex min-h-[120px] items-center justify-center text-xs text-slate-500">
-                  No data
+            <div className="min-h-0 overflow-auto p-4">
+              {getDetailTableColumns(detail.value).length > 0 ? (
+                <div className="min-w-max overflow-x-auto border border-[#dfe7f0]">
+                  <table className="w-full min-w-[900px] border-collapse text-[12px] text-[#17355f]">
+                    <thead className="bg-[#f1f5f9] text-left text-[10px] font-semibold uppercase tracking-wide text-[#52657d]">
+                      <tr>
+                        {getDetailTableColumns(detail.value).map((column) => <th key={column} className="border-b border-r border-[#dfe7f0] px-3 py-2.5 font-semibold last:border-r-0">{formatLabel(column)}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detail.value.map((row, rowIndex) => <tr key={rowIndex} className="odd:bg-white even:bg-[#fbfdff]">
+                        {getDetailTableColumns(detail.value).map((column) => {
+                          const value = row?.[column]
+                          return <td key={column} className="border-b border-r border-[#dfe7f0] px-3 py-2.5 last:border-r-0">{isStructured(value) ? <button type="button" onClick={() => openDetail(formatLabel(column), value)} className="rounded-md border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700">View</button> : formatValue(value, column)}</td>
+                        })}
+                      </tr>)}
+                    </tbody>
+                  </table>
                 </div>
-              )}
+              ) : getDetailEntries(detail.value).length > 0 ? getDetailEntries(detail.value).map(([key, value]) => <div key={key} className="grid grid-cols-[180px_1fr] items-start border-b border-[#dfe7f0] px-2 py-3 text-xs"><strong>{Array.isArray(detail.value) ? `Item ${key}` : formatLabel(key)}</strong>{isStructured(value) ? <button type="button" onClick={() => openDetail(Array.isArray(detail.value) ? `Item ${key}` : formatLabel(key), value)} className="w-fit rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700">View</button> : <span className="whitespace-pre-wrap break-words">{formatValue(value, key)}</span>}</div>) : <div className="whitespace-pre-wrap break-words px-2 py-3 text-sm text-[#17355f]">{formatValue(detail.value)}</div>}
             </div>
-
-            {/* CLOSE */}
-            <div className="flex justify-end border-t border-slate-200 px-5 py-3">
-              <button
-                type="button"
-                onClick={() =>
-                  setBillAllocationPopup(
-                    null,
-                  )
-                }
-                className="rounded-md bg-slate-800 px-5 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
-              >
-                Close
-              </button>
+            <div className="flex justify-end border-t border-[#dfe7f0] px-5 py-3">
+              <button type="button" onClick={closeDetail} className="rounded-md bg-[#172a46] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#203b61]">Close</button>
             </div>
           </div>
         </div>
-      )}
-
-      {/* VOUCHER DETAIL POPUP */}
-      {detailPopup && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4"
-          style={{ zIndex: detailPopup?.layer ?? MODAL_LAYER.detail }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Voucher Detail"
-        >
-          <div className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
-            {/* HEADER */}
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <div>
-                <h2 className="text-base font-semibold text-slate-900">
-                  Voucher Detail
-                </h2>
-
-                <p className="mt-1 text-xs text-slate-500">
-                  Complete voucher information
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setDetailPopup(
-                    null,
-                  )
-                }
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                aria-label="Close voucher detail"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* DETAIL TABLE */}
-            <div className="overflow-auto p-4">
-              {detailFields.length >
-              0 ? (
-                <table className="min-w-max table-fixed border-collapse text-left text-xs">
-                  <colgroup>
-                    {detailFields.map(
-                      (field) => (
-                        <col
-                          key={field}
-                          style={{
-                            width:
-                              COLUMN_WIDTH,
-                          }}
-                        />
-                      ),
-                    )}
-                  </colgroup>
-
-                  <thead className="sticky top-0 z-10 bg-slate-100">
-                    <tr>
-                      {detailFields.map(
-                        (field) => (
-                          <th
-                            key={field}
-                            style={{
-                              width:
-                                COLUMN_WIDTH,
-                              minWidth:
-                                COLUMN_WIDTH,
-                              maxWidth:
-                                COLUMN_WIDTH,
-                            }}
-                            className="border border-slate-200 px-3 py-2 text-left align-top text-[11px] font-semibold uppercase text-slate-600"
-                          >
-                            {formatFieldLabel(
-                              field,
-                            )}
-                          </th>
-                        ),
-                      )}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    <tr className="align-top">
-                      {detailFields.map(
-                        (field) => {
-                          const value =
-                            detailPopup
-                              .row?.[
-                              field
-                            ]
-
-                          const structured =
-                            isStructuredValue(
-                              value,
-                            )
-
-                          return (
-                            <td
-                              key={field}
-                              style={{
-                                width:
-                                  COLUMN_WIDTH,
-                                minWidth:
-                                  COLUMN_WIDTH,
-                                maxWidth:
-                                  COLUMN_WIDTH,
-                              }}
-                              className="align-top border border-slate-200 px-3 py-2"
-                            >
-                              {structured ? (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setEntryPopup(
-                                      {
-                                        title:
-                                          formatFieldLabel(
-                                            field,
-                                          ),
-                                        entries:
-                                          Array.isArray(
-                                            normalizeStructuredValue(
-                                              value,
-                                            ),
-                                          )
-                                            ? normalizeStructuredValue(
-                                                value,
-                                              )
-                                            : [
-                                                normalizeStructuredValue(
-                                                  value,
-                                                ),
-                                              ],
-                                        layer:
-                                          getNextLayer(
-                                            detailPopup?.layer ??
-                                              MODAL_LAYER.entry,
-                                          ),
-                                      },
-                                    )
-                                  }
-                                  className="inline-flex min-h-8 items-center rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-                                >
-                                  View
-                                </button>
-                              ) : (
-                                <pre className="m-0 max-h-32 w-full overflow-y-auto whitespace-pre-wrap break-words font-sans text-[12px] leading-5">
-                                  {formatApiValue(
-                                    value,
-                                    field,
-                                  )}
-                                </pre>
-                              )}
-                            </td>
-                          )
-                        },
-                      )}
-                    </tr>
-                  </tbody>
-                </table>
-              ) : (
-                <div className="flex min-h-[120px] items-center justify-center text-xs text-slate-500">
-                  No data available
-                </div>
-              )}
-            </div>
-
-            {/* CLOSE */}
-            <div className="flex justify-end border-t border-slate-200 px-5 py-3">
-              <button
-                type="button"
-                onClick={() =>
-                  setDetailPopup(
-                    null,
-                  )
-                }
-                className="rounded-md bg-slate-800 px-5 py-2 text-xs font-semibold text-white transition hover:bg-slate-700"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      ))}
     </div>
   )
 }
 
-export default MyVouchersPage 
+export default MyVouchersPage

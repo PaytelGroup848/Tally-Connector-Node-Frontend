@@ -1670,7 +1670,7 @@ export function DocumentVoucherPage({
                     options={voucherTypeOptions}
                     placeholder="Select Voucher Type"
                     loading={isOptionsLoading}
-                    value={selectedVoucherType}
+                    // value={selectedVoucherType}
                     resetToken={clearToken}
                     onSelect={setSelectedVoucherType}
                     onClear={() => setSelectedVoucherType('')}

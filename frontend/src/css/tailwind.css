@@ -46,30 +46,29 @@
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
+
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  * {
-    box-sizing: border-box;
+  *,
+  *::before,
+  *::after {
+    @apply box-border;
   }
 
   html,
   body,
   #root {
-    min-height: 100%;
-    width: 100%;
+    @apply min-h-full w-full;
   }
 
   html {
-    background: #f5f8fc;
+    @apply bg-app-bg;
   }
 
   body {
-    margin: 0;
-    min-width: 320px;
-    background: #f5f8fc;
-    overflow-x: hidden;
+    @apply m-0 min-w-[320px] overflow-x-hidden bg-app-bg;
   }
 
   button,
@@ -79,13 +78,18 @@
     font: inherit;
   }
 
-  button {
-    cursor: pointer;
+  button,
+  a {
+    @apply cursor-pointer;
+  }
+
+  button:disabled {
+    @apply cursor-not-allowed;
   }
 
   img,
   svg {
-    display: block;
+    @apply block;
   }
 }
 
@@ -178,13 +182,11 @@
   }
 
   .sidebar-link:hover {
-    background: rgba(255, 255, 255, 0.10);
-    color: #ffffff;
+    @apply bg-white/10 text-white;
   }
 
   .sidebar-link.is-active {
-    background: #10a66f;
-    color: #ffffff;
+    @apply bg-app-primary text-white;
   }
 
   /* ==========================================================
@@ -539,18 +541,11 @@
     width: calc(100% - 228px);
   }
 
-  /*
-   * When Sidebar component adds this class to the main area:
-   * <main className="app-main sidebar-collapsed">
-   */
   .app-shell .app-main.sidebar-collapsed {
     margin-left: 68px;
     width: calc(100% - 68px);
   }
 
-  /*
-   * When Sidebar itself is collapsed.
-   */
   .app-sidebar.is-collapsed {
     width: 68px;
   }
@@ -604,10 +599,6 @@
     border-radius: 8px;
   }
 
-  /*
-   * The first child is the icon wrapper.
-   * Keeping it at a fixed size gives perfect icon alignment.
-   */
   .app-sidebar .sidebar-link > span:first-child {
     width: 40px;
     min-width: 40px;
@@ -663,29 +654,19 @@
     gap: 0;
   }
 
-  /*
-   * Hide label/text in collapsed state.
-   * This targets common Sidebar layouts where the label
-   * is a sibling after the icon.
-   */
-  .app-sidebar[data-collapsed="true"] .sidebar-link > span:not(:first-child),
+  .app-sidebar[data-collapsed="true"]
+    .sidebar-link > span:not(:first-child),
   .app-sidebar[data-collapsed="true"] .sidebar-link > p,
   .app-sidebar[data-collapsed="true"] .sidebar-link > strong {
     display: none;
   }
 
-  /*
-   * Hide submenu containers in collapsed state.
-   */
   .app-sidebar[data-collapsed="true"] .sidebar-link + div {
     display: none;
   }
 
-  /*
-   * Inactive icon.
-   */
-  .app-sidebar[data-collapsed="true"] .sidebar-link
-    > span:first-child {
+  .app-sidebar[data-collapsed="true"]
+    .sidebar-link > span:first-child {
     width: 40px;
     min-width: 40px;
     height: 40px;
@@ -693,11 +674,6 @@
     background: transparent;
   }
 
-  /*
-   * ACTIVE:
-   * Green background stays exactly around the icon,
-   * instead of stretching across the complete sidebar.
-   */
   .app-sidebar[data-collapsed="true"]
     .sidebar-link.is-active {
     background: transparent;
@@ -781,7 +757,6 @@
 @media (max-width: 1023px) {
   .app-header {
     z-index: 80;
-
     min-height: 64px;
     height: auto;
   }
@@ -815,18 +790,12 @@
     min-height: 64px;
   }
 
-  /*
-   * Smaller company selector on phones.
-   */
   .app-header [class*="w-[230px]"] {
     width: auto;
     min-width: 0;
     max-width: 210px;
   }
 
-  /*
-   * Hide less-important desktop controls.
-   */
   .app-header .w-\[82px\],
   .app-header .w-\[88px\],
   .app-header .w-\[175px\],
@@ -834,16 +803,10 @@
     display: none;
   }
 
-  /*
-   * Profile should remain compact.
-   */
   .app-header .w-\[92px\] {
     width: 58px;
   }
 
-  /*
-   * Company dropdown fits phone width.
-   */
   .app-header [class*="w-[300px]"] {
     width: min(300px, calc(100vw - 16px));
   }

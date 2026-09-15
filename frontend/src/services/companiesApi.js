@@ -431,10 +431,13 @@ export function fetchCompanyVouchers(
   companyId,
   {
     page = 1,
-    limit = 10,
+    limit = 20,
     q = '',
+    voucherType = '',
     startDate = '',
     endDate = '',
+    from = '',
+    to = '',
   } = {},
 ) {
   const params = new URLSearchParams({
@@ -442,9 +445,17 @@ export function fetchCompanyVouchers(
     limit: String(limit),
   })
 
+  const effectiveFrom = from || startDate
+  const effectiveTo = to || endDate
+
   if (q.trim()) params.set('q', q.trim())
-  if (startDate) params.set('startDate', startDate)
-  if (endDate) params.set('endDate', endDate)
+  if (voucherType && String(voucherType).trim()) {
+    params.set('voucherType', String(voucherType).trim())
+  }
+  if (effectiveFrom) params.set('from', effectiveFrom)
+  if (effectiveTo) params.set('to', effectiveTo)
+  if (startDate && !from) params.set('startDate', startDate)
+  if (endDate && !to) params.set('endDate', endDate)
 
   return request(
     `/companies/${encodeURIComponent(companyId)}/vouchers?${params}`,
@@ -452,8 +463,105 @@ export function fetchCompanyVouchers(
   )
 }
 
+export function fetchCompanyCommands(
+  accessToken,
+  companyId,
+  {
+    type = '',
+    voucherType = '',
+    status = '',
+    page = 1,
+    limit = 20,
+    q = '',
+    from = '',
+    to = '',
+  } = {},
+) {
+  const params = new URLSearchParams({
+    type: String(type),
+    page: String(page),
+    limit: String(limit),
+    q: String(q),
+  })
+
+  if (voucherType && String(voucherType).trim()) {
+    params.set('voucherType', String(voucherType).trim())
+  }
+
+  const normalizedStatus = String(status).trim().toUpperCase()
+  if (normalizedStatus) params.set('status', normalizedStatus)
+  if (from) params.set('from', String(from))
+  if (to) params.set('to', String(to))
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/commands?${params}`,
+    accessToken,
+  )
+}
+
+export async function deleteCompanyCommand(
+  accessToken,
+  companyId,
+  commandId,
+) {
+  if (!accessToken) throw new Error('Access token not found')
+  if (!companyId) throw new Error('Company is not selected')
+  if (!commandId) throw new Error('Command ID not found')
+
+  const response = await fetch(
+    `${API_BASE_URL}/companies/${encodeURIComponent(companyId)}/commands/${encodeURIComponent(commandId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  )
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || 'Unable to delete command')
+  }
+
+  return data
+}
+
+export function extractCommands(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const commandKeys = [
+    'commands',
+    'items',
+    'records',
+    'results',
+    'docs',
+    'rows',
+    'content',
+    'data',
+  ]
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of commandKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
 export function extractVouchers(response) {
   if (Array.isArray(response)) return response
+  if (Array.isArray(response?.data?.items)) return response.data.items
 
   const pending = [response]
   const voucherKeys = ['vouchers', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
