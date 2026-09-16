@@ -315,7 +315,7 @@ function SalesOrderPage() {
               REFERENCE POPUP
           ================================================= */}
           {showReferencePopup && (
-            <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
+            <div className="fixed inset-x-0 bottom-0 top-16 z-[200] grid place-items-center bg-black/50 p-4">
               <div className="w-full max-w-md rounded-lg bg-white shadow-xl p-5">
 
                 <h2 className="mb-4 text-sm font-semibold text-slate-900">Reference Details</h2>

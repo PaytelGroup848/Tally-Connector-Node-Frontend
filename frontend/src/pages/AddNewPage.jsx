@@ -41,7 +41,7 @@ function getPageMeta(path = '') {
 
   if (normalizedPath.includes('/my-ledgers/add-new')) {
     return {
-      title: 'Add New Ledger',
+      title: ' Ledger',
       subtitle: 'Create a ledger account',
       fields: [
         { label: 'Ledger Name', placeholder: 'Enter ledger name' },
@@ -65,7 +65,7 @@ function getPageMeta(path = '') {
   }
 
   return {
-    title: 'Add New Record',
+    title: ' Record',
     subtitle: 'Create a new record',
     fields: [
       { label: 'Name', placeholder: 'Enter name' },

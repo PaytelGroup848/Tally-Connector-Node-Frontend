@@ -5,14 +5,16 @@ function NotFoundPage({ path }) {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-60px)] items-center justify-center bg-[#f8fafc] px-4 py-10 text-[#17355f]">
+    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-[#f8fafc] px-4 py-10 text-[#17355f]">
       <section className="w-full max-w-lg rounded-lg border border-[#e5ebf2] bg-white p-8 text-center shadow-sm">
-        <p className="text-5xl font-semibold text-[#10a878]">404</p>
-        <h1 className="mt-3 text-xl font-semibold text-slate-900">
-          Page not found
+        <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#10a878]">
+          404 Error
+        </p>
+        <h1 className="mt-3 text-2xl font-semibold text-slate-900">
+          Page Not Found
         </h1>
         <p className="mt-2 text-sm text-slate-500">
-          The requested page does not exist.
+          The page you are looking for does not exist or may have been moved.
         </p>
         {path && (
           <p className="mt-2 break-all text-xs text-slate-400">

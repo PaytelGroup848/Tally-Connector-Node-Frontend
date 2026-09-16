@@ -329,6 +329,15 @@ function App() {
     if (flags.showCreatePartyPage) return <CreatePartyPage />
     if (flags.showItemsPage) return <ItemsPage companyId={selectedCompany?.id} />
     if (flags.showPartiesPage) return <PartiesPage selectedCompany={selectedCompany} />
+    if (currentPath === '/my-eway-bill') {
+      return (
+        <div className="page-surface flex items-start px-6 py-8">
+          <h1 className="m-0 text-2xl font-semibold text-app-text">
+            Eway Bill
+          </h1>
+        </div>
+      )
+    }
     if (flags.showMyVouchersPage) return <MyVouchersPage companyId={getCompanyId(selectedCompany)} title={currentPath === '/my-quotations' ? 'My Quotations' : currentPath === '/my-invoices' ? 'My Invoices' : currentPath === '/my-parties' ? 'My Parties' : currentPath === '/my-stock-items' ? 'My Stock Items' : 'My Vouchers'} voucherType={currentPath === '/my-quotations' ? 'Quotation' : currentPath === '/my-invoices' ? 'Invoice' : currentPath === '/my-vouchers' ? 'Sales' : ''} commandType={currentPath === '/my-parties' ? 'CREATE_PARTY' : currentPath === '/my-stock-items' ? 'CREATE_STOCK_ITEM' : 'CREATE_VOUCHER'} />
     if (flags.showManageReminderPage) return <ManageReminderPage />
     if (flags.showEntryList) return <MyEntryListPage path={entryPath} />
@@ -347,7 +356,7 @@ function App() {
     if (entryPath === '/voucher-lines') return <VoucherLinesPage companyId={selectedCompany?.id} companyName={selectedCompany?.name} />
     if (flags.showPayment) return <PaymentPage />
     if (flags.showReceiptNote) return <ReceiptNotePage />
-    if (flags.showReceipt) return <ReceiptPage />
+    if (flags.showReceipt) return <ReceiptPage companyId={selectedCompany?.id} selectedCompany={selectedCompany} />
     if (flags.showPurchaseOrder) return <PurchaseOrderPage />
     if (flags.showPurchase) return <PurchasePage companyId={selectedCompany?.id} />
     if (flags.showReport) return <ReportListPage path={entryPath} companyId={selectedCompany?.id} />
@@ -360,7 +369,7 @@ function App() {
     if (flags.showDebitNote) return <DebitNotePage companyId={selectedCompany?.id} />
     if (flags.showCreditNote) return <CreditNotePage />
     if (flags.showSalesOrder) return <SalesOrderPage />
-    if (flags.showQuotation) return <DocumentVoucherPage title="Quotation" />
+    if (flags.showQuotation) return <DocumentVoucherPage title="Quotation" companyId={selectedCompany?.id} />
     if (flags.showSalesVoucher) return <DocumentVoucherPage title="Sales" companyId={selectedCompany?.id} />
     return <NotFoundPage path={currentPath} />
   }

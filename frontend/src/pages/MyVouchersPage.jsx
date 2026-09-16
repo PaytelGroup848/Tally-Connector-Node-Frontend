@@ -405,7 +405,7 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
       </div>
 
       {detailStack.map((detail, index) => (
-        <div key={`${detail.title}-${index}`} className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4" style={{ zIndex: 1000 + index * 100 }}>
+        <div key={`${detail.title}-${index}`} className="fixed inset-x-0 bottom-0 top-16 flex items-center justify-center bg-slate-950/50 p-4" style={{ zIndex: 1000 + index * 100 }}>
           <div className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
             <div className="flex items-start justify-between border-b border-[#dfe7f0] px-5 py-4">
               <div>

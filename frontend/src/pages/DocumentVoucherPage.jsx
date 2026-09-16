@@ -1300,16 +1300,6 @@ export function DocumentVoucherPage({
       },
     }
 
-    if (!isSalesInvoice) {
-      form.reset()
-      setSelectedParty('')
-      setSelectedVoucherNumber('')
-      resetItemRows()
-      setSubmitMessage('')
-      setIsSubmitting(false)
-      return
-    }
-
     try {
       const commandResponse =
         await postCompanyCommand(
@@ -1514,7 +1504,7 @@ export function DocumentVoucherPage({
       )}
 
       {submitError && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4">
+        <div className="fixed inset-x-0 bottom-0 top-16 z-[200] flex items-center justify-center bg-slate-950/50 p-4">
           <div className="w-full max-w-[1100px] overflow-hidden rounded-xl border border-red-200 bg-red-50 shadow-[0_20px_60px_rgba(15,23,42,0.35)]">
             <div className="flex items-center justify-between bg-[#f44336] px-4 py-3 text-white">
               <div className="flex items-center gap-3">

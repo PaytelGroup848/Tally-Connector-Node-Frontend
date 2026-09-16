@@ -842,7 +842,7 @@ function VouchersPage({ companyId }) {
                 return (
                     <div
                         key={`${detail.title}-${index}`}
-                        className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4"
+                        className="fixed inset-x-0 bottom-0 top-16 z-[200] flex items-center justify-center bg-slate-950/50 p-4"
                         style={{ zIndex: 1000 + index * 100 }}
                         role="dialog"
                         aria-modal="true"

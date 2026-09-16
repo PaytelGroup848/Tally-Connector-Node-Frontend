@@ -1149,7 +1149,7 @@ function DayBookPage({ companyId }) {
           ================================================== */}
       {selectedPopup && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-[2px]"
+          className="fixed inset-x-0 bottom-0 top-16 z-[200] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-[2px]"
           onMouseDown={(
             event,
           ) => {
