@@ -281,7 +281,7 @@ function ItemsTable() {
               />
 
               <input
-                placeholder="Search HSN"
+                placeholder=""
                 className="
                   h-9
                   w-full

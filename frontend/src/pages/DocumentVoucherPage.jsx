@@ -275,7 +275,7 @@ export function DocumentVoucherPage({
   const [selectedVoucherNumber, setSelectedVoucherNumber] =
     useState('')
   const [selectedVoucherType, setSelectedVoucherType] =
-    useState('Sales')
+    useState(title === 'Sales Order' ? 'Sales Order' : 'Sales')
 
   const [itemRows, setItemRows] = useState([
     createEmptyItemRow(),
@@ -294,6 +294,7 @@ export function DocumentVoucherPage({
   const successTimerRef = useRef(null)
 
   const isSalesInvoice = title === 'Sales'
+  const isSalesOrder = title === 'Sales Order'
   const defaultVoucherType = title === 'Quotation' ? 'Quotation' : title
   const showPageLoader =
     isOptionsLoading || isSubmitting || showSuccessAnimation
@@ -395,7 +396,7 @@ export function DocumentVoucherPage({
       ),
     )
 
-    if (isSalesInvoice) {
+    if (isSalesInvoice || isSalesOrder) {
       requests.push(
         fetchCompanyVoucherTypes(
           accessToken,
@@ -774,6 +775,23 @@ export function DocumentVoucherPage({
           values.indexOf(value) === index,
       )
 
+  const partyLedgerOptions = [
+    ...customerOptions,
+    ...ledgers
+      .map((ledger) =>
+        getDisplayValue(ledger, [
+          'ledgerName',
+          'name',
+          'displayName',
+          'partyName',
+        ]),
+      )
+      .filter(Boolean),
+  ].filter(
+    (value, index, values) =>
+      values.indexOf(value) === index,
+  )
+
   const voucherTypeOptions = voucherTypes
     .map((voucherType) =>
       typeof voucherType === 'string'
@@ -794,10 +812,10 @@ export function DocumentVoucherPage({
     )
 
   if (
-    isSalesInvoice &&
+    (isSalesInvoice || isSalesOrder) &&
     voucherTypeOptions.length === 0
   ) {
-    voucherTypeOptions.push('Sales')
+    voucherTypeOptions.push(isSalesOrder ? 'Sales Order' : 'Sales')
   }
 
   const godownOptions =
@@ -827,7 +845,9 @@ export function DocumentVoucherPage({
     voucherPartyOptions
 
   const partyOptions =
-    quotationPartyOptions
+    title === 'Sales Order'
+      ? partyLedgerOptions
+      : quotationPartyOptions
 
   const calculateRowAmount = (
     row,
@@ -1269,7 +1289,6 @@ export function DocumentVoucherPage({
 
     setSubmitError(null)
     setShowSuccessAnimation(false)
-    setIsSubmitting(true)
     setSubmitMessage('')
 
     const values =
@@ -1282,6 +1301,82 @@ export function DocumentVoucherPage({
     const voucherType =
       values.voucherType ||
       (isSalesInvoice ? 'Sales' : defaultVoucherType)
+
+    const validationError = (message) => ({
+      title: 'Check Voucher Details',
+      message,
+      reason: message,
+      action: 'Complete the highlighted voucher fields and try again.',
+      voucherDetails: {
+        voucherType,
+        voucherNumber: values.voucherNumber || '',
+        party: values.partyName || '',
+        date: values.date || '',
+        company: requestCompanyId || '',
+      },
+      technicalDetails: 'The voucher was not submitted because required fields are missing or invalid.',
+    })
+
+    if (!accessToken) {
+      setSubmitError(validationError('Your session has expired. Please sign in again.'))
+      return
+    }
+
+    if (!requestCompanyId) {
+      setSubmitError(validationError('Please select a company before creating a voucher.'))
+      return
+    }
+
+    if (!voucherType || voucherType === 'Select Voucher Type') {
+      setSubmitError(validationError('Select a voucher type.'))
+      return
+    }
+
+    if (!values.partyName?.trim()) {
+      setSubmitError(validationError('Select a party ledger.'))
+      return
+    }
+
+    if (!values.date) {
+      setSubmitError(validationError('Select a voucher date.'))
+      return
+    }
+
+    if (!values.voucherNumber?.trim()) {
+      setSubmitError(validationError('Enter a voucher number.'))
+      return
+    }
+
+    if ((isSalesInvoice || isSalesOrder || title === 'Quotation' || title === 'Purchase') && !values.ledgerType?.trim()) {
+      setSubmitError(validationError('Select a ledger type.'))
+      return
+    }
+
+    const itemBasedVoucher = [
+      'Sales',
+      'Sales Order',
+      'Quotation',
+      'Purchase',
+      'Purchase Order',
+      'Delivery Note',
+      'Receipt Note',
+      'Credit Note',
+      'Debit Note',
+    ].includes(title)
+
+    if (itemBasedVoucher) {
+      const invalidRow = itemRows.find((row) => {
+        const quantity = Number(row.quantity)
+        return !row.item?.trim() || !Number.isFinite(quantity) || quantity <= 0
+      })
+
+      if (invalidRow) {
+        setSubmitError(validationError('Add an item and enter a quantity greater than 0.'))
+        return
+      }
+    }
+
+    setIsSubmitting(true)
 
     const items = itemRows.map(
       (row) => ({
@@ -1682,6 +1777,7 @@ export function DocumentVoucherPage({
           <div
             className={`grid items-start gap-3 sm:grid-cols-2 ${
               isSalesInvoice ||
+              isSalesOrder ||
               title === 'Purchase'
                 ? 'xl:grid-cols-3'
                 : 'xl:grid-cols-4'
@@ -1693,14 +1789,14 @@ export function DocumentVoucherPage({
                   Voucher Type
                 </span>
 
-                {isSalesInvoice ? (
+                {isSalesInvoice || isSalesOrder ? (
                   <SearchableDropdown
                     name="voucherType"
                     label="voucher types"
                     options={voucherTypeOptions}
                     placeholder="Select Voucher Type"
                     loading={isOptionsLoading}
-                    // value={selectedVoucherType}
+                    value={isSalesOrder ? selectedVoucherType : undefined}
                     resetToken={clearToken}
                     onSelect={setSelectedVoucherType}
                     onClear={() => setSelectedVoucherType('')}
@@ -1727,7 +1823,8 @@ export function DocumentVoucherPage({
 
               <div className="relative">
                 {title === 'Quotation' ||
-                isSalesInvoice ? (
+                isSalesInvoice ||
+                isSalesOrder ? (
                   <SearchableDropdown
                     name="partyName"
                     label="parties"
@@ -1824,6 +1921,9 @@ export function DocumentVoucherPage({
               ) : (
                 <input
                   name="voucherNumber"
+                  type="number"
+                  min="0"
+                  step="1"
                   defaultValue=""
                   className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
                   placeholder="Voucher Number"
@@ -1833,6 +1933,7 @@ export function DocumentVoucherPage({
 
             {(title === 'Quotation' ||
               isSalesInvoice ||
+              isSalesOrder ||
               title === 'Purchase') && (
               <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
                 <span>
@@ -1976,12 +2077,13 @@ export function DocumentVoucherPage({
                         <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
                           {title ===
                             'Quotation' ||
-                          isSalesInvoice ? (
+                          isSalesInvoice ||
+                          isSalesOrder ? (
                             <SearchableDropdown
                               name={`item-${row.id}`}
                               label="items"
                               options={
-                                isSalesInvoice
+                                isSalesInvoice || isSalesOrder
                                   ? itemOptions
                                   : quotationItemOptions
                               }
@@ -2228,7 +2330,7 @@ export function DocumentVoucherPage({
                                   .value,
                               )
                             }
-                            placeholder="Search HSN"
+                            placeholder=""
                             className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
                           />
                         </div>
@@ -2237,7 +2339,8 @@ export function DocumentVoucherPage({
                         <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
                           {title ===
                             'Quotation' ||
-                          isSalesInvoice ? (
+                          isSalesInvoice ||
+                          isSalesOrder ? (
                             <SearchableDropdown
                               name={`godown-${row.id}`}
                               label="godowns"

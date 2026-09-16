@@ -515,7 +515,7 @@ function ItemsTable() {
               "
             >
               <TableInput
-                placeholder="Search HSN"
+          
                 search
               />
             </div>

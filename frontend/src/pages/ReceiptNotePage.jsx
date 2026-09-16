@@ -270,7 +270,7 @@ function ItemsTable() {
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
               <TableInput
-                placeholder="Search HSN"
+                placeholder=""
                 search
               />
             </div>

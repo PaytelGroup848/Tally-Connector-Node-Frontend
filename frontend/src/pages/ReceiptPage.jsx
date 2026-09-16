@@ -514,6 +514,9 @@ function ReceiptPage({
 
               <input
                 value={form.voucherNumber}
+                type="number"
+                min="0"
+                step="1"
                 onChange={(event) =>
                   updateField(
                     'voucherNumber',
