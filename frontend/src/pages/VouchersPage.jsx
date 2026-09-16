@@ -148,8 +148,8 @@ function VouchersPage({ companyId }) {
     const [page, setPage] = useState(1)
     const [pageSize, setPageSize] = useState(20)
 
-    const [fromDate, setFromDate] = useState('2010-09-01')
-    const [toDate, setToDate] = useState('2026-09-03')
+    const [fromDate, setFromDate] = useState('')
+    const [toDate, setToDate] = useState('')
 
     const [voucherType, setVoucherType] = useState('')
     const [voucherTypes, setVoucherTypes] = useState([])

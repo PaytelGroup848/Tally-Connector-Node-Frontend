@@ -197,13 +197,13 @@ function DayBookPage({ companyId }) {
   const getTodayDate = () => new Date().toISOString().slice(0, 10)
 
   const [fromDate, setFromDate] =
-    useState('2010-09-01')
+    useState('')
 
   const [toDate, setToDate] =
-    useState('2026-09-08')
+    useState('')
 
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(20)
 
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)

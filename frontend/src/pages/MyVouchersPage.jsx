@@ -154,12 +154,12 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
   const isQuotationPage = voucherType === 'Quotation'
   const isReceiptOrPaymentPage = voucherType === 'Receipt' || voucherType === 'Payment'
   const isSimpleCommandPage = commandType === 'CREATE_PARTY' || commandType === 'CREATE_STOCK_ITEM'
-  const isCommandEntryPage = isQuotationPage || isReceiptOrPaymentPage || voucherType === 'Invoice' || isSimpleCommandPage
+  const isCommandEntryPage = isQuotationPage || isReceiptOrPaymentPage || voucherType === 'Sales Order' || voucherType === 'Invoice' || isSimpleCommandPage
   const [commands, setCommands] = useState([])
   const [query, setQuery] = useState('')
-  const [status, setStatus] = useState(isCommandEntryPage ? '' : 'PENDING')
-  const [fromDate, setFromDate] = useState(isReceiptOrPaymentPage ? '' : '2010-09-01')
-  const [toDate, setToDate] = useState(isReceiptOrPaymentPage ? '' : '2026-09-15')
+  const [status, setStatus] = useState(isCommandEntryPage ? '' : 'All Statuses')
+  const [fromDate, setFromDate] = useState(isReceiptOrPaymentPage ? '' : '')
+  const [toDate, setToDate] = useState(isReceiptOrPaymentPage ? '' : '')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [totalItems, setTotalItems] = useState(0)

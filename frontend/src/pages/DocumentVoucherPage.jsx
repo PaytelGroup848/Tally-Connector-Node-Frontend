@@ -12,6 +12,7 @@ import {
   fetchCommandStatus,
   fetchCompanyLedgers,
   fetchCompanyGodowns,
+  fetchCompanyCommands,
   fetchCompanyStock,
   fetchCompanyVouchers,
   fetchCompanyVoucherTypes,
@@ -405,6 +406,22 @@ export function DocumentVoucherPage({
       )
     } else {
       requests.push(Promise.resolve(null))
+    }
+
+    if (isSalesOrder) {
+      requests.push(
+        fetchCompanyCommands(
+          accessToken,
+          requestCompanyId,
+          {
+            type: 'CREATE_VOUCHER',
+            voucherType: 'Sales Order',
+            page: 1,
+            limit: 20,
+            q: '',
+          },
+        ),
+      )
     }
 
     Promise.allSettled(requests)

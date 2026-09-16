@@ -22,7 +22,6 @@ import CreateItemPage from './CreateItemPage'
 import CreatePartyPage from './CreatePartyPage'
 import MyEntryListPage from './MyEntryListPage'
 import MyVouchersPage from './MyVouchersPage'
-import MyPayments from './MyPayments'
 import NotFoundPage from './NotFoundPage'
 import PartiesPage from './PartiesPage'
 import PaymentPage from './PaymentPage'
@@ -359,7 +358,16 @@ function App() {
         />
       )
     }
-    if (currentPath === '/my-payments') return <MyPayments />
+    if (currentPath === '/my-sales-order') {
+      return (
+        <MyVouchersPage
+          companyId={getCompanyId(selectedCompany)}
+          title="My Sales Order"
+          voucherType="Sales Order"
+          commandType="CREATE_VOUCHER"
+        />
+      )
+    }
     if (flags.showMyVouchersPage) return <MyVouchersPage companyId={getCompanyId(selectedCompany)} title={currentPath === '/my-quotations' ? 'My Quotations' : currentPath === '/my-invoices' ? 'My Invoices' : currentPath === '/my-parties' ? 'My Parties' : currentPath === '/my-stock-items' ? 'My Stock Items' : 'My Vouchers'} voucherType={currentPath === '/my-quotations' ? 'Quotation' : currentPath === '/my-invoices' ? 'Invoice' : currentPath === '/my-vouchers' ? 'Sales' : ''} commandType={currentPath === '/my-parties' ? 'CREATE_PARTY' : currentPath === '/my-stock-items' ? 'CREATE_STOCK_ITEM' : 'CREATE_VOUCHER'} />
     if (flags.showManageReminderPage) return <ManageReminderPage />
     if (flags.showEntryList) return <MyEntryListPage path={entryPath} />

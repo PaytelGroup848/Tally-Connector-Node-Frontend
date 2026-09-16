@@ -48,7 +48,7 @@ export function getRouteFlags(path = '') {
   const normalizedPath = path.toLowerCase()
   const myVoucherPaths = [
     '/my-vouchers', '/my-quotations', '/my-invoices',
-    '/my-receipts', '/my-payments', '/my-parties', '/my-stock-items',
+    '/my-receipts', '/my-payments', '/my-sales-order', '/my-parties', '/my-stock-items',
   ]
 
   return {
