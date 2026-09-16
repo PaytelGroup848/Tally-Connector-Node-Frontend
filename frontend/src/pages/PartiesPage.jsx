@@ -13,6 +13,9 @@ import { fetchParties } from '../services/partiesApi'
 import { postCompanyCommand } from '../services/companiesApi'
 
 const initialPartyForm = {
+  partyName: '',
+  partyType: '',
+  contactNumber: '',
   gstNumber: '',
   ledgerGroup: '',
   ledgerName: '',
@@ -112,6 +115,7 @@ function PartiesPage({
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [createError, setCreateError] = useState('')
+  const [createMessage, setCreateMessage] = useState('')
   const [partyForm, setPartyForm] = useState(initialPartyForm)
 
   /* =======================================================
@@ -223,6 +227,7 @@ function PartiesPage({
     if (isCreating) return
     setIsCreateOpen(false)
     setCreateError('')
+    setCreateMessage('')
     setPartyForm(initialPartyForm)
   }
 
@@ -236,6 +241,7 @@ function PartiesPage({
     try {
       setIsCreating(true)
       setCreateError('')
+      setCreateMessage('')
 
       await postCompanyCommand(accessToken, companyId, {
         type: 'CREATE_PARTY',
@@ -249,6 +255,7 @@ function PartiesPage({
       setPartyForm(initialPartyForm)
       setPage(1)
       setRefreshKey((current) => current + 1)
+      setCreateMessage('Party created successfully.')
     } catch (requestError) {
       setCreateError(requestError?.message || 'Unable to create party.')
     } finally {
@@ -409,6 +416,7 @@ function PartiesPage({
             disabled={!companyId}
             onClick={() => {
               setCreateError('')
+              setCreateMessage('')
               setIsCreateOpen(true)
             }}
             className="flex h-9 items-center gap-1.5 rounded-md bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -864,13 +872,20 @@ function PartiesPage({
         >
           <form
             onSubmit={handleCreateParty}
-            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white shadow-2xl"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl"
           >
-            <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+            {/* Header */}
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900">Add New Party</h2>
-                <p className="mt-1 text-xs text-slate-500">Create a party for the selected company.</p>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Add New Party
+                </h2>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Create a customer or supplier for the selected company.
+                </p>
               </div>
+
               <button
                 type="button"
                 onClick={closeCreateParty}
@@ -882,77 +897,118 @@ function PartiesPage({
               </button>
             </div>
 
-            <div className="grid gap-4 p-5 md:grid-cols-2">
-              {[
-                ['ledgerName', 'Ledger Name', 'text', true],
-                ['ledgerGroup', 'Ledger Group', 'text', true],
-                ['gstNumber', 'GST Number', 'text', false],
-                ['openingBalance', 'Opening Balance', 'number', false],
-                ['postalAddress', 'Postal Address', 'text', true],
-                ['postalCode', 'Postal Code', 'text', false],
-                ['ledgerMobile', 'Mobile', 'tel', false],
-                ['email', 'Email', 'email', false],
-                ['narration', 'Narration', 'text', false],
-              ].map(([field, label, type, required]) => (
-                <label key={field} className={`flex flex-col gap-1.5 text-xs font-medium text-slate-700 ${field === 'narration' ? 'md:col-span-2' : ''}`}>
-                  <span>{label}{required && <span className="text-red-500"> *</span>}</span>
-                  <input
-                    type={type}
-                    required={required}
-                    min={type === 'number' ? 0 : undefined}
-                    value={partyForm[field]}
-                    onChange={(event) => updatePartyField(field, event.target.value)}
-                    className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                  />
-                </label>
-              ))}
+            {/* Form fields */}
+            <div className="grid gap-4 p-5">
 
+              {/* Party Name */}
               <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
-                <span>Country <span className="text-red-500">*</span></span>
-                <select
-                  required
-                  value={partyForm.country}
-                  onChange={(event) => updatePartyField('country', event.target.value)}
-                  className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                >
-                  <option>India</option>
-                  <option>United States</option>
-                  <option>United Kingdom</option>
-                  <option>United Arab Emirates</option>
-                </select>
-              </label>
+                <span>
+                  Party Name
+                  <span className="text-red-500"> *</span>
+                </span>
 
-              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
-                <span>State <span className="text-red-500">*</span></span>
                 <input
+                  type="text"
                   required
-                  value={partyForm.state}
-                  onChange={(event) => updatePartyField('state', event.target.value)}
+                  value={partyForm.partyName}
+                  onChange={(event) =>
+                    updatePartyField('partyName', event.target.value)
+                  }
+                  placeholder="Enter party name"
                   className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </label>
 
+              {/* Party Type */}
               <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
-                <span>GST Registration Type <span className="text-red-500">*</span></span>
+                <span>
+                  Party Type
+                  <span className="text-red-500"> *</span>
+                </span>
+
                 <select
                   required
-                  value={partyForm.gstRegistrationType}
-                  onChange={(event) => updatePartyField('gstRegistrationType', event.target.value)}
+                  value={partyForm.partyType}
+                  onChange={(event) =>
+                    updatePartyField('partyType', event.target.value)
+                  }
                   className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 >
-                  <option value="">Select Registration</option>
-                  <option>Regular</option>
-                  <option>Composition</option>
+                  <option value="">Select Party Type</option>
+                  <option value="CUSTOMER">Customer (Sundry Debtors)</option>
+                  <option value="SUPPLIER">Supplier (Sundry Creditors)</option>
                 </select>
               </label>
 
+              {/* Contact Number */}
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                <span>Phone Number</span>
+
+                <input
+                  type="tel"
+                  value={partyForm.contactNumber}
+                  onChange={(event) =>
+                    updatePartyField(
+                      'contactNumber',
+                      event.target.value,
+                    )
+                  }
+                  placeholder="9953792488"
+                  maxLength={15}
+                  className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </label>
+
+              {/* Email */}
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                <span>Email</span>
+
+                <input
+                  type="email"
+                  value={partyForm.email}
+                  onChange={(event) =>
+                    updatePartyField('email', event.target.value)
+                  }
+                  placeholder="example@gmail.com"
+                  className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </label>
+
+              {/* Opening Balance */}
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                <span>Opening Balance</span>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={partyForm.openingBalance}
+                  onChange={(event) =>
+                    updatePartyField(
+                      'openingBalance',
+                      event.target.value,
+                    )
+                  }
+                  placeholder="0"
+                  className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </label>
+
+              {/* Error */}
               {createError && (
-                <p className="md:col-span-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
                   {createError}
+                </p>
+              )}
+
+              {createMessage && (
+                <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                  {createMessage}
                 </p>
               )}
             </div>
 
+            {/* Footer */}
             <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
               <button
                 type="button"
@@ -962,6 +1018,7 @@ function PartiesPage({
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
                 disabled={isCreating}

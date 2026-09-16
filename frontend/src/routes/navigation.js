@@ -38,5 +38,5 @@ export const submenuItems = {
   Purchase: [['Purchase', '/purchase'], ['Debit Note', '/debitNote'], ['Payment', '/payments'], ['Payables', '/payables'], ['Purchase Order', '/purchaseorder'], ['Receipt Note', '/receiptNote']],
   Reports: [['Trial Balance', '/trial-balance'], ['Day Book', '/day-book'], ['Profit & Loss', '/profit-loss'], ['Balance Sheet', '/balance-sheet'], ['Voucher Lines', '/voucher-lines']],
   'Cash & Bank': [['Cash', '/cash-bank/cash'], ['Bank', '/cash-bank/bank']],
-  'My Entries': [['My Vouchers', '/my-vouchers'], ['My Quotations', '/my-quotations'], ['My eWay Bills', '/my-eway-bill'], ['My Invoices', '/my-invoices'], ['My Parties', '/my-parties'], ['My Stock Items', '/my-stock-items']],
+  'My Entries': [['My Vouchers', '/my-vouchers'], ['My Quotations', '/my-quotations'], ['My Receipts', '/my-receipts'], ['My Payments', '/my-payments'], ['My eWay Bills', '/my-eway-bill'], ['My Invoices', '/my-invoices'], ['My Parties', '/my-parties'], ['My Stock Items', '/my-stock-items']],
 }

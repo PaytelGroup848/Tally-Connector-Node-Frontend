@@ -152,13 +152,14 @@ function getDetailTableColumns(value) {
 function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', commandType = '' }) {
   const accessToken = useAuthStore((state) => state.accessToken)
   const isQuotationPage = voucherType === 'Quotation'
+  const isReceiptOrPaymentPage = voucherType === 'Receipt' || voucherType === 'Payment'
   const isSimpleCommandPage = commandType === 'CREATE_PARTY' || commandType === 'CREATE_STOCK_ITEM'
-  const isCommandEntryPage = isQuotationPage || voucherType === 'Invoice' || isSimpleCommandPage
+  const isCommandEntryPage = isQuotationPage || isReceiptOrPaymentPage || voucherType === 'Invoice' || isSimpleCommandPage
   const [commands, setCommands] = useState([])
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState(isCommandEntryPage ? '' : 'PENDING')
-  const [fromDate, setFromDate] = useState('2010-09-01')
-  const [toDate, setToDate] = useState('2026-09-15')
+  const [fromDate, setFromDate] = useState(isReceiptOrPaymentPage ? '' : '2010-09-01')
+  const [toDate, setToDate] = useState(isReceiptOrPaymentPage ? '' : '2026-09-15')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [totalItems, setTotalItems] = useState(0)
@@ -211,7 +212,12 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
       page,
       limit: pageSize,
       q: query.trim(),
-      ...(isSimpleCommandPage ? {} : { from: fromDate, to: toDate }),
+      ...(isSimpleCommandPage
+        ? {}
+        : {
+            ...(fromDate ? { from: fromDate } : {}),
+            ...(toDate ? { to: toDate } : {}),
+          }),
     })
       .then((response) => {
         if (!isMounted) return
@@ -249,7 +255,7 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
     return () => {
       isMounted = false
     }
-  }, [accessToken, companyId, commandType, isQuotationPage, voucherType, status, query, fromDate, toDate, page, pageSize])
+  }, [accessToken, companyId, commandType, isQuotationPage, isReceiptOrPaymentPage, voucherType, status, query, fromDate, toDate, page, pageSize])
 
   const columns = useMemo(() => getColumns(commands), [commands])
   const pageItems = totalPages <= 7

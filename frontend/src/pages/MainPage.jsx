@@ -22,6 +22,7 @@ import CreateItemPage from './CreateItemPage'
 import CreatePartyPage from './CreatePartyPage'
 import MyEntryListPage from './MyEntryListPage'
 import MyVouchersPage from './MyVouchersPage'
+import MyPayments from './MyPayments'
 import NotFoundPage from './NotFoundPage'
 import PartiesPage from './PartiesPage'
 import PaymentPage from './PaymentPage'
@@ -338,6 +339,27 @@ function App() {
         </div>
       )
     }
+    if (currentPath === '/my-receipts') {
+      return (
+        <MyVouchersPage
+          companyId={getCompanyId(selectedCompany)}
+          title="My Receipts"
+          voucherType="Receipt"
+          commandType="CREATE_VOUCHER"
+        />
+      )
+    }
+    if (currentPath === '/my-payments') {
+      return (
+        <MyVouchersPage
+          companyId={getCompanyId(selectedCompany)}
+          title="My Payments"
+          voucherType="Payment"
+          commandType="CREATE_VOUCHER"
+        />
+      )
+    }
+    if (currentPath === '/my-payments') return <MyPayments />
     if (flags.showMyVouchersPage) return <MyVouchersPage companyId={getCompanyId(selectedCompany)} title={currentPath === '/my-quotations' ? 'My Quotations' : currentPath === '/my-invoices' ? 'My Invoices' : currentPath === '/my-parties' ? 'My Parties' : currentPath === '/my-stock-items' ? 'My Stock Items' : 'My Vouchers'} voucherType={currentPath === '/my-quotations' ? 'Quotation' : currentPath === '/my-invoices' ? 'Invoice' : currentPath === '/my-vouchers' ? 'Sales' : ''} commandType={currentPath === '/my-parties' ? 'CREATE_PARTY' : currentPath === '/my-stock-items' ? 'CREATE_STOCK_ITEM' : 'CREATE_VOUCHER'} />
     if (flags.showManageReminderPage) return <ManageReminderPage />
     if (flags.showEntryList) return <MyEntryListPage path={entryPath} />
@@ -354,21 +376,25 @@ function App() {
     if (entryPath === '/profit-loss') return <ProfitLossPage companyId={selectedCompany?.id} />
     if (entryPath === '/balance-sheet') return <BalanceSheetPage companyId={selectedCompany?.id} />
     if (entryPath === '/voucher-lines') return <VoucherLinesPage companyId={selectedCompany?.id} companyName={selectedCompany?.name} />
-    if (flags.showPayment) return <PaymentPage />
-    if (flags.showReceiptNote) return <ReceiptNotePage />
+    if (flags.showPayment) return <ReceiptPage companyId={selectedCompany?.id} selectedCompany={selectedCompany} documentType="Payment" />
+    if (flags.showReceiptNote) return <DocumentVoucherPage title="Receipt Note" companyId={selectedCompany?.id} />
     if (flags.showReceipt) return <ReceiptPage companyId={selectedCompany?.id} selectedCompany={selectedCompany} />
-    if (flags.showPurchaseOrder) return <PurchaseOrderPage />
-    if (flags.showPurchase) return <PurchasePage companyId={selectedCompany?.id} />
+    if (flags.showPurchaseOrder) return <DocumentVoucherPage title="Purchase Order" companyId={selectedCompany?.id} />
+    if (flags.showPurchase) {
+      return currentPath.toLowerCase() === '/create-voucher/purchaseinvoice'
+        ? <DocumentVoucherPage title="Purchase" companyId={selectedCompany?.id} />
+        : <PurchasePage companyId={selectedCompany?.id} />
+    }
     if (flags.showReport) return <ReportListPage path={entryPath} companyId={selectedCompany?.id} />
-    if (flags.showStockJournal) return <StockJournalPage />
+    if (flags.showStockJournal) return <DocumentVoucherPage title="Stock Journal" companyId={selectedCompany?.id} />
     if (flags.showDataBackupPage) return <DataBackupPage />
-    if (flags.showJournal) return <JournalPage />
-    if (flags.showContra) return <ContraPage />
-    if (flags.showDeliveryNote) return <DeliveryNotePage />
-    if (flags.showPhysicalStock) return <PhysicalStockPage />
-    if (flags.showDebitNote) return <DebitNotePage companyId={selectedCompany?.id} />
-    if (flags.showCreditNote) return <CreditNotePage />
-    if (flags.showSalesOrder) return <SalesOrderPage />
+    if (flags.showJournal) return <DocumentVoucherPage title="Journal" companyId={selectedCompany?.id} />
+    if (flags.showContra) return <DocumentVoucherPage title="Contra" companyId={selectedCompany?.id} />
+    if (flags.showDeliveryNote) return <DocumentVoucherPage title="Delivery Note" companyId={selectedCompany?.id} />
+    if (flags.showPhysicalStock) return <DocumentVoucherPage title="Physical Stock" companyId={selectedCompany?.id} />
+    if (flags.showDebitNote) return <DocumentVoucherPage title="Debit Note" companyId={selectedCompany?.id} />
+    if (flags.showCreditNote) return <DocumentVoucherPage title="Credit Note" companyId={selectedCompany?.id} />
+    if (flags.showSalesOrder) return <DocumentVoucherPage title="Sales Order" companyId={selectedCompany?.id} />
     if (flags.showQuotation) return <DocumentVoucherPage title="Quotation" companyId={selectedCompany?.id} />
     if (flags.showSalesVoucher) return <DocumentVoucherPage title="Sales" companyId={selectedCompany?.id} />
     return <NotFoundPage path={currentPath} />

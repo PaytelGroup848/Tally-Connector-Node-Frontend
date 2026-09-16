@@ -3,6 +3,8 @@ const entryListPaths = new Set([
   '/my-ledgers',
   '/my-parties',
   '/my-invoices',
+  '/my-receipts',
+  '/my-payments',
   '/my-eway-bill',
   '/my-quotations',
 ])
@@ -28,7 +30,7 @@ const voucherPaths = {
   receipt: '/create-voucher/receipt',
   payment: new Set(['/create-voucher/payment', '/purchase/payment']),
   salesOrder: '/create-voucher/salesorder',
-  purchase: new Set(['/purchase', '/create-voucher/purchase']),
+  purchase: new Set(['/purchase', '/create-voucher/purchase', '/create-voucher/purchaseinvoice']),
   purchaseOrder: '/create-voucher/purchaseorder',
   journal: '/create-voucher/journal',
   contra: '/create-voucher/contra',
@@ -46,7 +48,7 @@ export function getRouteFlags(path = '') {
   const normalizedPath = path.toLowerCase()
   const myVoucherPaths = [
     '/my-vouchers', '/my-quotations', '/my-invoices',
-    '/my-parties', '/my-stock-items',
+    '/my-receipts', '/my-payments', '/my-parties', '/my-stock-items',
   ]
 
   return {

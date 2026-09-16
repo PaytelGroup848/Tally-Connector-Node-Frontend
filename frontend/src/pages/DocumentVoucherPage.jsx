@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import useAuthStore from '../store/authStore'
 import {
   extractStockItems,
@@ -59,6 +60,20 @@ function SearchableDropdown({
 
   // Reference to the complete dropdown wrapper
   const dropdownRef = useRef(null)
+  const menuRef = useRef(null)
+  const [menuPosition, setMenuPosition] = useState(null)
+
+  const updateMenuPosition = () => {
+    const input = dropdownRef.current?.querySelector('input')
+    if (!input) return
+
+    const rect = input.getBoundingClientRect()
+    setMenuPosition({
+      left: rect.left,
+      top: rect.bottom + 4,
+      width: rect.width,
+    })
+  }
 
   useEffect(() => {
     if (value !== undefined) {
@@ -77,7 +92,8 @@ function SearchableDropdown({
     const handleOutsideClick = (event) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
+        !dropdownRef.current.contains(event.target) &&
+        !menuRef.current?.contains(event.target)
       ) {
         setOpen(false)
         setShowAll(false)
@@ -96,6 +112,23 @@ function SearchableDropdown({
       )
     }
   }, [])
+
+  useEffect(() => {
+    if (!open) {
+      setMenuPosition(null)
+      return undefined
+    }
+
+    updateMenuPosition()
+    const handleViewportChange = () => updateMenuPosition()
+    window.addEventListener('resize', handleViewportChange)
+    window.addEventListener('scroll', handleViewportChange, true)
+
+    return () => {
+      window.removeEventListener('resize', handleViewportChange)
+      window.removeEventListener('scroll', handleViewportChange, true)
+    }
+  }, [open])
 
   const filteredOptions = options.filter((option) =>
     option
@@ -165,8 +198,12 @@ function SearchableDropdown({
         </span>
       )}
 
-      {open && !disabled && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-slate-200 bg-white p-1 shadow-xl">
+      {open && !disabled && menuPosition && createPortal(
+        <div
+          ref={menuRef}
+          className="fixed z-[1200] max-h-72 overflow-y-auto rounded-md border border-slate-200 bg-white p-1 shadow-xl"
+          style={menuPosition}
+        >
           <div>
             {visibleOptions.length > 0 ? (
               visibleOptions.map((option) => (
@@ -208,7 +245,8 @@ function SearchableDropdown({
                 </button>
               )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )
@@ -256,6 +294,7 @@ export function DocumentVoucherPage({
   const successTimerRef = useRef(null)
 
   const isSalesInvoice = title === 'Sales'
+  const defaultVoucherType = title === 'Quotation' ? 'Quotation' : title
   const showPageLoader =
     isOptionsLoading || isSubmitting || showSuccessAnimation
 
@@ -1242,7 +1281,7 @@ export function DocumentVoucherPage({
 
     const voucherType =
       values.voucherType ||
-      (isSalesInvoice ? 'Sales' : 'Quotation')
+      (isSalesInvoice ? 'Sales' : defaultVoucherType)
 
     const items = itemRows.map(
       (row) => ({
@@ -1642,7 +1681,8 @@ export function DocumentVoucherPage({
           {/* Voucher Details */}
           <div
             className={`grid items-start gap-3 sm:grid-cols-2 ${
-              isSalesInvoice
+              isSalesInvoice ||
+              title === 'Purchase'
                 ? 'xl:grid-cols-3'
                 : 'xl:grid-cols-4'
             }`}
@@ -1668,12 +1708,13 @@ export function DocumentVoucherPage({
                 ) : (
                   <input
                     name="voucherType"
-                    value="Sales"
+                    value={defaultVoucherType}
                     readOnly
                     className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                     placeholder="Select Voucher Type"
                   />
                 )}
+
               </label>
             )}
 
@@ -1791,7 +1832,8 @@ export function DocumentVoucherPage({
             </label>
 
             {(title === 'Quotation' ||
-              isSalesInvoice) && (
+              isSalesInvoice ||
+              title === 'Purchase') && (
               <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
                 <span>
                   Ledger Type
