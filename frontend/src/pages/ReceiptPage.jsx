@@ -9,6 +9,10 @@ import {
 } from '../services/companiesApi'
 import { extractCustomers } from '../services/customersApi'
 import { fetchParties } from '../services/partiesApi'
+import {
+  AdvancedVoucherSettings,
+  SearchableDropdown,
+} from './DocumentVoucherPage'
 
 function getCompanyId(company) {
   return (
@@ -486,20 +490,16 @@ function ReceiptPage({
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Voucher Type</span>
 
-              <select
+              <SearchableDropdown
+                name="voucherType"
+                label="voucher types"
+                options={voucherTypes}
+                placeholder="Select Voucher Type"
                 value={voucherType}
-                onChange={(event) =>
-                  setVoucherType(event.target.value)
-                }
+                onSelect={setVoucherType}
+                onClear={() => setVoucherType('')}
                 disabled={voucherTypesLoading}
-                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:bg-slate-100"
-              >
-                {voucherTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+              />
 
               {voucherTypesError && (
                 <span className="text-[11px] font-normal text-amber-600">
@@ -532,40 +532,25 @@ function ReceiptPage({
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Party Name</span>
 
-              <select
-                value={form.partyName}
-                onChange={(event) =>
-                  updateField(
-                    'partyName',
-                    event.target.value,
-                  )
-                }
-                disabled={optionsLoading}
-                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:bg-slate-100"
-              >
-                <option value="">
-                  {optionsLoading
-                    ? 'Loading parties...'
-                    : 'Select Party'}
-                </option>
-
-                {partyOptions.map((party) => {
-                  const name = getDisplayName(party, [
+              <SearchableDropdown
+                name="partyName"
+                label="parties"
+                options={partyOptions.map((party) =>
+                  getDisplayName(party, [
                     'partyName',
                     'name',
                     'customerName',
                     'ledgerName',
                     'displayName',
-                  ])
-
-                  return (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  )
-                })}
-              </select>
-            </label>
+                  ]),
+                )}
+                placeholder="Select Party"
+                value={form.partyName}
+                onSelect={(value) => updateField('partyName', value)}
+                onClear={() => updateField('partyName', '')}
+                disabled={optionsLoading}
+              />
+              </label>
 
             {/* Date */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
@@ -594,62 +579,39 @@ function ReceiptPage({
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Transaction Type</span>
 
-              <select
+              <SearchableDropdown
+                name="transactionType"
+                label="transaction types"
+                options={['Cash', 'Bank']}
+                placeholder="Select Transaction Type"
                 value={form.transactionType}
-                onChange={(event) =>
-                  updateField(
-                    'transactionType',
-                    event.target.value,
-                  )
-                }
-                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              >
-                <option value="">
-                  Select Transaction Type
-                </option>
-
-                <option value="Cash">Cash</option>
-                <option value="Bank">Bank</option>
-              </select>
+                onSelect={(value) => updateField('transactionType', value)}
+                onClear={() => updateField('transactionType', '')}
+              />
             </label>
 
             {/* Ledger */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Select Ledger</span>
 
-              <select
-                value={form.ledger}
-                onChange={(event) =>
-                  updateField(
-                    'ledger',
-                    event.target.value,
-                  )
-                }
-                disabled={optionsLoading}
-                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:bg-slate-100"
-              >
-                <option value="">
-                  {optionsLoading
-                    ? 'Loading ledgers...'
-                    : 'Select Ledger'}
-                </option>
-
-                {ledgerOptions.map((ledger) => {
-                  const name = getDisplayName(ledger, [
+              <SearchableDropdown
+                name="ledger"
+                label="ledgers"
+                options={ledgerOptions.map((ledger) =>
+                  getDisplayName(ledger, [
                     'ledgerName',
                     'name',
                     'displayName',
                     'partyName',
-                  ])
-
-                  return (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  )
-                })}
-              </select>
-            </label>
+                  ]),
+                )}
+                placeholder="Select Ledger"
+                value={form.ledger}
+                onSelect={(value) => updateField('ledger', value)}
+                onClear={() => updateField('ledger', '')}
+                disabled={optionsLoading}
+                  />
+                </label>
 
             {/* Closing Balance */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
@@ -694,23 +656,57 @@ function ReceiptPage({
             </label>
           </div>
 
-          {/* Narration */}
-          <div className="mt-5">
-            <label className="block text-[12px] font-semibold text-slate-700">
-              Narration
-            </label>
+          <div className="mt-5 grid items-start gap-3 lg:grid-cols-[1.35fr_.9fr]">
+            <div className="space-y-2">
+              <details open className="group rounded-md bg-white">
+                <summary className="flex cursor-pointer list-none items-center justify-between border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-800">
+                  Narration
+                  <span className="text-lg leading-none transition group-open:rotate-90">›</span>
+                </summary>
 
-            <textarea
-              value={form.narration}
-              onChange={(event) =>
-                updateField(
-                  'narration',
-                  event.target.value,
-                )
-              }
-              placeholder="Enter Narration"
-              className="mt-2 min-h-[84px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-            />
+                <div className="relative p-3">
+                  <textarea
+                    value={form.narration}
+                    onChange={(event) =>
+                      updateField(
+                        'narration',
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Enter narration"
+                    className="min-h-[78px] w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  />
+                </div>
+              </details>
+
+              <AdvancedVoucherSettings />
+            </div>
+
+            <div className="rounded-md bg-white p-3">
+              <button
+                type="button"
+                className="mb-3 text-sm font-semibold text-green-600 hover:text-green-700"
+              >
+                + Add GST And Other Ledgers
+              </button>
+
+              <div className="space-y-2 bg-green-50 p-3 text-sm text-slate-700">
+                <div className="flex justify-between">
+                  <span>Sub Total</span>
+                  <span>₹{Number(form.amount || 0).toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>Taxes</span>
+                  <span>₹0</span>
+                </div>
+
+                <div className="mt-3 flex justify-between border-t border-green-100 pt-3 text-base font-bold text-slate-900">
+                  <span>Grand Total</span>
+                  <span>₹{Number(form.amount || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Error / Success */}

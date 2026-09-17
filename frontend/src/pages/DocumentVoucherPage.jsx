@@ -42,7 +42,305 @@ function createEmptyItemRow() {
   }
 }
 
-function SearchableDropdown({
+function createJournalRow(id = Date.now()) {
+  return {
+    id,
+    type: '',
+    partyName: '',
+    amount: '',
+  }
+}
+
+function JournalVoucherContent({
+  rows,
+  onAddRow,
+  onRemoveRow,
+  onRowChange,
+}) {
+  return (
+    <>
+      <div className="grid gap-3 md:grid-cols-3">
+        <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-slate-700">
+          <span>Voucher Type</span>
+          <input
+            name="voucherType"
+            value="Journal"
+            readOnly
+            className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
+          />
+        </label>
+
+        <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-slate-700">
+          <span>Voucher No</span>
+          <input
+            name="voucherNumber"
+            type="number"
+            min="0"
+            step="1"
+            defaultValue="1"
+            className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+          />
+        </label>
+
+        <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-slate-700">
+          <span>Date</span>
+          <input
+            name="date"
+            type="date"
+            defaultValue={new Date().toLocaleDateString('en-CA')}
+            className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+          />
+        </label>
+
+        <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-slate-700 md:col-span-2">
+          <span>Reference Number</span>
+          <input
+            name="referenceNumber"
+            placeholder="Enter Reference Number"
+            className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+          />
+        </label>
+
+        <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-slate-700">
+          <span>Reference Date</span>
+          <input
+            name="referenceDate"
+            type="date"
+            className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+          />
+        </label>
+      </div>
+
+      <div className="mt-5 overflow-x-auto rounded-lg border border-slate-200 bg-white">
+        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-100 px-4 py-3">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+            Add Particulars
+          </span>
+          <button
+            type="button"
+            onClick={onAddRow}
+            className="rounded-md bg-[#dff4e4] px-2 py-1 text-sm font-bold text-green-700"
+            aria-label="Add particular"
+          >
+            +
+          </button>
+        </div>
+
+        <div className="grid min-w-[760px] grid-cols-[1fr_1.4fr_1fr_40px] gap-2 bg-slate-100 p-2 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+          <span>Type</span>
+          <span>Party Name</span>
+          <span>Amount</span>
+          <span />
+        </div>
+
+        {rows.map((row) => (
+          <div
+            key={row.id}
+            className="grid min-w-[760px] grid-cols-[1fr_1.4fr_1fr_40px] gap-2 border-t border-slate-200 bg-white p-2"
+          >
+            <select
+              name={`journalType-${row.id}`}
+              value={row.type}
+              onChange={(event) => onRowChange(row.id, 'type', event.target.value)}
+              className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+            >
+              <option value="">Please select type</option>
+              <option value="Debit">Debit</option>
+              <option value="Credit">Credit</option>
+            </select>
+            <input
+              name={`journalPartyName-${row.id}`}
+              value={row.partyName}
+              onChange={(event) => onRowChange(row.id, 'partyName', event.target.value)}
+              className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+              placeholder="Select Party Name"
+            />
+            <input
+              name={`journalAmount-${row.id}`}
+              type="number"
+              min="0"
+              step="0.01"
+              value={row.amount}
+              onChange={(event) => onRowChange(row.id, 'amount', event.target.value)}
+              className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+              placeholder="Amount"
+            />
+            <button
+              type="button"
+              onClick={() => onRemoveRow(row.id)}
+              disabled={rows.length === 1}
+              className="min-h-9 rounded-md border border-slate-200 bg-slate-100 text-lg text-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Remove particular"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <label className="mt-5 block text-xs font-semibold text-slate-700">
+        <span>Narration</span>
+        <textarea
+          name="narration"
+          rows="3"
+          placeholder="Enter Narration"
+          className="mt-2 min-h-[84px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+        />
+      </label>
+    </>
+  )
+}
+
+const advancedVoucherTabs = [
+  "Supplier's Details",
+  'Consignee Details',
+  'Dispatch Details',
+  'Order Details',
+]
+
+function VoucherField({ label, placeholder, name, search = false, className = '' }) {
+  return (
+    <label className={`relative block min-w-0 ${className}`}>
+      <span className="absolute -top-[7px] left-3 z-10 bg-white px-1.5 text-[11px] leading-none text-slate-600">
+        {label}
+      </span>
+      <div className="relative">
+        <input
+          name={name}
+          placeholder={placeholder}
+          className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 pr-9 text-xs text-slate-700 outline-none placeholder:text-slate-500 focus:border-green-600 focus:ring-1 focus:ring-green-100"
+        />
+        {search && (
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+            ⌕
+          </span>
+        )}
+      </div>
+    </label>
+  )
+}
+
+function AdvancedVoucherContent({ activeTab }) {
+  if (activeTab === "Supplier's Details") {
+    return (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <VoucherField name="supplierName" label="Supplier's Name" placeholder="Supplier's Name" search />
+        <VoucherField name="supplierCountry" label="Supplier's Country" placeholder="Supplier's Country" search />
+        <VoucherField name="supplierState" label="Supplier's State" placeholder="Supplier's State" search />
+        <VoucherField name="registrationType" label="Registration Type" placeholder="Registration Type" search />
+        <VoucherField name="postalCode" label="Postal Code" placeholder="Postal Code" />
+        <VoucherField name="gstinUin" label="GSTIN/UIN" placeholder="GSTIN/UIN" />
+        <VoucherField name="placeOfSupply" label="Place of Supply" placeholder="Place of Supply" />
+        <VoucherField name="address" label="Address" placeholder="Address" className="md:col-span-2 xl:col-span-2" />
+      </div>
+    )
+  }
+
+  const fields = {
+    'Consignee Details': [
+      ['consigneeName', 'Consignee Name', 'Consignee Name', true],
+      ['consigneeCountry', 'Consignee Country', 'Country', false],
+      ['consigneeState', 'Consignee State', 'State', false],
+      ['consigneePostalCode', 'Postal Code', 'Postal Code', false],
+      ['consigneeGstinUin', 'GSTIN/UIN', 'GSTIN/UIN', false],
+      ['consigneeAddress', 'Address', 'Address', false],
+    ],
+    'Dispatch Details': [
+      ['dispatchFrom', 'Dispatch From', 'Dispatch From', true],
+      ['dispatchThrough', 'Dispatch Through', 'Dispatch Through', false],
+      ['dispatchDocNo', 'Dispatch Document No', 'Document No', false],
+      ['dispatchDate', 'Dispatch Date', 'Dispatch Date', false],
+    ],
+    'Order Details': [
+      ['orderNo', 'Order No', 'Order No', false],
+      ['orderDate', 'Order Date', 'Order Date', false],
+      ['termsOfDelivery', 'Terms Of Delivery', 'Terms Of Delivery', false],
+    ],
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {fields[activeTab].map(([name, label, placeholder, search]) => (
+        <VoucherField
+          key={name}
+          name={name}
+          label={label}
+          placeholder={placeholder}
+          search={search}
+          className={name.includes('Address') || name === 'termsOfDelivery' ? 'md:col-span-2 xl:col-span-3' : ''}
+        />
+      ))}
+    </div>
+  )
+}
+
+export function AdvancedVoucherSettings() {
+  const [activeTab, setActiveTab] = useState(advancedVoucherTabs[0])
+
+  return (
+    <details open className="group rounded-md bg-white">
+      <summary className="flex cursor-pointer list-none items-center justify-between border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-800">
+        Advanced Settings
+        <span className="text-lg leading-none transition group-open:rotate-90">›</span>
+      </summary>
+      <div className="p-3">
+        <div className="mb-4 flex flex-wrap gap-x-8 gap-y-2 border-b border-slate-200 px-2">
+          {advancedVoucherTabs.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`border-b-2 pb-2 text-xs transition ${activeTab === tab ? 'border-sky-500 font-semibold text-sky-500' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        <AdvancedVoucherContent activeTab={activeTab} />
+      </div>
+    </details>
+  )
+}
+
+function VoucherBottomSection({ subtotal }) {
+  return (
+    <div className="mt-3 grid gap-3 lg:grid-cols-[1.35fr_.9fr]">
+      <div className="space-y-2">
+        <details open className="group rounded-md bg-white">
+          <summary className="flex cursor-pointer list-none items-center justify-between border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-800">
+            Narration
+            <span className="text-lg leading-none transition group-open:rotate-90">›</span>
+          </summary>
+          <div className="relative p-3">
+            <textarea
+              name="narration"
+              rows="3"
+              className="w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+              placeholder="Enter narration"
+            />
+          </div>
+        </details>
+
+        <AdvancedVoucherSettings />
+      </div>
+
+      <div className="rounded-md bg-white p-3">
+        <button type="button" className="mb-3 text-sm font-semibold text-green-600 hover:text-green-700">
+          + Add GST And Other Ledgers
+        </button>
+        <div className="space-y-2 bg-green-50 p-3 text-sm text-slate-700">
+          <div className="flex justify-between"><span>Sub Total</span><span>₹{subtotal.toFixed(2)}</span></div>
+          <div className="flex justify-between"><span>Taxes</span><span>₹0</span></div>
+          <div className="mt-3 flex justify-between border-t border-green-100 pt-3 text-base font-bold text-slate-900">
+            <span>Grand Total</span><span>₹{subtotal.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function SearchableDropdown({
   name,
   label,
   options,
@@ -281,6 +579,9 @@ export function DocumentVoucherPage({
   const [itemRows, setItemRows] = useState([
     createEmptyItemRow(),
   ])
+  const [journalRows, setJournalRows] = useState([
+    createJournalRow(1),
+  ])
 
   const [clearToken, setClearToken] = useState(0)
 
@@ -296,6 +597,7 @@ export function DocumentVoucherPage({
 
   const isSalesInvoice = title === 'Sales'
   const isSalesOrder = title === 'Sales Order'
+  const isJournal = title === 'Journal'
   const defaultVoucherType = title === 'Quotation' ? 'Quotation' : title
   const showPageLoader =
     isOptionsLoading || isSubmitting || showSuccessAnimation
@@ -330,6 +632,7 @@ export function DocumentVoucherPage({
       setSelectedVoucherNumber('')
       setSelectedVoucherType('Sales')
       setItemRows([createEmptyItemRow()])
+      setJournalRows([createJournalRow(1)])
       setStockError('')
       return undefined
     }
@@ -897,6 +1200,28 @@ export function DocumentVoucherPage({
     0,
   )
 
+  const updateJournalRow = (rowId, field, value) => {
+    setJournalRows((currentRows) =>
+      currentRows.map((row) =>
+        row.id === rowId ? { ...row, [field]: value } : row,
+      ),
+    )
+  }
+
+  const addJournalRow = () => {
+    setJournalRows((currentRows) => [
+      ...currentRows,
+      createJournalRow(Date.now()),
+    ])
+  }
+
+  const removeJournalRow = (rowId) => {
+    setJournalRows((currentRows) => {
+      if (currentRows.length === 1) return currentRows
+      return currentRows.filter((row) => row.id !== rowId)
+    })
+  }
+
   const findStockRate = (
     itemName,
   ) => {
@@ -1315,6 +1640,14 @@ export function DocumentVoucherPage({
         ).entries(),
       )
 
+    const journalPartyName = journalRows.find(
+      (row) => row.partyName.trim(),
+    )?.partyName || ''
+
+    const submittedPartyName = isJournal
+      ? journalPartyName
+      : values.partyName
+
     const voucherType =
       values.voucherType ||
       (isSalesInvoice ? 'Sales' : defaultVoucherType)
@@ -1327,7 +1660,7 @@ export function DocumentVoucherPage({
       voucherDetails: {
         voucherType,
         voucherNumber: values.voucherNumber || '',
-        party: values.partyName || '',
+        party: submittedPartyName || '',
         date: values.date || '',
         company: requestCompanyId || '',
       },
@@ -1349,7 +1682,7 @@ export function DocumentVoucherPage({
       return
     }
 
-    if (!values.partyName?.trim()) {
+    if (!submittedPartyName?.trim()) {
       setSubmitError(validationError('Select a party ledger.'))
       return
     }
@@ -1395,7 +1728,13 @@ export function DocumentVoucherPage({
 
     setIsSubmitting(true)
 
-    const items = itemRows.map(
+    const items = isJournal
+      ? journalRows.map((row) => ({
+          type: row.type,
+          partyName: row.partyName,
+          amount: Number(row.amount) || 0,
+        }))
+      : itemRows.map(
       (row) => ({
         itemName:
           row.item || '',
@@ -1433,7 +1772,7 @@ export function DocumentVoucherPage({
         voucherType,
 
         partyLedger:
-          values.partyName || '',
+          submittedPartyName || '',
 
         ledgerType:
           values.ledgerType || '',
@@ -1448,6 +1787,12 @@ export function DocumentVoucherPage({
 
         narration:
           values.narration || '',
+
+        referenceNumber:
+          values.referenceNumber || '',
+
+        referenceDate:
+          values.referenceDate || '',
       },
     }
 
@@ -1552,6 +1897,7 @@ export function DocumentVoucherPage({
       setSelectedVoucherNumber(
         '',
       )
+      setJournalRows([createJournalRow(1)])
 
       resetItemRows()
 
@@ -1786,10 +2132,19 @@ export function DocumentVoucherPage({
       >
         {/* Header */}
         <div className="flex min-h-14 items-center bg-[#63c45d] px-4 py-3 text-[17px] font-bold text-white sm:px-5 sm:py-4">
-          Create {title} Voucher
+          {isJournal ? 'Create Journal' : `Create ${title} Voucher`}
         </div>
 
         <div className="bg-[#f5f7f4] p-3 sm:p-5">
+          {isJournal ? (
+            <JournalVoucherContent
+              rows={journalRows}
+              onAddRow={addJournalRow}
+              onRemoveRow={removeJournalRow}
+              onRowChange={updateJournalRow}
+            />
+          ) : (
+            <>
           {/* Voucher Details */}
           <div
             className={`grid items-start gap-3 sm:grid-cols-2 ${
@@ -1833,9 +2188,7 @@ export function DocumentVoucherPage({
 
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>
-                {title === 'Quotation'
-                  ? 'Party Name'
-                  : 'Party Ledger'}
+                Party Name
               </span>
 
               <div className="relative">
@@ -2535,131 +2888,8 @@ export function DocumentVoucherPage({
             </div>
           </div>
 
-          {/* Sales Invoice Bottom Section */}
-          {isSalesInvoice ? (
-            <div className="mt-3 grid gap-3 lg:grid-cols-[1.35fr_.9fr]">
-              <div className="space-y-2">
-                <details
-                  open
-                  className="group rounded-md bg-white"
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-800">
-                    Narration
-
-                    <span className="text-lg leading-none transition group-open:rotate-90">
-                      ›
-                    </span>
-                  </summary>
-
-                  <div className="relative p-3">
-                    <textarea
-                      name="narration"
-                      rows="3"
-                      className="w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                      placeholder="sales invoice"
-                    />
-
-                    <button
-                      type="button"
-                      aria-label="Clear narration"
-                      onClick={(event) => {
-                        event.currentTarget.previousElementSibling.value =
-                          ''
-                      }}
-                      className="absolute right-5 top-5 text-slate-400 hover:text-slate-700"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </details>
-
-                <details className="rounded-md bg-white">
-                  <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-medium text-slate-800">
-                    Advanced Settings
-
-                    <span className="text-lg leading-none">
-                      ›
-                    </span>
-                  </summary>
-                </details>
-              </div>
-
-              <div className="rounded-md bg-white p-3">
-                <button
-                  type="button"
-                  className="mb-3 text-sm font-semibold text-green-600 hover:text-green-700"
-                >
-                  + Add GST And Other Ledgers
-                </button>
-
-                <div className="space-y-2 bg-green-50 p-3 text-sm text-slate-700">
-                  <div className="flex justify-between">
-                    <span>
-                      Sub Total
-                    </span>
-
-                    <span>
-                      ₹
-                      {subtotal.toFixed(
-                        2,
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span>
-                      Taxes
-                    </span>
-
-                    <span>
-                      ₹0
-                    </span>
-                  </div>
-
-                  <div className="mt-3 flex justify-between border-t border-green-100 pt-3 text-base font-bold text-slate-900">
-                    <span>
-                      Grand Total
-                    </span>
-
-                    <span>
-                      ₹
-                      {subtotal.toFixed(
-                        2,
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-5">
-              <label className="flex flex-col gap-1 text-[12px] font-medium text-slate-700">
-                <span>
-                  Narration
-                </span>
-
-                <div className="relative">
-                  <textarea
-                    name="narration"
-                    rows="3"
-                    className="w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                    placeholder="quotation invoice"
-                  />
-
-                  <button
-                    type="button"
-                    aria-label="Clear narration"
-                    onClick={(event) => {
-                      event.currentTarget.previousElementSibling.value =
-                        ''
-                    }}
-                    className="absolute right-2 top-2 text-slate-400 hover:text-slate-700"
-                  >
-                    ×
-                  </button>
-                </div>
-              </label>
-            </div>
+          <VoucherBottomSection subtotal={subtotal} />
+            </>
           )}
         </div>
 
@@ -2700,7 +2930,7 @@ export function DocumentVoucherPage({
                   Creating...
                 </span>
               ) : (
-                'Create Voucher'
+                isJournal ? 'Create Journal' : 'Create Voucher'
               )}
             </button>
           </div>
