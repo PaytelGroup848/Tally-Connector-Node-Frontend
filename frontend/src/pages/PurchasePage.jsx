@@ -116,7 +116,7 @@ function ItemsTable() {
 
           <button
             onClick={addRow}
-            className="rounded bg-green-100 text-green-700"
+            className="flex h-7 w-7 items-center justify-center rounded-md bg-green-600 text-lg font-bold leading-none text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
           >
             +
           </button>

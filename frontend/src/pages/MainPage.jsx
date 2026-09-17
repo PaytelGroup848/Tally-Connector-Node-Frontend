@@ -368,6 +368,38 @@ function App() {
         />
       )
     }
+    if (currentPath === '/my-purchase') {
+      return (
+        <MyVouchersPage
+          companyId={getCompanyId(selectedCompany)}
+          title="My Purchase"
+          voucherType="Purchase"
+          commandType="CREATE_VOUCHER"
+        />
+      )
+    }
+    const additionalMyVoucherTypes = {
+      '/my-journal': ['My Journal', 'Journal'],
+      '/my-contra': ['My Contra', 'Contra'],
+      '/my-purchase-order': ['My Purchase Order', 'Purchase Order'],
+      '/my-credit-note': ['My Credit Note', 'Credit Note'],
+      '/my-debit-note': ['My Debit Note', 'Debit Note'],
+      '/my-stock-journal': ['My Stock Journal', 'Stock Journal'],
+      '/my-physical-stock': ['My Physical Stock', 'Physical Stock'],
+      '/my-receipt-note': ['My Receipt Note', 'Receipt Note'],
+      '/my-delivery-note': ['My Delivery Note', 'Delivery Note'],
+    }
+    const additionalMyVoucher = additionalMyVoucherTypes[currentPath]
+    if (additionalMyVoucher) {
+      return (
+        <MyVouchersPage
+          companyId={getCompanyId(selectedCompany)}
+          title={additionalMyVoucher[0]}
+          voucherType={additionalMyVoucher[1]}
+          commandType="CREATE_VOUCHER"
+        />
+      )
+    }
     if (flags.showMyVouchersPage) return <MyVouchersPage companyId={getCompanyId(selectedCompany)} title={currentPath === '/my-quotations' ? 'My Quotations' : currentPath === '/my-invoices' ? 'My Invoices' : currentPath === '/my-parties' ? 'My Parties' : currentPath === '/my-stock-items' ? 'My Stock Items' : 'My Vouchers'} voucherType={currentPath === '/my-quotations' ? 'Quotation' : currentPath === '/my-invoices' ? 'Invoice' : currentPath === '/my-vouchers' ? 'Sales' : ''} commandType={currentPath === '/my-parties' ? 'CREATE_PARTY' : currentPath === '/my-stock-items' ? 'CREATE_STOCK_ITEM' : 'CREATE_VOUCHER'} />
     if (flags.showManageReminderPage) return <ManageReminderPage />
     if (flags.showEntryList) return <MyEntryListPage path={entryPath} />
@@ -399,7 +431,7 @@ function App() {
     if (flags.showJournal) return <DocumentVoucherPage title="Journal" companyId={selectedCompany?.id} />
     if (flags.showContra) return <DocumentVoucherPage title="Contra" companyId={selectedCompany?.id} />
     if (flags.showDeliveryNote) return <DocumentVoucherPage title="Delivery Note" companyId={selectedCompany?.id} />
-    if (flags.showPhysicalStock) return <DocumentVoucherPage title="Physical Stock" companyId={selectedCompany?.id} />
+    if (flags.showPhysicalStock) return <PhysicalStockPage companyId={selectedCompany?.id} />
     if (flags.showDebitNote) return <DocumentVoucherPage title="Debit Note" companyId={selectedCompany?.id} />
     if (flags.showCreditNote) return <DocumentVoucherPage title="Credit Note" companyId={selectedCompany?.id} />
     if (flags.showSalesOrder) return <DocumentVoucherPage title="Sales Order" companyId={selectedCompany?.id} />

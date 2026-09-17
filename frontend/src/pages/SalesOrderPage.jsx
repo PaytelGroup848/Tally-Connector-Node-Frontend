@@ -397,7 +397,7 @@ function SalesOrderPage() {
                   type="button"
                   onClick={addRow}
                   title="Add item"
-                  className="ml-auto flex h-6 w-6 items-center justify-center rounded bg-green-600 text-white text-sm font-bold hover:bg-green-700"
+                  className="ml-auto flex h-7 w-7 items-center justify-center rounded-md bg-green-600 text-white text-lg font-bold leading-none transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
                 >
                   +
                 </button>

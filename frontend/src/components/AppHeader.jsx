@@ -117,9 +117,7 @@ function ConnectorStatusButton({
             Connector Status
           </span>
 
-          <span className="mt-1 max-w-[105px] truncate text-[8px] font-normal text-slate-500">
-            Last sync: {lastSyncLabel}
-          </span>
+          
         </span>
 
         <span
@@ -148,7 +146,7 @@ function ConnectorStatusButton({
       {open && (
         <div
           className="
-            absolute right-0 top-full z-[300]
+            absolute right-0 top-full z-[1100]
             mt-2
             w-[min(420px,calc(100vw-16px))]
             overflow-hidden
@@ -172,7 +170,7 @@ function ConnectorStatusButton({
               Connector Status
             </p>
 
-            <span
+            {/* <span
               className="
                 rounded-full
                 bg-emerald-50
@@ -183,7 +181,7 @@ function ConnectorStatusButton({
               "
             >
               Live
-            </span>
+            </span> */}
           </div>
 
           {lastSyncMeta && (
@@ -370,6 +368,8 @@ function AppHeader({
   connectorStatusError = '',
   isConnectorStatusLoading = false,
 }) {
+  const headerRef = useRef(null)
+
   const getCompanyId = (company) =>
     company?.id ||
     company?._id ||
@@ -383,8 +383,18 @@ function AppHeader({
       setShowProfileMenu(false)
     }
 
+    const handleOutsideClick = (event) => {
+      if (headerRef.current?.contains(event.target)) return
+      setShowCompanyMenu(false)
+      setShowProfileMenu(false)
+    }
+
     window.addEventListener('popstate', handleRouteClose)
-    return () => window.removeEventListener('popstate', handleRouteClose)
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => {
+      window.removeEventListener('popstate', handleRouteClose)
+      document.removeEventListener('mousedown', handleOutsideClick)
+    }
   }, [setShowCompanyMenu, setShowProfileMenu])
 
   const toggleCompanyMenu = () => {
@@ -447,7 +457,7 @@ function AppHeader({
 
   return (
     <>
-      <header className="app-header relative z-[150] w-full">
+      <header ref={headerRef} className="app-header relative z-[1000] w-full">
         {/* ====================================================
             TOP ROW
         ===================================================== */}
@@ -458,7 +468,7 @@ function AppHeader({
             items-stretch
             overflow-visible
             bg-white
-            px-2
+            px-0 sm:px-2
           "
         >
           {/* ==================================================
@@ -466,7 +476,7 @@ function AppHeader({
           =================================================== */}
           <div
             className="
-              flex h-16 w-14
+              flex h-16 w-12 sm:w-14
               shrink-0
               items-center
               justify-center
@@ -504,11 +514,14 @@ function AppHeader({
             className="
               relative
               flex h-16
-              w-[230px]
-              min-w-[180px]
-              shrink-0
+              min-w-0
+              flex-1
+              shrink
               items-center
               border-r border-app-border
+              sm:w-[230px]
+              sm:min-w-[180px]
+              sm:flex-none
             "
           >
             <button
@@ -519,8 +532,8 @@ function AppHeader({
               className="
                 flex h-full w-full
                 items-center
-                gap-3
-                px-5
+                gap-2
+                px-2 sm:gap-3 sm:px-5
                 text-left
                 outline-none
                 transition
@@ -581,8 +594,8 @@ function AppHeader({
                   absolute
                   left-2
                   top-[62px]
-                  z-[400]
-                  w-[300px]
+                  z-[1100]
+                    w-[min(300px,calc(100vw-16px))]
                   overflow-hidden
                   rounded-xl
                   border border-app-border
@@ -753,7 +766,7 @@ function AppHeader({
           {/* ==================================================
               DESKTOP SEARCH
           =================================================== */}
-          <div className="hidden min-w-0 flex-1 items-center lg:flex">
+          {/* <div className="hidden min-w-0 flex-1 items-center lg:flex">
             <label
               className="
                 mx-4
@@ -790,7 +803,7 @@ function AppHeader({
                 "
               />
             </label>
-          </div>
+          </div> */}
 
           {/* ==================================================
               RIGHT ACTIONS
@@ -918,7 +931,7 @@ function AppHeader({
               className="
                 relative
                 flex h-16
-                w-[92px]
+                w-14 sm:w-[92px]
                 shrink-0
               "
             >
@@ -932,9 +945,9 @@ function AppHeader({
                   w-full
                   items-center
                   justify-center
-                  gap-2
+                  gap-1 sm:gap-2
                   bg-white
-                  px-2
+                  px-1 sm:px-2
                   transition
                   hover:bg-slate-50
                 "
@@ -957,7 +970,7 @@ function AppHeader({
 
                 <ChevronDown
                   className={`
-                    h-4 w-4
+                    hidden h-4 w-4 sm:block
                     shrink-0
                     text-slate-500
                     transition-transform
@@ -977,7 +990,7 @@ function AppHeader({
                     absolute
                     right-0
                     top-[62px]
-                    z-[400]
+                    z-[1100]
                     w-52
                     overflow-hidden
                     rounded-xl
@@ -1146,38 +1159,6 @@ function AppHeader({
         </div>
       </header>
 
-      {/* ======================================================
-          OUTSIDE CLICK
-      ======================================================= */}
-      {showCompanyMenu && (
-        <button
-          type="button"
-          aria-label="Close company menu"
-          onClick={() => setShowCompanyMenu(false)}
-          className="
-            fixed
-            inset-0
-            z-[100]
-            cursor-default
-            bg-transparent
-          "
-        />
-      )}
-
-      {showProfileMenu && (
-        <button
-          type="button"
-          aria-label="Close profile menu"
-          onClick={() => setShowProfileMenu(false)}
-          className="
-            fixed
-            inset-0
-            z-[100]
-            cursor-default
-            bg-transparent
-          "
-        />
-      )}
     </>
   )
 }

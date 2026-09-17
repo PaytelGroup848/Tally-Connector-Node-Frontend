@@ -154,7 +154,26 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
   const isQuotationPage = voucherType === 'Quotation'
   const isReceiptOrPaymentPage = voucherType === 'Receipt' || voucherType === 'Payment'
   const isSimpleCommandPage = commandType === 'CREATE_PARTY' || commandType === 'CREATE_STOCK_ITEM'
-  const isCommandEntryPage = isQuotationPage || isReceiptOrPaymentPage || voucherType === 'Sales Order' || voucherType === 'Invoice' || isSimpleCommandPage
+  const commandVoucherTypes = new Set([
+    'Quotation',
+    'Receipt',
+    'Payment',
+    'Sales Order',
+    'Purchase',
+    'Invoice',
+    'Journal',
+    'Contra',
+    'Purchase Order',
+    'Credit Note',
+    'Debit Note',
+    'Stock Journal',
+    'Physical Stock',
+    'Receipt Note',
+    'Delivery Note',
+  ])
+  const isCommandEntryPage =
+    isSimpleCommandPage ||
+    commandVoucherTypes.has(voucherType)
   const [commands, setCommands] = useState([])
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState(isCommandEntryPage ? '' : 'All Statuses')

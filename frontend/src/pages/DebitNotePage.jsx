@@ -186,13 +186,13 @@ function ItemsTable() {
                 w-[20px]
                 items-center
                 justify-center
-                rounded-[3px]
-                bg-[#555]
+                rounded-md
+                bg-green-600
                 text-[17px]
                 font-bold
                 leading-none
                 text-white
-                hover:bg-[#333]
+                hover:bg-green-700
               "
             >
               +

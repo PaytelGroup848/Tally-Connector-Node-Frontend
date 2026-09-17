@@ -6,12 +6,14 @@ import {
   extractCommandId,
   extractCommandStatus,
   extractGodowns,
+  extractBatches,
   extractLedgers,
   extractVouchers,
   extractVoucherTypes,
   fetchCommandStatus,
   fetchCompanyLedgers,
   fetchCompanyGodowns,
+  fetchCompanyBatches,
   fetchCompanyCommands,
   fetchCompanyStock,
   fetchCompanyVouchers,
@@ -52,7 +54,10 @@ function createJournalRow(id = Date.now()) {
 }
 
 function JournalVoucherContent({
+  voucherType,
   rows,
+  partyOptions,
+  optionsLoading,
   onAddRow,
   onRemoveRow,
   onRowChange,
@@ -64,7 +69,7 @@ function JournalVoucherContent({
           <span>Voucher Type</span>
           <input
             name="voucherType"
-            value="Journal"
+            value={voucherType}
             readOnly
             className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
           />
@@ -148,11 +153,14 @@ function JournalVoucherContent({
               <option value="Debit">Debit</option>
               <option value="Credit">Credit</option>
             </select>
-            <input
+            <SearchableDropdown
               name={`journalPartyName-${row.id}`}
+              label="parties"
+              options={partyOptions}
+              loading={optionsLoading}
               value={row.partyName}
-              onChange={(event) => onRowChange(row.id, 'partyName', event.target.value)}
-              className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+              onSelect={(value) => onRowChange(row.id, 'partyName', value)}
+              onClear={() => onRowChange(row.id, 'partyName', '')}
               placeholder="Select Party Name"
             />
             <input
@@ -568,6 +576,7 @@ export function DocumentVoucherPage({
   const [vouchers, setVouchers] = useState([])
   const [ledgers, setLedgers] = useState([])
   const [godowns, setGodowns] = useState([])
+  const [batches, setBatches] = useState([])
   const [voucherTypes, setVoucherTypes] = useState([])
 
   const [selectedParty, setSelectedParty] = useState('')
@@ -581,6 +590,12 @@ export function DocumentVoucherPage({
   ])
   const [journalRows, setJournalRows] = useState([
     createJournalRow(1),
+  ])
+  const [sourceRows, setSourceRows] = useState([
+    createStockJournalRow(1),
+  ])
+  const [destinationRows, setDestinationRows] = useState([
+    createStockJournalRow(2),
   ])
 
   const [clearToken, setClearToken] = useState(0)
@@ -598,6 +613,12 @@ export function DocumentVoucherPage({
   const isSalesInvoice = title === 'Sales'
   const isSalesOrder = title === 'Sales Order'
   const isJournal = title === 'Journal'
+  const isContra = title === 'Contra'
+  const isJournalStyleVoucher = isJournal || isContra
+  const isCreditNote = title === 'Credit Note'
+  const isDebitNote = title === 'Debit Note'
+  const isNoteVoucher = isCreditNote || isDebitNote
+  const isStockJournal = title === 'Stock Journal'
   const defaultVoucherType = title === 'Quotation' ? 'Quotation' : title
   const showPageLoader =
     isOptionsLoading || isSubmitting || showSuccessAnimation
@@ -627,12 +648,15 @@ export function DocumentVoucherPage({
       setVouchers([])
       setLedgers([])
       setGodowns([])
+      setBatches([])
       setVoucherTypes([])
       setSelectedParty('')
       setSelectedVoucherNumber('')
       setSelectedVoucherType('Sales')
       setItemRows([createEmptyItemRow()])
       setJournalRows([createJournalRow(1)])
+      setSourceRows([createStockJournalRow(1)])
+      setDestinationRows([createStockJournalRow(2)])
       setStockError('')
       return undefined
     }
@@ -674,9 +698,21 @@ export function DocumentVoucherPage({
           },
         ),
       )
+
     } else {
       requests.push(Promise.resolve(null))
     }
+
+    requests.push(
+      fetchCompanyBatches(
+        accessToken,
+        requestCompanyId,
+        {
+          page: 1,
+          limit: 100,
+        },
+      ),
+    )
 
     requests.push(
       fetchCompanyLedgers(
@@ -733,6 +769,7 @@ export function DocumentVoucherPage({
           customersResult,
           stockResult,
           vouchersResult,
+          batchesResult,
           ledgersResult,
           godownsResult,
           voucherTypesResult,
@@ -766,6 +803,10 @@ export function DocumentVoucherPage({
               stockResult.reason?.message ||
                 'Unable to load stock items.',
             )
+          }
+
+          if (batchesResult?.status === 'fulfilled') {
+            setBatches(extractBatches(batchesResult.value))
           }
 
           if (
@@ -1188,9 +1229,11 @@ export function DocumentVoucherPage({
     const discountMultiplier =
       1 - discountPercent / 100
 
+    const taxMultiplier = row.taxInclusive ? 1.18 : 1
+
     return Math.max(
       0,
-      quantity * rate * discountMultiplier,
+      quantity * rate * discountMultiplier * taxMultiplier,
     )
   }
 
@@ -1220,6 +1263,18 @@ export function DocumentVoucherPage({
       if (currentRows.length === 1) return currentRows
       return currentRows.filter((row) => row.id !== rowId)
     })
+  }
+
+  const updateStockRow = (setter, rowId, field, value) => {
+    setter((currentRows) => currentRows.map((row) => row.id === rowId ? { ...row, [field]: value } : row))
+  }
+
+  const addStockRow = (setter) => {
+    setter((currentRows) => [...currentRows, createStockJournalRow(Date.now() + Math.random())])
+  }
+
+  const removeStockRow = (setter, rowId) => {
+    setter((currentRows) => currentRows.length === 1 ? currentRows : currentRows.filter((row) => row.id !== rowId))
   }
 
   const findStockRate = (
@@ -1644,7 +1699,7 @@ export function DocumentVoucherPage({
       (row) => row.partyName.trim(),
     )?.partyName || ''
 
-    const submittedPartyName = isJournal
+    const submittedPartyName = isJournalStyleVoucher
       ? journalPartyName
       : values.partyName
 
@@ -1682,7 +1737,7 @@ export function DocumentVoucherPage({
       return
     }
 
-    if (!submittedPartyName?.trim()) {
+    if (!isStockJournal && !submittedPartyName?.trim()) {
       setSubmitError(validationError('Select a party ledger.'))
       return
     }
@@ -1692,14 +1747,45 @@ export function DocumentVoucherPage({
       return
     }
 
+    if (Number.isNaN(Date.parse(values.date))) {
+      setSubmitError(validationError('Enter a valid voucher date.'))
+      return
+    }
+
     if (!values.voucherNumber?.trim()) {
       setSubmitError(validationError('Enter a voucher number.'))
       return
     }
 
-    if ((isSalesInvoice || isSalesOrder || title === 'Quotation' || title === 'Purchase') && !values.ledgerType?.trim()) {
+    if ((isSalesInvoice || isSalesOrder || title === 'Quotation' || title === 'Purchase' || title === 'Purchase Order' || isNoteVoucher) && !values.ledgerType?.trim()) {
       setSubmitError(validationError('Select a ledger type.'))
       return
+    }
+
+    if (isJournalStyleVoucher) {
+      const invalidJournalRow = journalRows.find((row) => {
+        const amount = Number(row.amount)
+        return !row.type || !row.partyName.trim() || !Number.isFinite(amount) || amount <= 0
+      })
+
+      if (invalidJournalRow) {
+        setSubmitError(validationError('Complete each journal row with a type, party, and amount greater than 0.'))
+        return
+      }
+    }
+
+    if (isStockJournal) {
+      const stockRows = [...sourceRows, ...destinationRows]
+      const invalidStockRow = stockRows.find((row) => {
+        const quantity = Number(row.qty)
+        const rate = Number(row.rate || 0)
+        return !row.item?.trim() || !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(rate) || rate < 0
+      })
+
+      if (invalidStockRow) {
+        setSubmitError(validationError('Complete each stock row with an item, quantity greater than 0, and a valid rate.'))
+        return
+      }
     }
 
     const itemBasedVoucher = [
@@ -1717,18 +1803,25 @@ export function DocumentVoucherPage({
     if (itemBasedVoucher) {
       const invalidRow = itemRows.find((row) => {
         const quantity = Number(row.quantity)
-        return !row.item?.trim() || !Number.isFinite(quantity) || quantity <= 0
+        const rate = Number(row.rate || 0)
+        const discount = Number(row.discount || 0)
+        return !row.item?.trim() || !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(rate) || rate < 0 || !Number.isFinite(discount) || discount < 0 || discount > 100
       })
 
       if (invalidRow) {
-        setSubmitError(validationError('Add an item and enter a quantity greater than 0.'))
+        setSubmitError(validationError('Complete each item with a quantity greater than 0, a valid rate, and a discount between 0 and 100.'))
         return
       }
     }
 
     setIsSubmitting(true)
 
-    const items = isJournal
+    const items = isStockJournal
+      ? {
+          source: sourceRows.map((row) => ({ ...row, quantity: Number(row.qty) || 0, amount: (Number(row.qty) || 0) * (Number(row.rate) || 0) })),
+          destination: destinationRows.map((row) => ({ ...row, quantity: Number(row.qty) || 0, amount: (Number(row.qty) || 0) * (Number(row.rate) || 0) })),
+        }
+      : isJournalStyleVoucher
       ? journalRows.map((row) => ({
           type: row.type,
           partyName: row.partyName,
@@ -1793,6 +1886,18 @@ export function DocumentVoucherPage({
 
         referenceDate:
           values.referenceDate || '',
+
+        orderType:
+          values.orderType || '',
+
+        orderNumber:
+          values.orderNumber || '',
+
+        orderDate:
+          values.orderDate || '',
+
+        reasonForReturn:
+          values.reasonForReturn || '',
       },
     }
 
@@ -1898,6 +2003,8 @@ export function DocumentVoucherPage({
         '',
       )
       setJournalRows([createJournalRow(1)])
+      setSourceRows([createStockJournalRow(1)])
+      setDestinationRows([createStockJournalRow(2)])
 
       resetItemRows()
 
@@ -2132,13 +2239,32 @@ export function DocumentVoucherPage({
       >
         {/* Header */}
         <div className="flex min-h-14 items-center bg-[#63c45d] px-4 py-3 text-[17px] font-bold text-white sm:px-5 sm:py-4">
-          {isJournal ? 'Create Journal' : `Create ${title} Voucher`}
+          {isJournalStyleVoucher ? `Create ${title}` : `Create ${title} Voucher`}
         </div>
 
         <div className="bg-[#f5f7f4] p-3 sm:p-5">
-          {isJournal ? (
+          {isStockJournal ? (
+            <StockJournalVoucherContent
+              sourceRows={sourceRows}
+              destinationRows={destinationRows}
+              stockItems={stockItems}
+              batches={batches}
+              itemOptions={itemOptions}
+              godownOptions={godownOptions}
+              optionsLoading={isOptionsLoading}
+              onAddSource={() => addStockRow(setSourceRows)}
+              onAddDestination={() => addStockRow(setDestinationRows)}
+              onRemoveSource={(rowId) => removeStockRow(setSourceRows, rowId)}
+              onRemoveDestination={(rowId) => removeStockRow(setDestinationRows, rowId)}
+              onSourceChange={(rowId, field, value) => updateStockRow(setSourceRows, rowId, field, value)}
+              onDestinationChange={(rowId, field, value) => updateStockRow(setDestinationRows, rowId, field, value)}
+            />
+          ) : isJournalStyleVoucher ? (
             <JournalVoucherContent
+              voucherType={title}
               rows={journalRows}
+              partyOptions={partyLedgerOptions}
+              optionsLoading={isOptionsLoading}
               onAddRow={addJournalRow}
               onRemoveRow={removeJournalRow}
               onRowChange={updateJournalRow}
@@ -2152,39 +2278,24 @@ export function DocumentVoucherPage({
               isSalesOrder ||
               title === 'Purchase'
                 ? 'xl:grid-cols-3'
+                : title === 'Receipt Note' || title === 'Delivery Note'
+                  ? 'xl:grid-cols-5'
                 : 'xl:grid-cols-4'
             }`}
           >
-            {title !== 'Quotation' && (
-              <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                <span>
-                  Voucher Type
-                </span>
+            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+              <span>
+                Voucher Type
+              </span>
 
-                {isSalesInvoice || isSalesOrder ? (
-                  <SearchableDropdown
-                    name="voucherType"
-                    label="voucher types"
-                    options={voucherTypeOptions}
-                    placeholder="Select Voucher Type"
-                    loading={isOptionsLoading}
-                    value={isSalesOrder ? selectedVoucherType : undefined}
-                    resetToken={clearToken}
-                    onSelect={setSelectedVoucherType}
-                    onClear={() => setSelectedVoucherType('')}
-                  />
-                ) : (
-                  <input
-                    name="voucherType"
-                    value={defaultVoucherType}
-                    readOnly
-                    className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                    placeholder="Select Voucher Type"
-                  />
-                )}
-
-              </label>
-            )}
+              <input
+                name="voucherType"
+                value={defaultVoucherType}
+                readOnly
+                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
+                placeholder="Select Voucher Type"
+              />
+            </label>
 
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>
@@ -2263,6 +2374,23 @@ export function DocumentVoucherPage({
               </div>
             </label>
 
+            {(title === 'Receipt Note' || title === 'Delivery Note') && (
+              <>
+                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                  <span>Order Type</span>
+                  <SearchableDropdown name="orderType" label="order types" options={voucherTypeOptions} placeholder="Select ref" loading={isOptionsLoading} resetToken={clearToken} />
+                </label>
+                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                  <span>Order Number</span>
+                  <input name="orderNumber" type="text" placeholder="Order Number" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" />
+                </label>
+                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                  <span>Order Date</span>
+                  <input name="orderDate" type="date" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" />
+                </label>
+              </>
+            )}
+
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>
                 Voucher No
@@ -2291,9 +2419,7 @@ export function DocumentVoucherPage({
               ) : (
                 <input
                   name="voucherNumber"
-                  type="number"
-                  min="0"
-                  step="1"
+                  type="text"
                   defaultValue=""
                   className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
                   placeholder="Voucher Number"
@@ -2304,7 +2430,9 @@ export function DocumentVoucherPage({
             {(title === 'Quotation' ||
               isSalesInvoice ||
               isSalesOrder ||
-              title === 'Purchase') && (
+              title === 'Purchase' ||
+              title === 'Purchase Order' ||
+              isNoteVoucher) && (
               <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
                 <span>
                   Ledger Type
@@ -2323,6 +2451,25 @@ export function DocumentVoucherPage({
                   resetToken={
                     clearToken
                   }
+                />
+              </label>
+            )}
+
+            {isNoteVoucher && (
+              <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                <span>Reason For Return</span>
+                <SearchableDropdown
+                  name="reasonForReturn"
+                  label="return reasons"
+                  options={[
+                    'Sales Return',
+                    'Damaged Goods',
+                    'Wrong Item',
+                    'Other',
+                  ]}
+                  placeholder="Select Reason for return"
+                  loading={isOptionsLoading}
+                  resetToken={clearToken}
                 />
               </label>
             )}
@@ -2356,9 +2503,7 @@ export function DocumentVoucherPage({
                   </button>
                 )}
 
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  🗓
-                </span>
+               
               </div>
             </label>
           </div>
@@ -2448,7 +2593,10 @@ export function DocumentVoucherPage({
                           {title ===
                             'Quotation' ||
                           isSalesInvoice ||
-                          isSalesOrder ? (
+                          isSalesOrder ||
+                          title === 'Purchase Order' ||
+                          isCreditNote ||
+                          isDebitNote ? (
                             <SearchableDropdown
                               name={`item-${row.id}`}
                               label="items"
@@ -2710,7 +2858,12 @@ export function DocumentVoucherPage({
                           {title ===
                             'Quotation' ||
                           isSalesInvoice ||
-                          isSalesOrder ? (
+                          isSalesOrder ||
+                          title === 'Purchase Order' ||
+                          title === 'Receipt Note' ||
+                          title === 'Delivery Note' ||
+                          isCreditNote ||
+                          isDebitNote ? (
                             <SearchableDropdown
                               name={`godown-${row.id}`}
                               label="godowns"
@@ -2823,6 +2976,7 @@ export function DocumentVoucherPage({
                           <input
                             name={`taxInclusive-${row.id}`}
                             type="checkbox"
+                            title="Add 18% GST"
                             checked={
                               row.taxInclusive
                             }
@@ -2930,12 +3084,132 @@ export function DocumentVoucherPage({
                   Creating...
                 </span>
               ) : (
-                isJournal ? 'Create Journal' : 'Create Voucher'
+                isJournalStyleVoucher ? `Create ${title}` : 'Create Voucher'
               )}
             </button>
           </div>
         </div>
       </form>
     </div>
+  )
+}
+
+function createStockJournalRow(id = Date.now()) {
+  return {
+    id,
+    item: '',
+    qty: '',
+    rate: '',
+    godown: '',
+    batch: '',
+  }
+}
+
+function getStockFieldValue(entry, keys) {
+  const candidates = [entry, entry?.data, entry?.payload, entry?.item]
+  const normalizedKeys = keys.map((key) => key.toLowerCase().replace(/[^a-z0-9]/g, ''))
+
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== 'object') continue
+    const matchingKey = Object.keys(candidate).find((key) => normalizedKeys.includes(key.toLowerCase().replace(/[^a-z0-9]/g, '')))
+    if (matchingKey && candidate[matchingKey] !== null && candidate[matchingKey] !== undefined) return String(candidate[matchingKey]).trim()
+  }
+
+  return ''
+}
+
+function StockJournalSide({
+  title,
+  rows,
+  stockItems,
+  batches,
+  itemOptions,
+  godownOptions,
+  optionsLoading,
+  onAddRow,
+  onRemoveRow,
+  onRowChange,
+}) {
+  const batchOptionsFor = (itemName) => batches
+    .filter((batch) => {
+      const batchItem = getStockFieldValue(batch, ['itemName', 'item_name', 'stockName', 'stock_name', 'stockItemName', 'stock_item_name', 'item'])
+      return !batchItem || batchItem.toLowerCase() === String(itemName || '').toLowerCase()
+    })
+    .map((batch) => getStockFieldValue(batch, ['batchName', 'batch_name', 'batchNo', 'batch_no', 'batch', 'batchNumber', 'batch_number', 'name', 'displayName']))
+    .concat(stockItems
+      .filter((item) => getStockFieldValue(item, ['itemName', 'item_name', 'stockName', 'stock_name', 'stockItemName', 'stock_item_name', 'item']).toLowerCase() === String(itemName || '').toLowerCase())
+      .map((item) => getStockFieldValue(item, ['batchName', 'batch_name', 'batchNo', 'batch_no', 'batch', 'batchNumber', 'batch_number'])))
+    .filter((value, index, values) => value && values.indexOf(value) === index)
+
+  return (
+    <div className="flex min-h-[360px] flex-col overflow-hidden border border-slate-200 bg-[#f5f7f4]">
+      <div className="flex h-9 shrink-0 items-center justify-between border-b border-slate-200 px-3 text-xs font-semibold text-slate-800">
+        <span>{title}</span>
+        <button type="button" onClick={onAddRow} className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300">
+          <span className="text-sm leading-none">+</span>
+          Add Item
+        </button>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-x-auto">
+        <div className="min-w-[760px] xl:min-w-0">
+          <div className="grid grid-cols-[minmax(115px,1.15fr)_minmax(48px,.55fr)_minmax(52px,.6fr)_minmax(78px,.8fr)_minmax(88px,.9fr)_minmax(70px,.7fr)_28px] gap-1 bg-slate-100 p-1.5 text-[10px] font-semibold text-slate-700">
+            <span>Items</span><span>Qty</span><span>Rate</span><span>Godown</span><span>Batch Name</span><span>Amount</span><span />
+          </div>
+          {rows.map((row) => {
+            const amount = (Number(row.qty) || 0) * (Number(row.rate) || 0)
+            return (
+              <div key={row.id} className="grid grid-cols-[minmax(115px,1.15fr)_minmax(48px,.55fr)_minmax(52px,.6fr)_minmax(78px,.8fr)_minmax(88px,.9fr)_minmax(70px,.7fr)_28px] gap-1 border-t border-slate-200 bg-white p-1.5">
+                <SearchableDropdown name={`stockItem-${row.id}`} label="items" options={itemOptions} loading={optionsLoading} value={row.item} onSelect={(value) => onRowChange(row.id, 'item', value)} onClear={() => onRowChange(row.id, 'item', '')} placeholder="Search Item" />
+                <input type="number" min="0" value={row.qty} onChange={(event) => onRowChange(row.id, 'qty', event.target.value)} className="min-h-9 rounded border border-slate-300 px-2 text-xs outline-none" placeholder="0" />
+                <input type="number" min="0" value={row.rate} onChange={(event) => onRowChange(row.id, 'rate', event.target.value)} className="min-h-9 rounded border border-slate-300 px-2 text-xs outline-none" placeholder="0" />
+                <SearchableDropdown name={`stockGodown-${row.id}`} label="godowns" options={godownOptions} loading={optionsLoading} value={row.godown} onSelect={(value) => onRowChange(row.id, 'godown', value)} onClear={() => onRowChange(row.id, 'godown', '')} placeholder="Select" />
+                <SearchableDropdown name={`stockBatch-${row.id}`} label="batches" options={batchOptionsFor(row.item)} loading={optionsLoading} value={row.batch} onSelect={(value) => onRowChange(row.id, 'batch', value)} onClear={() => onRowChange(row.id, 'batch', '')} placeholder="Select" />
+                <input readOnly value={amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} className="min-h-9 rounded border border-slate-300 bg-slate-50 px-2 text-xs outline-none" />
+                <button type="button" onClick={() => onRemoveRow(row.id)} disabled={rows.length === 1} className="text-red-500 disabled:opacity-40" aria-label="Remove row">×</button>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
+function StockJournalVoucherContent({
+  sourceRows,
+  destinationRows,
+  stockItems,
+  batches,
+  itemOptions,
+  godownOptions,
+  optionsLoading,
+  onAddSource,
+  onAddDestination,
+  onRemoveSource,
+  onRemoveDestination,
+  onSourceChange,
+  onDestinationChange,
+}) {
+  const totalQuantity = [...sourceRows, ...destinationRows].reduce((sum, row) => sum + (Number(row.qty) || 0), 0)
+  const totalAmount = [...sourceRows, ...destinationRows].reduce((sum, row) => sum + ((Number(row.qty) || 0) * (Number(row.rate) || 0)), 0)
+
+  return (
+    <>
+      <div className="grid gap-3 md:grid-cols-3">
+        <label className="flex flex-col gap-1 text-xs font-medium text-slate-700"><span>Voucher Type</span><input name="voucherType" value="Stock Journal" readOnly className="min-h-9 rounded border border-slate-300 bg-white px-2 text-xs" /></label>
+        <label className="flex flex-col gap-1 text-xs font-medium text-slate-700"><span>Voucher No</span><input name="voucherNumber" defaultValue="1" className="min-h-9 rounded border border-slate-300 bg-white px-2 text-xs" /></label>
+        <label className="flex flex-col gap-1 text-xs font-medium text-slate-700"><span>Date</span><input name="date" type="date" defaultValue={new Date().toLocaleDateString('en-CA')} className="min-h-9 rounded border border-slate-300 bg-white px-2 text-xs" /></label>
+      </div>
+
+      <div className="mt-4 grid items-stretch gap-2 xl:grid-cols-2">
+        <StockJournalSide title="Source (Consumption)" rows={sourceRows} stockItems={stockItems} batches={batches} itemOptions={itemOptions} godownOptions={godownOptions} optionsLoading={optionsLoading} onAddRow={onAddSource} onRemoveRow={onRemoveSource} onRowChange={onSourceChange} />
+        <StockJournalSide title="Destination (Production)" rows={destinationRows} stockItems={stockItems} batches={batches} itemOptions={itemOptions} godownOptions={godownOptions} optionsLoading={optionsLoading} onAddRow={onAddDestination} onRemoveRow={onRemoveDestination} onRowChange={onDestinationChange} />
+      </div>
+
+      <div className="mt-3 flex justify-between bg-[#e8f7ea] px-3 py-2 text-[11px] font-semibold text-slate-700"><span>TOTAL</span><span>Qty {totalQuantity}</span><span>Amount ₹{totalAmount.toFixed(2)}</span></div>
+      <label className="mt-4 flex flex-col gap-1 text-xs font-medium text-slate-700"><span>Narration</span><textarea name="narration" rows="2" placeholder="Enter narration" className="rounded border border-slate-300 bg-white px-2 py-2 text-xs outline-none" /></label>
+    </>
   )
 }

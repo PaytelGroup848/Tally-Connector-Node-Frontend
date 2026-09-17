@@ -152,15 +152,13 @@ function ItemsTable() {
                 items-center
                 justify-center
                 rounded-md
-                border
-                border-green-200
-                bg-green-50
+                bg-green-600
                 text-lg
-                font-medium
+                font-bold
                 leading-none
-                text-green-700
+                text-white
                 transition
-                hover:bg-green-100
+                hover:bg-green-700
               "
             >
               +

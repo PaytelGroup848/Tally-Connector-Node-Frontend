@@ -773,8 +773,14 @@
 ============================================================ */
 
 @media (max-width: 767px) {
+  *{
+    button,a{
+      cursor:pointer
+    }
+  }
   .cloud-page-title {
     @apply text-[22px];
+  
   }
 
   .cloud-table {
@@ -818,6 +824,11 @@
 ============================================================ */
 
 @media (max-width: 480px) {
+  *{
+    button,a{
+      cursor:pointer
+    }
+  }
   .app-header [class*="w-[230px]"] {
     max-width: 175px;
   }

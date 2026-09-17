@@ -14,14 +14,15 @@ function StockSide({ title, rows, onAddRow, onRemoveRow, onRowChange }) {
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-[#f5f7f4]">
       <div className="flex items-center justify-between border-b border-slate-200 bg-[#f5f7f4] px-4 py-3 text-sm font-semibold text-slate-800">
         <span>{title}</span>
-        <button type="button" onClick={onAddRow} className="rounded-md bg-[#e7f7ea] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-green-700 transition hover:bg-[#d9f1df]">
+        <button type="button" onClick={onAddRow} className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300">
+          <span className="text-sm leading-none">+</span>
           Add Item
         </button>
       </div>
 
       <div className="overflow-x-auto">
         <div className="min-w-[780px]">
-          <div className="grid grid-cols-[minmax(180px,1.6fr)_minmax(70px,0.55fr)_minmax(80px,0.6fr)_minmax(110px,0.8fr)_minmax(120px,0.9fr)_minmax(100px,0.7fr)_48px] gap-2 bg-slate-100 p-2 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+          <div className="grid grid-cols-[minmax(150px,1.3fr)_minmax(70px,0.55fr)_minmax(80px,0.6fr)_minmax(110px,0.8fr)_minmax(120px,0.9fr)_minmax(100px,0.7fr)_48px] gap-2 bg-slate-100 p-2 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
             <b>Items</b>
             <b>Qty</b>
             <b>Rate</b>
@@ -37,12 +38,12 @@ function StockSide({ title, rows, onAddRow, onRemoveRow, onRowChange }) {
             const amount = qty * rate
 
             return (
-              <div key={row.id} className="grid min-w-[780px] grid-cols-[minmax(180px,1.6fr)_minmax(70px,0.55fr)_minmax(80px,0.6fr)_minmax(110px,0.8fr)_minmax(120px,0.9fr)_minmax(100px,0.7fr)_48px] gap-2 border-t border-slate-200 bg-white p-2">
+              <div key={row.id} className="grid min-w-[780px] grid-cols-[minmax(150px,1.3fr)_minmax(70px,0.55fr)_minmax(80px,0.6fr)_minmax(110px,0.8fr)_minmax(120px,0.9fr)_minmax(100px,0.7fr)_48px] gap-2 border-t border-slate-200 bg-white p-2">
                 <input
                   value={row.item}
                   onChange={(event) => onRowChange(row.id, 'item', event.target.value)}
                   className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                  placeholder="Search Item"
+                  placeholder="Search item"
                 />
                 <input
                   type="number"
@@ -97,9 +98,6 @@ function StockSide({ title, rows, onAddRow, onRemoveRow, onRowChange }) {
         </div>
       </div>
 
-      <button type="button" className="w-full border-t border-slate-200 bg-transparent px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-sky-600 transition hover:bg-slate-100">
-        Add Godown/Batches
-      </button>
     </div>
   )
 }
@@ -153,10 +151,7 @@ function StockJournalPage() {
           <div className="grid gap-3 md:grid-cols-3">
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Voucher Type</span>
-              <select value={voucherType} onChange={(event) => setVoucherType(event.target.value)} className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100">
-                <option>Stock Journal</option>
-                <option>Stock Transfer</option>
-              </select>
+              <input value={voucherType} readOnly className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none" />
             </label>
 
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
@@ -168,7 +163,7 @@ function StockJournalPage() {
               <span>Date</span>
               <div className="relative">
                 <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">🗓</span>
+                
               </div>
             </label>
           </div>

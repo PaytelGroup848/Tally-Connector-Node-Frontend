@@ -490,22 +490,12 @@ function ReceiptPage({
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Voucher Type</span>
 
-              <SearchableDropdown
+              <input
                 name="voucherType"
-                label="voucher types"
-                options={voucherTypes}
-                placeholder="Select Voucher Type"
-                value={voucherType}
-                onSelect={setVoucherType}
-                onClear={() => setVoucherType('')}
-                disabled={voucherTypesLoading}
+                value={documentType}
+                readOnly
+                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
               />
-
-              {voucherTypesError && (
-                <span className="text-[11px] font-normal text-amber-600">
-                  {voucherTypesError}
-                </span>
-              )}
             </label>
 
             {/* Voucher Number */}

@@ -1,4 +1,53 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { SearchableDropdown } from './DocumentVoucherPage'
+import useAuthStore from '../store/authStore'
+import {
+  extractGodowns,
+  extractLedgers,
+  extractStockItems,
+  extractVouchers,
+  fetchCompanyGodowns,
+  fetchCompanyLedgers,
+  fetchCompanyStock,
+  fetchCompanyVouchers,
+  postCompanyCommand,
+} from '../services/companiesApi'
+import { extractCustomers, fetchCustomers } from '../services/customersApi'
+
+const getDisplayValue = (entry, keys) => {
+  if (typeof entry === 'string') return entry
+  for (const key of keys) {
+    if (entry?.[key] !== undefined && entry?.[key] !== null) {
+      const value = String(entry[key]).trim()
+      if (value) return value
+    }
+  }
+  return ''
+}
+
+const getStockField = (entry, keys) => {
+  const candidates = [entry, entry?.data, entry?.payload, entry?.item]
+  const normalizedKeys = keys.map((key) => key.toLowerCase().replace(/[^a-z0-9]/g, ''))
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== 'object') continue
+    const matchingKey = Object.keys(candidate).find((key) => normalizedKeys.includes(key.toLowerCase().replace(/[^a-z0-9]/g, '')))
+    if (matchingKey && candidate[matchingKey] !== null && candidate[matchingKey] !== undefined) return String(candidate[matchingKey]).trim()
+  }
+  return ''
+}
+
+const createItemRow = (id) => ({
+  id,
+  item: '',
+  quantity: '0',
+  rate: '0',
+  units: '',
+  discount: '0',
+  hsnCode: '',
+  godown: '',
+  description: '',
+  taxInclusive: false,
+})
 
 // ============================================================
 // REUSABLE FIELD
@@ -8,10 +57,12 @@ function Field({
   label,
   placeholder,
   value,
+  type = 'text',
   readOnly = false,
   search = false,
   icon = null,
   className = '',
+  onChange,
 }) {
   return (
     <label className={`relative block min-w-0 ${className}`}>
@@ -21,8 +72,10 @@ function Field({
 
       <div className="relative">
         <input
+          type={type}
           defaultValue={value}
           readOnly={readOnly}
+          onChange={onChange}
           placeholder={placeholder}
           className="
             h-[39px]
@@ -32,7 +85,7 @@ function Field({
             border-[#cbd5df]
             bg-white
             px-3
-            pr-9
+            ${type === 'date' ? 'pr-10' : 'pr-9'}
             text-[13px]
             text-[#172033]
             outline-none
@@ -49,11 +102,7 @@ function Field({
           </span>
         )}
 
-        {icon && (
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[15px] text-[#111827]">
-            {icon}
-          </span>
-        )}
+       
       </div>
     </label>
   )
@@ -68,12 +117,14 @@ function TableInput({
   value,
   readOnly = false,
   search = false,
+  onChange,
 }) {
   return (
     <div className="relative w-full">
       <input
         defaultValue={value}
         readOnly={readOnly}
+        onChange={onChange}
         placeholder={placeholder}
         className="
           h-[31px]
@@ -105,19 +156,12 @@ function TableInput({
 // ITEMS TABLE
 // ============================================================
 
-function ItemsTable() {
-  const [rows, setRows] = useState([
-    {
-      id: 1,
-    },
-  ])
+function ItemsTable({ rows, setRows, stockItems, itemOptions, godownOptions, optionsLoading }) {
 
   const addRow = () => {
     setRows((current) => [
       ...current,
-      {
-        id: Date.now(),
-      },
+      createItemRow(Date.now()),
     ])
   }
 
@@ -126,6 +170,26 @@ function ItemsTable() {
       current.filter((row) => row.id !== id)
     )
   }
+
+  const updateRow = (id, field, value) => {
+    setRows((current) => current.map((row) => (
+      row.id === id ? { ...row, [field]: value } : row
+    )))
+  }
+
+  const selectItem = (rowId, itemName) => {
+    const matchingItem = stockItems.find((item) => getStockField(item, ['itemName', 'item_name', 'stockName', 'stock_name', 'stockItemName', 'stock_item_name', 'item', 'name', 'displayName']).toLowerCase() === itemName.toLowerCase())
+    setRows((current) => current.map((row) => row.id === rowId ? {
+      ...row,
+      item: itemName,
+      rate: getStockField(matchingItem, ['rate', 'salesRate', 'sellingRate', 'price', 'mrp', 'avgPurRate', 'purchaseRate']),
+      units: getStockField(matchingItem, ['units', 'unit', 'unitName', 'unit_name', 'uom', 'stockUnit', 'stock_unit', 'itemUnit', 'item_unit', 'measure']),
+      hsnCode: getStockField(matchingItem, ['hsnCode', 'hsn_code', 'hsn', 'hsnCodeValue', 'hsn_code_value', 'itemHsn', 'item_hsn']),
+    } : row))
+  }
+
+  const amountFor = (row) =>
+    (Number(row.quantity) || 0) * (Number(row.rate) || 0) * (1 - (Number(row.discount) || 0) / 100)
 
   return (
     <div className="relative w-full overflow-x-auto">
@@ -190,13 +254,13 @@ function ItemsTable() {
                 w-[20px]
                 items-center
                 justify-center
-                rounded-[3px]
-                bg-[#565656]
+                rounded-md
+                bg-green-600
                 text-[17px]
                 font-bold
                 leading-none
                 text-white
-                hover:bg-[#333]
+                hover:bg-green-700
               "
             >
               +
@@ -221,35 +285,27 @@ function ItemsTable() {
             {/* ITEM */}
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
-              <TableInput
-                placeholder="Search Item"
-                search
-              />
+              <SearchableDropdown name={`deliveryNoteItem-${row.id}`} label="items" options={itemOptions} loading={optionsLoading} value={row.item} onSelect={(value) => selectItem(row.id, value)} onClear={() => updateRow(row.id, 'item', '')} placeholder="Search Item" />
             </div>
 
             {/* QTY */}
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
-              <TableInput
-                value="0"
-                readOnly
-              />
+              <TableInput value={row.quantity} onChange={(event) => updateRow(row.id, 'quantity', event.target.value)} />
             </div>
 
             {/* RATE */}
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
-              <TableInput
-                value="0"
-                readOnly
-              />
+              <TableInput value={row.rate} onChange={(event) => updateRow(row.id, 'rate', event.target.value)} />
             </div>
 
             {/* UNITS */}
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
               <select
-                defaultValue=""
+                value={row.units}
+                onChange={(event) => updateRow(row.id, 'units', event.target.value)}
                 className="
                   h-[31px]
                   w-full
@@ -273,45 +329,31 @@ function ItemsTable() {
             {/* DISC */}
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
-              <TableInput
-                value="0"
-                readOnly
-              />
+              <TableInput value={row.discount} onChange={(event) => updateRow(row.id, 'discount', event.target.value)} />
             </div>
 
             {/* HSN */}
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
-              <TableInput
-                placeholder=""
-                search
-              />
+              <TableInput value={row.hsnCode} onChange={(event) => updateRow(row.id, 'hsnCode', event.target.value)} placeholder="" search />
             </div>
 
             {/* GODOWN */}
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
-              <TableInput
-                placeholder="Search Godown"
-                search
-              />
+              <SearchableDropdown name={`deliveryNoteGodown-${row.id}`} label="godowns" options={godownOptions} loading={optionsLoading} value={row.godown} onSelect={(value) => updateRow(row.id, 'godown', value)} onClear={() => updateRow(row.id, 'godown', '')} placeholder="Search Godown" />
             </div>
 
             {/* DESCRIPTION */}
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
-              <TableInput
-                placeholder="Enter Notes"
-              />
+              <TableInput value={row.description} onChange={(event) => updateRow(row.id, 'description', event.target.value)} placeholder="Enter Notes" />
             </div>
 
             {/* AMOUNT */}
 
             <div className="flex items-center border-r border-[#d4dbe2] p-2">
-              <TableInput
-                value="0"
-                readOnly
-              />
+              <TableInput value={amountFor(row).toFixed(2)} readOnly />
             </div>
 
             {/* TAX */}
@@ -319,6 +361,8 @@ function ItemsTable() {
             <div className="flex items-center justify-center border-r border-[#d4dbe2]">
               <input
                 type="checkbox"
+                checked={row.taxInclusive}
+                onChange={(event) => updateRow(row.id, 'taxInclusive', event.target.checked)}
                 className="h-[14px] w-[14px]"
               />
             </div>
@@ -506,10 +550,11 @@ function AdvancedContent({ activeTab }) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 
-      <Field
+          <Field
         label="Date"
         placeholder="Order Date"
         icon="▣"
+            type="date"
       />
 
       <Field
@@ -561,7 +606,8 @@ function AdvancedContent({ activeTab }) {
 // DELIVERY NOTE PAGE
 // ============================================================
 
-function DeliveryNotePage() {
+function DeliveryNotePage({ companyId }) {
+  const [rows, setRows] = useState([createItemRow(1)])
   const [activeTab, setActiveTab] =
     useState("Supplier's Details")
 
@@ -570,9 +616,118 @@ function DeliveryNotePage() {
 
   const [narrationOpen, setNarrationOpen] =
     useState(false)
+  const [partyName, setPartyName] = useState('')
+  const [ledgerType, setLedgerType] = useState('')
+  const [voucherNumber, setVoucherNumber] = useState('1')
+  const [voucherDate, setVoucherDate] = useState('2026-08-27')
+  const [orderType, setOrderType] = useState('')
+  const [orderNumber, setOrderNumber] = useState('')
+  const [orderDate, setOrderDate] = useState('')
+  const [narration, setNarration] = useState('')
+  const [stockItems, setStockItems] = useState([])
+  const [godowns, setGodowns] = useState([])
+  const [customers, setCustomers] = useState([])
+  const [ledgers, setLedgers] = useState([])
+  const [vouchers, setVouchers] = useState([])
+  const [optionsLoading, setOptionsLoading] = useState(false)
+  const [optionsError, setOptionsError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [message, setMessage] = useState('')
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const messageTimerRef = useRef(null)
+
+  useEffect(() => () => {
+    if (messageTimerRef.current) window.clearTimeout(messageTimerRef.current)
+  }, [])
+
+  useEffect(() => {
+    if (!companyId || !accessToken) return undefined
+
+    let mounted = true
+    setOptionsLoading(true)
+    setOptionsError('')
+    Promise.allSettled([
+      fetchCustomers({ companyId, accessToken, page: 1, limit: 100 }),
+      fetchCompanyStock(accessToken, companyId, { page: 1, limit: 100 }),
+      fetchCompanyVouchers(accessToken, companyId, { page: 1, limit: 100 }),
+      fetchCompanyGodowns(accessToken, companyId, { page: 1, limit: 100 }),
+      fetchCompanyLedgers(accessToken, companyId, { page: 1, limit: 100 }),
+    ])
+      .then(([customersResult, stockResult, vouchersResult, godownsResult, ledgersResult]) => {
+        if (!mounted) return
+        if (customersResult.status === 'fulfilled') setCustomers(extractCustomers(customersResult.value))
+        if (stockResult.status === 'fulfilled') setStockItems(extractStockItems(stockResult.value))
+        if (vouchersResult.status === 'fulfilled') setVouchers(extractVouchers(vouchersResult.value))
+        if (godownsResult.status === 'fulfilled') setGodowns(extractGodowns(godownsResult.value))
+        if (ledgersResult.status === 'fulfilled') setLedgers(extractLedgers(ledgersResult.value))
+        const failed = [customersResult, stockResult, vouchersResult, godownsResult, ledgersResult].find((result) => result.status === 'rejected')
+        if (failed) setOptionsError(failed.reason?.message || 'Unable to load voucher options.')
+      })
+      .finally(() => {
+        if (mounted) setOptionsLoading(false)
+      })
+    return () => { mounted = false }
+  }, [accessToken, companyId])
+
+  const itemOptions = stockItems.map((item) => getDisplayValue(item, ['itemName', 'item_name', 'stockName', 'stock_name', 'item', 'name', 'displayName'])).filter((value, index, values) => value && values.indexOf(value) === index)
+  const godownOptions = godowns.map((item) => getDisplayValue(item, ['godownName', 'godown_name', 'name', 'warehouse', 'location', 'displayName'])).filter((value, index, values) => value && values.indexOf(value) === index)
+  const partyOptions = customers.map((item) => getDisplayValue(item, ['name', 'customerName', 'partyName', 'ledgerName', 'displayName'])).filter((value, index, values) => value && values.indexOf(value) === index)
+  const ledgerOptions = ledgers.map((item) => getDisplayValue(item, ['ledgerName', 'name', 'displayName', 'partyName'])).filter((value, index, values) => value && values.indexOf(value) === index)
+  const voucherPartyOptions = vouchers.map((item) => getDisplayValue(item, ['partyLedger', 'partyName', 'ledgerName', 'party', 'customerName'])).filter((value, index, values) => value && values.indexOf(value) === index)
+
+  const createVoucher = async () => {
+    if (!companyId || !accessToken) {
+      setOptionsError('Select a company and sign in before creating a voucher.')
+      return
+    }
+    setIsSubmitting(true)
+    setOptionsError('')
+    try {
+      await postCompanyCommand(accessToken, companyId, {
+        type: 'CREATE_VOUCHER',
+        payload: {
+          voucherType: 'Delivery Note',
+          partyLedger: partyName,
+          ledgerType,
+          date: voucherDate,
+          voucherNumber,
+          orderType,
+          orderNumber,
+          orderDate,
+          items: rows.map((row) => ({
+            itemName: row.item,
+            quantity: Number(row.quantity) || 0,
+            rate: Number(row.rate) || 0,
+            units: row.units,
+            discount: Number(row.discount) || 0,
+            hsnCode: row.hsnCode,
+            godown: row.godown,
+            description: row.description,
+            amount: (Number(row.quantity) || 0) * (Number(row.rate) || 0),
+            taxInclusive: row.taxInclusive,
+          })),
+          narration,
+        },
+      })
+      setMessage('Delivery Note Voucher created successfully.')
+      messageTimerRef.current = window.setTimeout(() => setMessage(''), 3000)
+    } catch (error) {
+      setOptionsError(error?.message || 'Unable to create Delivery Note Voucher.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
-    <div className="min-h-screen w-full bg-[#eef3f8] text-slate-900">
+    <div className="voucher-page-animate relative min-h-screen w-full bg-[#eef3f8] text-slate-900">
+      {(optionsLoading || isSubmitting) && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
+          <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#1a1f24]" aria-hidden="true" />
+            <span className="mt-3 text-sm font-semibold text-slate-700">{optionsLoading ? 'Loading ...' : 'Creating voucher...'}</span>
+          </div>
+        </div>
+      )}
 
       {/* ================================================== */}
       {/* HEADER */}
@@ -600,29 +755,31 @@ function DeliveryNotePage() {
 
           <Field
             label="Voucher Type"
-            placeholder="DELIVERY CHALLAN"
-            value="DELIVERY CHALLAN"
+            placeholder="Delivery Note"
+            value="Delivery Note"
             readOnly
             search
             className="xl:col-span-2"
           />
 
-          <Field
-            label="Party Name"
-            placeholder="Select Party"
-            search
-            className="xl:col-span-2"
-          />
+          <label className="relative block min-w-0 xl:col-span-2">
+            <span className="absolute -top-[7px] left-3 z-10 bg-[#eef3f8] px-1.5 text-[12px] leading-none text-[#1e3a5f]">Party Name</span>
+            <SearchableDropdown name="deliveryNoteParty" label="parties" options={[...new Set([...partyOptions, ...voucherPartyOptions])]} loading={optionsLoading} value={partyName} onSelect={setPartyName} onClear={() => setPartyName('')} placeholder="Select Party" />
+          </label>
 
           <Field
             label="Order Type"
             placeholder="Select ref"
             search
+            value={orderType}
+            onChange={(event) => setOrderType(event.target.value)}
           />
 
           <Field
             label="Order Number"
             placeholder="Order Number"
+            value={orderNumber}
+            onChange={(event) => setOrderNumber(event.target.value)}
           />
 
           {/* ROW 2 */}
@@ -630,8 +787,8 @@ function DeliveryNotePage() {
           <Field
             label="Voucher No"
             placeholder="1"
-            value="1"
-            readOnly
+            value={voucherNumber}
+            onChange={(event) => setVoucherNumber(event.target.value)}
             icon="✎"
             className="xl:col-span-2"
           />
@@ -639,9 +796,10 @@ function DeliveryNotePage() {
           <Field
             label="Date"
             placeholder="31 Aug 2026"
-            value="31 Aug 2026"
-            readOnly
+            value={voucherDate}
+            onChange={(event) => setVoucherDate(event.target.value)}
             icon="▣"
+            type="date"
             className="xl:col-span-2"
           />
 
@@ -649,13 +807,15 @@ function DeliveryNotePage() {
             label="Order Date"
             placeholder="Order Date"
             icon="▣"
+            type="date"
+            value={orderDate}
+            onChange={(event) => setOrderDate(event.target.value)}
           />
 
-          <Field
-            label="Ledger Type"
-            placeholder="Select Ledger"
-            search
-          />
+          <label className="relative block min-w-0">
+            <span className="absolute -top-[7px] left-3 z-10 bg-[#eef3f8] px-1.5 text-[12px] leading-none text-[#1e3a5f]">Ledger Type</span>
+            <SearchableDropdown name="deliveryNoteLedger" label="ledgers" options={ledgerOptions} loading={optionsLoading} value={ledgerType} onSelect={setLedgerType} onClear={() => setLedgerType('')} placeholder="Select Ledger" />
+          </label>
 
         </div>
 
@@ -664,7 +824,7 @@ function DeliveryNotePage() {
         {/* ================================================= */}
 
         <div className="mt-4">
-          <ItemsTable />
+          <ItemsTable rows={rows} setRows={setRows} stockItems={stockItems} itemOptions={itemOptions} godownOptions={godownOptions} optionsLoading={optionsLoading} />
         </div>
 
         {/* ================================================= */}
@@ -711,6 +871,8 @@ function DeliveryNotePage() {
                 <div className="border-t border-slate-100 p-4">
 
                   <textarea
+                    value={narration}
+                    onChange={(event) => setNarration(event.target.value)}
                     className="
                       h-[65px]
                       w-full
@@ -871,6 +1033,8 @@ function DeliveryNotePage() {
 
       </div>
 
+      {optionsError && <p className="px-4 py-2 text-xs text-red-600">{optionsError}</p>}
+
       {/* ================================================== */}
       {/* FOOTER */}
       {/* ================================================== */}
@@ -879,6 +1043,8 @@ function DeliveryNotePage() {
 
         <button
           type="button"
+          onClick={createVoucher}
+          disabled={isSubmitting}
           className="
             rounded-[4px]
             bg-[#171717]
@@ -893,10 +1059,12 @@ function DeliveryNotePage() {
             active:scale-[0.98]
           "
         >
-          Create Voucher
+          {isSubmitting ? 'Creating...' : 'Create Voucher'}
         </button>
 
       </div>
+
+      {message && <div className="fixed bottom-5 right-5 z-50 rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white shadow-lg">{message}</div>}
 
     </div>
   )

@@ -270,6 +270,34 @@ export function fetchCompanyGodowns(accessToken, companyId, { page = 1, limit = 
   return request(`/companies/${encodeURIComponent(companyId)}/godowns?${params.toString()}`, accessToken)
 }
 
+export function fetchCompanyBatches(accessToken, companyId, { page = 1, limit = 100, q = '' } = {}) {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+  if (q.trim()) params.set('q', q.trim())
+  return request(`/companies/${encodeURIComponent(companyId)}/batches?${params.toString()}`, accessToken)
+}
+
+export function extractBatches(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const batchKeys = ['batches', 'batch', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of batchKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
 export function extractCompany(response) {
   return response?.data?.company || response?.company || response?.data || response
 }
