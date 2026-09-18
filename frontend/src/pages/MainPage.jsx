@@ -75,8 +75,8 @@ function App() {
   const [selectedCompany, setSelectedCompany] = useState(() => {
     const storedCompanyId = typeof window !== 'undefined' ? window.localStorage.getItem(selectedCompanyStorageKey) : null
     return storedCompanyId ? { id: storedCompanyId } : {
-      name: 'Paytel Financial Services Pvt Ltd 22-23',
-      meta: 'Synced a day ago',
+      name: '',
+      meta: '',
       isCurrent: true,
     }
   })
@@ -86,8 +86,8 @@ function App() {
   const [connectorStatusError, setConnectorStatusError] = useState('')
   const [isConnectorStatusLoading, setIsConnectorStatusLoading] = useState(false)
   const [companyOptions, setCompanyOptions] = useState([
-    { name: 'Paytel Financial Services Pvt Ltd 22-23', meta: 'Synced a day ago', isCurrent: true },
-    { name: 'PayTel Financial Technologies Pvt. Ltd.', meta: '(Delhi)', isCurrent: false },
+    { name: '', meta: '', isCurrent: true },
+    { name: '', meta: '', isCurrent: false },
   ])
   const [expandedNav, setExpandedNav] = useState({})
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -278,7 +278,7 @@ function App() {
   const entryPath = flags.normalizedPath
 
   const handleCompanyAdd = () => {
-    const candidate = { name: 'PayTel Financial Technologies Pvt. Ltd.', meta: '(Delhi)', isCurrent: true }
+    const candidate = { name: '', meta: '', isCurrent: true }
     setCompanyOptions((current) => {
       const next = current.map((company) => ({ ...company, isCurrent: false }))
       const alreadyExists = next.some((company) => company.name === candidate.name)

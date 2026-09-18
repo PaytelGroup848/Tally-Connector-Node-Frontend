@@ -587,8 +587,9 @@ const CheckoutPage = ({
   return (
     <div
       className="
-        h-screen
-        overflow-hidden
+        h-auto
+        min-h-screen
+        overflow-y-auto
         bg-gradient-to-br
         from-[#F0FDF4]
         via-[#F7FAF8]
@@ -598,6 +599,8 @@ const CheckoutPage = ({
         sm:px-4
         sm:py-3
         lg:px-6
+        lg:h-screen
+        lg:overflow-hidden
       "
     >
       <div
@@ -608,6 +611,7 @@ const CheckoutPage = ({
           w-full
           max-w-6xl
           flex-col
+          lg:h-full
         "
       >
         {/* =================================================
@@ -662,11 +666,12 @@ const CheckoutPage = ({
           className="
             grid
             min-h-0
-            flex-1
+            flex-none
             grid-cols-1
             gap-3
             lg:grid-cols-[1.12fr_0.88fr]
             lg:gap-4
+            lg:flex-1
           "
         >
           {/* =================================================
@@ -678,7 +683,7 @@ const CheckoutPage = ({
               flex
               min-h-0
               flex-col
-              overflow-hidden
+              overflow-visible
               rounded-2xl
               border
               border-slate-200
@@ -727,7 +732,7 @@ const CheckoutPage = ({
                 min-h-0
                 flex-1
                 flex-col
-                overflow-hidden
+                overflow-visible
                 px-4
                 pb-3
                 sm:px-5
@@ -1138,7 +1143,7 @@ const CheckoutPage = ({
                   min-h-0
                   flex-1
                   flex-col
-                  overflow-hidden
+                  overflow-visible
                   rounded-xl
                   border
                   border-slate-200

@@ -1,7 +1,7 @@
 function AddUserPage() {
   const companyOptions = [
-    'Paytel Financial Services Pvt Ltd 22-23',
-    'PayTel Financial Technologies Pvt. Ltd.',
+    '',
+    '',
   ]
 
   return (
