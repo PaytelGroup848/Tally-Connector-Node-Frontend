@@ -507,6 +507,7 @@ function ReceiptPage({
                 type="number"
                 min="0"
                 step="1"
+                required
                 onChange={(event) =>
                   updateField(
                     'voucherNumber',
@@ -550,6 +551,7 @@ function ReceiptPage({
                 <input
                   type="date"
                   value={form.date}
+                  required
                   onChange={(event) =>
                     updateField(
                       'date',
@@ -634,6 +636,7 @@ function ReceiptPage({
                 min="0"
                 step="0.01"
                 value={form.amount}
+                required
                 onChange={(event) =>
                   updateField(
                     'amount',
@@ -657,6 +660,7 @@ function ReceiptPage({
                 <div className="relative p-3">
                   <textarea
                     value={form.narration}
+                    required
                     onChange={(event) =>
                       updateField(
                         'narration',

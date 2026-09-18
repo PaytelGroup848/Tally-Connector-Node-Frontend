@@ -115,7 +115,7 @@ function formatValue(value, key = '') {
   return String(value)
 }
 
-function getColumns(rows) {
+function getColumns(rows, { includeType = false } = {}) {
   const columns = []
   const seen = new Set()
 
@@ -127,7 +127,7 @@ function getColumns(rows) {
         normalizedKey.endsWith('id') ||
         normalizedKey.endsWith('guid') ||
           normalizedKey === 'vouchernumber' ||
-          normalizedKey === 'type' ||
+          (!includeType && normalizedKey === 'type') ||
           normalizedKey === 'vouchertype' ||
           normalizedKey === 'completedat'
 
@@ -146,13 +146,96 @@ function getDetailTableColumns(value) {
     return []
   }
 
-  return getColumns(value)
+  return getColumns(value, { includeType: true })
+}
+
+function getCommandPayload(command) {
+  return (
+    command?.payload ||
+    command?.data?.payload ||
+    command?.command?.payload ||
+    command?.data ||
+    command ||
+    {}
+  )
+}
+
+function getJournalParticulars(command) {
+  const payload = getCommandPayload(command)
+  const particulars = payload?.particulars || command?.particulars
+
+  if (Array.isArray(particulars)) return particulars
+
+  if (particulars && typeof particulars === 'object') {
+    return Object.entries(particulars).flatMap(([type, entries]) => {
+      const rows = Array.isArray(entries) ? entries : [entries]
+      return rows.map((entry) => ({
+        ...(entry && typeof entry === 'object' ? entry : { partyName: entry }),
+        type: entry?.type || type,
+      }))
+    })
+  }
+
+  return []
+}
+
+function isParticularRows(value) {
+  return Array.isArray(value) && value.length > 0 && value.some((row) => {
+    const type = String(row?.type || '').toLowerCase()
+    return type === 'debit' || type === 'credit'
+  })
+}
+
+function JournalParticularTables({ value }) {
+  return (
+    <div className="space-y-4">
+      {['Debit', 'Credit'].map((type) => {
+        const rows = value.filter(
+          (row) => String(row?.type || '').toLowerCase() === type.toLowerCase(),
+        )
+
+        return (
+          <section key={type} className="overflow-hidden rounded-lg border border-[#dfe7f0]">
+            <div className={`px-3 py-2 text-[11px] font-semibold uppercase tracking-wide ${type === 'Debit' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>
+              {type} Particulars
+            </div>
+            {rows.length > 0 ? (
+              <table className="w-full border-collapse text-[12px] text-[#17355f]">
+                <thead className="bg-[#f1f5f9] text-left text-[10px] font-semibold uppercase tracking-wide text-[#52657d]">
+                  <tr>
+                    <th className="border-b border-r border-[#dfe7f0] px-3 py-2.5">Party Name</th>
+                    <th className="border-b border-[#dfe7f0] px-3 py-2.5">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row, index) => (
+                    <tr key={`${type}-${index}`} className="odd:bg-white even:bg-[#fbfdff]">
+                      <td className="border-b border-r border-[#dfe7f0] px-3 py-2.5">{formatValue(row?.partyName, 'partyName')}</td>
+                      <td className="border-b border-[#dfe7f0] px-3 py-2.5">{formatValue(row?.amount, 'amount')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="px-3 py-2.5 text-xs text-slate-500">No {type.toLowerCase()} particulars.</p>
+            )}
+          </section>
+        )
+      })}
+    </div>
+  )
+}
+
+function getJournalValue(command, key) {
+  const payload = getCommandPayload(command)
+  return payload?.[key] ?? command?.[key] ?? ''
 }
 
 function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', commandType = '' }) {
   const accessToken = useAuthStore((state) => state.accessToken)
   const isQuotationPage = voucherType === 'Quotation'
   const isReceiptOrPaymentPage = voucherType === 'Receipt' || voucherType === 'Payment'
+  const isJournalPage = voucherType === 'Journal'
   const isSimpleCommandPage = commandType === 'CREATE_PARTY' || commandType === 'CREATE_STOCK_ITEM'
   const commandVoucherTypes = new Set([
     'Quotation',
@@ -440,7 +523,9 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
               <button type="button" aria-label="Close details" onClick={closeDetail} className="flex h-9 w-9 items-center justify-center rounded-md border border-[#d9e2ed] text-lg leading-none text-slate-500 transition hover:bg-slate-50">x</button>
             </div>
             <div className="min-h-0 overflow-auto p-4">
-              {getDetailTableColumns(detail.value).length > 0 ? (
+              {isParticularRows(detail.value) ? (
+                <JournalParticularTables value={detail.value} />
+              ) : getDetailTableColumns(detail.value).length > 0 ? (
                 <div className="min-w-max overflow-x-auto border border-[#dfe7f0]">
                   <table className="w-full min-w-[900px] border-collapse text-[12px] text-[#17355f]">
                     <thead className="bg-[#f1f5f9] text-left text-[10px] font-semibold uppercase tracking-wide text-[#52657d]">

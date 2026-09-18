@@ -292,6 +292,7 @@ function PhysicalStockPage({ companyId }) {
 
               <input
                 value={voucherNumber}
+                required
                 onChange={(event) => setVoucherNumber(event.target.value)}
                 className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
               />
@@ -306,6 +307,7 @@ function PhysicalStockPage({ companyId }) {
                 <input
                   type="date"
                   value={voucherDate}
+                  required
                   onChange={(event) => setVoucherDate(event.target.value)}
                   className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none"
                 />

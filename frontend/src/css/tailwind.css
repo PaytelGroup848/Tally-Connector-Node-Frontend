@@ -817,6 +817,15 @@
   .app-header [class*="w-[300px]"] {
     width: min(300px, calc(100vw - 16px));
   }
+
+  .app-header .connector-status-menu {
+    position: fixed;
+    top: 40px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    transform: none;
+  }
 }
 
 /* ============================================================

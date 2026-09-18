@@ -152,6 +152,7 @@ function Field({
           type={type}
           value={value ?? ''}
           readOnly={readOnly}
+          required={!readOnly}
           onChange={onChange}
           placeholder={placeholder}
           className="
@@ -193,6 +194,7 @@ function TableInput({
       <input
         value={value ?? ''}
         readOnly={readOnly}
+          required={!readOnly}
         onChange={onChange}
         placeholder={placeholder}
         className="
@@ -1193,6 +1195,23 @@ function ReceiptNotePage({ companyId }) {
       setOptionsError(
         'Select a company and sign in before creating a voucher.'
       )
+      return
+    }
+
+    if (!partyName.trim() || !ledgerType.trim() || !orderType.trim() || !orderNumber.trim() || !orderDate || !voucherNumber.trim() || !voucherDate || !narration.trim()) {
+      setOptionsError('Complete all receipt note fields before creating the voucher.')
+      return
+    }
+
+    const invalidRow = rows.find((row) => {
+      const quantity = Number(row.quantity)
+      const rate = Number(row.rate)
+      const discount = Number(row.discount)
+      return !row.item.trim() || !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(rate) || rate < 0 || !row.units.trim() || !Number.isFinite(discount) || discount < 0 || discount > 100 || !row.hsnCode.trim() || !row.godown.trim() || !row.description.trim()
+    })
+
+    if (invalidRow) {
+      setOptionsError('Complete every receipt note item with all required values.')
       return
     }
 
