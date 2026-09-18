@@ -314,7 +314,7 @@ function App() {
     if (flags.showCompanyDetailsPage) return <MyCompanyDetailsPage />
     if (currentPath === '/profile') return <ProfilePage />
     if (flags.showPlansPage) return <PlansPage />
-    if (flags.showDashboard) return <DashboardPage activeTab={activeTab} setActiveTab={setActiveTab} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} dayBookDate={dayBookDate} setDayBookDate={setDayBookDate} openCustomDatePicker={openCustomDatePicker} customDateInput={customDateInput} onMetricClick={(label) => {
+    if (flags.showDashboard) return <DashboardPage companyId={getCompanyId(selectedCompany)} activeTab={activeTab} setActiveTab={setActiveTab} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} dayBookDate={dayBookDate} setDayBookDate={setDayBookDate} openCustomDatePicker={openCustomDatePicker} customDateInput={customDateInput} onMetricClick={(label) => {
       const routes = {
         CASH: '/cash-bank/cash',
         BANK: '/cash-bank/bank',

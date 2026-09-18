@@ -163,6 +163,22 @@ export function fetchCompanyById(accessToken, companyId) {
   return request(`/companies/${encodeURIComponent(companyId)}`, accessToken)
 }
 
+export function fetchCompanyDashboard(
+  accessToken,
+  companyId,
+  { from = '', to = '' } = {},
+) {
+  const params = new URLSearchParams({
+    from: String(from),
+    to: String(to),
+  })
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/dashboard?${params}`,
+    accessToken,
+  )
+}
+
 export function fetchCompanyCash(
   accessToken,
   companyId,
