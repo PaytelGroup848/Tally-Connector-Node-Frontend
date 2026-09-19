@@ -871,8 +871,8 @@ function DashboardPage({
               </button>
             }
           >
-            <div className="min-h-[280px] overflow-hidden">
-              <table className="cloud-table table-fixed">
+            <div className="min-h-[280px] overflow-x-auto">
+              <table className="cloud-table table-fixed min-w-[640px]">
                 <colgroup>
                   <col className="w-[7%]" />
                   <col className="w-[31%]" />
@@ -930,8 +930,8 @@ function DashboardPage({
               </button>
             }
           >
-            <div className="min-h-[280px] overflow-hidden">
-              <table className="cloud-table table-fixed">
+            <div className="min-h-[280px] overflow-x-auto">
+              <table className="cloud-table table-fixed min-w-[620px]">
                 <colgroup>
                   <col className="w-[19%]" />
                   <col className="w-[31%]" />
