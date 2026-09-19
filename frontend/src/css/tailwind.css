@@ -364,6 +364,14 @@
     display: none;
   }
 
+  .dashboard-table-scroll {
+    scrollbar-width: none;
+  }
+
+  .dashboard-table-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
   /* ==========================================================
      STATUS
   ========================================================== */

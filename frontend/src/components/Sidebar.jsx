@@ -1,5 +1,5 @@
 import { X } from 'lucide-react'
-import logo from '../assets/cloudedata.svg'
+import logo from '../assets/logo.png'
 import { navItems, submenuItems } from '../routes/navigation'
 
 function Arrow() {
@@ -98,11 +98,19 @@ function Sidebar({
           ${collapsed ? 'justify-center px-0' : ''}
         `}
       >
-        <img
-          className="h-auto max-h-[42px]  w-auto max-w-[158px] shrink-0 object-contain"
-          src={logo}
-          alt="Cloudedata"
-        />
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white p-1.5 shadow-lg shadow-black/20">
+          <img
+            className="h-full w-full object-contain"
+            src={logo}
+            alt="CtrlBooks logo"
+          />
+        </span>
+
+        {!collapsed && (
+          <span className="text-lg font-bold tracking-tight text-white">
+            Ctrl<span className="text-[#00d7ff]">Books</span>
+          </span>
+        )}
       </button>
 
       <nav className="sidebar-nav min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
