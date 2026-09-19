@@ -1,3 +1,7 @@
+import { useEffect, useState } from 'react'
+import useAuthStore from '../store/authStore'
+import { postCompanyCommand } from '../services/companiesApi'
+
 function getPageMeta(path = '') {
   const normalizedPath = path.toLowerCase()
 
@@ -19,10 +23,10 @@ function getPageMeta(path = '') {
       title: 'Add New Item',
       subtitle: 'Create a new stock item',
       fields: [
-        { label: 'Item Name', placeholder: 'Enter item name' },
-        { label: 'HSN Code', placeholder: 'Enter HSN code' },
-        { label: 'Unit', placeholder: 'e.g. Nos, Kg' },
-        { label: 'Opening Stock', placeholder: 'Enter stock quantity' },
+        { key: 'itemName', label: 'Item Name', placeholder: 'Enter item name' },
+        { key: 'hsnCode', label: 'HSN Code', placeholder: 'Enter HSN code' },
+        { key: 'unit', label: 'Unit', placeholder: 'e.g. Nos, Kg' },
+        { key: 'openingStock', label: 'Opening Stock', placeholder: 'Enter stock quantity' },
       ],
     }
   }
@@ -75,8 +79,62 @@ function getPageMeta(path = '') {
   }
 }
 
-function AddNewPage({ path }) {
+function AddNewPage({ path, companyId }) {
   const meta = getPageMeta(path)
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const isItemPage = path.toLowerCase().includes('/items/add-new')
+  const [formValues, setFormValues] = useState({})
+  const [isSaving, setIsSaving] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+
+  useEffect(() => {
+    setFormValues({})
+    setErrorMessage('')
+    setSuccessMessage('')
+  }, [path])
+
+  const updateField = (key, value) => {
+    setFormValues((current) => ({ ...current, [key]: value }))
+  }
+
+  const handleSubmit = async () => {
+    if (!isItemPage) return
+
+    const itemName = String(formValues.itemName || '').trim()
+    if (!itemName) {
+      setErrorMessage('Item name is required.')
+      return
+    }
+
+    if (!accessToken || !companyId) {
+      setErrorMessage('Please select a company before creating an item.')
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      setErrorMessage('')
+      setSuccessMessage('')
+
+      await postCompanyCommand(accessToken, companyId, {
+        type: 'CREATE_STOCK_ITEM',
+        payload: {
+          itemName,
+          hsnCode: String(formValues.hsnCode || '').trim(),
+          unit: String(formValues.unit || '').trim(),
+          openingStock: Number(formValues.openingStock) || 0,
+        },
+      })
+
+      setFormValues({})
+      setSuccessMessage('Item created successfully.')
+    } catch (error) {
+      setErrorMessage(error?.message || 'Unable to create item.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
@@ -99,6 +157,8 @@ function AddNewPage({ path }) {
               <label key={field.label} className="flex flex-col gap-2 text-sm font-medium text-slate-700">
                 {field.label}
                 <input
+                  value={formValues[field.key || field.label] || ''}
+                  onChange={(event) => updateField(field.key || field.label, event.target.value)}
                   type={field.label.toLowerCase().includes('date') ? 'date' : 'text'}
                   placeholder={field.placeholder}
                   className="h-11 rounded-md border border-slate-300 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition focus:border-slate-500 focus:bg-white"
@@ -111,10 +171,21 @@ function AddNewPage({ path }) {
             <button type="button" onClick={() => window.history.back()} className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700">
               Cancel
             </button>
-            <button type="button" className="rounded-md bg-[#1f2d3d] px-4 py-2 text-sm font-semibold text-white">
-              Save
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSaving || !isItemPage}
+              className="rounded-md bg-[#1f2d3d] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
           </div>
+
+          {(errorMessage || successMessage) && (
+            <p className={`mt-4 text-right text-sm ${errorMessage ? 'text-red-600' : 'text-emerald-600'}`}>
+              {errorMessage || successMessage}
+            </p>
+          )}
         </div>
       </div>
     </div>

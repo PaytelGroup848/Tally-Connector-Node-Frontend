@@ -90,6 +90,39 @@ const formatResponseDate = (value) => {
   return formatDisplayDate(value)
 }
 
+const toInputDate = (value) => {
+  const text = String(value || '')
+  if (!text) return ''
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
+  if (/^\d{4}-\d{2}-\d{2}T/.test(text)) return text.slice(0, 10)
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const getDefaultDashboardRange = () => {
+  const formatLocalDate = (date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const today = new Date()
+  const defaultStart = new Date(today)
+  defaultStart.setDate(defaultStart.getDate() - 30)
+
+  const toDate = formatLocalDate(today)
+  const fromDate = formatLocalDate(defaultStart)
+
+  return { fromDate, toDate }
+}
+
 const readField = (value, keys, fallback) => {
   if (!value || typeof value !== 'object') return fallback
 
@@ -114,6 +147,10 @@ const normalizeDashboardData = (response, fallbackRange) => {
   const root = response?.data && typeof response.data === 'object'
     ? response.data
     : response || {}
+  const responseRange = root.range || root.dateRange || {
+    from: root.from || root.startDate || root.start_date,
+    to: root.to || root.endDate || root.end_date,
+  }
   const receivables = root.receivables || root.receivable || {}
   const summary = root.summary || root.metrics || root
   const rawChart = readArray(root, [
@@ -151,7 +188,11 @@ const normalizeDashboardData = (response, fallbackRange) => {
     receiptsChange: formatPercent(readField(summary, ['totalReceipts']), '0%'),
     paymentsChange: formatPercent(readField(summary, ['totalPayments']), '0%'),
     cashBankChange: formatPercent(readField(summary, ['cashBankBalance']), '—'),
-    rangeLabel: formatDateRange(fallbackRange || root.range),
+    rangeLabel: formatDateRange(
+      responseRange?.from && responseRange?.to
+        ? responseRange
+        : fallbackRange,
+    ),
     hasChart: Array.isArray(root.chart) || rawChart.length > 0,
     hasDayBook: Array.isArray(root.dayBook) || rawDayBook.length > 0,
     totalOutstanding: formatAmount(
@@ -266,10 +307,12 @@ function DashboardPage({
   const [receivableProgress, setReceivableProgress] = useState(0)
   const accessToken = useAuthStore((state) => state.accessToken)
   const [dashboardData, setDashboardData] = useState(null)
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
-  const [draftFromDate, setDraftFromDate] = useState('')
-  const [draftToDate, setDraftToDate] = useState('')
+  const [dashboardRange, setDashboardRange] = useState(null)
+  const defaultDashboardRange = getDefaultDashboardRange()
+  const [fromDate, setFromDate] = useState(defaultDashboardRange.fromDate)
+  const [toDate, setToDate] = useState(defaultDashboardRange.toDate)
+  const [draftFromDate, setDraftFromDate] = useState(defaultDashboardRange.fromDate)
+  const [draftToDate, setDraftToDate] = useState(defaultDashboardRange.toDate)
   const [isDateFilterOpen, setIsDateFilterOpen] = useState(false)
   const dashboardRequestRef = useRef(0)
   const chartScrollRef = useRef(null)
@@ -378,6 +421,7 @@ function DashboardPage({
   useEffect(() => {
     if (!accessToken || !companyId || !fromDate || !toDate) {
       setDashboardData(null)
+      setDashboardRange(null)
       return undefined
     }
 
@@ -390,12 +434,30 @@ function DashboardPage({
     })
       .then((response) => {
         if (isMounted && requestId === dashboardRequestRef.current) {
-          setDashboardData(response?.data || response)
+          const responseData = response?.data || response
+          const responseRange = responseData?.range
+          const responseFrom = toInputDate(responseRange?.from)
+          const responseTo = toInputDate(responseRange?.to)
+
+          setDashboardData(responseData)
+          setDashboardRange(
+            responseFrom && responseTo
+              ? { from: responseFrom, to: responseTo }
+              : null,
+          )
+
+          if (responseFrom && responseTo) {
+            if (responseFrom !== fromDate) setFromDate(responseFrom)
+            if (responseTo !== toDate) setToDate(responseTo)
+            setDraftFromDate(responseFrom)
+            setDraftToDate(responseTo)
+          }
         }
       })
       .catch((error) => {
         if (isMounted && requestId === dashboardRequestRef.current) {
           setDashboardData(null)
+          setDashboardRange(null)
           console.warn('Dashboard API failed, using dashboard defaults:', error)
         }
       })
@@ -411,6 +473,7 @@ function DashboardPage({
 
     setFromDate(draftFromDate)
     setToDate(draftToDate)
+    setDashboardRange(null)
     setIsDateFilterOpen(false)
   }
 

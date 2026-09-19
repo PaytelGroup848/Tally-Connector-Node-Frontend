@@ -322,7 +322,7 @@ function App() {
       const target = routes[label]
       if (target) navigateTo(target)
     }} />
-    if (flags.showAddNewPage) return <AddNewPage path={currentPath} />
+    if (flags.showAddNewPage) return <AddNewPage path={currentPath} companyId={getCompanyId(selectedCompany)} />
     if (flags.showEwayPage || showEway) return <EwayPage />
     if (flags.showReportsPage) return <ReportsPage />
     if (flags.showCreateItemPage) return <CreateItemPage />

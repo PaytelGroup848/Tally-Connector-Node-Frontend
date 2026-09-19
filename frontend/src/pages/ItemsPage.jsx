@@ -271,48 +271,7 @@ function ItemsPage({ companyId }) {
 
       {/* Screenshot-style navigation bar */}
       <div className="w-full border-b border-slate-200 bg-white">
-        <div className="flex h-10 items-stretch overflow-x-auto">
-          {[
-            'Detailed Summary',
-            'Manage Reminders',
-            'SMS Credits',
-            'Customize Template',
-          ].map((item, index) => (
-            <button
-              key={item}
-              type="button"
-              className={`
-                relative flex h-10 shrink-0
-                items-center justify-center
-                whitespace-nowrap
-                px-[18px]
-                text-[13px]
-                transition-colors
-                ${
-                  index === 0
-                    ? `
-                      font-medium
-                      text-slate-900
-                      after:absolute
-                      after:bottom-[-1px]
-                      after:left-0
-                      after:right-0
-                      after:h-[2px]
-                      after:bg-slate-900
-                    `
-                    : `
-                      font-normal
-                      text-#000
-                      hover:bg-slate-50
-                      hover:text-slate-900
-                    `
-                }
-              `}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
+        
       </div>
 
       {/* Main Content */}

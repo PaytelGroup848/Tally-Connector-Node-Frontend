@@ -149,12 +149,12 @@ function ConnectorStatusButton({
   const overallStatusType =
     rows.length > 0
       ? getStatusType(
-        rows.find((row) =>
-          ['online', 'active', 'connected'].includes(
-            String(row?.status || '').toLowerCase(),
-          ),
-        )?.status || rows[0]?.status,
-      )
+          rows.find((row) =>
+            ['online', 'active', 'connected'].includes(
+              String(row?.status || '').toLowerCase(),
+            ),
+          )?.status || rows[0]?.status,
+        )
       : 'unknown'
 
   return (
@@ -215,8 +215,9 @@ function ConnectorStatusButton({
         </span>
 
         <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform ${open ? 'rotate-180' : ''
-            }`}
+          className={`h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform ${
+            open ? 'rotate-180' : ''
+          }`}
         />
       </button>
 
@@ -234,9 +235,7 @@ function ConnectorStatusButton({
             shadow-[0_18px_42px_rgba(15,23,42,0.14)]
           "
         >
-          {/* ==================================================
-              DROPDOWN HEADER
-          =================================================== */}
+          {/* DROPDOWN HEADER */}
           <div
             className="
               flex min-h-14
@@ -252,19 +251,16 @@ function ConnectorStatusButton({
               <p className="text-[10px] font-semibold uppercase tracking-wide text-app-text-secondary">
                 Connector Status
               </p>
-
-
             </div>
           </div>
 
-          {/* ==================================================
-              LAST SYNC SUMMARY
-          =================================================== */}
+          {/* LAST SYNC SUMMARY */}
           <div className="flex items-center justify-center border-b border-app-border bg-white px-4 py-2.5">
             <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-app-text-secondary">
               Last Sync History
             </span>
           </div>
+
           {lastSyncMeta && (
             <div
               className="
@@ -290,12 +286,13 @@ function ConnectorStatusButton({
                 </span>
 
                 <span
-                  className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${getStatusType(syncMeta?.status) === 'online'
+                  className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                    getStatusType(syncMeta?.status) === 'online'
                       ? 'bg-emerald-50 text-emerald-700'
                       : getStatusType(syncMeta?.status) === 'offline'
                         ? 'bg-red-50 text-red-700'
-                        : 'bg-amber-50 text-emerald-700'
-                    }`}
+                        : 'bg-amber-50 text-amber-700'
+                  }`}
                 >
                   {syncMeta?.status || 'N/A'}
                 </span>
@@ -313,9 +310,7 @@ function ConnectorStatusButton({
             </div>
           )}
 
-          {/* ==================================================
-              CONNECTOR LIST
-          =================================================== */}
+          {/* CONNECTOR LIST */}
           <div className="max-h-[320px] overflow-y-auto">
             {isConnectorStatusLoading ? (
               <div className="px-4 py-5 text-sm text-slate-500">
@@ -475,6 +470,40 @@ function AppHeader({
     company?.company_id ||
     null
 
+  /* ============================================================
+     COMPANY LIST
+  ============================================================ */
+
+  const companies = Array.isArray(companyOptions)
+    ? companyOptions.filter((company) => {
+        const name = String(
+          company?.name ||
+            company?.companyName ||
+            '',
+        )
+          .trim()
+          .toLowerCase()
+
+        if (!name) return false
+
+        const dummyNames = [
+          'dummy',
+          'dummy company',
+          'unnamed company',
+          'test',
+          'test company',
+          'na',
+          'n/a',
+        ]
+
+        return !dummyNames.includes(name)
+      })
+    : []
+
+  /* ============================================================
+     EFFECTS
+  ============================================================ */
+
   useEffect(() => {
     const handleRouteClose = () => {
       setShowCompanyMenu(false)
@@ -493,14 +522,17 @@ function AppHeader({
 
     return () => {
       window.removeEventListener('popstate', handleRouteClose)
-      document.removeEventListener(
-        'mousedown',
-        handleOutsideClick,
-      )
+      document.removeEventListener('mousedown', handleOutsideClick)
     }
   }, [setShowCompanyMenu, setShowProfileMenu])
 
+  /* ============================================================
+     DROPDOWN TOGGLES
+  ============================================================ */
+
   const toggleCompanyMenu = () => {
+    if (!selectedCompany) return
+
     setShowCompanyMenu((current) => !current)
     setShowProfileMenu(false)
   }
@@ -534,6 +566,10 @@ function AppHeader({
 
     closeAllDropdowns()
   }
+
+  /* ============================================================
+     PROFILE ACTIONS
+  ============================================================ */
 
   const handleProfileAction = (label) => {
     closeAllDropdowns()
@@ -634,10 +670,19 @@ function AppHeader({
           >
             <button
               type="button"
-              aria-label="Select company"
-              aria-expanded={showCompanyMenu}
+              aria-label={
+                selectedCompany
+                  ? 'Select company'
+                  : 'No company selected'
+              }
+              aria-expanded={
+                selectedCompany
+                  ? showCompanyMenu
+                  : false
+              }
               onClick={toggleCompanyMenu}
-              className="
+              disabled={!selectedCompany}
+              className={`
                 flex h-full w-full
                 items-center
                 gap-2
@@ -645,8 +690,12 @@ function AppHeader({
                 text-left
                 outline-none
                 transition
-                hover:bg-slate-50
-              "
+                ${
+                  selectedCompany
+                    ? 'cursor-pointer hover:bg-slate-50'
+                    : 'cursor-not-allowed bg-slate-50'
+                }
+              `}
             >
               {/* COMPANY TEXT */}
               <span className="min-w-0 flex-1">
@@ -661,7 +710,7 @@ function AppHeader({
                 >
                   {selectedCompany?.name ||
                     selectedCompany?.companyName ||
-                    'NA'}
+                    'No company selected'}
                 </strong>
 
                 <span
@@ -678,24 +727,28 @@ function AppHeader({
                 </span>
               </span>
 
-              <ChevronDown
-                className={`
-                  h-4 w-4
-                  shrink-0
-                  text-slate-500
-                  transition-transform
-                  ${showCompanyMenu
-                    ? 'rotate-180'
-                    : ''
-                  }
-                `}
-              />
+              {/* COMPANY ARROW */}
+              {selectedCompany && (
+                <ChevronDown
+                  className={`
+                    h-4 w-4
+                    shrink-0
+                    text-slate-500
+                    transition-transform
+                    ${
+                      showCompanyMenu
+                        ? 'rotate-180'
+                        : ''
+                    }
+                  `}
+                />
+              )}
             </button>
 
             {/* ==================================================
                 COMPANY DROPDOWN
             =================================================== */}
-            {showCompanyMenu && (
+            {showCompanyMenu && selectedCompany && (
               <div
                 className="
                   absolute
@@ -734,19 +787,16 @@ function AppHeader({
                   </p>
                 </div>
 
-                {/* COMPANY LIST */}
-                <div className="max-h-[320px] overflow-y-auto p-1.5">
-                  {companyOptions.length === 0 ? (
-                    <div className="px-3 py-4 text-xs text-slate-500">
-                      No companies available.
-                    </div>
-                  ) : (
-                    companyOptions.map((company, index) => {
+                {/* COMPANY LIST / EMPTY STATE */}
+                {companies.length > 0 ? (
+                  <div className="max-h-[320px] overflow-y-auto p-1.5">
+                    {companies.map((company, index) => {
                       const companyId = getCompanyId(company)
 
                       const key =
                         companyId ||
                         company?.name ||
+                        company?.companyName ||
                         `company-${index}`
 
                       const selectedCompanyId =
@@ -756,7 +806,18 @@ function AppHeader({
                         companyId &&
                         selectedCompanyId &&
                         String(companyId) ===
-                        String(selectedCompanyId)
+                          String(selectedCompanyId)
+
+                      const companyName =
+                        company?.name ||
+                        company?.companyName ||
+                        ''
+
+                      const companyMeta =
+                        company?.meta ||
+                        company?.city ||
+                        company?.address ||
+                        ''
 
                       return (
                         <button
@@ -773,9 +834,10 @@ function AppHeader({
                             px-3 py-3
                             text-left
                             transition
-                            ${isSelected
-                              ? 'bg-emerald-50'
-                              : 'hover:bg-slate-50'
+                            ${
+                              isSelected
+                                ? 'bg-emerald-50'
+                                : 'hover:bg-slate-50'
                             }
                           `}
                         >
@@ -783,61 +845,55 @@ function AppHeader({
                           <span
                             className={`
                               flex
-                              h-8 w-8
+                              h-9 w-9
                               shrink-0
                               items-center
                               justify-center
                               rounded-lg
-                              text-[10px]
+                              text-xs
                               font-bold
-                              ${isSelected
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-slate-100 text-slate-500'
+                              ${
+                                isSelected
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-slate-100 text-slate-500'
                               }
                             `}
                           >
-                            {String(
-                              company?.name ||
-                              company?.companyName ||
-                              'C',
-                            )
+                            {companyName
                               .trim()
                               .charAt(0)
                               .toUpperCase()}
                           </span>
 
-                          {/* COMPANY NAME */}
+                          {/* COMPANY DETAILS */}
                           <span className="min-w-0 flex-1">
-                            <strong
+                            <span
                               className={`
                                 block truncate
                                 text-xs
                                 font-semibold
-                                ${isSelected
-                                  ? 'text-emerald-800'
-                                  : 'text-app-text'
+                                ${
+                                  isSelected
+                                    ? 'text-emerald-800'
+                                    : 'text-app-text'
                                 }
                               `}
                             >
-                              {company?.name ||
-                                company?.companyName ||
-                                'NA'}
-                            </strong>
+                              {companyName}
+                            </span>
 
-                            <small
-                              className="
-                                mt-0.5
-                                block
-                                truncate
-                                text-[10px]
-                                text-slate-500
-                              "
-                            >
-                              {company?.meta ||
-                                company?.city ||
-                                company?.address ||
-                                ''}
-                            </small>
+                            {companyMeta && (
+                              <span
+                                className="
+                                  mt-0.5
+                                  block truncate
+                                  text-[10px]
+                                  text-slate-500
+                                "
+                              >
+                                {companyMeta}
+                              </span>
+                            )}
                           </span>
 
                           {/* SELECTED CHECK */}
@@ -861,9 +917,19 @@ function AppHeader({
                           )}
                         </button>
                       )
-                    })
-                  )}
-                </div>
+                    })}
+                  </div>
+                ) : (
+                  <div className="px-4 py-6 text-center">
+                    <p className="text-sm font-medium text-slate-600">
+                      No companies available
+                    </p>
+
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      No companies were found for your account.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -871,7 +937,8 @@ function AppHeader({
           {/* ==================================================
               DESKTOP SEARCH
           =================================================== */}
-          {/* <div className="hidden min-w-0 flex-1 items-center lg:flex">
+          {/*
+          <div className="hidden min-w-0 flex-1 items-center lg:flex">
             <label
               className="
                 mx-4
@@ -908,7 +975,8 @@ function AppHeader({
                 "
               />
             </label>
-          </div> */}
+          </div>
+          */}
 
           {/* ==================================================
               RIGHT ACTIONS
@@ -1077,9 +1145,10 @@ function AppHeader({
                     shrink-0
                     text-slate-500
                     transition-transform
-                    ${showProfileMenu
-                      ? 'rotate-180'
-                      : ''
+                    ${
+                      showProfileMenu
+                        ? 'rotate-180'
+                        : ''
                     }
                   `}
                 />
