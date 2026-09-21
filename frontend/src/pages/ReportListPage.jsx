@@ -54,6 +54,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Loader2,
   MessageCircle,
   Search,
 } from "lucide-react";
@@ -874,10 +875,6 @@ function ReportTable({
   );
 }
 
-// ============================================================
-// RECEIVABLES REPORT
-// ============================================================
-
 function ReceivablesReport({ config, query, setQuery, companyId }) {
   const isSupplierReport = config.resource === "suppliers";
 
@@ -913,6 +910,8 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [sendingReminderId, setSendingReminderId] = useState(null);
+
   const [reminderTemplate, setReminderTemplate] = useState(
     "Dear {customerName}, your outstanding balance of ₹{outstandingAmount} is pending. Kindly clear it at the earliest. Thank you - {companyName}",
   );
@@ -922,9 +921,12 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 
     const fetchTemplate = async () => {
       try {
-        const res = await fetch(`${BaseUrl}/reminder-template`, {
-          headers: { Authorization: `Bearer ${accessToken}` }, // <-- fix
-        });
+        const res = await fetch(
+          `https://connector.cloudata.in/api/reminder-template`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` }, // <-- fix
+          },
+        );
         const json = await res.json();
         if (json?.data?.message) {
           setReminderTemplate(json.data.message);
@@ -1296,6 +1298,9 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
       return;
     }
 
+    const customerId = customer._id;
+    setSendingReminderId(customerId);
+
     try {
       const res = await fetch(
         `https://connector.cloudata.in/api/companies/${companyId}/reminders/email`,
@@ -1318,6 +1323,8 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
       setTimeout(() => setSentMessage(""), 2000);
     } catch (err) {
       setErrorMessage(err.message);
+    } finally {
+      setSendingReminderId(null);
     }
   };
 
@@ -1402,28 +1409,39 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
         <button
           type="button"
           onClick={() => handleEmailReminder(customer)}
+          disabled={sendingReminderId === customer._id}
           className="
-                flex
-                h-[23px]
-                min-w-[125px]
-                items-center
-                justify-center
-                gap-1
-                rounded-[4px]
-                border
-                border-[#43bd45]
-                bg-white
-                px-3
-                text-[11px]
-                font-medium
-                text-[#222]
-                transition
-                hover:bg-[#effaf0]
-              "
+        flex
+        h-[23px]
+        min-w-[125px]
+        items-center
+        justify-center
+        gap-1
+        rounded-[4px]
+        border
+        border-[#43bd45]
+        bg-white
+        px-3
+        text-[11px]
+        font-medium
+        text-[#222]
+        transition
+        hover:bg-[#effaf0]
+        disabled:cursor-not-allowed
+        disabled:opacity-60
+      "
         >
-          <Bell size={13} strokeWidth={2} />
-
-          <span>Send Reminder</span>
+          {sendingReminderId === customer._id ? (
+            <>
+              <Loader2 size={13} strokeWidth={2} className="animate-spin" />
+              <span>Sending...</span>
+            </>
+          ) : (
+            <>
+              <Bell size={13} strokeWidth={2} />
+              <span>Send Reminder</span>
+            </>
+          )}
         </button>
       </div>
     ),
@@ -1431,89 +1449,6 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900">
-      <div className="flex min-h-[62px] items-end border-b border-slate-200 bg-white px-3">
-        <div className="flex items-end gap-1 overflow-x-auto">
-          {headerTabs.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setSelectedTab(tab)}
-              className={`
-                  relative
-                  whitespace-nowrap
-                  px-3
-                  py-4
-                  text-[13px]
-                  ${
-                    selectedTab === tab
-                      ? "font-semibold text-black after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-black"
-                      : "text-slate-700 hover:text-black"
-                  }
-                `}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        <div className="ml-auto hidden items-center gap-3 pb-2 lg:flex">
-          <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-800">
-            <span>On Account</span>
-
-            <button
-              type="button"
-              role="switch"
-              aria-checked={onAccount}
-              onClick={() => setOnAccount((current) => !current)}
-              className={`
-                relative
-                h-[25px]
-                w-[43px]
-                rounded-full
-                transition
-                ${onAccount ? "bg-[#42c54a]" : "bg-slate-300"}
-              `}
-            >
-              <span
-                className={`
-                  absolute
-                  top-[3px]
-                  h-[19px]
-                  w-[19px]
-                  rounded-full
-                  bg-white
-                  shadow-sm
-                  transition-all
-                  ${onAccount ? "left-[21px]" : "left-[3px]"}
-                `}
-              />
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleBulkReminder}
-            className="
-              flex
-              h-[33px]
-              items-center
-              rounded-t-[4px]
-              bg-[#202020]
-              px-4
-              text-[12px]
-              font-bold
-              uppercase
-              text-white
-              hover:bg-[#111]
-            "
-          >
-            <Bell size={15} strokeWidth={2} />
-
-            <span className="ml-2">BULK REMINDERS</span>
-          </button>
-        </div>
-      </div>
-
       <section className="mx-3 mt-2 overflow-hidden rounded-[6px] border border-white bg-white shadow-[0_3px_15px_rgba(24,33,43,0.06)]">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
