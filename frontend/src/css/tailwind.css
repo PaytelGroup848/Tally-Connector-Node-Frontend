@@ -156,6 +156,14 @@
       px-4;
   }
 
+  .sidebar-brand-title-books {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.22), 0 2px 5px rgba(0, 0, 0, 0.2);
+    background-image: linear-gradient(180deg, #74ddff 0%, #11a6df 42%, #007ebc 100%);
+  }
+
   .sidebar-nav {
     @apply min-h-0
       flex-1

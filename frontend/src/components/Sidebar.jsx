@@ -100,9 +100,9 @@ function Sidebar({
       >
         <span
           className={`
-            grid shrink-0 place-items-center rounded-xl bg-white
-            shadow-lg shadow-black/20
-            ${collapsed ? 'h-9 w-9 p-1.5' : 'h-9 w-9 p-1.5'}
+            grid shrink-0 place-items-center rounded-xl bg-#082E52
+            
+            ${collapsed ? 'h-25 w-12 p-1.5' : 'h-25 w-12 p-1.5'}
           `}
         >
           <img
@@ -114,12 +114,12 @@ function Sidebar({
 
         {!collapsed && (
           <div className="min-w-0 flex-1 overflow-hidden">
-            <div className="whitespace-nowrap text-[31px] font-black italic leading-none tracking-[-0.09em]">
-              <span className="text-[#4CAF50]">Ctrl</span>
-              <span className="text-[#009FE3]">Books</span>
+            <div className="whitespace-nowrap text-[29px] font-black italic leading-none tracking-[-0.09em]">
+              <span className="text-[#4CAF50] tracking-[0.06em]">Ctrl</span>
+              <span className="sidebar-brand-title-books tracking-[0.03em]">Books</span>
             </div>
 
-            <div className="mt-1 h-[2px] w-[92%] bg-[#4CAF50]" />
+            <div className="mt-1 h-[1px] w-[92%] bg-[#4CAF50]" />
           </div>
         )}
       </button>

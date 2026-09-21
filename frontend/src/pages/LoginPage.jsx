@@ -243,7 +243,7 @@ const LoginPage = () => {
           >
             {/* Logo */}
             <div className="mb-4 flex items-center justify-center">
-              <img src={logo} alt="CtrlBooks logo" className="h-50 w-auto object-contain sm:h-50 lg:h-60 xl:h-60" />
+              <img src={logo} alt="CtrlBooks logo" className="h-30 w-auto object-contain sm:h-30 lg:h-30 xl:h-30" />
             </div>
 
             {/* Heading */}
