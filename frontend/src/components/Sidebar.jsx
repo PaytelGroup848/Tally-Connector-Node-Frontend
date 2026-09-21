@@ -94,11 +94,17 @@ function Sidebar({
         aria-label="Go to dashboard"
         className={`
           sidebar-brand flex h-[68px] w-full shrink-0
-          items-center gap-3 border-0 px-4 text-left justify-center
-          ${collapsed ? 'justify-center px-0' : ''}
+          items-center border-0 text-left
+          ${collapsed ? 'justify-center px-0' : 'justify-start gap-2 px-3'}
         `}
       >
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white p-1.5 shadow-lg shadow-black/20">
+        <span
+          className={`
+            grid shrink-0 place-items-center rounded-xl bg-white
+            shadow-lg shadow-black/20
+            ${collapsed ? 'h-9 w-9 p-1.5' : 'h-9 w-9 p-1.5'}
+          `}
+        >
           <img
             className="h-full w-full object-contain"
             src={logo}
@@ -107,9 +113,14 @@ function Sidebar({
         </span>
 
         {!collapsed && (
-          <span className="text-lg font-bold tracking-tight text-white">
-            Ctrl<span className="text-[#00d7ff]">Books</span>
-          </span>
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <div className="whitespace-nowrap text-[31px] font-black italic leading-none tracking-[-0.09em]">
+              <span className="text-[#4CAF50]">Ctrl</span>
+              <span className="text-[#009FE3]">Books</span>
+            </div>
+
+            <div className="mt-1 h-[2px] w-[92%] bg-[#4CAF50]" />
+          </div>
         )}
       </button>
 

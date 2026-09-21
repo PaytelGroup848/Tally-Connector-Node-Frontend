@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import MainPage from './pages/MainPage'
 import LoginPage from './pages/LoginPage'
 import PlansPage from './pages/PlansPage'
-import ProfilePage from './pages/ProfilePage'
 import useAuthStore from './store/authStore'
 import { useCurrentUser } from './hooks/useCurrentUser'
 
@@ -148,13 +147,6 @@ function App() {
 
   if (!hasActiveSubscription) {
     return <PlansPage />
-  }
-
-  /*
-   * Profile
-   */
-  if (currentPath === '/profile') {
-    return <ProfilePage />
   }
 
   /*

@@ -533,7 +533,9 @@ export function fetchCompanyCommands(
   }
 
   const normalizedStatus = String(status).trim().toUpperCase()
-  if (normalizedStatus) params.set('status', normalizedStatus)
+  if (normalizedStatus && normalizedStatus !== 'ALL STATUSES') {
+    params.set('status', normalizedStatus)
+  }
   if (from) params.set('from', String(from))
   if (to) params.set('to', String(to))
 

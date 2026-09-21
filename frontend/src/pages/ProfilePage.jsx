@@ -234,7 +234,7 @@ const ProfilePage = () => {
       <div className="mx-auto max-w-4xl">
 
         {/* Back Button */}
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <button
             type="button"
             onClick={() => window.history.back()}
@@ -243,7 +243,7 @@ const ProfilePage = () => {
             <ArrowLeft size={18} />
             Back
           </button>
-        </div>
+        </div> */}
 
         {/* Page Header */}
 
