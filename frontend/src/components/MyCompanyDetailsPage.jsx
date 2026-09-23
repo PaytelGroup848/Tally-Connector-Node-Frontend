@@ -267,6 +267,8 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
         '__v',
         'id',
         '_id',
+        'guid',
+        'alterid',
         'ledgerid',
         'companyid',
         'organisationid',

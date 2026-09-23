@@ -21,3 +21,19 @@ test('deduplicates columns that differ only by casing, separators, or suffix var
 
   assert.deepEqual(unique, ['voucherId', 'companyId', 'particulars'])
 })
+
+test('suppresses GUID and alter ID metadata columns while keeping valid IDs', () => {
+  const columns = [
+    'Ledger Name',
+    'Guid',
+    'GUID',
+    'alterId',
+    'Alter ID',
+    'ledger_id',
+    'companyId',
+  ]
+
+  const unique = getUniqueFields(columns)
+
+  assert.deepEqual(unique, ['Ledger Name', 'ledger_id', 'companyId'])
+})

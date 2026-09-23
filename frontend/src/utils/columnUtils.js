@@ -5,6 +5,12 @@ export function normalizeColumnKey(key) {
     .replace(/[^a-z0-9]/g, '')
 }
 
+const defaultHiddenKeywords = [
+  'raw',
+  'guid',
+  'alterid',
+]
+
 export function getUniqueFields(fields = [], options = {}) {
   const {
     isHidden = () => false,
@@ -23,8 +29,9 @@ export function getUniqueFields(fields = [], options = {}) {
     const normalizedField = normalizeColumnKey(trimmedField)
     if (!normalizedField) return
 
+    const hiddenKeywords = [...defaultHiddenKeywords, ...ignoreKeywords]
     if (
-      ignoreKeywords.some(
+      hiddenKeywords.some(
         (keyword) => normalizeColumnKey(keyword) === normalizedField,
       )
     ) {
