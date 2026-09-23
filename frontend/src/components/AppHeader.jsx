@@ -1,18 +1,12 @@
-﻿import { useEffect, useRef, useState } from 'react'
-import {
-  ChevronDown,
-  Menu,
-  Search,
-  Smartphone,
-  User,
-} from 'lucide-react'
+﻿import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Menu, Search, Smartphone, User } from "lucide-react";
 
 const profileItems = [
-  'Profile',
-  'All User',
-  'Download Invoice',
-  'Logout',
-]
+  "Profile",
+  "All User",
+  // 'Download Invoice',
+  "Logout",
+];
 
 /* ============================================================
    CONNECTOR STATUS
@@ -21,38 +15,33 @@ const profileItems = [
 function ConnectorStatusButton({
   rows = [],
   lastSyncMeta = null,
-  connectorStatusError = '',
+  connectorStatusError = "",
   isConnectorStatusLoading = false,
 }) {
-  const [open, setOpen] = useState(false)
-  const menuRef = useRef(null)
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
 
   useEffect(() => {
-    const handleRouteChange = () => setOpen(false)
+    const handleRouteChange = () => setOpen(false);
 
     const handleOutsideClick = (event) => {
-      if (!open) return
+      if (!open) return;
 
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target)
-      ) {
-        setOpen(false)
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false);
       }
-    }
+    };
 
-    window.addEventListener('popstate', handleRouteChange)
-    document.addEventListener('mousedown', handleOutsideClick)
+    window.addEventListener("popstate", handleRouteChange);
+    document.addEventListener("mousedown", handleOutsideClick);
 
     return () => {
-      window.removeEventListener('popstate', handleRouteChange)
-      document.removeEventListener('mousedown', handleOutsideClick)
-    }
-  }, [open])
+      window.removeEventListener("popstate", handleRouteChange);
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [open]);
 
-  const syncMeta = Array.isArray(lastSyncMeta)
-    ? lastSyncMeta[0]
-    : lastSyncMeta
+  const syncMeta = Array.isArray(lastSyncMeta) ? lastSyncMeta[0] : lastSyncMeta;
 
   const lastSyncValue =
     syncMeta?.completedAt ||
@@ -60,102 +49,96 @@ function ConnectorStatusButton({
     syncMeta?.lastSyncedAt ||
     syncMeta?.updatedAt ||
     syncMeta?.timestamp ||
-    null
+    null;
 
   const formatDateTime = (value) => {
-    if (!value) return 'N/A'
+    if (!value) return "N/A";
 
-    const date = new Date(value)
+    const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) {
-      return String(value)
+      return String(value);
     }
 
-    return new Intl.DateTimeFormat('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Intl.DateTimeFormat("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: true,
-    }).format(date)
-  }
+    }).format(date);
+  };
 
   const lastSyncLabel = lastSyncValue
     ? formatDateTime(lastSyncValue)
-    : 'No sync yet'
+    : "No sync yet";
 
   /* ============================================================
      STATUS HELPERS
   ============================================================ */
 
   const getStatusType = (status) => {
-    const statusKey = String(status || '').toLowerCase()
+    const statusKey = String(status || "").toLowerCase();
 
-    if (
-      ['online', 'active', 'connected'].includes(statusKey)
-    ) {
-      return 'online'
+    if (["online", "active", "connected"].includes(statusKey)) {
+      return "online";
     }
 
-    if (
-      ['offline', 'inactive', 'disconnected'].includes(
-        statusKey,
-      )
-    ) {
-      return 'offline'
+    if (["offline", "inactive", "disconnected"].includes(statusKey)) {
+      return "offline";
     }
 
-    return 'unknown'
-  }
+    return "unknown";
+  };
 
   const getStatusDotClass = (statusType) => {
-    if (statusType === 'online') {
-      return 'bg-emerald-500'
+    if (statusType === "online") {
+      return "bg-emerald-500";
     }
 
-    if (statusType === 'offline') {
-      return 'bg-red-500'
+    if (statusType === "offline") {
+      return "bg-red-500";
     }
 
-    return 'bg-amber-500'
-  }
+    return "bg-amber-500";
+  };
 
   const getStatusBadgeClass = (statusType) => {
-    if (statusType === 'online') {
-      return 'bg-emerald-50 text-emerald-700'
+    if (statusType === "online") {
+      return "bg-emerald-50 text-emerald-700";
     }
 
-    if (statusType === 'offline') {
-      return 'bg-red-50 text-red-700'
+    if (statusType === "offline") {
+      return "bg-red-50 text-red-700";
     }
 
-    return 'bg-amber-50 text-amber-700'
-  }
+    return "bg-amber-50 text-amber-700";
+  };
 
   const getConnectionTextClass = (tallyConnected) => {
     if (tallyConnected === true) {
-      return 'text-emerald-600'
+      return "text-emerald-600";
     }
 
     if (tallyConnected === false) {
-      return 'text-red-600'
+      return "text-red-600";
     }
 
-    return 'text-amber-600'
-  }
+    return "text-amber-600";
+  };
 
   const overallStatusType =
     rows.length > 0
       ? getStatusType(
           rows.find((row) =>
-            ['online', 'active', 'connected'].includes(
-              String(row?.status || '').toLowerCase(),
+            ["online", "active", "connected"].includes(
+              String(row?.status || "").toLowerCase(),
             ),
           )?.status || rows[0]?.status,
         )
-      : 'unknown'
+      : "unknown";
 
   return (
     <div
@@ -166,9 +149,7 @@ function ConnectorStatusButton({
         type="button"
         aria-label="Open connector status"
         aria-expanded={open}
-        onClick={() =>
-          setOpen((current) => !current)
-        }
+        onClick={() => setOpen((current) => !current)}
         className="
           flex h-10 min-w-0 max-w-full
           w-full
@@ -216,7 +197,7 @@ function ConnectorStatusButton({
 
         <ChevronDown
           className={`h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform ${
-            open ? 'rotate-180' : ''
+            open ? "rotate-180" : ""
           }`}
         />
       </button>
@@ -276,7 +257,7 @@ function ConnectorStatusButton({
                 </span>
 
                 <span className="mt-1 block text-[11px] font-medium text-app-text">
-                  {syncMeta?.type || 'N/A'}
+                  {syncMeta?.type || "N/A"}
                 </span>
               </div>
 
@@ -287,14 +268,14 @@ function ConnectorStatusButton({
 
                 <span
                   className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                    getStatusType(syncMeta?.status) === 'online'
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : getStatusType(syncMeta?.status) === 'offline'
-                        ? 'bg-red-50 text-red-700'
-                        : 'bg-amber-50 text-amber-700'
+                    getStatusType(syncMeta?.status) === "online"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : getStatusType(syncMeta?.status) === "offline"
+                        ? "bg-red-50 text-red-700"
+                        : "bg-amber-50 text-amber-700"
                   }`}
                 >
-                  {syncMeta?.status || 'N/A'}
+                  {syncMeta?.status || "N/A"}
                 </span>
               </div>
 
@@ -330,28 +311,25 @@ function ConnectorStatusButton({
                   connector?.deviceName ||
                   connector?.name ||
                   connector?.connectorName ||
-                  `Connector ${index + 1}`
+                  `Connector ${index + 1}`;
 
-                const status = connector?.status || 'UNKNOWN'
+                const status = connector?.status || "UNKNOWN";
 
-                const statusType = getStatusType(status)
+                const statusType = getStatusType(status);
 
-                const statusDotClass =
-                  getStatusDotClass(statusType)
+                const statusDotClass = getStatusDotClass(statusType);
 
-                const statusBadgeClass =
-                  getStatusBadgeClass(statusType)
+                const statusBadgeClass = getStatusBadgeClass(statusType);
 
                 const heartbeat =
                   connector?.lastHeartbeatAt ||
                   connector?.lastHeartbeat ||
                   connector?.heartbeatAt ||
-                  null
+                  null;
 
-                const connectionClass =
-                  getConnectionTextClass(
-                    connector?.tallyConnected,
-                  )
+                const connectionClass = getConnectionTextClass(
+                  connector?.tallyConnected,
+                );
 
                 return (
                   <div
@@ -407,10 +385,10 @@ function ConnectorStatusButton({
                           className={`mt-1 text-[11px] font-semibold ${connectionClass}`}
                         >
                           {connector?.tallyConnected === true
-                            ? 'Connected'
+                            ? "Connected"
                             : connector?.tallyConnected === false
-                              ? 'Disconnected'
-                              : 'N/A'}
+                              ? "Disconnected"
+                              : "N/A"}
                         </p>
                       </div>
 
@@ -425,14 +403,14 @@ function ConnectorStatusButton({
                       </div>
                     </div>
                   </div>
-                )
+                );
               })
             )}
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
 
 /* ============================================================
@@ -458,17 +436,17 @@ function AppHeader({
   onLogout,
   connectorStatusRows = [],
   lastSyncMeta = null,
-  connectorStatusError = '',
+  connectorStatusError = "",
   isConnectorStatusLoading = false,
 }) {
-  const headerRef = useRef(null)
+  const headerRef = useRef(null);
 
   const getCompanyId = (company) =>
     company?.id ||
     company?._id ||
     company?.companyId ||
     company?.company_id ||
-    null
+    null;
 
   /* ============================================================
      COMPANY LIST
@@ -476,29 +454,25 @@ function AppHeader({
 
   const companies = Array.isArray(companyOptions)
     ? companyOptions.filter((company) => {
-        const name = String(
-          company?.name ||
-            company?.companyName ||
-            '',
-        )
+        const name = String(company?.name || company?.companyName || "")
           .trim()
-          .toLowerCase()
+          .toLowerCase();
 
-        if (!name) return false
+        if (!name) return false;
 
         const dummyNames = [
-          'dummy',
-          'dummy company',
-          'unnamed company',
-          'test',
-          'test company',
-          'na',
-          'n/a',
-        ]
+          "dummy",
+          "dummy company",
+          "unnamed company",
+          "test",
+          "test company",
+          "na",
+          "n/a",
+        ];
 
-        return !dummyNames.includes(name)
+        return !dummyNames.includes(name);
       })
-    : []
+    : [];
 
   /* ============================================================
      EFFECTS
@@ -506,96 +480,93 @@ function AppHeader({
 
   useEffect(() => {
     const handleRouteClose = () => {
-      setShowCompanyMenu(false)
-      setShowProfileMenu(false)
-    }
+      setShowCompanyMenu(false);
+      setShowProfileMenu(false);
+    };
 
     const handleOutsideClick = (event) => {
-      if (headerRef.current?.contains(event.target)) return
+      if (headerRef.current?.contains(event.target)) return;
 
-      setShowCompanyMenu(false)
-      setShowProfileMenu(false)
-    }
+      setShowCompanyMenu(false);
+      setShowProfileMenu(false);
+    };
 
-    window.addEventListener('popstate', handleRouteClose)
-    document.addEventListener('mousedown', handleOutsideClick)
+    window.addEventListener("popstate", handleRouteClose);
+    document.addEventListener("mousedown", handleOutsideClick);
 
     return () => {
-      window.removeEventListener('popstate', handleRouteClose)
-      document.removeEventListener('mousedown', handleOutsideClick)
-    }
-  }, [setShowCompanyMenu, setShowProfileMenu])
+      window.removeEventListener("popstate", handleRouteClose);
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [setShowCompanyMenu, setShowProfileMenu]);
 
   /* ============================================================
      DROPDOWN TOGGLES
   ============================================================ */
 
   const toggleCompanyMenu = () => {
-    if (!selectedCompany) return
+    if (!selectedCompany) return;
 
-    setShowCompanyMenu((current) => !current)
-    setShowProfileMenu(false)
-  }
+    setShowCompanyMenu((current) => !current);
+    setShowProfileMenu(false);
+  };
 
   const toggleProfileMenu = () => {
-    setShowProfileMenu((current) => !current)
-    setShowCompanyMenu(false)
-  }
+    setShowProfileMenu((current) => !current);
+    setShowCompanyMenu(false);
+  };
 
   const closeAllDropdowns = () => {
-    setShowCompanyMenu(false)
-    setShowProfileMenu(false)
-  }
+    setShowCompanyMenu(false);
+    setShowProfileMenu(false);
+  };
 
   /* ============================================================
      COMPANY SELECTION
   ============================================================ */
 
   const handleCompanySelect = (company) => {
-    if (!company) return
+    if (!company) return;
 
-    onSelectCompany?.(company)
+    onSelectCompany?.(company);
 
-    onNavigate?.('/dashboard')
+    onNavigate?.("/dashboard");
 
-    closeAllDropdowns()
-  }
+    closeAllDropdowns();
+  };
 
   /* ============================================================
      PROFILE ACTIONS
   ============================================================ */
 
   const handleProfileAction = (label) => {
-    closeAllDropdowns()
+    closeAllDropdowns();
 
-    if (label === 'Profile') {
-      onNavigate?.('/profile')
-      onProfileClick?.()
-      return
+    if (label === "Profile") {
+      onNavigate?.("/profile");
+      onProfileClick?.();
+      return;
     }
 
-    if (label === 'All User') {
-      onNavigate?.('/all-users')
-      onAllUsersClick?.()
-      return
+    if (label === "All User") {
+      onNavigate?.("/all-users");
+      onAllUsersClick?.();
+      return;
     }
 
-    if (label === 'Download Invoice') {
-      onNavigate?.('/download-invoice')
-      return
+    if (label === "Download Invoice") {
+      onNavigate?.("/download-invoice");
+      return;
     }
 
-    if (label === 'Logout') {
-      onLogout?.()
+    if (label === "Logout") {
+      onLogout?.();
     }
-  }
+  };
 
   return (
     <>
-      <header
-        ref={headerRef}
-        className="app-header relative z-[1000] w-full"
-      >
+      <header ref={headerRef} className="app-header relative z-[1000] w-full">
         {/* ====================================================
             TOP ROW
         ===================================================== */}
@@ -625,11 +596,7 @@ function AppHeader({
               type="button"
               aria-label="Toggle sidebar"
               aria-expanded={!sidebarCollapsed}
-              onClick={() =>
-                setSidebarCollapsed(
-                  (current) => !current,
-                )
-              }
+              onClick={() => setSidebarCollapsed((current) => !current)}
               className="
                 flex h-10 w-10
                 items-center justify-center
@@ -665,15 +632,9 @@ function AppHeader({
             <button
               type="button"
               aria-label={
-                selectedCompany
-                  ? 'Select company'
-                  : 'No company selected'
+                selectedCompany ? "Select company" : "No company selected"
               }
-              aria-expanded={
-                selectedCompany
-                  ? showCompanyMenu
-                  : false
-              }
+              aria-expanded={selectedCompany ? showCompanyMenu : false}
               onClick={toggleCompanyMenu}
               disabled={!selectedCompany}
               className={`
@@ -686,8 +647,8 @@ function AppHeader({
                 transition
                 ${
                   selectedCompany
-                    ? 'cursor-pointer hover:bg-slate-50'
-                    : 'cursor-not-allowed bg-slate-50'
+                    ? "cursor-pointer hover:bg-slate-50"
+                    : "cursor-not-allowed bg-slate-50"
                 }
               `}
             >
@@ -704,7 +665,7 @@ function AppHeader({
                 >
                   {selectedCompany?.name ||
                     selectedCompany?.companyName ||
-                    'No company selected'}
+                    "No company selected"}
                 </strong>
 
                 <span
@@ -715,9 +676,7 @@ function AppHeader({
                     text-slate-500
                   "
                 >
-                  {selectedCompany?.meta ||
-                    selectedCompany?.city ||
-                    ''}
+                  {selectedCompany?.meta || selectedCompany?.city || ""}
                 </span>
               </span>
 
@@ -729,11 +688,7 @@ function AppHeader({
                     shrink-0
                     text-slate-500
                     transition-transform
-                    ${
-                      showCompanyMenu
-                        ? 'rotate-180'
-                        : ''
-                    }
+                    ${showCompanyMenu ? "rotate-180" : ""}
                   `}
                 />
               )}
@@ -785,41 +740,35 @@ function AppHeader({
                 {companies.length > 0 ? (
                   <div className="max-h-[320px] overflow-y-auto p-1.5">
                     {companies.map((company, index) => {
-                      const companyId = getCompanyId(company)
+                      const companyId = getCompanyId(company);
 
                       const key =
                         companyId ||
                         company?.name ||
                         company?.companyName ||
-                        `company-${index}`
+                        `company-${index}`;
 
-                      const selectedCompanyId =
-                        getCompanyId(selectedCompany)
+                      const selectedCompanyId = getCompanyId(selectedCompany);
 
                       const isSelected =
                         companyId &&
                         selectedCompanyId &&
-                        String(companyId) ===
-                          String(selectedCompanyId)
+                        String(companyId) === String(selectedCompanyId);
 
                       const companyName =
-                        company?.name ||
-                        company?.companyName ||
-                        ''
+                        company?.name || company?.companyName || "";
 
                       const companyMeta =
                         company?.meta ||
                         company?.city ||
                         company?.address ||
-                        ''
+                        "";
 
                       return (
                         <button
                           type="button"
                           key={key}
-                          onClick={() =>
-                            handleCompanySelect(company)
-                          }
+                          onClick={() => handleCompanySelect(company)}
                           className={`
                             flex w-full
                             items-center
@@ -829,9 +778,7 @@ function AppHeader({
                             text-left
                             transition
                             ${
-                              isSelected
-                                ? 'bg-emerald-50'
-                                : 'hover:bg-slate-50'
+                              isSelected ? "bg-emerald-50" : "hover:bg-slate-50"
                             }
                           `}
                         >
@@ -848,15 +795,12 @@ function AppHeader({
                               font-bold
                               ${
                                 isSelected
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-slate-100 text-slate-500'
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-slate-100 text-slate-500"
                               }
                             `}
                           >
-                            {companyName
-                              .trim()
-                              .charAt(0)
-                              .toUpperCase()}
+                            {companyName.trim().charAt(0).toUpperCase()}
                           </span>
 
                           {/* COMPANY DETAILS */}
@@ -868,8 +812,8 @@ function AppHeader({
                                 font-semibold
                                 ${
                                   isSelected
-                                    ? 'text-emerald-800'
-                                    : 'text-app-text'
+                                    ? "text-emerald-800"
+                                    : "text-app-text"
                                 }
                               `}
                             >
@@ -910,7 +854,7 @@ function AppHeader({
                             </span>
                           )}
                         </button>
-                      )
+                      );
                     })}
                   </div>
                 ) : (
@@ -1037,9 +981,9 @@ function AppHeader({
                 onMobileVersionClick ??
                 (() =>
                   window.open(
-                    '/mobile-version',
-                    '_blank',
-                    'noopener,noreferrer',
+                    "/mobile-version",
+                    "_blank",
+                    "noopener,noreferrer",
                   ))
               }
               className="
@@ -1084,12 +1028,8 @@ function AppHeader({
               <ConnectorStatusButton
                 rows={connectorStatusRows}
                 lastSyncMeta={lastSyncMeta}
-                connectorStatusError={
-                  connectorStatusError
-                }
-                isConnectorStatusLoading={
-                  isConnectorStatusLoading
-                }
+                connectorStatusError={connectorStatusError}
+                isConnectorStatusLoading={isConnectorStatusLoading}
               />
             </div>
 
@@ -1139,11 +1079,7 @@ function AppHeader({
                     shrink-0
                     text-slate-500
                     transition-transform
-                    ${
-                      showProfileMenu
-                        ? 'rotate-180'
-                        : ''
-                    }
+                    ${showProfileMenu ? "rotate-180" : ""}
                   `}
                 />
               </button>
@@ -1169,9 +1105,7 @@ function AppHeader({
                     <button
                       key={label}
                       type="button"
-                      onClick={() =>
-                        handleProfileAction(label)
-                      }
+                      onClick={() => handleProfileAction(label)}
                       className="
                         block
                         w-full
@@ -1257,11 +1191,7 @@ function AppHeader({
         >
           <button
             type="button"
-            onClick={() =>
-              onOpenEway
-                ? onOpenEway()
-                : setShowEway?.(true)
-            }
+            onClick={() => (onOpenEway ? onOpenEway() : setShowEway?.(true))}
             className="
               flex
               min-w-0
@@ -1315,18 +1245,14 @@ function AppHeader({
             <ConnectorStatusButton
               rows={connectorStatusRows}
               lastSyncMeta={lastSyncMeta}
-              connectorStatusError={
-                connectorStatusError
-              }
-              isConnectorStatusLoading={
-                isConnectorStatusLoading
-              }
+              connectorStatusError={connectorStatusError}
+              isConnectorStatusLoading={isConnectorStatusLoading}
             />
           </div>
         </div>
       </header>
     </>
-  )
+  );
 }
 
-export default AppHeader
+export default AppHeader;
