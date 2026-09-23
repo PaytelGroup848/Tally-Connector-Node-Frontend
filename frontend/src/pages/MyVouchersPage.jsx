@@ -429,65 +429,69 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
   }
 
   return (
-    <div className="min-h-[calc(100vh-60px)] overflow-x-auto bg-[#f8fafc] text-[#17355f]">
+    <div className="min-h-[calc(100vh-60px)] bg-[#f8fafc] text-[#17355f]">
       <div className="px-3 py-3 sm:px-5 sm:py-4">
-        <section className="min-w-[1120px] border-t border-[#e5ebf2] bg-white">
-          <div className="flex min-h-[70px] min-w-max flex-nowrap items-center gap-3 border-b border-[#e5ebf2] px-4 py-3 sm:px-8">
+        <section className="border-t border-[#e5ebf2] bg-white md:min-w-[1120px]">
+          <div className="flex min-h-[70px] flex-col gap-3 border-b border-[#e5ebf2] px-4 py-3 sm:px-8 lg:flex-row lg:flex-nowrap lg:items-center">
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search party ledger or voucher number"
-              className="h-[38px] w-[280px] shrink-0 rounded-lg border border-[#d9e2ed] bg-white px-3 text-[12px] text-slate-700 outline-none focus:border-[#17355f] focus:ring-1 focus:ring-[#17355f]/20"
+              className="h-[38px] w-full rounded-lg border border-[#d9e2ed] bg-white px-3 text-[12px] text-slate-700 outline-none focus:border-[#17355f] focus:ring-1 focus:ring-[#17355f]/20 lg:w-[280px]"
             />
 
-            <label className="flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px]">
-              <span>Show</span>
-              <select
-                value={pageSize}
-                onChange={(event) =>
-                  setPageSize(Number(event.target.value))
-                }
-                className="h-[38px] w-[64px] cursor-pointer rounded-lg border border-[#10b981] bg-white px-2 text-[12px] text-slate-700 outline-none"
-              >
-                {[10, 20, 30, 50].map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-              <span>rows</span>
-            </label>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:flex lg:w-auto lg:items-center lg:gap-3">
+              <label className="flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px]">
+                <span>Show</span>
+                <select
+                  value={pageSize}
+                  onChange={(event) =>
+                    setPageSize(Number(event.target.value))
+                  }
+                  className="h-[38px] w-[64px] cursor-pointer rounded-lg border border-[#10b981] bg-white px-2 text-[12px] text-slate-700 outline-none"
+                >
+                  {[10, 20, 30, 50].map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+                <span>rows</span>
+              </label>
 
-            {!isSimpleCommandPage && <label className="mx-10 flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px]">
-              <span>Status</span>
-              <select
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-                className="h-[38px] min-w-[150px] cursor-pointer rounded-lg border border-[#10b981] bg-white px-3 text-[12px] text-slate-700 outline-none"
-              >
-                <option value="">All statuses</option>
-                <option value="PENDING">Pending</option>
-                <option value="SENT">Sent</option>
-                <option value="DONE">Done</option>
-                <option value="FAILED">Failed</option>
-              </select>
-            </label>}
+              {!isSimpleCommandPage && <label className="flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px]">
+                <span>Status</span>
+                <select
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value)}
+                  className="h-[38px] min-w-[140px] cursor-pointer rounded-lg border border-[#10b981] bg-white px-3 text-[12px] text-slate-700 outline-none"
+                >
+                  <option value="">All statuses</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="SENT">Sent</option>
+                  <option value="DONE">Done</option>
+                  <option value="FAILED">Failed</option>
+                </select>
+              </label>}
+            </div>
 
             <div className="hidden min-w-0 flex-1 lg:block" />
 
-            {!isSimpleCommandPage && <label className="flex items-center gap-2 text-[12px]">
-              From
-              <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]" />
-            </label>}
-            {!isSimpleCommandPage && <label className="flex items-center gap-2 text-[12px]">
-              To
-              <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]" />
-            </label>}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:flex lg:items-center lg:gap-3">
+              {!isSimpleCommandPage && <label className="flex items-center gap-2 text-[12px]">
+                <span>From</span>
+                <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]" />
+              </label>}
+              {!isSimpleCommandPage && <label className="flex items-center gap-2 text-[12px]">
+                <span>To</span>
+                <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]" />
+              </label>}
+            </div>
             <span className="text-[12px]">Page {page} · {pageSize} per page</span>
           </div>
 
-          {errorMessage && <div className="mx-8 mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{errorMessage}</div>}
+          {errorMessage && <div className="mx-4 mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 sm:mx-8">{errorMessage}</div>}
 
           <div className="mx-8 overflow-x-auto rounded-lg border border-[#dfe7f0]">
             <div className="min-w-max">

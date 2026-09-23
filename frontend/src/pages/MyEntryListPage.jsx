@@ -60,6 +60,9 @@ const pages = {
 }
 
 function MyEntryListPage({ path }) {
+  const config = pages[path] || pages['/my-invoices']
+  const [title, columns, rows] = config
+
   const [query, setQuery] = useState('')
   const [startDate, setStartDate] =
     useState('2026-04-01')
@@ -74,8 +77,6 @@ function MyEntryListPage({ path }) {
 
   const [showMore, setShowMore] =
     useState(false)
-
- 
 
   const invoiceTabs =
     title === 'My Invoices' ||
