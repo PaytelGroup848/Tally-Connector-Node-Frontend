@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import logo from '../assets/logo.png'
 import { navItems, submenuItems } from '../routes/navigation'
-
+import { Phone } from "lucide-react";
 function Arrow() {
   return (
     <span className="ml-auto text-base leading-none text-white/60" aria-hidden="true">
@@ -60,12 +60,11 @@ function Sidebar({
         flex h-screen shrink-0 flex-col
         overflow-hidden text-white
         transition-all duration-200
-        ${
-          isCompact
-            ? `${collapsed ? '-translate-x-full' : 'translate-x-0'} w-[228px]`
-            : collapsed
-              ? 'w-[68px]'
-              : 'w-[228px]'
+        ${isCompact
+          ? `${collapsed ? '-translate-x-full' : 'translate-x-0'} w-[228px]`
+          : collapsed
+            ? 'w-[68px]'
+            : 'w-[228px]'
         }
       `}
       data-collapsed={collapsed}
@@ -164,10 +163,9 @@ function Sidebar({
                   text-left text-[13px] font-medium
                   no-underline transition-all duration-200
 
-                  ${
-                    active
-                      ? 'is-active'
-                      : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                  ${active
+                    ? 'is-active'
+                    : 'text-slate-200 hover:bg-white/10 hover:text-white'
                   }
                 `}
               >
@@ -214,10 +212,9 @@ function Sidebar({
                         className={`
                           block rounded-md px-3 py-2
                           text-[12px] no-underline transition
-                          ${
-                            isSubmenuActive(itemPath)
-                              ? 'bg-white/10 font-semibold text-emerald-300'
-                              : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                          ${isSubmenuActive(itemPath)
+                            ? 'bg-white/10 font-semibold text-emerald-300'
+                            : 'text-slate-300 hover:bg-white/5 hover:text-white'
                           }
                         `}
                       >
@@ -234,26 +231,29 @@ function Sidebar({
       {!collapsed && (
         <div
           className="
-            mx-3 mb-4 rounded-xl
-            border border-white/10
-            bg-white/[0.06] px-4 py-3
-          "
+    mx-3 mb-4 flex items-center gap-3
+    rounded-xl border border-white/10
+    bg-[#059669] px-4 py-3
+  "
         >
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            <span className="text-[11px] font-semibold text-white">Online</span>
+          {/* Phone Icon */}
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center ">
+            <Phone size={17} strokeWidth={2} className="text-white" />
           </div>
 
-          <p className="mt-2 text-[10px] leading-4 text-slate-300">
-            Need help?
-          </p>
+          {/* Help Content */}
+          <div className="flex flex-col">
+            <p className="text-[11px] font-medium leading-4 text-white px-4">
+              Need help?
+            </p>
 
-          <a
-            href="tel:+919311472357"
-            className="mt-1 block text-[10px] text-slate-300 no-underline"
-          >
-            +91 9311472357
-          </a>
+            <a
+              href="tel:+919311472357"
+              className="mt-0.5 text-[12px] font-semibold text-white no-underline hover:underline"
+            >
+              +91 9311472357
+            </a>
+          </div>
         </div>
       )}
     </aside>
