@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from 'react'
 import {
-  ArrowLeft,
   Building2,
   BookOpen,
   Copy,
@@ -18,7 +17,7 @@ import {
   fetchCompanyLedgers,
 } from '../services/companiesApi'
 
-const MyCompanyDetailsPage = () => {
+const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
   const accessToken = useAuthStore((state) => state.accessToken)
 
   const [company, setCompany] = useState(null)
@@ -33,7 +32,7 @@ const MyCompanyDetailsPage = () => {
   const [error, setError] = useState('')
   const [copiedField, setCopiedField] = useState('')
 
-  const companyId = decodeURIComponent(
+  const companyId = companyIdProp || decodeURIComponent(
     window.location.pathname.split('/').pop() || '',
   )
 
@@ -176,18 +175,6 @@ const MyCompanyDetailsPage = () => {
     return (
       <section className="min-h-screen bg-[#f7f9fc] px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="group mb-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
-          >
-            <ArrowLeft
-              size={17}
-              className="transition-transform duration-200 group-hover:-translate-x-0.5"
-            />
-            Back
-          </button>
-
           <div className="overflow-hidden rounded-2xl border border-red-200 bg-white shadow-sm">
             <div className="border-b border-red-100 bg-red-50 px-6 py-5 sm:px-8">
               <div className="flex items-center gap-3">
@@ -228,18 +215,6 @@ const MyCompanyDetailsPage = () => {
     return (
       <section className="min-h-screen bg-[#f7f9fc] px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="group mb-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
-          >
-            <ArrowLeft
-              size={17}
-              className="transition-transform duration-200 group-hover:-translate-x-0.5"
-            />
-            Back
-          </button>
-
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
               <div className="flex items-center gap-3">
@@ -337,23 +312,6 @@ const MyCompanyDetailsPage = () => {
   return (
     <section className="min-h-screen bg-[#f7f9fc] px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-
-        {/* =================================================
-            BACK BUTTON
-        ================================================= */}
-
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          className="group mb-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
-        >
-          <ArrowLeft
-            size={17}
-            className="transition-transform duration-200 group-hover:-translate-x-0.5"
-          />
-          Back
-        </button>
-
         {/* =================================================
             MAIN CARD
         ================================================= */}

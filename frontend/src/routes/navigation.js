@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  BookOpen,
   Building2,
   ClipboardList,
   DatabaseBackup,
@@ -27,6 +28,7 @@ export const navItems = [
   [BarChart3, 'Reports', true, false, 'reports'],
   [ClipboardList, 'My Entries', true, false, 'my-entries'],
   [FileText, 'Vouchers', false, false, 'vouchers'],
+  [BookOpen, 'Ledgers', false, false, 'my-ledgers'],
   [Settings, 'Configurations', false, false, 'configurations'],
   [Search, 'GST Search', false, 'NEW', 'gst-search'],
   [DatabaseBackup, 'Data Backup', false, false, 'data-backup'],

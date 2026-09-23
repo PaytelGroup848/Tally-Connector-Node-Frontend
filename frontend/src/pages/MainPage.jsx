@@ -312,6 +312,13 @@ function App() {
 
   const renderPage = () => {
     if (flags.showCompanyDetailsPage) return <MyCompanyDetailsPage />
+    if (entryPath === '/my-ledgers') {
+      return (
+        <MyCompanyDetailsPage
+          companyId={getCompanyId(selectedCompany) || '6aa0f659f858467a84d08d57'}
+        />
+      )
+    }
     if (currentPath === '/profile') return <ProfilePage />
     if (flags.showPlansPage) return <PlansPage />
     if (flags.showDashboard) return <DashboardPage companyId={getCompanyId(selectedCompany)} activeTab={activeTab} setActiveTab={setActiveTab} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} dayBookDate={dayBookDate} setDayBookDate={setDayBookDate} openCustomDatePicker={openCustomDatePicker} customDateInput={customDateInput} onMetricClick={(label) => {

@@ -556,13 +556,7 @@ function AppHeader({
 
     onSelectCompany?.(company)
 
-    const companyId = getCompanyId(company)
-
-    if (companyId) {
-      onNavigate?.(
-        `/company-details/${encodeURIComponent(companyId)}`,
-      )
-    }
+    onNavigate?.('/dashboard')
 
     closeAllDropdowns()
   }
