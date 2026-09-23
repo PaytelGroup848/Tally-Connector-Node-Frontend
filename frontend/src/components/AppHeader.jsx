@@ -983,7 +983,7 @@ function AppHeader({
               items-stretch
             "
           >
-            {/* LINK E-INVOICE */}
+            {/* LINK E-INVOICE
             <button
               type="button"
               onClick={() =>
@@ -1028,7 +1028,7 @@ function AppHeader({
                 <br />
                 eInvoice
               </span>
-            </button>
+            </button> */}
 
             {/* MOBILE VERSION */}
             <button

@@ -31,6 +31,7 @@ export const navItems = [
   [BookOpen, 'Ledgers', false, false, 'my-ledgers'],
   [Settings, 'Configurations', false, false, 'configurations'],
   [Search, 'GST Search', false, 'NEW', 'gst-search'],
+  [FileText, 'My Eway Bill', false, false, 'my-eway-bill'],
   [DatabaseBackup, 'Data Backup', false, false, 'data-backup'],
 ]
 

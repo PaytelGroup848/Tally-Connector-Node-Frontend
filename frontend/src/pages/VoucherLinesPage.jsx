@@ -5,6 +5,7 @@ import {
   extractVouchers,
   fetchCompanyVouchers,
 } from '../services/companiesApi'
+import { getUniqueFields as getUniqueFieldsUtil } from '../utils/columnUtils'
 
 const MODAL_LAYER = {
   entry: 1000,
@@ -201,31 +202,9 @@ function normalizeFieldKey(field) {
 }
 
 function getUniqueFields(fields = []) {
-  const seenFields = new Set()
-  const uniqueFields = []
-
-  fields.forEach((field) => {
-    if (
-      typeof field !== 'string' ||
-      !field.trim() ||
-      isHiddenField(field)
-    ) {
-      return
-    }
-
-    const normalizedField =
-      normalizeFieldKey(field)
-
-    if (
-      normalizedField &&
-      !seenFields.has(normalizedField)
-    ) {
-      seenFields.add(normalizedField)
-      uniqueFields.push(field)
-    }
+  return getUniqueFieldsUtil(fields, {
+    isHidden: (field) => isHiddenField(field),
   })
-
-  return uniqueFields
 }
 
 function getEntryFields(entries) {

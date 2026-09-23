@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import DateRangePicker from "../components/DateRangePicker";
 import useAuthStore from "../store/authStore";
+import { getUniqueFields } from "../utils/columnUtils";
 
 import {
   extractCustomerPagination,
@@ -1831,15 +1832,14 @@ function SalesReport({ companyId }) {
   // ==========================================================
 
   const salesColumns = (() => {
-    const columns = Array.from(
-      new Set(
-        rows.flatMap((row) => {
-          if (!row || typeof row !== "object" || Array.isArray(row)) return [];
-          return Object.keys(row).filter(
-            (column) => !isHiddenSalesField(column),
-          );
-        }),
-      ),
+    const columns = getUniqueFields(
+      rows.flatMap((row) => {
+        if (!row || typeof row !== "object" || Array.isArray(row)) return [];
+        return Object.keys(row);
+      }),
+      {
+        isHidden: (column) => isHiddenSalesField(column),
+      },
     );
     const narrationColumns = columns.filter(
       (column) => column.toLowerCase() === "narration",
@@ -2221,13 +2221,14 @@ function CashReport({ companyId }) {
     };
   }, [accessToken, companyId, currentPage, pageSize, query]);
 
-  const columns = Array.from(
-    new Set(
-      rows.flatMap((row) => {
-        if (!row || typeof row !== "object" || Array.isArray(row)) return [];
-        return Object.keys(row).filter((column) => !isHiddenSalesField(column));
-      }),
-    ),
+  const columns = getUniqueFields(
+    rows.flatMap((row) => {
+      if (!row || typeof row !== "object" || Array.isArray(row)) return [];
+      return Object.keys(row);
+    }),
+    {
+      isHidden: (column) => isHiddenSalesField(column),
+    },
   );
 
   const narrationColumns = columns.filter(
@@ -2484,13 +2485,14 @@ function BankReport({ companyId }) {
     };
   }, [accessToken, companyId, currentPage, pageSize, query]);
 
-  const columns = Array.from(
-    new Set(
-      rows.flatMap((row) => {
-        if (!row || typeof row !== "object" || Array.isArray(row)) return [];
-        return Object.keys(row).filter((column) => !isHiddenSalesField(column));
-      }),
-    ),
+  const columns = getUniqueFields(
+    rows.flatMap((row) => {
+      if (!row || typeof row !== "object" || Array.isArray(row)) return [];
+      return Object.keys(row);
+    }),
+    {
+      isHidden: (column) => isHiddenSalesField(column),
+    },
   );
 
   const narrationColumns = columns.filter(
@@ -2825,15 +2827,16 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
     startDate,
   ]);
 
-  const columns = Array.from(
-    new Set(
-      rows.flatMap((row) =>
-        row && typeof row === "object" && !Array.isArray(row)
-          ? Object.keys(row)
-          : [],
-      ),
+  const columns = getUniqueFields(
+    rows.flatMap((row) =>
+      row && typeof row === "object" && !Array.isArray(row)
+        ? Object.keys(row)
+        : [],
     ),
-  ).filter((column) => !isHiddenSalesField(column));
+    {
+      isHidden: (column) => isHiddenSalesField(column),
+    },
+  );
   const narrationColumns = columns.filter(
     (column) => column.toLowerCase() === "narration",
   );

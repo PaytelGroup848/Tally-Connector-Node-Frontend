@@ -12,6 +12,7 @@ import {
     fetchCompanyVouchers,
     fetchCompanyVoucherTypes,
 } from '../services/companiesApi'
+import { getUniqueFields } from '../utils/columnUtils'
 
 function formatValue(value) {
     if (value === null || value === undefined || value === '') {
@@ -139,6 +140,12 @@ function getVoucherTypeValue(value) {
     }
 
     return ''
+}
+
+function getUniqueVoucherColumns(fields = []) {
+    return getUniqueFields(fields, {
+        isHidden: (field) => isHiddenColumn(field),
+    })
 }
 
 function VouchersPage({ companyId }) {
@@ -404,29 +411,16 @@ function VouchersPage({ companyId }) {
             'date',
         ]
 
-        const columns = []
-        const seenColumnKeys = new Set()
+        const columns = getUniqueVoucherColumns(
+            vouchers.flatMap((voucher) => Object.keys(voucher || {})),
+        )
 
-        vouchers.forEach((voucher) => {
-            Object.keys(voucher || {}).forEach((key) => {
-                const normalizedKey = normalizeColumnKey(key)
-
-                if (
-                    !isHiddenColumn(key) &&
-                    normalizedKey &&
-                    !seenColumnKeys.has(normalizedKey)
-                ) {
-                    seenColumnKeys.add(normalizedKey)
-                    columns.push(key)
-                }
-            })
-        })
         return [
             ...preferredColumns.filter(
-                (key) => columns.includes(key),
+                (key) => columns.some((column) => normalizeColumnKey(column) === normalizeColumnKey(key)),
             ),
             ...columns.filter(
-                (key) => !preferredColumns.includes(key),
+                (key) => !preferredColumns.some((preferredKey) => normalizeColumnKey(preferredKey) === normalizeColumnKey(key)),
             ),
         ]
     }, [vouchers])

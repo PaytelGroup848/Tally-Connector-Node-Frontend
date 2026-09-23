@@ -6,6 +6,7 @@ import {
   extractBalanceSheetRows,
   fetchBalanceSheet,
 } from '../services/companiesApi'
+import { getUniqueFields } from '../utils/columnUtils'
 
 const hiddenFields = new Set([
   '_id',
@@ -191,16 +192,12 @@ function BalanceSheetPage({ companyId }) {
   }, [accessToken, companyId, page, pageSize, query, ledgerType])
 
   const fields = useMemo(() => {
-    const keys = new Set()
-
-    rows.forEach((row) => {
-      if (!row || typeof row !== 'object') return
-      Object.keys(row).forEach((key) => {
-        if (!isHiddenField(key)) keys.add(key)
-      })
-    })
-
-    return Array.from(keys)
+    return getUniqueFields(
+      rows.flatMap((row) => (row && typeof row === 'object' ? Object.keys(row) : [])),
+      {
+        isHidden: (field) => isHiddenField(field),
+      },
+    )
   }, [rows])
 
   const gridTemplateColumns = useMemo(() => {

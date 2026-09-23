@@ -7,6 +7,7 @@ import {
   extractTrialBalancePagination,
   fetchTrialBalance,
 } from '../services/companiesApi';
+import { getUniqueFields } from '../utils/columnUtils';
 
 /*
  * Fields that should NOT be displayed in the table.

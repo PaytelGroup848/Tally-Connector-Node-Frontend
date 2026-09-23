@@ -16,6 +16,7 @@ import {
   fetchCompanyById,
   fetchCompanyLedgers,
 } from '../services/companiesApi'
+import { getUniqueFields } from '../utils/columnUtils'
 
 const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
   const accessToken = useAuthStore((state) => state.accessToken)
@@ -255,25 +256,25 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
   const companyName =
     company?.tallyCompanyName || 'Tally Company'
 
-  const ledgerColumns = Array.from(
-  new Set(ledgers.flatMap((ledger) => Object.keys(ledger || {}))),
-).filter(
-  (column) =>
-    ![
-      'source',
-      'raw',
-      'version',
-      'v',
-      '__v',
-      'id',
-      '_id',
-      'ledgerid',
-      'companyid',
-      'organisationid',
-      'organizationid',
-      'tallyexternalid',
-    ].includes(column.toLowerCase().replace(/[_-]/g, '')),
-)
+  const ledgerColumns = getUniqueFields(
+    ledgers.flatMap((ledger) => Object.keys(ledger || {})),
+    {
+      ignoreKeywords: [
+        'source',
+        'raw',
+        'version',
+        'v',
+        '__v',
+        'id',
+        '_id',
+        'ledgerid',
+        'companyid',
+        'organisationid',
+        'organizationid',
+        'tallyexternalid',
+      ],
+    },
+  )
 
   const formatLedgerValue = (value, column) => {
     if (value === null || value === undefined || value === '') return 'NA'
