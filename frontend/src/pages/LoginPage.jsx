@@ -79,6 +79,7 @@ const LoginPage = () => {
         <section
           className="
             relative
+            hidden
             w-full
             overflow-hidden
             bg-[#3828bd]

@@ -357,7 +357,7 @@ function ItemsPage({ companyId }) {
             Add New
           </button>
 
-          <button
+          {/* <button
             className="
               inline-flex
               items-center
@@ -377,7 +377,7 @@ function ItemsPage({ companyId }) {
           >
            
             View PDF
-          </button>
+          </button> */}
         </div>
 
         {/* Error */}

@@ -281,6 +281,7 @@ function PartiesPage({
       =================================================== */}
 
       <div
+        className="toolbar-shell"
         style={{
           height: '62px',
           minHeight: '62px',
@@ -297,6 +298,7 @@ function PartiesPage({
         {/* LEFT */}
 
         <div
+          className="toolbar-left"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -308,6 +310,7 @@ function PartiesPage({
           {/* SEARCH */}
 
           <div
+            className="toolbar-search"
             style={{
               width: '256px',
               flexShrink: 0,
@@ -350,6 +353,7 @@ function PartiesPage({
           {/* SHOW */}
 
           <div
+            className="toolbar-show"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -363,6 +367,7 @@ function PartiesPage({
             </span>
 
             <select
+              className="toolbar-select"
               value={limit}
               onChange={handleLimitChange}
               style={{
@@ -401,8 +406,9 @@ function PartiesPage({
 
         {/* RIGHT */}
 
-        <div className="flex items-center gap-3">
+        <div className="toolbar-right flex items-center gap-3">
           <span
+            className="page-meta"
             style={{
               fontSize: '11px',
               color: '#536d8a',
@@ -419,7 +425,7 @@ function PartiesPage({
               setCreateMessage('')
               setIsCreateOpen(true)
             }}
-            className="flex h-9 items-center gap-1.5 rounded-md bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="add-party-btn flex h-9 items-center gap-1.5 rounded-md bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus size={14} />
             Add New Party
@@ -1076,6 +1082,67 @@ function PartiesPage({
           }
 
           @media (max-width: 767px) {
+            .toolbar-shell {
+              height: auto !important;
+              min-height: auto !important;
+              display: flex !important;
+              flex-direction: column !important;
+              align-items: stretch !important;
+              gap: 8px !important;
+              padding: 8px 10px !important;
+            }
+
+            .toolbar-left,
+            .toolbar-right {
+              width: 100% !important;
+              display: flex !important;
+              flex-direction: row !important;
+              align-items: center !important;
+              min-width: 0 !important;
+            }
+
+            .toolbar-left {
+              gap: 6px !important;
+            }
+
+            .toolbar-search {
+              width: 100% !important;
+              min-width: 0 !important;
+              flex: 1 1 auto !important;
+            }
+
+            .toolbar-show {
+              flex-shrink: 0 !important;
+              justify-content: flex-start !important;
+              gap: 4px !important;
+            }
+
+            .toolbar-select {
+              width: 56px !important;
+              min-width: 56px !important;
+              flex: 0 0 auto !important;
+            }
+
+            .toolbar-right {
+              justify-content: space-between !important;
+              gap: 6px !important;
+            }
+
+            .page-meta {
+              white-space: nowrap !important;
+              line-height: 1.2;
+              font-size: 10px !important;
+            }
+
+            .add-party-btn {
+              width: auto !important;
+              justify-content: center !important;
+              flex: 0 0 auto !important;
+              padding-left: 10px !important;
+              padding-right: 10px !important;
+              white-space: nowrap !important;
+            }
+
             .party-th {
               padding: 0 14px;
             }
