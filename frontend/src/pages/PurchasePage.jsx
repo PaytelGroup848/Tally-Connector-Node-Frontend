@@ -5,6 +5,7 @@ import {
   extractPurchases,
   fetchCompanyPurchases,
 } from '../services/companiesApi'
+import { GstLedgerPanel } from './DocumentVoucherPage'
 
 // ============================================================
 // FIELD DATA

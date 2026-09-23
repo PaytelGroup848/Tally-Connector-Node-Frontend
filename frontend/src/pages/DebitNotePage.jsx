@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { GstLedgerPanel } from './DocumentVoucherPage'
 
 // ============================================================
 // REUSABLE FIELD
@@ -761,17 +762,7 @@ export default function DebitNotePage() {
 
           <div className="h-fit min-w-0 rounded-[4px] bg-white p-4 shadow-sm">
 
-            <button
-              type="button"
-              className="
-                text-[14px]
-                font-semibold
-                text-[#4698eb]
-                hover:text-[#2476c5]
-              "
-            >
-              + Add GST And Other Ledgers
-            </button>
+            <GstLedgerPanel />
 
             <div className="mt-3 rounded-[2px] bg-[#f1fbef] px-4 py-3">
 

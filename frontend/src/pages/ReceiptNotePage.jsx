@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { SearchableDropdown } from './DocumentVoucherPage'
+import { GstLedgerPanel, SearchableDropdown } from './DocumentVoucherPage'
 import useAuthStore from '../store/authStore'
 import {
   extractGodowns,
@@ -1668,16 +1668,7 @@ function ReceiptNotePage({ companyId }) {
 
           <div className="h-fit rounded-[4px] bg-white p-4 shadow-sm">
 
-            <button
-              type="button"
-              className="
-                text-[14px]
-                font-semibold
-                text-[#4994eb]
-              "
-            >
-              + Add GST And Other Ledgers
-            </button>
+            <GstLedgerPanel />
 
             <div className="mt-3 bg-[#f1fbef] px-4 py-3">
 

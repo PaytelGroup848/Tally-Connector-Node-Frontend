@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { GstLedgerPanel } from './DocumentVoucherPage'
 
 function SearchIcon() {
   return (
@@ -711,13 +712,7 @@ function SalesOrderPage() {
             <div className="h-fit overflow-hidden rounded-lg border border-slate-200 bg-white">
 
               {/* ADD GST */}
-              <button
-                type="button"
-                onClick={() => alert('GST and other ledger panel opened')}
-                className="flex h-12 w-full items-center border-b border-slate-200 px-4 text-left text-sm font-semibold text-green-600 hover:bg-slate-50"
-              >
-                + Add GST And Other Ledgers
-              </button>
+              <GstLedgerPanel />
 
               {/* TOTALS */}
               <div className="space-y-3 bg-green-50 px-4 py-4 text-sm">

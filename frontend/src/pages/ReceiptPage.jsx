@@ -10,7 +10,9 @@ import {
 import { extractCustomers } from '../services/customersApi'
 import { fetchParties } from '../services/partiesApi'
 import {
+  advancedVoucherFieldNames,
   AdvancedVoucherSettings,
+  GstLedgerPanel,
   SearchableDropdown,
 } from './DocumentVoucherPage'
 
@@ -179,6 +181,16 @@ function ReceiptPage({
   const handleSubmit = async (event) => {
     event.preventDefault()
 
+    const formValues = Object.fromEntries(
+      new FormData(event.currentTarget).entries(),
+    )
+    const advancedSettings = Object.fromEntries(
+      advancedVoucherFieldNames.map((fieldName) => [
+        fieldName,
+        formValues[fieldName] || '',
+      ]),
+    )
+
     setSubmitMessage('')
     setSubmitError('')
     setShowSuccessAnimation(false)
@@ -242,6 +254,8 @@ function ReceiptPage({
           ledger: form.ledger,
 
           amount,
+          advancedSettings,
+          ...advancedSettings,
 
           narration: form.narration,
         },
@@ -677,12 +691,7 @@ function ReceiptPage({
             </div>
 
             <div className="rounded-md bg-white p-3">
-              <button
-                type="button"
-                className="mb-3 text-sm font-semibold text-green-600 hover:text-green-700"
-              >
-                + Add GST And Other Ledgers
-              </button>
+              <GstLedgerPanel subtotal={Number(form.amount || 0)} ledgerOptions={ledgerOptions} />
 
               <div className="space-y-2 bg-green-50 p-3 text-sm text-slate-700">
                 <div className="flex justify-between">

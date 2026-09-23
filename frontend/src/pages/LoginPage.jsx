@@ -3,9 +3,7 @@ import {
   ArrowRight,
   Check,
   Mail,
-  ShieldCheck,
 } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
 import logo from "../assets/logoFull.png";
 import { sendOtp, verifyOtp } from "../services/authApi";
 import useAuthStore from "../store/authStore";
@@ -28,9 +26,9 @@ const LoginPage = () => {
     setMessage("");
 
     try {
-      const data = await sendOtp(trimmedEmail);
+      await sendOtp(trimmedEmail);
       setOtpSent(true);
-      setMessage(data?.message || "OTP sent successfully. Please enter the code below.");
+      setMessage(`OTP sent to ${trimmedEmail}`);
     } catch (error) {
       setMessage(error.message || "Unable to send OTP. Please try again.");
     } finally {
@@ -72,7 +70,7 @@ const LoginPage = () => {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-white font-sans text-[#0a2a4a]">
+    <main className="min-h-screen overflow-hidden bg-[#f5f8fc] font-sans text-[#102a43]">
       <div className="flex min-h-screen w-full flex-col lg:flex-row">
 
         {/* =========================================================
@@ -81,13 +79,12 @@ const LoginPage = () => {
         <section
           className="
             relative
-            hidden
             w-full
             overflow-hidden
-            bg-[#eefaff]
+            bg-[#3828bd]
             lg:flex
             lg:min-h-screen
-            lg:w-[62%]
+            lg:w-[60%]
             lg:flex-col
             lg:px-12
             xl:px-16
@@ -98,7 +95,7 @@ const LoginPage = () => {
             className="
               absolute
               inset-0
-              bg-[linear-gradient(135deg,#ffffff_0%,#f8fdff_30%,#eefaff_65%,#dff7fb_100%)]
+              bg-[#3828bd]
             "
           />
 
@@ -112,11 +109,7 @@ const LoginPage = () => {
               h-[125%]
               w-[32%]
               rotate-[19deg]
-              bg-gradient-to-b
-              from-[#d6f5ff]
-              via-[#bce9ff]
-              to-[#def7f5]
-              opacity-80
+              hidden
             "
           />
 
@@ -129,11 +122,7 @@ const LoginPage = () => {
               h-[135%]
               w-[16%]
               rotate-[19deg]
-              bg-gradient-to-b
-              from-[#c7efff]
-              via-[#d8f2ff]
-              to-[#b9f2eb]
-              opacity-90
+              hidden
             "
           />
 
@@ -146,7 +135,7 @@ const LoginPage = () => {
               h-[125%]
               w-[8%]
               rotate-[19deg]
-              bg-white/70
+              hidden
             "
           />
 
@@ -160,14 +149,17 @@ const LoginPage = () => {
               w-[30%]
               rotate-[18deg]
               rounded-[50%]
-              bg-gradient-to-br
-              from-[#dffcff]
-              to-[#b5e9ff]
-              opacity-70
-              blur-[2px]
+              hidden
             "
           />
+          <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#2FA66F]">
+            <div className="absolute -left-24 bottom-[-18%] h-[115%] w-[78%] rotate-[23deg] rounded-[48%] border border-white/10" />
+            <div className="absolute -left-12 bottom-[-16%] h-[110%] w-[68%] rotate-[23deg] rounded-[48%] border border-white/10" />
+            <div className="absolute left-8 bottom-[-15%] h-[104%] w-[58%] rotate-[23deg] rounded-[48%] border border-white/10" />
+          </div>
 
+          <div className="relative z-10 flex flex-1 flex-col justify-between py-10 text-white sm:py-14 lg:py-16">
+          </div>
           
         </section>
 
@@ -182,11 +174,11 @@ const LoginPage = () => {
             w-full
             flex-col
             overflow-hidden
-            bg-white
+            bg-[#f5f8fc]
             px-5
             py-6
             sm:px-8
-            lg:w-[38%]
+            lg:w-[40%]
             lg:px-12
             lg:py-10
             xl:px-16
@@ -195,6 +187,7 @@ const LoginPage = () => {
           {/* 0% Platform Fees ribbon */}
           <div
             className="
+              hidden
               pointer-events-none
               absolute
               right-[-55px]
@@ -215,6 +208,7 @@ const LoginPage = () => {
           {/* Decorative top-right shape */}
           <div
             className="
+              hidden
               pointer-events-none
               absolute
               right-[-80px]
@@ -228,7 +222,7 @@ const LoginPage = () => {
 
           {/* Login content */}
           <div
-            className="
+              className="
               relative
               z-10
               mx-auto
@@ -237,44 +231,49 @@ const LoginPage = () => {
               max-w-[420px]
               flex-1
               flex-col
+              items-center
               justify-center
               pt-2
             "
           >
             {/* Logo */}
-            <div className="mb-4 flex items-center justify-center">
-              <img src={logo} alt="CtrlBooks logo" className="h-30 w-auto object-contain sm:h-30 lg:h-30 xl:h-30" />
+            <div className="mb-10 flex h-12 w-full items-center justify-center overflow-hidden">
+              <img src={logo} alt="CtrlBooks logo" className="block h-auto w-[190px] max-w-full object-contain object-left" />
             </div>
 
             {/* Heading */}
             <h2
               className="
-                text-[2rem]
-                font-black
+                text-[1.8rem]
+                font-bold
                 leading-[1.05]
-                tracking-[-0.055em]
-                text-[#152f49]
-                sm:text-[2.35rem]
+                tracking-tight
+                text-center text-[#092f52]
+                sm:text-[2rem]
               "
             >
               {otpSent ? "Enter OTP" : "Login to continue"}
             </h2>
 
+            <p className="mt-3 max-w-[300px] text-center text-sm leading-5 text-[#61758a]">
+              {otpSent ? "Use the verification code sent to your email." : "Enter your email to receive a secure one-time login code."}
+            </p>
+
             {message && (
-              <div className="mt-4 rounded-lg border border-[#d8ebff] bg-[#f4f9ff] px-3 py-2 text-xs text-[#3a5e8a] justify-center align-center flex items-center gap-2">
+              <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-[#dce5ee] bg-white px-3 py-2 text-xs text-[#61758a]">
                 {message}
               </div>
             )}
 
             {/* Form */}
             {!otpSent ? (
-              <form onSubmit={handleSendOtp} className="mt-7">
+              <form onSubmit={handleSendOtp} className="mt-7 w-full">
                 <label
                   className="
                     block
                     text-[0.92rem]
                     font-semibold
-                    text-[#213d59]
+                    text-[#102a43]
                   "
                 >
                   Email Address
@@ -289,7 +288,7 @@ const LoginPage = () => {
                         h-5
                         w-5
                         -translate-y-1/2
-                        text-[#879aae]
+                        text-[#8ba0b3]
                       "
                     />
 
@@ -300,11 +299,11 @@ const LoginPage = () => {
                       placeholder="Enter your email address"
                       disabled={loading}
                       className="
-                        h-14
+                        h-11
                         w-full
                         rounded-lg
                         border
-                        border-[#d5dee8]
+                        border-[#dce5ee]
                         bg-white
                         pl-11
                         pr-4
@@ -313,9 +312,9 @@ const LoginPage = () => {
                         placeholder:text-[#a7b5c5]
                         outline-none
                         transition
-                        focus:border-[#4d8cff]
+                        focus:border-[#10a66f]
                         focus:ring-2
-                        focus:ring-[#dce8ff]
+                        focus:ring-[#d9f4e9]
                         disabled:opacity-60
                       "
                     />
@@ -328,21 +327,19 @@ const LoginPage = () => {
                   className="
                     mt-5
                     flex
-                    h-12
+                    h-11
                     w-full
                     items-center
                     justify-center
                     gap-3
-                    rounded-lg
-                    bg-gradient-to-r
-                    from-[#16be89]
-                    to-[#1677ed]
+                    rounded-md
+                    bg-[#10a66f]
                     text-[0.96rem]
                     font-bold
                     text-white
-                    shadow-[0_8px_18px_rgba(20,152,190,0.14)]
+                    shadow-[0_8px_18px_rgba(16,166,111,0.18)]
                     transition
-                    hover:brightness-105
+                    hover:bg-[#0b935f]
                     active:scale-[0.99]
                     disabled:cursor-not-allowed
                     disabled:opacity-60
@@ -353,8 +350,8 @@ const LoginPage = () => {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleVerifyOtp} className="mt-7">
-                <label className="block text-[0.92rem] font-semibold text-[#213d59]">
+              <form onSubmit={handleVerifyOtp} className="mt-7 w-full">
+                <label className="block text-[0.92rem] font-semibold text-[#102a43]">
                   OTP
                   <input
                     type="text"
@@ -362,9 +359,9 @@ const LoginPage = () => {
                     maxLength={6}
                     value={otp}
                     onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="Enter 6 digit OTP"
+                    placeholder="Enter OTP"
                     disabled={loading}
-                    className="mt-2 h-14 w-full rounded-lg border border-[#d5dee8] bg-white px-4 text-[1.1rem] text-[#243b53] placeholder:text-[#a7b5c5] outline-none transition focus:border-[#4d8cff] focus:ring-2 focus:ring-[#dce8ff] disabled:opacity-60"
+                    className="mt-2 h-11 w-full rounded-md border border-[#dce5ee] bg-white px-4 text-[1.1rem] text-[#102a43] placeholder:text-[#8ba0b3] outline-none transition focus:border-[#10a66f] focus:ring-2 focus:ring-[#d9f4e9] disabled:opacity-60"
                   />
                 </label>
 
@@ -374,21 +371,19 @@ const LoginPage = () => {
                   className="
                     mt-5
                     flex
-                    h-12
+                    h-11
                     w-full
                     items-center
                     justify-center
                     gap-3
-                    rounded-lg
-                    bg-gradient-to-r
-                    from-[#16be89]
-                    to-[#1677ed]
+                    rounded-md
+                    bg-[#10a66f]
                     text-[0.96rem]
                     font-bold
                     text-white
-                    shadow-[0_8px_18px_rgba(20,152,190,0.14)]
+                    shadow-[0_8px_18px_rgba(16,166,111,0.18)]
                     transition
-                    hover:brightness-105
+                    hover:bg-[#0b935f]
                     active:scale-[0.99]
                     disabled:cursor-not-allowed
                     disabled:opacity-60
@@ -404,7 +399,7 @@ const LoginPage = () => {
                     setOtpSent(false);
                     setOtp("");
                   }}
-                  className="mt-3 w-full rounded-lg border border-[#d5dee8] bg-white px-4 py-3 text-sm font-medium text-[#213d59] transition hover:bg-[#f5f9ff]"
+                  className="mt-3 w-full rounded-lg border border-[#dce5ee] bg-white px-4 py-3 text-sm font-medium text-[#102a43] transition hover:bg-[#edf7f2]"
                 >
                   Use a different email
                 </button>

@@ -160,6 +160,48 @@ function getCommandPayload(command) {
   )
 }
 
+const advancedSettingsKeys = new Set([
+  'supplierName',
+  'supplierCountry',
+  'supplierState',
+  'registrationType',
+  'postalCode',
+  'gstinUin',
+  'placeOfSupply',
+  'address',
+  'consigneeName',
+  'consigneeCountry',
+  'consigneeState',
+  'consigneePostalCode',
+  'consigneeGstinUin',
+  'consigneeAddress',
+  'dispatchFrom',
+  'dispatchThrough',
+  'dispatchDocNo',
+  'dispatchDate',
+  'orderNo',
+  'orderDate',
+  'termsOfDelivery',
+])
+
+function groupAdvancedSettings(value, shouldGroup = true) {
+  if (!shouldGroup) return value
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+
+  const entries = Object.entries(value)
+  const advancedEntries = entries.filter(([key]) => advancedSettingsKeys.has(key))
+  if (advancedEntries.length === 0) return value
+
+  const grouped = Object.fromEntries(advancedEntries)
+  return {
+    ...Object.fromEntries(entries.filter(([key]) => !advancedSettingsKeys.has(key) && key !== 'advancedSettings')),
+    'Advanced Settings': {
+      ...(value.advancedSettings && typeof value.advancedSettings === 'object' ? value.advancedSettings : {}),
+      ...grouped,
+    },
+  }
+}
+
 function getJournalParticulars(command) {
   const payload = getCommandPayload(command)
   const particulars = payload?.particulars || command?.particulars
@@ -523,7 +565,7 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
                     </tbody>
                   </table>
                 </div>
-              ) : getDetailEntries(detail.value).length > 0 ? getDetailEntries(detail.value).map(([key, value]) => <div key={key} className="grid grid-cols-[180px_1fr] items-start border-b border-[#dfe7f0] px-2 py-3 text-xs"><strong>{Array.isArray(detail.value) ? `Item ${key}` : formatLabel(key)}</strong>{isStructured(value) ? <button type="button" onClick={() => openDetail(Array.isArray(detail.value) ? `Item ${key}` : formatLabel(key), value)} className="w-fit rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700">View</button> : <span className="whitespace-pre-wrap break-words">{formatValue(value, key)}</span>}</div>) : <div className="whitespace-pre-wrap break-words px-2 py-3 text-sm text-[#17355f]">{formatValue(detail.value)}</div>}
+              ) : getDetailEntries(groupAdvancedSettings(detail.value, detail.title !== 'Advanced Settings')).length > 0 ? getDetailEntries(groupAdvancedSettings(detail.value, detail.title !== 'Advanced Settings')).map(([key, value]) => <div key={key} className="grid grid-cols-[180px_1fr] items-start border-b border-[#dfe7f0] px-2 py-3 text-xs"><strong>{Array.isArray(detail.value) ? `Item ${key}` : formatLabel(key)}</strong>{isStructured(value) ? <button type="button" onClick={() => openDetail(Array.isArray(detail.value) ? `Item ${key}` : formatLabel(key), value)} className="w-fit rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700">View</button> : <span className="whitespace-pre-wrap break-words">{formatValue(value, key)}</span>}</div>) : <div className="whitespace-pre-wrap break-words px-2 py-3 text-sm text-[#17355f]">{formatValue(detail.value)}</div>}
             </div>
             <div className="flex justify-end border-t border-[#dfe7f0] px-5 py-3">
               <button type="button" onClick={closeDetail} className="rounded-md bg-[#172a46] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#203b61]">Close</button>

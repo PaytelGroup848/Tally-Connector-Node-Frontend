@@ -1,5 +1,6 @@
 
 import { useState } from 'react'
+import { GstLedgerPanel } from './DocumentVoucherPage'
 
 // ============================================================
 // REUSABLE INPUT
@@ -1132,17 +1133,7 @@ export default function CreditNotePage() {
               shadow-sm
             "
           >
-            <button
-              type="button"
-              className="
-                text-[14px]
-                font-semibold
-                text-[#4698eb]
-                hover:text-[#2476c5]
-              "
-            >
-              + Add GST And Other Ledgers
-            </button>
+            <GstLedgerPanel />
 
             <div
               className="

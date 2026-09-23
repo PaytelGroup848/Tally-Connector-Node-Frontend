@@ -28,6 +28,18 @@ import {
 const QUOTATION_COMPANY_ID = '6aa0f659f858467a84d08d57'
 
 let nextItemRowId = 1
+let nextLedgerRowId = 1
+
+function createEmptyLedgerRow() {
+  return {
+    id: nextLedgerRowId++,
+    ledgerName: '',
+    category: 'tax',
+    calculationType: 'percentage',
+    value: '',
+    effect: 'add',
+  }
+}
 
 function createEmptyItemRow() {
   return {
@@ -213,7 +225,33 @@ const advancedVoucherTabs = [
   'Order Details',
 ]
 
-function VoucherField({ label, placeholder, name, search = false, className = '' }) {
+export const advancedVoucherFieldNames = [
+  'supplierName',
+  'supplierCountry',
+  'supplierState',
+  'registrationType',
+  'postalCode',
+  'gstinUin',
+  'placeOfSupply',
+  'address',
+  'consigneeName',
+  'consigneeCountry',
+  'consigneeState',
+  'consigneePostalCode',
+  'consigneeGstinUin',
+  'consigneeAddress',
+  'dispatchFrom',
+  'dispatchThrough',
+  'dispatchDocNo',
+  'dispatchDate',
+  'orderNo',
+  'orderDate',
+  'termsOfDelivery',
+]
+
+function VoucherField({ label, placeholder, name, search = false, type, className = '' }) {
+  const inputType = type || (name.toLowerCase().endsWith('date') ? 'date' : 'text')
+
   return (
     <label className={`relative block min-w-0 ${className}`}>
       <span className="absolute -top-[7px] left-3 z-10 bg-white px-1.5 text-[11px] leading-none text-slate-600">
@@ -222,6 +260,7 @@ function VoucherField({ label, placeholder, name, search = false, className = ''
       <div className="relative">
         <input
           name={name}
+          type={inputType}
           placeholder={placeholder}
           className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 pr-9 text-xs text-slate-700 outline-none placeholder:text-slate-500 focus:border-green-600 focus:ring-1 focus:ring-green-100"
         />
@@ -293,7 +332,7 @@ export function AdvancedVoucherSettings() {
   const [activeTab, setActiveTab] = useState(advancedVoucherTabs[0])
 
   return (
-    <details open className="group rounded-md bg-white">
+    <details className="group rounded-md bg-white">
       <summary className="flex cursor-pointer list-none items-center justify-between border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-800">
         Advanced Settings
         <span className="text-lg leading-none transition group-open:rotate-90">›</span>
@@ -311,13 +350,123 @@ export function AdvancedVoucherSettings() {
             </button>
           ))}
         </div>
-        <AdvancedVoucherContent activeTab={activeTab} />
+        {advancedVoucherTabs.map((tab) => (
+          <div
+            key={tab}
+            className={activeTab === tab ? '' : 'hidden'}
+            aria-hidden={activeTab !== tab}
+          >
+            <AdvancedVoucherContent activeTab={tab} />
+          </div>
+        ))}
       </div>
     </details>
   )
 }
 
-function VoucherBottomSection({ subtotal }) {
+function isTaxLedgerName(value) {
+  return /(gst|cgst|sgst|igst|utgst|cess|tax)/i.test(String(value || ''))
+}
+
+function calculateAdditionalLedgerAmount(row, subtotal) {
+  const value = Number(row?.value) || 0
+
+  if (row?.calculationType === 'amount') {
+    return Math.max(0, value)
+  }
+
+  return Math.max(0, subtotal * Math.max(0, value) / 100)
+}
+
+export function GstLedgerPanel({ subtotal = 0, ledgerOptions = [] }) {
+  const [rows, setRows] = useState([])
+  const [open, setOpen] = useState(false)
+
+  const updateRow = (id, changes) => {
+    setRows((currentRows) => currentRows.map((row) => (
+      row.id === id ? { ...row, ...changes } : row
+    )))
+  }
+
+  const formatCurrency = (value) => Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+  return (
+    <div className="rounded-md bg-white p-3">
+      <button type="button" onClick={() => setOpen((currentOpen) => !currentOpen)} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-green-600 transition hover:text-green-700">
+        <span className="text-base leading-none">{open ? '−' : '+'}</span>
+        {open ? 'Hide GST And Other Ledgers' : 'Add GST And Other Ledger'}
+      </button>
+
+      {open && (
+        <div className="mb-3 rounded-lg border border-green-100 bg-green-50/60 p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-bold text-slate-800">GST &amp; Other Ledgers</p>
+              <p className="text-[11px] text-slate-500">Add GST/tax ledgers or other accounting adjustments.</p>
+            </div>
+            <button type="button" onClick={() => setRows((currentRows) => [...currentRows, createEmptyLedgerRow()])} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-green-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-green-700"><span className="text-sm leading-none">+</span>Add Ledger</button>
+          </div>
+
+          {rows.length === 0 ? (
+            <div className="rounded-md border border-dashed border-green-200 bg-white px-3 py-3 text-center text-[11px] text-slate-500">No GST or other ledger has been added yet.</div>
+          ) : (
+            <div className="space-y-2">
+              {rows.map((row) => (
+                <div key={row.id} className="rounded-md border border-green-100 bg-white p-2">
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,.9fr)_minmax(0,.85fr)_minmax(0,.85fr)_28px]">
+                    <label className="flex min-w-0 flex-col gap-1"><span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Ledger</span><SearchableDropdown name={`additionalLedger-${row.id}`} label="GST and other ledgers" options={ledgerOptions} placeholder="Select ledger" value={row.ledgerName} onSelect={(value) => updateRow(row.id, { ledgerName: value || '', category: isTaxLedgerName(value) ? 'tax' : 'other' })} onClear={() => updateRow(row.id, { ledgerName: '' })} /></label>
+                    <label className="flex flex-col gap-1"><span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Category</span><select value={row.category} onChange={(event) => updateRow(row.id, { category: event.target.value })} className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"><option value="tax">GST / Tax</option><option value="other">Other Ledger</option></select></label>
+                    <label className="flex flex-col gap-1"><span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Calculation</span><select value={row.calculationType} onChange={(event) => updateRow(row.id, { calculationType: event.target.value })} className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"><option value="percentage">Percentage</option><option value="amount">Fixed Amount</option></select></label>
+                    <label className="flex flex-col gap-1"><span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{row.calculationType === 'percentage' ? 'Rate %' : 'Amount'}</span><input type="number" min="0" step="0.01" value={row.value} onChange={(event) => updateRow(row.id, { value: event.target.value })} placeholder="0" className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" /></label>
+                    <button type="button" onClick={() => setRows((currentRows) => currentRows.filter((currentRow) => currentRow.id !== row.id))} className="mt-5 flex h-9 items-center justify-center rounded-md border border-red-100 bg-red-50 text-sm font-bold text-red-500 transition hover:bg-red-100" aria-label="Remove ledger">×</button>
+                  </div>
+                  <div className="mt-2 flex flex-col gap-2 border-t border-slate-100 pt-2 sm:flex-row sm:items-center sm:justify-between"><label className="inline-flex items-center gap-2 text-[11px] font-medium text-slate-600"><span>Effect</span><select value={row.effect} onChange={(event) => updateRow(row.id, { effect: event.target.value })} className="h-8 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-100"><option value="add">Add</option><option value="deduct">Deduct</option></select></label><div className="text-xs font-semibold text-slate-700">Calculated: <span className={row.effect === 'deduct' ? 'text-red-600' : 'text-green-700'}>{row.effect === 'deduct' ? '- ' : '+ '}₹{formatCurrency(calculateAdditionalLedgerAmount(row, subtotal))}</span></div></div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+    </div>
+  )
+}
+
+function VoucherBottomSection({
+  subtotal,
+  itemTaxes,
+  ledgerOptions,
+  additionalLedgers,
+  onAddLedger,
+  onRemoveLedger,
+  onLedgerChange,
+  showLedgerPanel,
+  onToggleLedgerPanel,
+}) {
+  const ledgerCalculations = additionalLedgers
+    .filter((row) => row.ledgerName?.trim())
+    .map((row) => ({
+      ...row,
+      amount: calculateAdditionalLedgerAmount(row, subtotal),
+    }))
+
+  const ledgerTaxes = ledgerCalculations
+    .filter((row) => row.category === 'tax' || isTaxLedgerName(row.ledgerName))
+    .reduce((total, row) => total + (row.effect === 'deduct' ? -row.amount : row.amount), 0)
+
+  const otherLedgers = ledgerCalculations
+    .filter((row) => row.category !== 'tax' && !isTaxLedgerName(row.ledgerName))
+    .reduce((total, row) => total + (row.effect === 'deduct' ? -row.amount : row.amount), 0)
+
+  const taxes = itemTaxes + ledgerTaxes
+  const grandTotal = subtotal + taxes + otherLedgers
+
+  const formatCurrency = (value) =>
+    Number(value || 0).toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+
   return (
     <div className="mt-3 grid gap-3 lg:grid-cols-[1.35fr_.9fr]">
       <div className="space-y-2">
@@ -340,17 +489,171 @@ function VoucherBottomSection({ subtotal }) {
       </div>
 
       <div className="rounded-md bg-white p-3">
-        <button type="button" className="mb-3 text-sm font-semibold text-green-600 hover:text-green-700">
-          + Add GST And Other Ledgers
+        <button
+          type="button"
+          onClick={onToggleLedgerPanel}
+          className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-green-600 transition hover:text-green-700"
+        >
+          <span className="text-base leading-none">{showLedgerPanel ? '−' : '+'}</span>
+          {showLedgerPanel ? 'Hide GST And Other Ledgers' : 'Add GST And Other Ledger'}
         </button>
+
+        {showLedgerPanel && (
+          <div className="mb-3 rounded-lg border border-green-100 bg-green-50/60 p-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div>
+                <p className="text-xs font-bold text-slate-800">GST & Other Ledgers</p>
+                <p className="text-[11px] text-slate-500">
+                  Add GST/tax ledgers or other accounting adjustments.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={onAddLedger}
+                className="inline-flex shrink-0 items-center gap-1 rounded-md bg-green-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-green-700"
+              >
+                <span className="text-sm leading-none">+</span>
+                Add Ledger
+              </button>
+            </div>
+
+            {additionalLedgers.length === 0 ? (
+              <div className="rounded-md border border-dashed border-green-200 bg-white px-3 py-3 text-center text-[11px] text-slate-500">
+                No GST or other ledger has been added yet.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {additionalLedgers.map((row) => {
+                  const amount = calculateAdditionalLedgerAmount(row, subtotal)
+
+                  return (
+                    <div key={row.id} className="rounded-md border border-green-100 bg-white p-2">
+                      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,.9fr)_minmax(0,.85fr)_minmax(0,.85fr)_28px]">
+                        <label className="flex min-w-0 flex-col gap-1">
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Ledger</span>
+                          <SearchableDropdown
+                            name={`additionalLedger-${row.id}`}
+                            label="GST and other ledgers"
+                            options={ledgerOptions}
+                            placeholder="Select ledger"
+                            value={row.ledgerName}
+                            onSelect={(value) => {
+                              const nextValue = value || ''
+                              onLedgerChange(row.id, {
+                                ledgerName: nextValue,
+                                category: isTaxLedgerName(nextValue) ? 'tax' : 'other',
+                              })
+                            }}
+                            onClear={() => onLedgerChange(row.id, { ledgerName: '' })}
+                          />
+                        </label>
+
+                        <label className="flex flex-col gap-1">
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Category</span>
+                          <select
+                            value={row.category}
+                            onChange={(event) => onLedgerChange(row.id, { category: event.target.value })}
+                            className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                          >
+                            <option value="tax">GST / Tax</option>
+                            <option value="other">Other Ledger</option>
+                          </select>
+                        </label>
+
+                        <label className="flex flex-col gap-1">
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Calculation</span>
+                          <select
+                            value={row.calculationType}
+                            onChange={(event) => onLedgerChange(row.id, { calculationType: event.target.value })}
+                            className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                          >
+                            <option value="percentage">Percentage</option>
+                            <option value="amount">Fixed Amount</option>
+                          </select>
+                        </label>
+
+                        <label className="flex flex-col gap-1">
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                            {row.calculationType === 'percentage' ? 'Rate %' : 'Amount'}
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={row.value}
+                            onChange={(event) => onLedgerChange(row.id, { value: event.target.value })}
+                            placeholder="0"
+                            className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => onRemoveLedger(row.id)}
+                          className="mt-5 flex h-9 items-center justify-center rounded-md border border-red-100 bg-red-50 text-sm font-bold text-red-500 transition hover:bg-red-100"
+                          aria-label="Remove ledger"
+                        >
+                          ×
+                        </button>
+                      </div>
+
+                      <div className="mt-2 flex flex-col gap-2 border-t border-slate-100 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                        <label className="inline-flex items-center gap-2 text-[11px] font-medium text-slate-600">
+                          <span>Effect</span>
+                          <select
+                            value={row.effect}
+                            onChange={(event) => onLedgerChange(row.id, { effect: event.target.value })}
+                            className="h-8 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-100"
+                          >
+                            <option value="add">Add</option>
+                            <option value="deduct">Deduct</option>
+                          </select>
+                        </label>
+
+                        <div className="text-xs font-semibold text-slate-700">
+                          Calculated:{' '}
+                          <span className={row.effect === 'deduct' ? 'text-red-600' : 'text-green-700'}>
+                            {row.effect === 'deduct' ? '- ' : '+ '}₹{formatCurrency(amount)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="space-y-2 bg-green-50 p-3 text-sm text-slate-700">
-          <div className="flex justify-between"><span>Sub Total</span><span>₹{subtotal.toFixed(2)}</span></div>
-          <div className="flex justify-between"><span>Taxes</span><span>₹0</span></div>
+          <div className="flex justify-between">
+            <span>Sub Total</span>
+            <span>₹{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Taxes</span>
+            <span>₹{formatCurrency(taxes)}</span>
+          </div>
+
+          {Math.abs(otherLedgers) > 0.000001 && (
+            <div className="flex justify-between">
+              <span>Other Ledgers</span>
+              <span>₹{formatCurrency(otherLedgers)}</span>
+            </div>
+          )}
+
           <div className="mt-3 flex justify-between border-t border-green-100 pt-3 text-base font-bold text-slate-900">
-            <span>Grand Total</span><span>₹{subtotal.toFixed(2)}</span>
+            <span>Grand Total</span>
+            <span>₹{formatCurrency(grandTotal)}</span>
           </div>
         </div>
       </div>
+
+      <input type="hidden" name="subTotal" value={subtotal.toFixed(2)} />
+      <input type="hidden" name="taxes" value={taxes.toFixed(2)} />
+      <input type="hidden" name="otherLedgerAmount" value={otherLedgers.toFixed(2)} />
+      <input type="hidden" name="grandTotal" value={grandTotal.toFixed(2)} />
     </div>
   )
 }
@@ -595,6 +898,8 @@ export function DocumentVoucherPage({
   const [itemRows, setItemRows] = useState([
     createEmptyItemRow(),
   ])
+  const [additionalLedgers, setAdditionalLedgers] = useState([])
+  const [showLedgerPanel, setShowLedgerPanel] = useState(false)
   const [journalRows, setJournalRows] = useState([
     { ...createJournalRow(1), type: 'Debit' },
     { ...createJournalRow(2), type: 'Credit' },
@@ -662,6 +967,8 @@ export function DocumentVoucherPage({
       setSelectedVoucherNumber('')
       setSelectedVoucherType('Sales')
       setItemRows([createEmptyItemRow()])
+      setAdditionalLedgers([])
+      setShowLedgerPanel(false)
       setJournalRows([
         { ...createJournalRow(1), type: 'Debit' },
         { ...createJournalRow(2), type: 'Credit' },
@@ -1164,6 +1471,21 @@ export function DocumentVoucherPage({
       values.indexOf(value) === index,
   )
 
+  const ledgerOptions = ledgers
+    .map((ledger) =>
+      getDisplayValue(ledger, [
+        'ledgerName',
+        'name',
+        'displayName',
+        'partyName',
+      ]),
+    )
+    .filter(Boolean)
+    .filter(
+      (value, index, values) =>
+        values.indexOf(value) === index,
+    )
+
   const voucherTypeOptions = voucherTypes
     .map((voucherType) =>
       typeof voucherType === 'string'
@@ -1221,9 +1543,7 @@ export function DocumentVoucherPage({
       ? partyLedgerOptions
       : quotationPartyOptions
 
-  const calculateRowAmount = (
-    row,
-  ) => {
+  const calculateRowSubtotal = (row) => {
     const quantity =
       Number(row.quantity) || 0
     const rate =
@@ -1240,19 +1560,76 @@ export function DocumentVoucherPage({
     const discountMultiplier =
       1 - discountPercent / 100
 
-    const taxMultiplier = row.taxInclusive ? 1.18 : 1
-
     return Math.max(
       0,
-      quantity * rate * discountMultiplier * taxMultiplier,
+      quantity * rate * discountMultiplier,
     )
   }
 
+  const calculateRowTax = (row) =>
+    row.taxInclusive ? calculateRowSubtotal(row) * 0.18 : 0
+
+  const calculateRowAmount = (row) =>
+    calculateRowSubtotal(row) + calculateRowTax(row)
+
   const subtotal = itemRows.reduce(
     (total, row) =>
-      total + calculateRowAmount(row),
+      total + calculateRowSubtotal(row),
     0,
   )
+
+  const itemTaxes = itemRows.reduce(
+    (total, row) => total + calculateRowTax(row),
+    0,
+  )
+
+  const addAdditionalLedger = () => {
+    setAdditionalLedgers((rows) => [
+      ...rows,
+      createEmptyLedgerRow(),
+    ])
+    setShowLedgerPanel(true)
+  }
+
+  const removeAdditionalLedger = (rowId) => {
+    setAdditionalLedgers((rows) =>
+      rows.filter((row) => row.id !== rowId),
+    )
+  }
+
+  const updateAdditionalLedger = (rowId, changes) => {
+    setAdditionalLedgers((rows) =>
+      rows.map((row) =>
+        row.id === rowId
+          ? { ...row, ...changes }
+          : row,
+      ),
+    )
+  }
+
+  const calculateLedgerTotals = () => {
+    const entries = additionalLedgers
+      .filter((row) => row.ledgerName?.trim())
+      .map((row) => ({
+        ...row,
+        amount: calculateAdditionalLedgerAmount(row, subtotal),
+      }))
+
+    const taxes = entries
+      .filter((row) => row.category === 'tax' || isTaxLedgerName(row.ledgerName))
+      .reduce((total, row) => total + (row.effect === 'deduct' ? -row.amount : row.amount), 0)
+
+    const otherLedgers = entries
+      .filter((row) => row.category !== 'tax' && !isTaxLedgerName(row.ledgerName))
+      .reduce((total, row) => total + (row.effect === 'deduct' ? -row.amount : row.amount), 0)
+
+    return {
+      entries,
+      taxes: itemTaxes + taxes,
+      otherLedgers,
+      grandTotal: subtotal + itemTaxes + taxes + otherLedgers,
+    }
+  }
 
   const updateJournalRow = (rowId, field, value) => {
     setJournalRows((currentRows) =>
@@ -1706,6 +2083,13 @@ export function DocumentVoucherPage({
         ).entries(),
       )
 
+    const advancedSettings = Object.fromEntries(
+      advancedVoucherFieldNames.map((fieldName) => [
+        fieldName,
+        values[fieldName] || '',
+      ]),
+    )
+
     const journalPartyName = journalRows.find(
       (row) => row.partyName.trim(),
     )?.partyName || ''
@@ -1869,6 +2253,8 @@ export function DocumentVoucherPage({
       }),
     )
 
+    const ledgerTotals = calculateLedgerTotals()
+
     const journalPayload = {
       voucherType,
       voucherNumber: values.voucherNumber || '',
@@ -1881,6 +2267,8 @@ export function DocumentVoucherPage({
         amount: Number(row.amount) || 0,
       })),
       narration: values.narration || '',
+      advancedSettings,
+      ...advancedSettings,
     }
 
     const command = {
@@ -1894,6 +2282,18 @@ export function DocumentVoucherPage({
             date: values.date || '',
             voucherNumber: values.voucherNumber || '',
             items,
+            ledgers: ledgerTotals.entries.map((row) => ({
+              ledgerName: row.ledgerName,
+              category: row.category,
+              calculationType: row.calculationType,
+              value: Number(row.value) || 0,
+              effect: row.effect,
+              amount: Number(row.amount.toFixed(2)),
+            })),
+            subTotal: Number(subtotal.toFixed(2)),
+            taxes: Number(ledgerTotals.taxes.toFixed(2)),
+            otherLedgerAmount: Number(ledgerTotals.otherLedgers.toFixed(2)),
+            grandTotal: Number(ledgerTotals.grandTotal.toFixed(2)),
             narration: values.narration || '',
             referenceNumber: values.referenceNumber || '',
             referenceDate: values.referenceDate || '',
@@ -1901,6 +2301,8 @@ export function DocumentVoucherPage({
             orderNumber: values.orderNumber || '',
             orderDate: values.orderDate || '',
             reasonForReturn: values.reasonForReturn || '',
+            advancedSettings,
+            ...advancedSettings,
           },
     }
 
@@ -2005,6 +2407,8 @@ export function DocumentVoucherPage({
       setSelectedVoucherNumber(
         '',
       )
+      setAdditionalLedgers([])
+      setShowLedgerPanel(false)
       setJournalRows([
         { ...createJournalRow(1), type: 'Debit' },
         { ...createJournalRow(2), type: 'Credit' },
@@ -2053,6 +2457,8 @@ export function DocumentVoucherPage({
     )
 
     resetItemRows()
+    setAdditionalLedgers([])
+    setShowLedgerPanel(false)
 
     setSubmitMessage('')
     setSubmitError(null)
@@ -3051,7 +3457,17 @@ export function DocumentVoucherPage({
             </div>
           </div>
 
-          <VoucherBottomSection subtotal={subtotal} />
+          <VoucherBottomSection
+            subtotal={subtotal}
+            itemTaxes={itemTaxes}
+            ledgerOptions={ledgerOptions}
+            additionalLedgers={additionalLedgers}
+            onAddLedger={addAdditionalLedger}
+            onRemoveLedger={removeAdditionalLedger}
+            onLedgerChange={updateAdditionalLedger}
+            showLedgerPanel={showLedgerPanel}
+            onToggleLedgerPanel={() => setShowLedgerPanel((open) => !open)}
+          />
             </>
           )}
         </div>

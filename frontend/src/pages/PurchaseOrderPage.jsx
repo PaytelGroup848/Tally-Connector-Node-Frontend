@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { GstLedgerPanel } from './DocumentVoucherPage'
 
 // ============================================================
 // FIELD DATA
@@ -622,25 +623,7 @@ function PurchaseOrderPage() {
 
             <div className="h-fit overflow-hidden rounded-lg border border-slate-200 bg-[#f1f8ef] shadow-sm">
 
-              <button
-                type="button"
-                className="
-                  min-h-[48px]
-                  w-full
-                  border-b
-                  border-slate-200
-                  px-4
-                  py-3
-                  text-left
-                  text-sm
-                  font-semibold
-                  text-slate-700
-                  transition
-                  hover:bg-[#eaf5e8]
-                "
-              >
-                + Add GST And Other Ledgers
-              </button>
+              <GstLedgerPanel />
 
               <div className="space-y-4 p-4 text-sm">
 
