@@ -96,7 +96,7 @@ export const submenuItems = {
     ["My Physical Stock", "/my-physical-stock"],
     ["My Receipt Note", "/my-receipt-note"],
     ["My Delivery Note", "/my-delivery-note"],
-    ["My eWay Bills", "/my-eway-bill"],
+    // ["My eWay Bills", "/my-eway-bill"],
     ["My Invoices", "/my-invoices"],
     ["My Parties", "/my-parties"],
     ["My Stock Items", "/my-stock-items"],
