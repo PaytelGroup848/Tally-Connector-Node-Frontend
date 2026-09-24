@@ -1,13 +1,16 @@
-import { X } from 'lucide-react'
-import logo from '../assets/logo.png'
-import { navItems, submenuItems } from '../routes/navigation'
+import { X } from "lucide-react";
+import logo from "../assets/logo.png";
+import { navItems, submenuItems } from "../routes/navigation";
 import { Phone } from "lucide-react";
 function Arrow() {
   return (
-    <span className="ml-auto text-base leading-none text-white/60" aria-hidden="true">
+    <span
+      className="ml-auto text-base leading-none text-white/60"
+      aria-hidden="true"
+    >
       ›
     </span>
-  )
+  );
 }
 
 function Sidebar({
@@ -22,36 +25,38 @@ function Sidebar({
   onQuotation,
   onNavigate,
 }) {
-  const entryPath = currentPath.toLowerCase()
+  const entryPath = currentPath.toLowerCase();
 
-  const isSubmenuActive = (itemPath) =>
-    entryPath === itemPath.toLowerCase()
+  const isSubmenuActive = (itemPath) => entryPath === itemPath.toLowerCase();
 
   const isCollectPaymentsRoute = (label) =>
-    label === 'Collect Payments' &&
-    ['/receivables', '/receivablesnew'].includes(entryPath)
+    label === "Collect Payments" &&
+    ["/receivables", "/receivablesnew"].includes(entryPath);
 
   const isCashBankRoute = (label) =>
-    label === 'Cash & Bank' &&
-    (
-      entryPath.startsWith('/cash/') ||
-      entryPath.startsWith('/bank/') ||
-      entryPath === '/cash-bank/cash' ||
-      entryPath === '/cash-bank/bank'
-    )
+    label === "Cash & Bank" &&
+    (entryPath.startsWith("/cash/") ||
+      entryPath.startsWith("/bank/") ||
+      entryPath === "/cash-bank/cash" ||
+      entryPath === "/cash-bank/bank");
 
   const isNavExpanded = (label, path) =>
     expandedNav[label] ??
-    (
-      currentPath.startsWith(`/${path}`) ||
-      submenuItems[label]?.some(([, itemPath]) => isSubmenuActive(itemPath))
-    )
+    (currentPath.startsWith(`/${path}`) ||
+      submenuItems[label]?.some(([, itemPath]) => isSubmenuActive(itemPath)));
+
+  const closeOnMobile = () => {
+    if (isCompact) {
+      setSidebarCollapsed(true);
+    }
+  };
 
   const handleNavClick = (event, targetPath) => {
-    if (!targetPath) return
-    event.preventDefault()
-    onNavigate(targetPath)
-  }
+    if (!targetPath) return;
+    event.preventDefault();
+    onNavigate(targetPath);
+    closeOnMobile();
+  };
 
   return (
     <aside
@@ -60,11 +65,12 @@ function Sidebar({
         flex h-screen shrink-0 flex-col
         overflow-hidden text-white
         transition-all duration-200
-        ${isCompact
-          ? `${collapsed ? '-translate-x-full' : 'translate-x-0'} w-[228px]`
-          : collapsed
-            ? 'w-[68px]'
-            : 'w-[228px]'
+        ${
+          isCompact
+            ? `${collapsed ? "-translate-x-full" : "translate-x-0"} w-[228px]`
+            : collapsed
+              ? "w-[68px]"
+              : "w-[228px]"
         }
       `}
       data-collapsed={collapsed}
@@ -94,14 +100,14 @@ function Sidebar({
         className={`
           sidebar-brand flex h-[68px] w-full shrink-0
           items-center border-0 text-left
-          ${collapsed ? 'justify-center px-0' : 'justify-start gap-2 px-3'}
+          ${collapsed ? "justify-center px-0" : "justify-start gap-2 px-3"}
         `}
       >
         <span
           className={`
             grid shrink-0 place-items-center rounded-xl bg-#082E52
             
-            ${collapsed ? 'h-25 w-12 p-1.5' : 'h-25 w-12 p-1.5'}
+            ${collapsed ? "h-25 w-12 p-1.5" : "h-25 w-12 p-1.5"}
           `}
         >
           <img
@@ -115,7 +121,9 @@ function Sidebar({
           <div className="min-w-0 flex-1 overflow-hidden">
             <div className="whitespace-nowrap text-[29px] font-black italic leading-none tracking-[-0.09em]">
               <span className="text-[#4CAF50] tracking-[0.06em]">Ctrl</span>
-              <span className="sidebar-brand-title-books tracking-[0.03em]">Books</span>
+              <span className="sidebar-brand-title-books tracking-[0.03em]">
+                Books
+              </span>
             </div>
 
             <div className="mt-1 h-[1px] w-[92%] bg-[#4CAF50]" />
@@ -125,14 +133,16 @@ function Sidebar({
 
       <nav className="sidebar-nav min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
         {navItems.map(([IconComponent, label, expandable, badge, path]) => {
-          const targetPath = label === 'Dashboard' ? '/dashboard' : `/${path}`
+          const targetPath = label === "Dashboard" ? "/dashboard" : `/${path}`;
 
           const active =
-            (label === 'Dashboard' && showDashboard) ||
+            (label === "Dashboard" && showDashboard) ||
             isCollectPaymentsRoute(label) ||
             isCashBankRoute(label) ||
             currentPath.startsWith(`/${path}`) ||
-            submenuItems[label]?.some(([, itemPath]) => isSubmenuActive(itemPath))
+            submenuItems[label]?.some(([, itemPath]) =>
+              isSubmenuActive(itemPath),
+            );
 
           return (
             <div className="mb-1" key={label}>
@@ -140,22 +150,23 @@ function Sidebar({
                 href={expandable ? undefined : targetPath}
                 onClick={(event) => {
                   if (expandable) {
-                    event.preventDefault()
+                    event.preventDefault();
 
                     setExpandedNav((current) => ({
                       ...current,
                       [label]: !isNavExpanded(label, path),
-                    }))
+                    }));
 
-                    return
+                    return;
                   }
 
-                  if (label === 'Dashboard') {
-                    onDashboard(event)
-                    return
+                  if (label === "Dashboard") {
+                    onDashboard(event);
+                    closeOnMobile();
+                    return;
                   }
 
-                  handleNavClick(event, targetPath)
+                  handleNavClick(event, targetPath);
                 }}
                 className={`
                   sidebar-link flex h-[42px] w-full
@@ -163,9 +174,10 @@ function Sidebar({
                   text-left text-[13px] font-medium
                   no-underline transition-all duration-200
 
-                  ${active
-                    ? 'is-active'
-                    : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                  ${
+                    active
+                      ? "is-active"
+                      : "text-slate-200 hover:bg-white/10 hover:text-white"
                   }
                 `}
               >
@@ -202,19 +214,21 @@ function Sidebar({
                         key={item}
                         href={itemPath}
                         onClick={(event) => {
-                          if (itemPath === '/create-voucher/Quotation') {
-                            onQuotation(event)
-                            return
+                          if (itemPath === "/create-voucher/Quotation") {
+                            onQuotation(event);
+                            closeOnMobile();
+                            return;
                           }
 
-                          handleNavClick(event, itemPath)
+                          handleNavClick(event, itemPath);
                         }}
                         className={`
                           block rounded-md px-3 py-2
                           text-[12px] no-underline transition
-                          ${isSubmenuActive(itemPath)
-                            ? 'bg-white/10 font-semibold text-emerald-300'
-                            : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                          ${
+                            isSubmenuActive(itemPath)
+                              ? "bg-white/10 font-semibold text-emerald-300"
+                              : "text-slate-300 hover:bg-white/5 hover:text-white"
                           }
                         `}
                       >
@@ -224,7 +238,7 @@ function Sidebar({
                   </div>
                 )}
             </div>
-          )
+          );
         })}
       </nav>
 
@@ -257,7 +271,7 @@ function Sidebar({
         </div>
       )}
     </aside>
-  )
+  );
 }
 
-export default Sidebar
+export default Sidebar;

@@ -5,7 +5,7 @@ function DownloadInvoicePage() {
         <div className="mb-5 flex items-center justify-between gap-3">
           <button type="button" aria-label="Go back" className="flex items-center gap-3 text-[22px] font-medium text-slate-800 hover:text-slate-900">
             <span>←</span>
-            <span className="text-[22px] font-bold">Download Livekeeping Invoice</span>
+            <span className="text-[22px] font-bold">Download CtrlBooks Invoice</span>
           </button>
         </div>
 

@@ -1,19 +1,10 @@
-import {
-  ArrowRight,
-  Check,
-  Minus,
-  Plus,
-} from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { ArrowRight, Check, Minus, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 
-import {
-  createPaymentOrder,
-  verifyPayment,
-} from '../services/paymentApi'
-import useAuthStore from '../store/authStore'
+import { createPaymentOrder, verifyPayment } from "../services/paymentApi";
+import useAuthStore from "../store/authStore";
 
-const RAZORPAY_SCRIPT_URL =
-  'https://checkout.razorpay.com/v1/checkout.js'
+const RAZORPAY_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
 
 /* =========================================================
    LOAD RAZORPAY
@@ -21,50 +12,35 @@ const RAZORPAY_SCRIPT_URL =
 
 function loadRazorpay() {
   if (window.Razorpay) {
-    return Promise.resolve()
+    return Promise.resolve();
   }
 
   return new Promise((resolve, reject) => {
-    const existingScript =
-      document.querySelector(
-        `script[src="${RAZORPAY_SCRIPT_URL}"]`,
-      )
+    const existingScript = document.querySelector(
+      `script[src="${RAZORPAY_SCRIPT_URL}"]`,
+    );
 
     if (existingScript) {
-      existingScript.addEventListener(
-        'load',
-        resolve,
-        { once: true },
-      )
+      existingScript.addEventListener("load", resolve, { once: true });
 
-      existingScript.addEventListener(
-        'error',
-        reject,
-        { once: true },
-      )
+      existingScript.addEventListener("error", reject, { once: true });
 
-      return
+      return;
     }
 
-    const script =
-      document.createElement('script')
+    const script = document.createElement("script");
 
-    script.src =
-      RAZORPAY_SCRIPT_URL
+    script.src = RAZORPAY_SCRIPT_URL;
 
-    script.async = true
+    script.async = true;
 
-    script.onload = resolve
+    script.onload = resolve;
 
     script.onerror = () =>
-      reject(
-        new Error(
-          'Unable to load Razorpay checkout',
-        ),
-      )
+      reject(new Error("Unable to load Razorpay checkout"));
 
-    document.body.appendChild(script)
-  })
+    document.body.appendChild(script);
+  });
 }
 
 /* =========================================================
@@ -86,40 +62,35 @@ const CheckoutPage = ({
   featureLabels,
   formatPrice,
 }) => {
-  const [
-    isCreatingOrder,
-    setIsCreatingOrder,
-  ] = useState(false)
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
-  const [
-    orderMessage,
-    setOrderMessage,
-  ] = useState('')
+  const [orderMessage, setOrderMessage] = useState("");
 
   /* =======================================================
      FEATURES
   ======================================================= */
 
+  const GST_PERCENT = 18;
+
+  const estimatedSubtotal = Number(totalAmount) || 0;
+  const estimatedGstAmount =
+    Math.round(estimatedSubtotal * (GST_PERCENT / 100) * 100) / 100;
+  const estimatedGrandTotal = estimatedSubtotal + estimatedGstAmount;
+
   const features = useMemo(() => {
-    if (
-      !Array.isArray(
-        selectedPlanData?.features,
-      )
-    ) {
-      return []
+    if (!Array.isArray(selectedPlanData?.features)) {
+      return [];
     }
 
     return [
       ...new Set(
         selectedPlanData.features
           .filter(Boolean)
-          .map((feature) =>
-            String(feature).trim(),
-          )
+          .map((feature) => String(feature).trim())
           .filter(Boolean),
       ),
-    ]
-  }, [selectedPlanData])
+    ];
+  }, [selectedPlanData]);
 
   /* =======================================================
      FEATURE COLUMN COUNT
@@ -127,458 +98,342 @@ const CheckoutPage = ({
 
   const featureGridClass =
     features.length >= 13
-      ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+      ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
       : features.length >= 9
-        ? 'grid-cols-2 sm:grid-cols-3'
-        : 'grid-cols-2'
+        ? "grid-cols-2 sm:grid-cols-3"
+        : "grid-cols-2";
 
   /* =======================================================
      CREATE PAYMENT ORDER
   ======================================================= */
 
-  const handleCreateOrder =
-    async () => {
-      const safeAddonPrice =
-        Number(addonPricePerSeat) || 0
+  const handleCreateOrder = async () => {
+    const safeAddonPrice = Number(addonPricePerSeat) || 0;
 
-      const safeExtraSeats =
-        Number(extraSeats) || 0
+    const safeExtraSeats = Number(extraSeats) || 0;
 
-      const billableExtraSeats =
-        Math.max(
-          0,
-          safeExtraSeats - 1,
-        )
+    const billableExtraSeats = Math.max(0, safeExtraSeats - 1);
 
-      const safeTotalAmount =
-        Number(totalAmount) || 0
+    const safeTotalAmount = Number(totalAmount) || 0;
 
-      if (
-        safeTotalAmount <= 0
-      ) {
-        setOrderMessage(
-          'Invalid payment amount.',
-        )
+    if (safeTotalAmount <= 0) {
+      setOrderMessage("Invalid payment amount.");
 
-        return
-      }
+      return;
+    }
 
-      if (
-        safeAddonPrice < 0
-      ) {
-        setOrderMessage(
-          'Invalid additional seat price.',
-        )
+    if (safeAddonPrice < 0) {
+      setOrderMessage("Invalid additional user price.");
 
-        return
-      }
+      return;
+    }
 
-      if (
-        !selectedPlanData?.id
-      ) {
-        setOrderMessage(
-          'Invalid plan selected.',
-        )
+    if (!selectedPlanData?.id) {
+      setOrderMessage("Invalid plan selected.");
 
-        return
-      }
+      return;
+    }
 
-      if (
-        !selectedDurationData?.months
-      ) {
-        setOrderMessage(
-          'Invalid plan duration.',
-        )
+    if (!selectedDurationData?.months) {
+      setOrderMessage("Invalid plan duration.");
 
-        return
-      }
+      return;
+    }
 
-      if (!accessToken) {
-        setOrderMessage(
-          'Please login before making a payment.',
-        )
+    if (!accessToken) {
+      setOrderMessage("Please login before making a payment.");
 
-        return
-      }
+      return;
+    }
 
-      setIsCreatingOrder(true)
-      setOrderMessage('')
+    setIsCreatingOrder(true);
+    setOrderMessage("");
 
-      try {
-        /* ===============================================
+    try {
+      /* ===============================================
            CREATE ORDER
         =============================================== */
 
-        const response =
-          await createPaymentOrder({
-            accessToken,
+      const response = await createPaymentOrder({
+        accessToken,
 
-            planId:
-              selectedPlanData?.id,
+        planId: selectedPlanData?.id,
 
-            durationMonths:
-              selectedDurationData?.months,
+        durationMonths: selectedDurationData?.months,
 
-            extraSeats:
-              billableExtraSeats,
+        extraSeats: billableExtraSeats,
 
-            totalSeats:
-              safeExtraSeats,
+        totalSeats: safeExtraSeats,
 
-            addonPricePerSeat:
-              safeAddonPrice,
+        addonPricePerSeat: safeAddonPrice,
 
-            totalAmount:
-              safeTotalAmount,
-          })
+        totalAmount: safeTotalAmount,
+      });
 
-        /* ===============================================
+      /* ===============================================
            ORDER RESPONSE
         =============================================== */
 
-        const order =
-          response?.data?.order ||
-          response?.data ||
-          response?.order ||
-          response
+      const order =
+        response?.data?.order || response?.data || response?.order || response;
 
-        /* ===============================================
+      /* ===============================================
            ORDER ID
         =============================================== */
 
-        const orderId =
-          order?.id ||
-          order?.orderId ||
-          order?.razorpay_order_id ||
-          response?.razorpay_order_id ||
-          response?.razorpayOrderId
+      const orderId =
+        order?.id ||
+        order?.orderId ||
+        order?.razorpay_order_id ||
+        response?.razorpay_order_id ||
+        response?.razorpayOrderId;
 
-        /* ===============================================
+      /* ===============================================
            RAZORPAY KEY
         =============================================== */
 
-        const razorpayKey =
-          order?.key ||
-          order?.keyId ||
-          order?.key_id ||
-          order?.razorpayKeyId ||
-          response?.key ||
-          response?.keyId ||
-          response?.key_id ||
-          response?.razorpayKeyId ||
-          import.meta.env
-            .VITE_RAZORPAY_KEY_ID
+      const razorpayKey =
+        order?.key ||
+        order?.keyId ||
+        order?.key_id ||
+        order?.razorpayKeyId ||
+        response?.key ||
+        response?.keyId ||
+        response?.key_id ||
+        response?.razorpayKeyId ||
+        import.meta.env.VITE_RAZORPAY_KEY_ID;
 
-        /* ===============================================
+      /* ===============================================
            AMOUNT
         =============================================== */
 
-        const amount =
-          Math.round(
-            safeTotalAmount * 100,
-          )
+      const amount =
+        Number(order?.amount) > 0
+          ? Number(order.amount)
+          : Math.round(safeTotalAmount * 100);
 
-        const currency =
-          order?.currency ||
-          response?.currency ||
-          'INR'
+      const currency = order?.currency || response?.currency || "INR";
 
-        /* ===============================================
+      /* ===============================================
            VALIDATE ORDER
         =============================================== */
 
-        if (
-          !Number.isFinite(
-            amount,
-          ) ||
-          amount <= 0
-        ) {
-          throw new Error(
-            'Invalid payment amount.',
-          )
-        }
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error("Invalid payment amount.");
+      }
 
-        if (
-          !orderId ||
-          !razorpayKey
-        ) {
-          throw new Error(
-            'Payment order response is missing Razorpay order details.',
-          )
-        }
+      if (!orderId || !razorpayKey) {
+        throw new Error(
+          "Payment order response is missing Razorpay order details.",
+        );
+      }
 
-        /* ===============================================
+      /* ===============================================
            LOAD RAZORPAY
         =============================================== */
 
-        await loadRazorpay()
+      await loadRazorpay();
 
-        /* ===============================================
+      /* ===============================================
            OPEN RAZORPAY
         =============================================== */
 
-        const razorpay =
-          new window.Razorpay({
-            key: razorpayKey,
+      const razorpay = new window.Razorpay({
+        key: razorpayKey,
 
-            amount,
+        amount,
 
-            currency,
+        currency,
 
-            name: 'LiveKeeping',
+        name: "CtrlBooks",
 
-            description: `${
-              selectedPlanData?.name ||
-              'Plan'
-            } subscription`,
+        description: `${selectedPlanData?.name || "Plan"} subscription`,
 
-            order_id: orderId,
+        order_id: orderId,
 
-            /* ===========================================
+        /* ===========================================
                PAYMENT SUCCESS CALLBACK
             =========================================== */
 
-            handler:
-              async (
-                payment,
-              ) => {
-                setIsCreatingOrder(
-                  true,
-                )
+        handler: async (payment) => {
+          setIsCreatingOrder(true);
 
-                setOrderMessage(
-                  'Verifying payment...',
-                )
+          setOrderMessage("Verifying payment...");
 
-                try {
-                  /* =====================================
+          try {
+            /* =====================================
                      VERIFY PAYMENT
                   ===================================== */
 
-                  const verification =
-                    await verifyPayment(
-                      {
-                        accessToken,
+            const verification = await verifyPayment({
+              accessToken,
 
-                        razorpay_order_id:
-                          payment?.razorpay_order_id,
+              razorpay_order_id: payment?.razorpay_order_id,
 
-                        razorpay_payment_id:
-                          payment?.razorpay_payment_id,
+              razorpay_payment_id: payment?.razorpay_payment_id,
 
-                        razorpay_signature:
-                          payment?.razorpay_signature,
-                      },
-                    )
+              razorpay_signature: payment?.razorpay_signature,
+            });
 
-                  /* =====================================
+            /* =====================================
                      CHECK API SUCCESS
                   ===================================== */
 
-                  if (
-                    verification?.success ===
-                    false
-                  ) {
-                    throw new Error(
-                      verification?.message ||
-                        'Payment verification failed.',
-                    )
-                  }
+            if (verification?.success === false) {
+              throw new Error(
+                verification?.message || "Payment verification failed.",
+              );
+            }
 
-                  const authStore =
-                    useAuthStore.getState()
+            const authStore = useAuthStore.getState();
 
-                  const verifiedUser =
-                    verification?.user ||
-                    verification?.data?.user ||
-                    verification?.data ||
-                    {}
+            const verifiedUser =
+              verification?.user ||
+              verification?.data?.user ||
+              verification?.data ||
+              {};
 
-                  if (
-                    authStore?.accessToken
-                  ) {
-                    const normalizedUser = {
-                      ...(authStore.user || {}),
-                      ...(verifiedUser || {}),
+            if (authStore?.accessToken) {
+              const normalizedUser = {
+                ...(authStore.user || {}),
+                ...(verifiedUser || {}),
 
-                      activeSubscription:
-                        verifiedUser?.activeSubscription === true ||
-                        verifiedUser?.subscriptionActive === true ||
-                        verifiedUser?.isActiveSubscription === true ||
-                        verifiedUser?.isSubscribed === true ||
-                        verifiedUser?.subscription?.active === true ||
-                        verifiedUser?.plan?.active === true ||
-                        String(
-                          verifiedUser?.subscriptionStatus ||
-                            verifiedUser?.status ||
-                            verifiedUser?.subscription?.status ||
-                            verifiedUser?.plan?.status ||
-                            '',
-                        ).toLowerCase() ===
-                          'active' ||
-                        String(
-                          verifiedUser?.subscriptionStatus ||
-                            verifiedUser?.status ||
-                            verifiedUser?.subscription?.status ||
-                            verifiedUser?.plan?.status ||
-                            '',
-                        ).toLowerCase() ===
-                          'paid' ||
-                        String(
-                          verifiedUser?.subscriptionStatus ||
-                            verifiedUser?.status ||
-                            verifiedUser?.subscription?.status ||
-                            verifiedUser?.plan?.status ||
-                            '',
-                        ).toLowerCase() ===
-                          'success',
+                activeSubscription:
+                  verifiedUser?.activeSubscription === true ||
+                  verifiedUser?.subscriptionActive === true ||
+                  verifiedUser?.isActiveSubscription === true ||
+                  verifiedUser?.isSubscribed === true ||
+                  verifiedUser?.subscription?.active === true ||
+                  verifiedUser?.plan?.active === true ||
+                  String(
+                    verifiedUser?.subscriptionStatus ||
+                      verifiedUser?.status ||
+                      verifiedUser?.subscription?.status ||
+                      verifiedUser?.plan?.status ||
+                      "",
+                  ).toLowerCase() === "active" ||
+                  String(
+                    verifiedUser?.subscriptionStatus ||
+                      verifiedUser?.status ||
+                      verifiedUser?.subscription?.status ||
+                      verifiedUser?.plan?.status ||
+                      "",
+                  ).toLowerCase() === "paid" ||
+                  String(
+                    verifiedUser?.subscriptionStatus ||
+                      verifiedUser?.status ||
+                      verifiedUser?.subscription?.status ||
+                      verifiedUser?.plan?.status ||
+                      "",
+                  ).toLowerCase() === "success",
 
-                      subscriptionActive:
-                        verifiedUser?.subscriptionActive === true ||
-                        verifiedUser?.activeSubscription === true ||
-                        verifiedUser?.isActiveSubscription === true ||
-                        verifiedUser?.isSubscribed === true ||
-                        verifiedUser?.subscription?.active === true ||
-                        verifiedUser?.plan?.active === true ||
-                        String(
-                          verifiedUser?.subscriptionStatus ||
-                            verifiedUser?.status ||
-                            verifiedUser?.subscription?.status ||
-                            verifiedUser?.plan?.status ||
-                            '',
-                        ).toLowerCase() ===
-                          'active' ||
-                        String(
-                          verifiedUser?.subscriptionStatus ||
-                            verifiedUser?.status ||
-                            verifiedUser?.subscription?.status ||
-                            verifiedUser?.plan?.status ||
-                            '',
-                        ).toLowerCase() ===
-                          'paid' ||
-                        String(
-                          verifiedUser?.subscriptionStatus ||
-                            verifiedUser?.status ||
-                            verifiedUser?.subscription?.status ||
-                            verifiedUser?.plan?.status ||
-                            '',
-                        ).toLowerCase() ===
-                          'success',
+                subscriptionActive:
+                  verifiedUser?.subscriptionActive === true ||
+                  verifiedUser?.activeSubscription === true ||
+                  verifiedUser?.isActiveSubscription === true ||
+                  verifiedUser?.isSubscribed === true ||
+                  verifiedUser?.subscription?.active === true ||
+                  verifiedUser?.plan?.active === true ||
+                  String(
+                    verifiedUser?.subscriptionStatus ||
+                      verifiedUser?.status ||
+                      verifiedUser?.subscription?.status ||
+                      verifiedUser?.plan?.status ||
+                      "",
+                  ).toLowerCase() === "active" ||
+                  String(
+                    verifiedUser?.subscriptionStatus ||
+                      verifiedUser?.status ||
+                      verifiedUser?.subscription?.status ||
+                      verifiedUser?.plan?.status ||
+                      "",
+                  ).toLowerCase() === "paid" ||
+                  String(
+                    verifiedUser?.subscriptionStatus ||
+                      verifiedUser?.status ||
+                      verifiedUser?.subscription?.status ||
+                      verifiedUser?.plan?.status ||
+                      "",
+                  ).toLowerCase() === "success",
 
-                      subscriptionStatus:
-                        verifiedUser?.subscriptionStatus ||
-                        verifiedUser?.status ||
-                        verifiedUser?.subscription?.status ||
-                        verifiedUser?.plan?.status ||
-                        'active',
+                subscriptionStatus:
+                  verifiedUser?.subscriptionStatus ||
+                  verifiedUser?.status ||
+                  verifiedUser?.subscription?.status ||
+                  verifiedUser?.plan?.status ||
+                  "active",
 
-                      status:
-                        verifiedUser?.status ||
-                        verifiedUser?.subscriptionStatus ||
-                        verifiedUser?.subscription?.status ||
-                        verifiedUser?.plan?.status ||
-                        'active',
+                status:
+                  verifiedUser?.status ||
+                  verifiedUser?.subscriptionStatus ||
+                  verifiedUser?.subscription?.status ||
+                  verifiedUser?.plan?.status ||
+                  "active",
 
-                      paymentVerified: true,
-                    }
+                paymentVerified: true,
+              };
 
-                    authStore.setAuth({
-                      accessToken:
-                        authStore.accessToken,
-                      user: normalizedUser,
-                    })
-                  }
+              authStore.setAuth({
+                accessToken: authStore.accessToken,
+                user: normalizedUser,
+              });
+            }
 
-                  /* =====================================
+            /* =====================================
                      REDIRECT ONLY AFTER
                      SUCCESSFUL VERIFICATION
                   ===================================== */
 
-                  window.history.replaceState(
-                    {},
-                    '',
-                    '/dashboard',
-                  )
+            window.history.replaceState({}, "", "/dashboard");
 
-                  window.dispatchEvent(
-                    new PopStateEvent(
-                      'popstate',
-                    ),
-                  )
-                } catch (
-                  error
-                ) {
-                  setOrderMessage(
-                    error?.message ||
-                      'Payment verification failed.',
-                  )
+            window.dispatchEvent(new PopStateEvent("popstate"));
+          } catch (error) {
+            setOrderMessage(error?.message || "Payment verification failed.");
 
-                  setIsCreatingOrder(
-                    false,
-                  )
-                }
-              },
+            setIsCreatingOrder(false);
+          }
+        },
 
-            /* ===========================================
+        /* ===========================================
                MODAL CLOSED
             =========================================== */
 
-            modal: {
-              ondismiss: () => {
-                setIsCreatingOrder(
-                  false,
-                )
+        modal: {
+          ondismiss: () => {
+            setIsCreatingOrder(false);
 
-                setOrderMessage(
-                  'Payment window closed.',
-                )
-              },
-            },
-          })
+            setOrderMessage("Payment window closed.");
+          },
+        },
+      });
 
-        /* ===============================================
+      /* ===============================================
            PAYMENT FAILED
         =============================================== */
 
-        razorpay.on(
-          'payment.failed',
-          (payment) => {
-            setIsCreatingOrder(
-              false,
-            )
+      razorpay.on("payment.failed", (payment) => {
+        setIsCreatingOrder(false);
 
-            setOrderMessage(
-              payment?.error
-                ?.description ||
-                'Payment failed. Please try again.',
-            )
-          },
-        )
+        setOrderMessage(
+          payment?.error?.description || "Payment failed. Please try again.",
+        );
+      });
 
-        /* ===============================================
+      /* ===============================================
            OPEN PAYMENT WINDOW
         =============================================== */
 
-        razorpay.open()
-      } catch (
-        error
-      ) {
-        setOrderMessage(
-          error?.message ||
-            'Unable to create payment order.',
-        )
+      razorpay.open();
+    } catch (error) {
+      setOrderMessage(error?.message || "Unable to create payment order.");
 
-        setIsCreatingOrder(
-          false,
-        )
-      } finally {
-        if (!window.Razorpay) {
-          setIsCreatingOrder(
-            false,
-          )
-        }
+      setIsCreatingOrder(false);
+    } finally {
+      if (!window.Razorpay) {
+        setIsCreatingOrder(false);
       }
     }
+  };
 
   /* =========================================================
      UI
@@ -653,7 +508,6 @@ const CheckoutPage = ({
                 sm:w-3.5
               "
             />
-
             Back to plans
           </button>
         </div>
@@ -804,8 +658,7 @@ const CheckoutPage = ({
                         sm:text-xs
                       "
                     >
-                      {selectedPlanData?.description ||
-                        'Plan details'}
+                      {selectedPlanData?.description || "Plan details"}
                     </div>
                   </div>
 
@@ -825,11 +678,7 @@ const CheckoutPage = ({
                       sm:w-10
                     "
                   >
-                    <PlanIcon
-                      planName={
-                        selectedPlanData?.name
-                      }
-                    />
+                    <PlanIcon planName={selectedPlanData?.name} />
                   </div>
                 </div>
 
@@ -878,9 +727,7 @@ const CheckoutPage = ({
                         sm:text-sm
                       "
                     >
-                      {
-                        selectedDurationData?.fullLabel
-                      }
+                      {selectedDurationData?.fullLabel}
                     </div>
                   </div>
 
@@ -916,10 +763,7 @@ const CheckoutPage = ({
                         sm:text-sm
                       "
                     >
-                      ₹
-                      {formatPrice(
-                        basePlanPrice,
-                      )}
+                      ₹{formatPrice(basePlanPrice)}
                     </div>
                   </div>
                 </div>
@@ -961,7 +805,7 @@ const CheckoutPage = ({
                         sm:text-[9px]
                       "
                     >
-                      Total seats
+                      Total Users
                     </div>
 
                     <div
@@ -975,7 +819,7 @@ const CheckoutPage = ({
                         sm:text-[9px]
                       "
                     >
-                      Additional seat price
+                      Additional user price
                     </div>
 
                     <div
@@ -987,11 +831,7 @@ const CheckoutPage = ({
                         sm:text-sm
                       "
                     >
-                      ₹
-                      {formatPrice(
-                        addonPricePerSeat,
-                      )}{' '}
-                      per seat
+                      ₹{formatPrice(addonPricePerSeat)} per User
                     </div>
                   </div>
 
@@ -1018,14 +858,7 @@ const CheckoutPage = ({
                     <button
                       type="button"
                       onClick={() =>
-                        setExtraSeats(
-                          (count) =>
-                            Math.max(
-                              1,
-                              Number(count) -
-                                1,
-                            ),
-                        )
+                        setExtraSeats((count) => Math.max(1, Number(count) - 1))
                       }
                       className="
                         flex
@@ -1041,7 +874,7 @@ const CheckoutPage = ({
                         sm:h-7
                         sm:w-7
                       "
-                      aria-label="Decrease seats"
+                      aria-label="Decrease User"
                     >
                       <Minus size={13} />
                     </button>
@@ -1063,11 +896,7 @@ const CheckoutPage = ({
                     <button
                       type="button"
                       onClick={() =>
-                        setExtraSeats(
-                          (count) =>
-                            Number(count) +
-                            1,
-                        )
+                        setExtraSeats((count) => Number(count) + 1)
                       }
                       className="
                         flex
@@ -1083,7 +912,7 @@ const CheckoutPage = ({
                         sm:h-7
                         sm:w-7
                       "
-                      aria-label="Increase seats"
+                      aria-label="Increase Users"
                     >
                       <Plus size={13} />
                     </button>
@@ -1113,7 +942,7 @@ const CheckoutPage = ({
                       sm:text-xs
                     "
                   >
-                    Additional seat total
+                    Additional User total
                   </span>
 
                   <span
@@ -1124,10 +953,7 @@ const CheckoutPage = ({
                       sm:text-sm
                     "
                   >
-                    ₹
-                    {formatPrice(
-                      extraSeatTotal,
-                    )}
+                    ₹{formatPrice(extraSeatTotal)}
                   </span>
                 </div>
               </div>
@@ -1186,9 +1012,7 @@ const CheckoutPage = ({
                       sm:text-[9px]
                     "
                   >
-                    {
-                      selectedPlanData?.name
-                    }
+                    {selectedPlanData?.name}
                   </div>
                 </div>
 
@@ -1207,19 +1031,18 @@ const CheckoutPage = ({
                     sm:gap-y-2
                   `}
                 >
-                  {features.map(
-                    (feature) => (
-                      <div
-                        key={feature}
-                        className="
+                  {features.map((feature) => (
+                    <div
+                      key={feature}
+                      className="
                           flex
                           min-w-0
                           items-start
                           gap-1.5
                         "
-                      >
-                        <div
-                          className="
+                    >
+                      <div
+                        className="
                             mt-0.5
                             flex
                             h-3.5
@@ -1233,15 +1056,12 @@ const CheckoutPage = ({
                             sm:h-4
                             sm:w-4
                           "
-                        >
-                          <Check
-                            size={8}
-                            strokeWidth={3}
-                          />
-                        </div>
+                      >
+                        <Check size={8} strokeWidth={3} />
+                      </div>
 
-                        <span
-                          className="
+                      <span
+                        className="
                             min-w-0
                             break-words
                             font-bold
@@ -1252,20 +1072,13 @@ const CheckoutPage = ({
                             sm:leading-3.5
                             lg:text-[10px]
                           "
-                        >
-                          {
-                            featureLabels?.[
-                              feature
-                            ] ||
-                            feature
-                          }
-                        </span>
-                      </div>
-                    ),
-                  )}
+                      >
+                        {featureLabels?.[feature] || feature}
+                      </span>
+                    </div>
+                  ))}
 
-                  {features.length ===
-                    0 && (
+                  {features.length === 0 && (
                     <div
                       className="
                         col-span-full
@@ -1344,8 +1157,7 @@ const CheckoutPage = ({
                   sm:text-[10px]
                 "
               >
-                {selectedPlanData?.description ||
-                  'Plan details'}
+                {selectedPlanData?.description || "Plan details"}
               </p>
             </div>
 
@@ -1375,19 +1187,9 @@ const CheckoutPage = ({
                   sm:text-xs
                 "
               >
-                <span>
-                  {
-                    selectedPlanData?.name
-                  }{' '}
-                  plan
-                </span>
+                <span>{selectedPlanData?.name} plan</span>
 
-                <span className="shrink-0">
-                  ₹
-                  {formatPrice(
-                    basePlanPrice,
-                  )}
-                </span>
+                <span className="shrink-0">₹{formatPrice(basePlanPrice)}</span>
               </div>
 
               {/* EXTRA SEATS */}
@@ -1403,20 +1205,11 @@ const CheckoutPage = ({
                   sm:text-xs
                 "
               >
-                <span>
-                  Extra seats
-                </span>
+                <span>Extra Users</span>
 
                 <span className="shrink-0">
-                  {Math.max(
-                    0,
-                    Number(extraSeats) -
-                      1,
-                  )}{' '}
-                  × ₹
-                  {formatPrice(
-                    addonPricePerSeat,
-                  )}
+                  {Math.max(0, Number(extraSeats) - 1)} × ₹
+                  {formatPrice(addonPricePerSeat)}
                 </span>
               </div>
 
@@ -1433,15 +1226,9 @@ const CheckoutPage = ({
                   sm:text-xs
                 "
               >
-                <span>
-                  Duration
-                </span>
+                <span>Duration</span>
 
-                <span className="shrink-0">
-                  {
-                    selectedDurationData?.label
-                  }
-                </span>
+                <span className="shrink-0">{selectedDurationData?.label}</span>
               </div>
 
               {/* SUBTOTAL */}
@@ -1463,16 +1250,10 @@ const CheckoutPage = ({
                     text-green-100
                   "
                 >
-                  <span className="text-[10px] sm:text-xs">
-                    Subtotal
-                  </span>
+                  <span className="text-[10px] sm:text-xs">Subtotal</span>
 
                   <span className="shrink-0 text-[10px] sm:text-xs">
-                    ₹
-                    {formatPrice(
-                      basePlanPrice +
-                        extraSeatTotal,
-                    )}
+                    ₹{formatPrice(basePlanPrice + extraSeatTotal)}
                   </span>
                 </div>
               </div>
@@ -1501,7 +1282,7 @@ const CheckoutPage = ({
                   sm:text-[9px]
                 "
               >
-                Additional seat
+                Additional User
               </div>
 
               <div
@@ -1521,19 +1302,10 @@ const CheckoutPage = ({
                       sm:text-xs
                     "
                   >
-                    {Math.max(
-                      0,
-                      Number(extraSeats) -
-                        1,
-                    )}{' '}
-                    billable{' '}
-                    {Math.max(
-                      0,
-                      Number(extraSeats) -
-                        1,
-                    ) === 1
-                      ? 'seat'
-                      : 'seats'}
+                    {Math.max(0, Number(extraSeats) - 1)} billable{" "}
+                    {Math.max(0, Number(extraSeats) - 1) === 1
+                      ? "User"
+                      : "Users"}
                   </div>
 
                   <div
@@ -1544,11 +1316,7 @@ const CheckoutPage = ({
                       sm:text-[10px]
                     "
                   >
-                    ₹
-                    {formatPrice(
-                      addonPricePerSeat,
-                    )}{' '}
-                    each
+                    ₹{formatPrice(addonPricePerSeat)} each
                   </div>
                 </div>
 
@@ -1560,12 +1328,33 @@ const CheckoutPage = ({
                     sm:text-lg
                   "
                 >
-                  ₹
-                  {formatPrice(
-                    extraSeatTotal,
-                  )}
+                  ₹{formatPrice(extraSeatTotal)}
                 </div>
               </div>
+            </div>
+
+            {/* =================================================
+                TOTAL
+            ================================================= */}
+
+            <div
+              className="
+                mt-3
+                shrink-0
+                flex
+                items-center
+                justify-between
+                gap-3
+                text-[10px]
+                text-green-100
+                sm:text-xs
+              "
+            >
+              <span>GST ({GST_PERCENT}%)</span>
+
+              <span className="shrink-0">
+                ₹{formatPrice(estimatedGstAmount)}
+              </span>
             </div>
 
             {/* =================================================
@@ -1592,7 +1381,7 @@ const CheckoutPage = ({
                   sm:text-[9px]
                 "
               >
-                Total payable
+                Total payable (incl. GST)
               </div>
 
               <div
@@ -1603,10 +1392,7 @@ const CheckoutPage = ({
                   sm:text-3xl
                 "
               >
-                ₹
-                {formatPrice(
-                  totalAmount,
-                )}
+                ₹{formatPrice(estimatedGrandTotal)}
               </div>
 
               <div
@@ -1617,7 +1403,7 @@ const CheckoutPage = ({
                   sm:text-[10px]
                 "
               >
-                Base plan + additional seats
+                Base plan + additional User + 18% GST
               </div>
             </div>
 
@@ -1661,9 +1447,7 @@ const CheckoutPage = ({
             >
               <button
                 type="button"
-                onClick={
-                  handleCreateOrder
-                }
+                onClick={handleCreateOrder}
                 disabled={
                   isCreatingOrder ||
                   !accessToken ||
@@ -1692,13 +1476,9 @@ const CheckoutPage = ({
                   sm:text-sm
                 "
               >
-                {isCreatingOrder
-                  ? 'Processing...'
-                  : 'Confirm & Pay'}
+                {isCreatingOrder ? "Processing..." : "Confirm & Pay"}
 
-                <ArrowRight
-                  size={14}
-                />
+                <ArrowRight size={14} />
               </button>
 
               <p
@@ -1718,7 +1498,7 @@ const CheckoutPage = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CheckoutPage
+export default CheckoutPage;

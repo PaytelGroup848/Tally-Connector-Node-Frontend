@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 import {
   Search,
   Plus,
@@ -6,50 +6,53 @@ import {
   MapPin,
   Phone,
   Mail,
-} from 'lucide-react'
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
-import useAuthStore from '../store/authStore'
-import { fetchParties } from '../services/partiesApi'
-import { postCompanyCommand } from '../services/companiesApi'
+import useAuthStore from "../store/authStore";
+import { fetchParties } from "../services/partiesApi";
+import { postCompanyCommand } from "../services/companiesApi";
+import { useGstLookup } from "../hooks/useGstLookup";
 
 const initialPartyForm = {
-  partyName: '',
-  partyType: '',
-  contactNumber: '',
-  gstNumber: '',
-  ledgerGroup: '',
-  ledgerName: '',
-  openingBalance: '',
-  openingBalanceType: 'Credit',
-  country: 'India',
-  state: '',
-  postalAddress: '',
-  postalCode: '',
-  gstRegistrationType: '',
-  ledgerMobile: '',
-  email: '',
-  narration: '',
-}
-
+  partyName: "",
+  partyType: "",
+  contactNumber: "",
+  gstNumber: "", // ← existing
+  gstRegistrationType: "", // ← existing
+  state: "", // ← existing
+  postalAddress: "", // ← existing
+  postalCode: "", // ← existing
+  ledgerGroup: "",
+  ledgerName: "",
+  openingBalance: "",
+  openingBalanceType: "Credit",
+  country: "India",
+  ledgerMobile: "",
+  email: "",
+  narration: "",
+};
 /* =========================================================
    DATE
 ========================================================= */
 
 function formatDate(value) {
-  if (!value) return '-'
+  if (!value) return "-";
 
-  const date = new Date(value)
+  const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return '-'
+    return "-";
   }
 
-  return date.toLocaleDateString('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
+  return date.toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 /* =========================================================
@@ -57,16 +60,16 @@ function formatDate(value) {
 ========================================================= */
 
 function formatAmount(value) {
-  const amount = Number(value)
+  const amount = Number(value);
 
   if (!Number.isFinite(amount)) {
-    return '0.00'
+    return "0.00";
   }
 
-  return new Intl.NumberFormat('en-IN', {
+  return new Intl.NumberFormat("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount)
+  }).format(amount);
 }
 
 /* =========================================================
@@ -80,43 +83,36 @@ function getCompanyId(company) {
     company?.companyId ||
     company?.company_id ||
     null
-  )
+  );
 }
 
 /* =========================================================
    PAGE
 ========================================================= */
 
-function PartiesPage({
-  selectedCompany: selectedCompanyProp,
-}) {
-  const accessToken = useAuthStore(
-    (state) => state.accessToken,
-  )
+function PartiesPage({ selectedCompany: selectedCompanyProp }) {
+  const accessToken = useAuthStore((state) => state.accessToken);
 
-  const storedSelectedCompany = useAuthStore(
-    (state) => state.selectedCompany,
-  )
+  const storedSelectedCompany = useAuthStore((state) => state.selectedCompany);
 
-  const selectedCompany =
-    selectedCompanyProp || storedSelectedCompany
+  const selectedCompany = selectedCompanyProp || storedSelectedCompany;
 
-  const companyId =
-    getCompanyId(selectedCompany)
+  const companyId = getCompanyId(selectedCompany);
 
-  const [parties, setParties] = useState([])
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(20)
-  const [total, setTotal] = useState(0)
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [isCreating, setIsCreating] = useState(false)
-  const [createError, setCreateError] = useState('')
-  const [createMessage, setCreateMessage] = useState('')
-  const [partyForm, setPartyForm] = useState(initialPartyForm)
+  const [parties, setParties] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [createMessage, setCreateMessage] = useState("");
+  const [partyForm, setPartyForm] = useState(initialPartyForm);
+  const gstLookup = useGstLookup(partyForm.gstNumber);
 
   /* =======================================================
      FETCH
@@ -124,18 +120,18 @@ function PartiesPage({
 
   useEffect(() => {
     if (!accessToken || !companyId) {
-      setParties([])
-      setTotal(0)
-      setLoading(false)
-      return
+      setParties([]);
+      setTotal(0);
+      setLoading(false);
+      return;
     }
 
-    let mounted = true
+    let mounted = true;
 
     async function loadParties() {
       try {
-        setLoading(true)
-        setError('')
+        setLoading(true);
+        setError("");
 
         const response = await fetchParties({
           accessToken,
@@ -143,123 +139,129 @@ function PartiesPage({
           page,
           limit,
           q: search,
-        })
+        });
 
-        if (!mounted) return
+        if (!mounted) return;
 
-        const items = response?.data?.items
-        const totalCount = response?.data?.total
+        const items = response?.data?.items;
+        const totalCount = response?.data?.total;
 
-        setParties(
-          Array.isArray(items)
-            ? items
-            : [],
-        )
+        setParties(Array.isArray(items) ? items : []);
 
-        setTotal(
-          Number.isFinite(Number(totalCount))
-            ? Number(totalCount)
-            : 0,
-        )
+        setTotal(Number.isFinite(Number(totalCount)) ? Number(totalCount) : 0);
       } catch (requestError) {
-        if (!mounted) return
+        if (!mounted) return;
 
-        setParties([])
-        setTotal(0)
+        setParties([]);
+        setTotal(0);
 
-        setError(
-          requestError?.message ||
-          'Failed to load parties.',
-        )
+        setError(requestError?.message || "Failed to load parties.");
       } finally {
         if (mounted) {
-          setLoading(false)
+          setLoading(false);
         }
       }
     }
 
-    loadParties()
+    loadParties();
 
     return () => {
-      mounted = false
-    }
-  }, [
-    accessToken,
-    companyId,
-    page,
-    limit,
-    search,
-    refreshKey,
-  ])
+      mounted = false;
+    };
+  }, [accessToken, companyId, page, limit, search, refreshKey]);
+
+  useEffect(() => {
+    if (gstLookup.status !== "valid" || !gstLookup.data) return;
+
+    const d = gstLookup.data;
+
+    setPartyForm((current) => ({
+      ...current,
+      // Auto-fill only if user hasn't typed something manually
+      // (we overwrite for simplicity — user can still edit after)
+      state: d.state || current.state,
+      postalCode: d.pincode || current.postalCode,
+      postalAddress: d.address || current.postalAddress,
+      gstRegistrationType: d.registration_type || current.gstRegistrationType,
+      // You can also auto-fill party name if empty
+      partyName: current.partyName || d.trade_name || d.legal_name || "",
+    }));
+  }, [gstLookup.status, gstLookup.data]);
 
   /* =======================================================
      PAGINATION
   ======================================================= */
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(total / limit),
-  )
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  const pageItems = totalPages <= 7
-    ? Array.from({ length: totalPages }, (_, index) => index + 1)
-    : page <= 4
-      ? [1, 2, 3, 4, 5, '...', totalPages]
-      : page >= totalPages - 3
-        ? [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
-        : [1, '...', page - 1, page, page + 1, '...', totalPages]
+  const pageItems =
+    totalPages <= 7
+      ? Array.from({ length: totalPages }, (_, index) => index + 1)
+      : page <= 4
+        ? [1, 2, 3, 4, 5, "...", totalPages]
+        : page >= totalPages - 3
+          ? [
+              1,
+              "...",
+              totalPages - 4,
+              totalPages - 3,
+              totalPages - 2,
+              totalPages - 1,
+              totalPages,
+            ]
+          : [1, "...", page - 1, page, page + 1, "...", totalPages];
 
   function handleSearchChange(event) {
-    setSearch(event.target.value)
-    setPage(1)
+    setSearch(event.target.value);
+    setPage(1);
   }
 
   function handleLimitChange(event) {
-    setLimit(Number(event.target.value))
-    setPage(1)
+    setLimit(Number(event.target.value));
+    setPage(1);
   }
 
   function updatePartyField(field, value) {
-    setPartyForm((current) => ({ ...current, [field]: value }))
+    setPartyForm((current) => ({ ...current, [field]: value }));
   }
 
   function closeCreateParty() {
-    if (isCreating) return
-    setIsCreateOpen(false)
-    setCreateError('')
-    setCreateMessage('')
-    setPartyForm(initialPartyForm)
+    if (isCreating) return;
+    setIsCreateOpen(false);
+    setCreateError("");
+    setCreateMessage("");
+    setPartyForm(initialPartyForm);
   }
 
   async function handleCreateParty(event) {
-    event.preventDefault()
+    event.preventDefault();
     if (!accessToken || !companyId) {
-      setCreateError('Please select a company before creating a party.')
-      return
+      setCreateError("Please select a company before creating a party.");
+      return;
     }
 
     try {
-      setIsCreating(true)
-      setCreateError('')
-      setCreateMessage('')
+      setIsCreating(true);
+      setCreateError("");
+      setCreateMessage("");
 
       await postCompanyCommand(accessToken, companyId, {
-        type: 'CREATE_PARTY',
+        type: "CREATE_PARTY",
         payload: {
           ...partyForm,
           openingBalance: Number(partyForm.openingBalance) || 0,
         },
-      })
+      });
 
-      setIsCreateOpen(false)
-      setPartyForm(initialPartyForm)
-      setPage(1)
-      setRefreshKey((current) => current + 1)
-      setCreateMessage('Party created successfully.')
+      setIsCreateOpen(false);
+      setPartyForm(initialPartyForm);
+      setPage(1);
+      setRefreshKey((current) => current + 1);
+      setCreateMessage("Party created successfully.");
     } catch (requestError) {
-      setCreateError(requestError?.message || 'Unable to create party.')
+      setCreateError(requestError?.message || "Unable to create party.");
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
   }
 
@@ -270,12 +272,11 @@ function PartiesPage({
   return (
     <div
       style={{
-        width: '100%',
-        minHeight: 'calc(100vh - 64px)',
-        background: '#ffffff',
+        width: "100%",
+        minHeight: "calc(100vh - 64px)",
+        background: "#ffffff",
       }}
     >
-
       {/* ===================================================
           TOP TOOLBAR
       =================================================== */}
@@ -283,51 +284,49 @@ function PartiesPage({
       <div
         className="toolbar-shell"
         style={{
-          height: '62px',
-          minHeight: '62px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          padding: '0 13px',
-          borderBottom: '1px solid #e7edf2',
-          background: '#ffffff',
+          height: "62px",
+          minHeight: "62px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "12px",
+          padding: "0 13px",
+          borderBottom: "1px solid #e7edf2",
+          background: "#ffffff",
         }}
       >
-
         {/* LEFT */}
 
         <div
           className="toolbar-left"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
             minWidth: 0,
           }}
         >
-
           {/* SEARCH */}
 
           <div
             className="toolbar-search"
             style={{
-              width: '256px',
+              width: "256px",
               flexShrink: 0,
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              border: '1px solid #d8e1ea',
-              borderRadius: '7px',
-              background: '#ffffff',
+              height: "36px",
+              display: "flex",
+              alignItems: "center",
+              border: "1px solid #d8e1ea",
+              borderRadius: "7px",
+              background: "#ffffff",
             }}
           >
             <Search
               size={15}
               style={{
-                marginLeft: '11px',
-                marginRight: '8px',
-                color: '#647b94',
+                marginLeft: "11px",
+                marginRight: "8px",
+                color: "#647b94",
                 flexShrink: 0,
               }}
             />
@@ -338,14 +337,14 @@ function PartiesPage({
               onChange={handleSearchChange}
               placeholder="Search party name"
               style={{
-                width: '100%',
-                height: '100%',
-                border: 'none',
-                outline: 'none',
-                background: 'transparent',
-                padding: '0 10px 0 0',
-                fontSize: '12px',
-                color: '#334155',
+                width: "100%",
+                height: "100%",
+                border: "none",
+                outline: "none",
+                background: "transparent",
+                padding: "0 10px 0 0",
+                fontSize: "12px",
+                color: "#334155",
               }}
             />
           </div>
@@ -355,52 +354,40 @@ function PartiesPage({
           <div
             className="toolbar-show"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '12px',
-              color: '#26364a',
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontSize: "12px",
+              color: "#26364a",
             }}
           >
-            <span>
-              Show
-            </span>
+            <span>Show</span>
 
             <select
               className="toolbar-select"
               value={limit}
               onChange={handleLimitChange}
               style={{
-                width: '62px',
-                height: '38px',
-                padding: '0 8px',
-                border: '1px solid #d8e1ea',
-                borderRadius: '7px',
-                background: '#ffffff',
-                color: '#334155',
-                fontSize: '12px',
-                outline: 'none',
+                width: "62px",
+                height: "38px",
+                padding: "0 8px",
+                border: "1px solid #d8e1ea",
+                borderRadius: "7px",
+                background: "#ffffff",
+                color: "#334155",
+                fontSize: "12px",
+                outline: "none",
               }}
             >
-              <option value={10}>
-                10
-              </option>
-              <option value={20}>
-                20
-              </option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
 
-              <option value={50}>
-                30
-              </option>
+              <option value={50}>30</option>
 
-              <option value={100}>
-                50
-              </option>
+              <option value={100}>50</option>
             </select>
 
-            <span>
-              records
-            </span>
+            <span>records</span>
           </div>
         </div>
 
@@ -410,9 +397,9 @@ function PartiesPage({
           <span
             className="page-meta"
             style={{
-              fontSize: '11px',
-              color: '#536d8a',
-              whiteSpace: 'nowrap',
+              fontSize: "11px",
+              color: "#536d8a",
+              whiteSpace: "nowrap",
             }}
           >
             Page {page} · {limit} per page
@@ -421,9 +408,9 @@ function PartiesPage({
             type="button"
             disabled={!companyId}
             onClick={() => {
-              setCreateError('')
-              setCreateMessage('')
-              setIsCreateOpen(true)
+              setCreateError("");
+              setCreateMessage("");
+              setIsCreateOpen(true);
             }}
             className="add-party-btn flex h-9 items-center gap-1.5 rounded-md bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -440,14 +427,14 @@ function PartiesPage({
       {!companyId && (
         <div
           style={{
-            margin: '16px',
-            padding: '18px',
-            textAlign: 'center',
-            border: '1px solid #fde68a',
-            borderRadius: '7px',
-            background: '#fffbeb',
-            color: '#b45309',
-            fontSize: '13px',
+            margin: "16px",
+            padding: "18px",
+            textAlign: "center",
+            border: "1px solid #fde68a",
+            borderRadius: "7px",
+            background: "#fffbeb",
+            color: "#b45309",
+            fontSize: "13px",
           }}
         >
           Please select a company to view parties.
@@ -461,13 +448,13 @@ function PartiesPage({
       {companyId && error && (
         <div
           style={{
-            margin: '12px 14px',
-            padding: '10px 14px',
-            border: '1px solid #fecaca',
-            borderRadius: '6px',
-            background: '#fef2f2',
-            color: '#dc2626',
-            fontSize: '12px',
+            margin: "12px 14px",
+            padding: "10px 14px",
+            border: "1px solid #fecaca",
+            borderRadius: "6px",
+            background: "#fef2f2",
+            color: "#dc2626",
+            fontSize: "12px",
           }}
         >
           {error}
@@ -481,96 +468,69 @@ function PartiesPage({
       {companyId && (
         <div
           style={{
-            width: '100%',
-            overflow: 'hidden',
+            width: "100%",
+            overflow: "hidden",
           }}
         >
           <div
             style={{
-              width: '100%',
-              overflowX: 'auto',
-              overflowY: 'hidden',
+              width: "100%",
+              overflowX: "auto",
+              overflowY: "hidden",
             }}
           >
             <table
               style={{
-                width: '100%',
-                minWidth: '1250px',
-                borderCollapse: 'collapse',
-                tableLayout: 'auto',
+                width: "100%",
+                minWidth: "1250px",
+                borderCollapse: "collapse",
+                tableLayout: "auto",
               }}
             >
-
               {/* ================= HEADER ================= */}
 
               <thead>
                 <tr
                   style={{
-                    height: '41px',
-                    background: '#f5f8fa',
+                    height: "41px",
+                    background: "#f5f8fa",
                   }}
                 >
+                  <th className="party-th">PARTY NAME</th>
 
-                  <th className="party-th">
-                    PARTY NAME
-                  </th>
+                  <th className="party-th">GSTIN</th>
 
-                  <th className="party-th">
-                    GSTIN
-                  </th>
+                  <th className="party-th">PHONE</th>
 
-                  <th className="party-th">
-                    PHONE
-                  </th>
+                  <th className="party-th">EMAIL</th>
 
-                  <th className="party-th">
-                    EMAIL
-                  </th>
+                  <th className="party-th party-right">CLOSING BALANCE</th>
 
+                  <th className="party-th party-right">CREDIT LIMIT</th>
 
-                  <th className="party-th party-right">
-                    CLOSING BALANCE
-                  </th>
+                  <th className="party-th party-center">CREDIT DAYS</th>
 
-                  <th className="party-th party-right">
-                    CREDIT LIMIT
-                  </th>
+                  <th className="party-th">LAST SOLD DATE</th>
+                  <th className="party-th">ADDRESS</th>
 
-                  <th className="party-th party-center">
-                    CREDIT DAYS
-                  </th>
+                  <th className="party-th">CREATED AT</th>
 
-                  <th className="party-th">
-                    LAST SOLD DATE
-                  </th>
-                  <th className="party-th">
-                    ADDRESS
-                  </th>
-
-                  <th className="party-th">
-                    CREATED AT
-                  </th>
-
-                  <th className="party-th">
-                    UPDATED AT
-                  </th>
-
+                  <th className="party-th">UPDATED AT</th>
                 </tr>
               </thead>
 
               {/* ================= BODY ================= */}
 
               <tbody>
-
                 {loading && (
                   <tr>
                     <td
                       colSpan={11}
                       style={{
-                        height: '130px',
-                        textAlign: 'center',
-                        color: '#64748b',
-                        fontSize: '12px',
+                        height: "130px",
+                        textAlign: "center",
+                        color: "#64748b",
+                        fontSize: "12px",
                       }}
                     >
                       Loading parties...
@@ -580,59 +540,46 @@ function PartiesPage({
 
                 {!loading &&
                   parties.map((party) => {
-                    const balance =
-                      Number(
-                        party?.closingBalance,
-                      ) || 0
+                    const balance = Number(party?.closingBalance) || 0;
 
-                    const isNegative =
-                      balance < 0
+                    const isNegative = balance < 0;
 
                     return (
                       <tr
-                        key={
-                          party?._id ||
-                          party?.tallyExternalId
-                        }
+                        key={party?._id || party?.tallyExternalId}
                         className="party-row"
                       >
-
                         {/* PARTY */}
 
                         <td className="party-td">
                           <div
                             style={{
-                              minWidth: '220px',
+                              minWidth: "220px",
                             }}
                           >
                             <div
                               style={{
-                                fontSize: '12px',
+                                fontSize: "12px",
                                 fontWeight: 500,
-                                color: '#1e3a5f',
+                                color: "#1e3a5f",
                               }}
                             >
-                              {party?.partyName ||
-                                '-'}
+                              {party?.partyName || "-"}
                             </div>
 
                             <div
                               style={{
-                                marginTop: '3px',
-                                fontSize: '9px',
-                                color: '#94a3b8',
+                                marginTop: "3px",
+                                fontSize: "9px",
+                                color: "#94a3b8",
                               }}
-                            >
-
-                            </div>
+                            ></div>
                           </div>
                         </td>
 
                         {/* GSTIN */}
 
-                        <td className="party-td">
-                          {party?.gstin || '-'}
-                        </td>
+                        <td className="party-td">{party?.gstin || "-"}</td>
 
                         {/* PHONE */}
 
@@ -640,19 +587,15 @@ function PartiesPage({
                           {party?.phone ? (
                             <div
                               style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
                               }}
                             >
-
-
-                              <span>
-                                {party.phone}
-                              </span>
+                              <span>{party.phone}</span>
                             </div>
                           ) : (
-                            '-'
+                            "-"
                           )}
                         </td>
 
@@ -662,78 +605,58 @@ function PartiesPage({
                           {party?.email ? (
                             <div
                               style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                maxWidth: '220px',
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                maxWidth: "220px",
                               }}
                             >
-
-
                               <span
                                 style={{
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
                                 }}
                               >
                                 {party.email}
                               </span>
                             </div>
                           ) : (
-                            '-'
+                            "-"
                           )}
                         </td>
 
-
-
                         {/* BALANCE */}
 
-                        <td
-                          className="party-td party-right"
-                        >
+                        <td className="party-td party-right">
                           <span
                             style={{
                               fontWeight: 500,
                               color: isNegative
-                                ? '#475569'
+                                ? "#475569"
                                 : balance > 0
-                                  ? '#475569'
-                                  : '#475569',
+                                  ? "#475569"
+                                  : "#475569",
                             }}
                           >
+                            {formatAmount(Math.abs(balance))}
 
-                            {formatAmount(
-                              Math.abs(balance),
-                            )}
-
-                            {isNegative
-                              ? ' Dr'
-                              : balance > 0
-                                ? ' Cr'
-                                : ''}
+                            {isNegative ? " Dr" : balance > 0 ? " Cr" : ""}
                           </span>
                         </td>
 
                         {/* CREDIT LIMIT */}
 
-                        <td
-                          className="party-td party-right"
-                        >
+                        <td className="party-td party-right">
                           {`${formatAmount(
-                            party?.creditLimit ??
-                            party?.credit_limit,
+                            party?.creditLimit ?? party?.credit_limit,
                           )}`}
                         </td>
 
                         {/* CREDIT DAYS */}
 
-                        <td
-                          className="party-td party-center"
-                        >
-                          {party?.creditDays ??
-                            party?.credit_days ??
-                            0}
+                        <td className="party-td party-center">
+                          {party?.creditDays ?? party?.credit_days ?? 0}
                         </td>
 
                         {/* LAST SOLD */}
@@ -741,12 +664,11 @@ function PartiesPage({
                         <td
                           className="party-td"
                           style={{
-                            whiteSpace: 'nowrap',
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {formatDate(
-                            party?.lastSoldDate ??
-                            party?.last_sold_date,
+                            party?.lastSoldDate ?? party?.last_sold_date,
                           )}
                         </td>
                         {/* ADDRESS */}
@@ -754,31 +676,31 @@ function PartiesPage({
                         <td
                           className="party-td"
                           style={{
-                            minWidth: '360px',
-                            maxWidth: '500px',
-                            whiteSpace: 'normal',
-                            wordBreak: 'break-word',
-                            verticalAlign: 'top',
-                            paddingTop: '12px',
-                            paddingBottom: '12px',
+                            minWidth: "360px",
+                            maxWidth: "500px",
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                            verticalAlign: "top",
+                            paddingTop: "12px",
+                            paddingBottom: "12px",
                           }}
                         >
                           {party?.address ? (
                             <div
                               style={{
-                                width: '100%',
-                                fontSize: '12px',
-                                lineHeight: '1.5',
-                                color: '#1c426b',
-                                whiteSpace: 'normal',
-                                wordBreak: 'break-word',
-                                overflowWrap: 'anywhere',
+                                width: "100%",
+                                fontSize: "12px",
+                                lineHeight: "1.5",
+                                color: "#1c426b",
+                                whiteSpace: "normal",
+                                wordBreak: "break-word",
+                                overflowWrap: "anywhere",
                               }}
                             >
                               {party.address}
                             </div>
                           ) : (
-                            '-'
+                            "-"
                           )}
                         </td>
                         {/* CREATED AT */}
@@ -786,13 +708,10 @@ function PartiesPage({
                         <td
                           className="party-td"
                           style={{
-                            whiteSpace: 'nowrap',
+                            whiteSpace: "nowrap",
                           }}
                         >
-                          {formatDate(
-                            party?.createdAt ??
-                            party?.created_at,
-                          )}
+                          {formatDate(party?.createdAt ?? party?.created_at)}
                         </td>
 
                         {/* UPDATED AT */}
@@ -800,37 +719,32 @@ function PartiesPage({
                         <td
                           className="party-td"
                           style={{
-                            whiteSpace: 'nowrap',
+                            whiteSpace: "nowrap",
                           }}
                         >
-                          {formatDate(
-                            party?.updatedAt ??
-                            party?.updated_at,
-                          )}
+                          {formatDate(party?.updatedAt ?? party?.updated_at)}
                         </td>
                       </tr>
-                    )
+                    );
                   })}
 
-                {!loading &&
-                  parties.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={11}
-                        style={{
-                          height: '130px',
-                          textAlign: 'center',
-                          color: '#64748b',
-                          fontSize: '12px',
-                        }}
-                      >
-                        {search
-                          ? `No parties found for "${search}".`
-                          : 'No parties found.'}
-                      </td>
-                    </tr>
-                  )}
-
+                {!loading && parties.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={11}
+                      style={{
+                        height: "130px",
+                        textAlign: "center",
+                        color: "#64748b",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {search
+                        ? `No parties found for "${search}".`
+                        : "No parties found."}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -842,7 +756,7 @@ function PartiesPage({
           <div className="flex min-h-[50px] items-center justify-center border-t border-slate-100 bg-[#f5f8fa] px-3 py-2">
             <div className="flex flex-wrap items-center justify-center gap-2">
               {pageItems.map((item, index) =>
-                item === '...' ? (
+                item === "..." ? (
                   <span
                     key={`ellipsis-${index}`}
                     className="flex h-8 min-w-8 items-center justify-center px-1 text-xs text-slate-500"
@@ -855,14 +769,15 @@ function PartiesPage({
                     type="button"
                     disabled={totalPages <= 1 || loading}
                     onClick={() => setPage(item)}
-                    className={`flex h-8 min-w-9 items-center justify-center rounded-md border px-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${page === item
-                      ? 'border-emerald-600 bg-emerald-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                      }`}
+                    className={`flex h-8 min-w-9 items-center justify-center rounded-md border px-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                      page === item
+                        ? "border-emerald-600 bg-emerald-600 text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    }`}
                   >
                     {item}
                   </button>
-                )
+                ),
               )}
             </div>
           </div>
@@ -873,7 +788,7 @@ function PartiesPage({
         <div
           className="fixed inset-x-0 bottom-0 top-16 z-[200] flex items-center justify-center bg-slate-950/40 p-4"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeCreateParty()
+            if (event.target === event.currentTarget) closeCreateParty();
           }}
         >
           <form
@@ -904,8 +819,7 @@ function PartiesPage({
             </div>
 
             {/* Form fields */}
-            <div className="grid gap-4 p-5">
-
+            <div className="grid gap-4 p-5 sm:grid-cols-2">
               {/* Party Name */}
               <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
                 <span>
@@ -918,7 +832,7 @@ function PartiesPage({
                   required
                   value={partyForm.partyName}
                   onChange={(event) =>
-                    updatePartyField('partyName', event.target.value)
+                    updatePartyField("partyName", event.target.value)
                   }
                   placeholder="Enter party name"
                   className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
@@ -936,7 +850,7 @@ function PartiesPage({
                   required
                   value={partyForm.partyType}
                   onChange={(event) =>
-                    updatePartyField('partyType', event.target.value)
+                    updatePartyField("partyType", event.target.value)
                   }
                   className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 >
@@ -954,10 +868,7 @@ function PartiesPage({
                   type="tel"
                   value={partyForm.contactNumber}
                   onChange={(event) =>
-                    updatePartyField(
-                      'contactNumber',
-                      event.target.value,
-                    )
+                    updatePartyField("contactNumber", event.target.value)
                   }
                   placeholder="9953792488"
                   maxLength={15}
@@ -973,7 +884,7 @@ function PartiesPage({
                   type="email"
                   value={partyForm.email}
                   onChange={(event) =>
-                    updatePartyField('email', event.target.value)
+                    updatePartyField("email", event.target.value)
                   }
                   placeholder="example@gmail.com"
                   className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
@@ -990,13 +901,149 @@ function PartiesPage({
                   step="0.01"
                   value={partyForm.openingBalance}
                   onChange={(event) =>
-                    updatePartyField(
-                      'openingBalance',
-                      event.target.value,
-                    )
+                    updatePartyField("openingBalance", event.target.value)
                   }
                   placeholder="0"
                   className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </label>
+
+              {/* GST Number with live validation */}
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                <span>GST Number</span>
+
+                <div
+                  className={`relative flex h-10 items-center rounded-md border transition ${
+                    gstLookup.status === "valid"
+                      ? "border-emerald-400 bg-emerald-50/50"
+                      : gstLookup.status === "invalid"
+                        ? "border-red-400 bg-red-50/50"
+                        : "border-slate-300"
+                  }`}
+                >
+                  <input
+                    type="text"
+                    value={partyForm.gstNumber}
+                    onChange={(event) =>
+                      updatePartyField(
+                        "gstNumber",
+                        event.target.value.toUpperCase().replace(/\s/g, ""),
+                      )
+                    }
+                    maxLength={15}
+                    placeholder="29AAICA3918J1ZE"
+                    className="h-full w-full rounded-md bg-transparent px-3 pr-10 text-sm font-medium tracking-wider text-slate-800 outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400"
+                  />
+
+                  {/* Status icon on right */}
+                  <span className="absolute right-3 flex items-center">
+                    {gstLookup.status === "checking" && (
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                    )}
+                    {gstLookup.status === "valid" && (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    )}
+                    {gstLookup.status === "invalid" && (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                  </span>
+                </div>
+
+                {/* Helper / status text below */}
+                {gstLookup.status === "checking" && (
+                  <span className="text-[11px] text-blue-600">
+                    Verifying GSTIN…
+                  </span>
+                )}
+                {gstLookup.status === "valid" && (
+                  <span className="text-[11px] text-emerald-600">
+                    ✓ {gstLookup.data?.trade_name || "Valid GSTIN"}
+                  </span>
+                )}
+                {gstLookup.status === "invalid" && gstLookup.error && (
+                  <span className="text-[11px] text-red-600">
+                    {gstLookup.error}
+                  </span>
+                )}
+                {gstLookup.status === "idle" && (
+                  <span className="text-[11px] text-slate-400">
+                    Format: 22AAAAA0000A1Z5 (15 digits)
+                  </span>
+                )}
+              </label>
+
+              {/* GST Registration Type */}
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                <span>GST Registration Type</span>
+
+                <select
+                  value={partyForm.gstRegistrationType}
+                  onChange={(event) =>
+                    updatePartyField("gstRegistrationType", event.target.value)
+                  }
+                  className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                >
+                  <option value="">Select Registration Type</option>
+                  <option value="Regular">Regular</option>
+                  <option value="Composition">Composition</option>
+                  <option value="Unregistered">Unregistered</option>
+                  <option value="Consumer">Consumer</option>
+                  <option value="Overseas">Overseas</option>
+                  <option value="SEZ">SEZ</option>
+                  <option value="Deemed Exporter">Deemed Exporter</option>
+                  <option value="Input Service Distributor">
+                    Input Service Distributor
+                  </option>
+                </select>
+              </label>
+
+              {/* State */}
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                <span>State</span>
+
+                <input
+                  type="text"
+                  value={partyForm.state}
+                  onChange={(event) =>
+                    updatePartyField("state", event.target.value)
+                  }
+                  placeholder="Karnataka"
+                  className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </label>
+
+              {/* Postal Code */}
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                <span>Postal Code</span>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={partyForm.postalCode}
+                  onChange={(event) =>
+                    updatePartyField(
+                      "postalCode",
+                      event.target.value.replace(/\D/g, "").slice(0, 6),
+                    )
+                  }
+                  maxLength={6}
+                  placeholder="560064"
+                  className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </label>
+
+              {/* Postal Address - full width */}
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700 sm:col-span-2">
+                <span>Postal Address</span>
+
+                <textarea
+                  value={partyForm.postalAddress}
+                  onChange={(event) =>
+                    updatePartyField("postalAddress", event.target.value)
+                  }
+                  rows={3}
+                  placeholder="Building, street, area, city…"
+                  className="min-h-[80px] w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </label>
 
@@ -1030,7 +1077,7 @@ function PartiesPage({
                 disabled={isCreating}
                 className="rounded-md bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isCreating ? 'Creating...' : 'Create Party'}
+                {isCreating ? "Creating..." : "Create Party"}
               </button>
             </div>
           </form>
@@ -1154,7 +1201,7 @@ function PartiesPage({
         `}
       </style>
     </div>
-  )
+  );
 }
 
-export default PartiesPage
+export default PartiesPage;
