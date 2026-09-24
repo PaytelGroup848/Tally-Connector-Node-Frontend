@@ -121,13 +121,13 @@ function App() {
         ['Receipt Note', '/create-voucher/ReceiptNote'],
       ],
     },
-    {
-      title: 'Items & Parties',
-      items: [
-        ['Create Items', '/items/create'],
-        ['Create Parties', '/parties/create'],
-      ],
-    },
+    // {
+    //   title: 'Items & Parties',
+    //   items: [
+    //     ['Create Items', '/items/create'],
+    //     ['Create Parties', '/parties/create'],
+    //   ],
+    // },
     {
       title: 'Inventory',
       items: [

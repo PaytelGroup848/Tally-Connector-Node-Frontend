@@ -1129,54 +1129,6 @@ function AppHeader({
         </div>
 
         {/* ====================================================
-            MOBILE SEARCH
-        ===================================================== */}
-        <div
-          className="
-            border-t
-            border-app-border-light
-            bg-white
-            px-3
-            py-2
-            lg:hidden
-          "
-        >
-          <label
-            className="
-              flex h-10
-              w-full
-              items-center
-              gap-2
-              rounded-lg
-              border border-app-border
-              bg-slate-50/50
-              px-3
-              text-slate-400
-              transition
-              focus-within:border-app-primary
-              focus-within:bg-white
-              focus-within:ring-2
-              focus-within:ring-emerald-100
-            "
-          >
-            <Search className="h-4 w-4 shrink-0" />
-
-            <input
-              type="text"
-              placeholder="Search vouchers, ledgers, items..."
-              className="
-                w-full min-w-0
-                bg-transparent
-                text-[12px]
-                text-app-text
-                outline-none
-                placeholder:text-slate-400
-              "
-            />
-          </label>
-        </div>
-
-        {/* ====================================================
             MOBILE ACTIONS
         ===================================================== */}
         <div
@@ -1189,7 +1141,7 @@ function AppHeader({
             lg:hidden
           "
         >
-          <button
+          {/* <button
             type="button"
             onClick={() => (onOpenEway ? onOpenEway() : setShowEway?.(true))}
             className="
@@ -1229,7 +1181,7 @@ function AppHeader({
               <br />
               eInvoice
             </span>
-          </button>
+          </button> */}
 
           <div
             className="
