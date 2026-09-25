@@ -262,7 +262,7 @@ const ProfilePage = () => {
             {/* Header Text */}
             <div className="mt-4">
               <h2 className="text-xl font-bold text-white sm:text-2xl">
-                Owner Profile
+                Profile
               </h2>
 
               <p className="mt-1 text-sm text-green-50">
