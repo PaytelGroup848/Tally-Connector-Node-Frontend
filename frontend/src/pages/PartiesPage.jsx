@@ -786,7 +786,7 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
 
       {isCreateOpen && (
         <div
-          className="fixed inset-x-0 bottom-0 top-16 z-[200] flex items-center justify-center bg-slate-950/40 p-4"
+          className="fixed inset-x-0 bottom-0 top-16 z-[200] flex items-center justify-center bg-slate-900/50 p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeCreateParty();
           }}
