@@ -24,8 +24,34 @@ function Sidebar({
   onDashboard,
   onQuotation,
   onNavigate,
+  allowedModules,
 }) {
   const entryPath = currentPath.toLowerCase();
+
+  const isGroupAllowed = (path) =>
+    !Array.isArray(allowedModules) || allowedModules.includes(path);
+
+  const isSubItemAllowed = (parentPath, itemPath) => {
+    if (!Array.isArray(allowedModules)) return true; // unrestricted (Owner)
+    if (allowedModules.includes(parentPath)) return true; // whole group granted
+    return allowedModules.includes(itemPath);
+  };
+
+  const visibleNavItems = navItems.filter(([, label, , , path]) => {
+    if (!Array.isArray(allowedModules)) return true;
+
+    const subItems = submenuItems[label];
+    if (!subItems) {
+      // simple item — visible only if its own key is allowed
+      return allowedModules.includes(path);
+    }
+
+    // expandable group — visible if whole group granted OR at least one child allowed
+    return (
+      allowedModules.includes(path) ||
+      subItems.some(([, itemPath]) => isSubItemAllowed(path, itemPath))
+    );
+  });
 
   const isSubmenuActive = (itemPath) => entryPath === itemPath.toLowerCase();
 
@@ -132,43 +158,45 @@ function Sidebar({
       </button>
 
       <nav className="sidebar-nav min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
-        {navItems.map(([IconComponent, label, expandable, badge, path]) => {
-          const targetPath = label === "Dashboard" ? "/dashboard" : `/${path}`;
+        {visibleNavItems.map(
+          ([IconComponent, label, expandable, badge, path]) => {
+            const targetPath =
+              label === "Dashboard" ? "/dashboard" : `/${path}`;
 
-          const active =
-            (label === "Dashboard" && showDashboard) ||
-            isCollectPaymentsRoute(label) ||
-            isCashBankRoute(label) ||
-            currentPath.startsWith(`/${path}`) ||
-            submenuItems[label]?.some(([, itemPath]) =>
-              isSubmenuActive(itemPath),
-            );
+            const active =
+              (label === "Dashboard" && showDashboard) ||
+              isCollectPaymentsRoute(label) ||
+              isCashBankRoute(label) ||
+              currentPath.startsWith(`/${path}`) ||
+              submenuItems[label]?.some(([, itemPath]) =>
+                isSubmenuActive(itemPath),
+              );
 
-          return (
-            <div className="mb-1" key={label}>
-              <a
-                href={expandable ? undefined : targetPath}
-                onClick={(event) => {
-                  if (expandable) {
-                    event.preventDefault();
+            return (
+              <div className="mb-1" key={label}>
+                <a
+                  href={expandable ? undefined : targetPath}
+                  onClick={(event) => {
+                    if (expandable) {
+                      event.preventDefault();
 
-                    setExpandedNav((current) => ({
-                      ...current,
-                      [label]: !isNavExpanded(label, path),
-                    }));
+                      setExpandedNav((current) => ({
+                        ...current,
+                        [label]: !isNavExpanded(label, path),
+                      }));
 
-                    return;
-                  }
+                      return;
+                    }
 
-                  if (label === "Dashboard") {
-                    onDashboard(event);
-                    closeOnMobile();
-                    return;
-                  }
+                    if (label === "Dashboard") {
+                      onDashboard(event);
+                      closeOnMobile();
+                      return;
+                    }
 
-                  handleNavClick(event, targetPath);
-                }}
-                className={`
+                    handleNavClick(event, targetPath);
+                  }}
+                  className={`
                   sidebar-link flex h-[42px] w-full
                   items-center gap-3 rounded-lg px-3
                   text-left text-[13px] font-medium
@@ -180,49 +208,53 @@ function Sidebar({
                       : "text-slate-200 hover:bg-white/10 hover:text-white"
                   }
                 `}
-              >
-                <span className="flex w-5 shrink-0 items-center justify-center">
-                  <IconComponent className="h-4 w-4" />
-                </span>
+                >
+                  <span className="flex w-5 shrink-0 items-center justify-center">
+                    <IconComponent className="h-4 w-4" />
+                  </span>
 
-                {!collapsed && (
-                  <>
-                    <span className="min-w-0 flex-1 truncate">{label}</span>
+                  {!collapsed && (
+                    <>
+                      <span className="min-w-0 flex-1 truncate">{label}</span>
 
-                    {badge && (
-                      <em
-                        className="
+                      {badge && (
+                        <em
+                          className="
                           rounded-full bg-red-500 px-1.5 py-0.5
                           text-[9px] font-semibold not-italic text-white
                         "
-                      >
-                        {badge}
-                      </em>
-                    )}
+                        >
+                          {badge}
+                        </em>
+                      )}
 
-                    {expandable && <Arrow />}
-                  </>
-                )}
-              </a>
+                      {expandable && <Arrow />}
+                    </>
+                  )}
+                </a>
 
-              {!collapsed &&
-                submenuItems[label] &&
-                isNavExpanded(label, path) && (
-                  <div className="ml-4 border-l border-white/10 py-1 pl-3">
-                    {submenuItems[label].map(([item, itemPath]) => (
-                      <a
-                        key={item}
-                        href={itemPath}
-                        onClick={(event) => {
-                          if (itemPath === "/create-voucher/Quotation") {
-                            onQuotation(event);
-                            closeOnMobile();
-                            return;
-                          }
+                {!collapsed &&
+                  submenuItems[label] &&
+                  isNavExpanded(label, path) && (
+                    <div className="ml-4 border-l border-white/10 py-1 pl-3">
+                      {submenuItems[label]
+                        .filter(([, itemPath]) =>
+                          isSubItemAllowed(path, itemPath),
+                        )
+                        .map(([item, itemPath]) => (
+                          <a
+                            key={item}
+                            href={itemPath}
+                            onClick={(event) => {
+                              if (itemPath === "/create-voucher/Quotation") {
+                                onQuotation(event);
+                                closeOnMobile();
+                                return;
+                              }
 
-                          handleNavClick(event, itemPath);
-                        }}
-                        className={`
+                              handleNavClick(event, itemPath);
+                            }}
+                            className={`
                           block rounded-md px-3 py-2
                           text-[12px] no-underline transition
                           ${
@@ -231,15 +263,16 @@ function Sidebar({
                               : "text-slate-300 hover:bg-white/5 hover:text-white"
                           }
                         `}
-                      >
-                        {item}
-                      </a>
-                    ))}
-                  </div>
-                )}
-            </div>
-          );
-        })}
+                          >
+                            {item}
+                          </a>
+                        ))}
+                    </div>
+                  )}
+              </div>
+            );
+          },
+        )}
       </nav>
 
       {!collapsed && (

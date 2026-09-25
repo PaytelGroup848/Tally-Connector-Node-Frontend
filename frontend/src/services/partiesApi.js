@@ -1,5 +1,4 @@
-const API_BASE_URL =
-  'https://connector.cloudata.in'
+const API_BASE_URL = "https://connector.cloudata.in";
 
 export async function fetchParties({
   accessToken,

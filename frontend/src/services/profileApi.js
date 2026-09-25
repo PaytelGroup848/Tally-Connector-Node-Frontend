@@ -1,41 +1,41 @@
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL ||
   import.meta.env.BaseUrl ||
-  'https://connector.cloudata.in/api'
-).replace(/\/$/, '')
+  "https://connector.cloudata.in/api"
+).replace(/\/$/, "");
 
 export class ProfileApiError extends Error {
   constructor(message, status) {
-    super(message)
-    this.name = 'ProfileApiError'
-    this.status = status
+    super(message);
+    this.name = "ProfileApiError";
+    this.status = status;
   }
 }
 
 function buildUrl(path) {
-  const cleanPath = path.startsWith('/') ? path : `/${path}`
-  return `${API_BASE_URL}${cleanPath}`
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE_URL}${cleanPath}`;
 }
 
 export async function fetchProfile(accessToken) {
   if (!accessToken) {
-    throw new Error('Access token is missing')
+    throw new Error("Access token is missing");
   }
 
-  const response = await fetch(buildUrl('/organizations/me'), {
-    method: 'GET',
+  const response = await fetch(buildUrl("/organizations/me"), {
+    method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-  })
+  });
 
-  let result = null
+  let result = null;
 
   try {
-    result = await response.json()
+    result = await response.json();
   } catch {
-    throw new Error('Invalid response from server')
+    throw new Error("Invalid response from server");
   }
 
   if (!response.ok) {
@@ -44,37 +44,35 @@ export async function fetchProfile(accessToken) {
         result?.error ||
         `Failed to fetch profile (${response.status})`,
       response.status,
-    )
+    );
   }
 
   if (result?.success === false) {
-    throw new Error(
-      result?.message || 'Failed to fetch profile',
-    )
+    throw new Error(result?.message || "Failed to fetch profile");
   }
 
-  return result
+  return result;
 }
 
 export async function fetchMySubscription(accessToken) {
   if (!accessToken) {
-    throw new Error('Access token is missing')
+    throw new Error("Access token is missing");
   }
 
-  const response = await fetch(buildUrl('/subscriptions/me'), {
-    method: 'GET',
+  const response = await fetch(buildUrl("/subscriptions/me"), {
+    method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-  })
+  });
 
-  let result = null
+  let result = null;
 
   try {
-    result = await response.json()
+    result = await response.json();
   } catch {
-    throw new Error('Invalid subscription response from server')
+    throw new Error("Invalid subscription response from server");
   }
 
   if (!response.ok) {
@@ -83,24 +81,24 @@ export async function fetchMySubscription(accessToken) {
         result?.error ||
         `Failed to fetch subscription (${response.status})`,
       response.status,
-    )
+    );
   }
 
   if (result?.success === false) {
-    throw new Error(result?.message || 'Failed to fetch subscription')
+    throw new Error(result?.message || "Failed to fetch subscription");
   }
 
-  return result
+  return result;
 }
 
 export function extractMySubscription(response) {
-  const data = response?.data || response || {}
-  return data?.subscription || data?.data || data
+  const data = response?.data || response || {};
+  return data?.subscription || data?.data || data;
 }
 
 export function extractTotalUsers(response) {
-  const data = response?.data || response || {}
-  const subscription = data?.subscription || data?.data || data
+  const data = response?.data || response || {};
+  const subscription = data?.subscription || data?.data || data;
   const candidates = [
     subscription?.extraSeats,
     data?.extraSeats,
@@ -112,32 +110,32 @@ export function extractTotalUsers(response) {
     data?.userCount,
     data?.usersCount,
     data?.membersCount,
-  ]
+  ];
 
   const count = candidates.find(
-    (value) => typeof value === 'number' || (typeof value === 'string' && value.trim() !== ''),
-  )
+    (value) =>
+      typeof value === "number" ||
+      (typeof value === "string" && value.trim() !== ""),
+  );
 
-  if (count !== undefined) return count
-  if (Array.isArray(subscription?.users)) return subscription.users.length
-  if (Array.isArray(subscription?.members)) return subscription.members.length
+  if (count !== undefined) return count;
+  if (Array.isArray(subscription?.users)) return subscription.users.length;
+  if (Array.isArray(subscription?.members)) return subscription.members.length;
 
-  return null
+  return null;
 }
 
 export function extractOrganizationProfile(response) {
-  const data = response?.data || response || {}
+  const data = response?.data || response || {};
 
-  return data?.data || data
+  return data?.data || data;
 }
 
 export function extractOrganizationContext(response) {
-  const profile = extractOrganizationProfile(response)
-  const organization = profile?.organization || null
+  const profile = extractOrganizationProfile(response);
+  const organization = profile?.organization || null;
   const subscription =
-    profile?.subscription ||
-    organization?.subscription ||
-    null
+    profile?.subscription || organization?.subscription || null;
 
   return {
     profile,
@@ -149,23 +147,17 @@ export function extractOrganizationContext(response) {
       null,
     subscription,
     role: profile?.role || profile?.member?.role || null,
-    permissions: Array.isArray(profile?.permissions)
-      ? profile.permissions
-      : [],
+    permissions: Array.isArray(profile?.permissions) ? profile.permissions : [],
+    allowedModules: Array.isArray(profile?.allowedModules) // <-- NAYA
+      ? profile.allowedModules
+      : null,
     isMember: Boolean(
       profile?.isMember === true ||
       profile?.member ||
-      profile?.role && profile.role !== 'OWNER',
+      (profile?.role && profile.role !== "OWNER"),
     ),
-    plan:
-      subscription?.plan ||
-      profile?.plan ||
-      organization?.plan ||
-      null,
+    plan: subscription?.plan || profile?.plan || organization?.plan || null,
     organizationId:
-      profile?.organizationId ||
-      organization?.id ||
-      organization?._id ||
-      null,
-  }
+      profile?.organizationId || organization?.id || organization?._id || null,
+  };
 }
