@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import LandingPage from './pages/LandingPage'
 import MainPage from './pages/MainPage'
 import LoginPage from './pages/LoginPage'
 import PlansPage from './pages/PlansPage'
@@ -142,7 +143,17 @@ function App() {
    * Not authenticated
    */
   if (!isAuthenticated) {
-    return <LoginPage />
+    if (currentPath === '/login') {
+      return <LoginPage />
+    }
+
+    if (currentPath === '/' || currentPath === '') {
+      return <LandingPage />
+    }
+
+    window.history.replaceState({}, '', '/')
+    window.dispatchEvent(new PopStateEvent('popstate'))
+    return <LandingPage />
   }
 
   if (!hasActiveSubscription) {
