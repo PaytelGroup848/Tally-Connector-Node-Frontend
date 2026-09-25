@@ -1,7 +1,8 @@
-import { X } from "lucide-react";
-import logo from "../assets/logo.png";
+import { X, Phone } from "lucide-react";
+import logo from "../assets/Control-Books-Dashboard.png";
+import smallLogo from "../assets/logo.png";
 import { navItems, submenuItems } from "../routes/navigation";
-import { Phone } from "lucide-react";
+
 function Arrow() {
   return (
     <span
@@ -79,6 +80,7 @@ function Sidebar({
 
   const handleNavClick = (event, targetPath) => {
     if (!targetPath) return;
+
     event.preventDefault();
     onNavigate(targetPath);
     closeOnMobile();
@@ -102,7 +104,7 @@ function Sidebar({
       data-collapsed={collapsed}
     >
       {isCompact && !collapsed && (
-        <div className="flex justify-end px-3 pt-3">
+        <div className="flex h-10 shrink-0 items-center justify-end px-3">
           <button
             type="button"
             aria-label="Close sidebar"
@@ -119,43 +121,35 @@ function Sidebar({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={onDashboard}
-        aria-label="Go to dashboard"
+      <div
         className={`
-          sidebar-brand flex h-[68px] w-full shrink-0
-          items-center border-0 text-left
-          ${collapsed ? "justify-center px-0" : "justify-start gap-2 px-3"}
+          flex h-[68px] w-full shrink-0 items-center
+          border-b border-white/10 bg-white
+          ${collapsed ? "justify-center" : "justify-center px-4"}
         `}
       >
-        <span
-          className={`
-            grid shrink-0 place-items-center rounded-xl bg-#082E52
-            
-            ${collapsed ? "h-25 w-12 p-1.5" : "h-25 w-12 p-1.5"}
-          `}
+        <button
+          type="button"
+          onClick={(event) => {
+            onDashboard(event);
+            closeOnMobile();
+          }}
+          aria-label="Go to dashboard"
+          className="
+            flex items-center justify-center
+            border-0 bg-transparent p-0 outline-none
+          "
         >
           <img
-            className="h-full w-full object-contain"
-            src={logo}
+            src={collapsed ? smallLogo : logo}
             alt="CtrlBooks logo"
+            className={`
+              block object-contain
+              ${collapsed ? "h-9 w-9" : "h-[45px] w-auto max-w-[140px]"}
+            `}
           />
-        </span>
-
-        {!collapsed && (
-          <div className="min-w-0 flex-1 overflow-hidden">
-            <div className="whitespace-nowrap text-[29px] font-black italic leading-none tracking-[-0.09em]">
-              <span className="text-[#4CAF50] tracking-[0.06em]">Ctrl</span>
-              <span className="sidebar-brand-title-books tracking-[0.03em]">
-                Books
-              </span>
-            </div>
-
-            <div className="mt-1 h-[1px] w-[92%] bg-[#4CAF50]" />
-          </div>
-        )}
-      </button>
+        </button>
+      </div>
 
       <nav className="sidebar-nav min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
         {visibleNavItems.map(
@@ -201,7 +195,6 @@ function Sidebar({
                   items-center gap-3 rounded-lg px-3
                   text-left text-[13px] font-medium
                   no-underline transition-all duration-200
-
                   ${
                     active
                       ? "is-active"
@@ -278,22 +271,19 @@ function Sidebar({
       {!collapsed && (
         <div
           className="
-    mx-3 mb-4 flex items-center gap-3
-    rounded-xl border border-white/10
-    bg-[#059669] px-4 py-3
-  "
+            mx-3 mb-4 flex shrink-0 items-center gap-3
+            rounded-xl border border-white/10 bg-[#059669]
+            px-4 py-3
+          "
         >
-          {/* Phone Icon */}
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center ">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center">
             <Phone size={17} strokeWidth={2} className="text-white" />
           </div>
 
-          {/* Help Content */}
-          <div className="flex flex-col">
-            <p className="text-[11px] font-medium leading-4 text-white px-4">
+          <div className="flex min-w-0 flex-col">
+            <p className="text-[11px] font-medium leading-4 text-white">
               Need help?
             </p>
-
             <a
               href="tel:+919311472357"
               className="mt-0.5 text-[12px] font-semibold text-white no-underline hover:underline"
