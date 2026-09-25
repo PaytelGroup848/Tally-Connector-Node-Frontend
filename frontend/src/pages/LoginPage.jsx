@@ -260,7 +260,8 @@ const LoginPage = () => {
 
       <main className="relative z-0 min-h-screen overflow-hidden bg-[#f1fbf8] font-sans text-[#102a43]">
         {/* Mobile background matching the reference design */}
-        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:hidden">
+        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:block">
+          
           {/* Soft mint base */}
           <div
             className="mobile-bg-drift absolute inset-[-3%] bg-[radial-gradient(circle_at_20%_20%,rgba(126,229,202,0.28),transparent_28%),radial-gradient(circle_at_80%_35%,rgba(77,190,218,0.16),transparent_30%),radial-gradient(circle_at_50%_90%,rgba(81,214,174,0.18),transparent_36%),linear-gradient(180deg,#dff8f3_0%,#f7fbfb_48%,#eefbf8_100%)]"
@@ -367,105 +368,240 @@ const LoginPage = () => {
 
         <div className="relative z-10 flex min-h-screen w-full flex-col lg:flex-row">
 
-        {/* =========================================================
+          {/* =========================================================
             LEFT MARKETING SECTION
         ========================================================== */}
-        <section
-          className="
-            relative
-            hidden
-            w-full
-            overflow-hidden
-            bg-[#3828bd]
-            lg:flex
-            lg:min-h-screen
-            lg:w-[60%]
-            lg:flex-col
-            lg:px-12
-            xl:px-16
-          "
-        >
-          {/* Base gradient */}
-          <div
-            className="
-              absolute
-              inset-0
-              bg-[#3828bd]
-            "
-          />
+          <section
+  className="
+    relative
+    hidden
+    min-h-screen
+    w-full
+    overflow-hidden
+    lg:flex
+    lg:w-[60%]
+    lg:flex-col
+  "
+>
+  {/* ================= DESKTOP GREEN ANIMATED BACKGROUND ================= */}
 
-          {/* Large diagonal bands - Razorpay style */}
-          <div
-            className="
-              pointer-events-none
-              absolute
-              -right-[16%]
-              top-[-10%]
-              h-[125%]
-              w-[32%]
-              rotate-[19deg]
-              hidden
-            "
-          />
+  {/* Base mint/green gradient */}
+  <div
+    className="
+      animated-bg
+      absolute inset-[-4%]
+      bg-[radial-gradient(circle_at_15%_18%,rgba(79,210,176,0.35),transparent_28%),radial-gradient(circle_at_85%_25%,rgba(109,225,201,0.25),transparent_30%),radial-gradient(circle_at_50%_90%,rgba(49,191,148,0.28),transparent_38%),linear-gradient(135deg,#bdf5e7_0%,#49c7a2_45%,#159b72_100%)]
+    "
+  />
 
-          <div
-            className="
-              pointer-events-none
-              absolute
-              right-[1%]
-              top-[-15%]
-              h-[135%]
-              w-[16%]
-              rotate-[19deg]
-              hidden
-            "
-          />
+  {/* Large top-left curved ring */}
+  <div
+    className="
+      top-wave
+      absolute
+      left-[-30%]
+      top-[-18%]
+      h-[58%]
+      w-[100%]
+      rounded-[50%]
+      border-[10px]
+      border-white/20
+      rotate-[-18deg]
+    "
+  />
 
-          <div
-            className="
-              pointer-events-none
-              absolute
-              right-[-7%]
-              top-[-10%]
-              h-[125%]
-              w-[8%]
-              rotate-[19deg]
-              hidden
-            "
-          />
+  {/* Inner top curve */}
+  <div
+    className="
+      top-wave
+      absolute
+      left-[-22%]
+      top-[-12%]
+      h-[48%]
+      w-[86%]
+      rounded-[50%]
+      border-[3px]
+      border-white/20
+      rotate-[-18deg]
+    "
+  />
 
-          <div
-            className="
-              pointer-events-none
-              absolute
-              left-[-8%]
-              bottom-[-18%]
-              h-[55%]
-              w-[30%]
-              rotate-[18deg]
-              rounded-[50%]
-              hidden
-            "
-          />
-          <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#2FA66F]">
-            <div className="absolute -left-24 bottom-[-18%] h-[115%] w-[78%] rotate-[23deg] rounded-[48%] border border-white/10" />
-            <div className="absolute -left-12 bottom-[-16%] h-[110%] w-[68%] rotate-[23deg] rounded-[48%] border border-white/10" />
-            <div className="absolute left-8 bottom-[-15%] h-[104%] w-[58%] rotate-[23deg] rounded-[48%] border border-white/10" />
-          </div>
+  {/* Large bottom sweeping curve */}
+  <div
+    className="
+      bottom-wave
+      absolute
+      left-[-22%]
+      bottom-[-26%]
+      h-[65%]
+      w-[115%]
+      rounded-[50%]
+      border-[12px]
+      border-white/15
+      rotate-[8deg]
+    "
+  />
 
-          <div className="relative z-10 flex flex-1 flex-col justify-between py-10 text-white sm:py-14 lg:py-16">
-          </div>
+  {/* Bottom inner curve */}
+  <div
+    className="
+      bottom-wave-reverse
+      absolute
+      left-[-12%]
+      bottom-[-20%]
+      h-[52%]
+      w-[100%]
+      rounded-[50%]
+      border-[4px]
+      border-white/20
+      rotate-[8deg]
+    "
+  />
 
-        </section>
+  {/* Right-side glow */}
+  <div
+    className="
+      glow-move-reverse
+      absolute
+      right-[-80px]
+      top-[12%]
+      h-72
+      w-72
+      rounded-full
+      bg-[#9ef0dd]/25
+      blur-3xl
+    "
+  />
 
-        {/* =========================================================
+  {/* Left-side glow */}
+  <div
+    className="
+      glow-move
+      absolute
+      left-[-100px]
+      top-[35%]
+      h-64
+      w-64
+      rounded-full
+      bg-[#6ee0be]/25
+      blur-3xl
+    "
+  />
+
+  {/* Floating glass circles */}
+  <div
+    className="
+      bubble-move
+      absolute
+      left-[10%]
+      top-[25%]
+      h-20
+      w-20
+      rounded-full
+      border border-white/25
+      bg-white/10
+      shadow-[0_0_35px_rgba(255,255,255,0.15)]
+      backdrop-blur-sm
+    "
+  />
+
+  <div
+    className="
+      bubble-move
+      absolute
+      right-[14%]
+      top-[12%]
+      h-14
+      w-14
+      rounded-full
+      bg-white/10
+      blur-sm
+    "
+  />
+
+  <div
+    className="
+      bubble-move
+      absolute
+      right-[10%]
+      bottom-[22%]
+      h-24
+      w-24
+      rounded-full
+      border border-white/20
+      bg-white/10
+      backdrop-blur-sm
+    "
+  />
+
+  {/* Floating particles */}
+  <span
+    className="
+      particle-move
+      absolute left-[12%] top-[12%]
+      h-2 w-2
+      rounded-full
+      bg-white
+      shadow-[0_0_12px_rgba(255,255,255,0.9)]
+    "
+  />
+
+  <span
+    className="
+      particle-move
+      absolute left-[30%] top-[42%]
+      h-1.5 w-1.5
+      rounded-full
+      bg-white
+      shadow-[0_0_10px_rgba(255,255,255,0.9)]
+    "
+  />
+
+  <span
+    className="
+      particle-move
+      absolute right-[20%] top-[30%]
+      h-2 w-2
+      rounded-full
+      bg-white
+      shadow-[0_0_12px_rgba(255,255,255,0.9)]
+    "
+  />
+
+  <span
+    className="
+      particle-move
+      absolute right-[13%] bottom-[17%]
+      h-1.5 w-1.5
+      rounded-full
+      bg-white
+      shadow-[0_0_10px_rgba(255,255,255,0.9)]
+    "
+  />
+
+  {/* Soft highlight */}
+  <div
+    className="
+      absolute inset-0
+      bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.28),transparent_25%),linear-gradient(180deg,transparent_0%,rgba(0,100,70,0.08)_100%)]
+    "
+  />
+
+  {/* Desktop content */}
+  <div className="relative z-10 flex min-h-screen flex-1 flex-col">
+    {/* Put your marketing content here */}
+  </div>
+</section>
+
+          {/* =========================================================
             RIGHT LOGIN SECTION
         ========================================================== */}
-        <aside
-          className="
+          <aside
+            className="
             relative
             z-20
             flex
+            pt-50
             min-h-screen
             w-full
             flex-col
@@ -480,10 +616,10 @@ const LoginPage = () => {
             lg:py-10
             xl:px-16
           "
-        >
-          {/* 0% Platform Fees ribbon */}
-          <div
-            className="
+          >
+            {/* 0% Platform Fees ribbon */}
+            <div
+              className="
               hidden
               pointer-events-none
               absolute
@@ -498,13 +634,13 @@ const LoginPage = () => {
               text-[#2d6cb1]
               shadow-[0_2px_8px_rgba(0,0,0,0.03)]
             "
-          >
-            0% Platform Fees
-          </div>
+            >
+              0% Platform Fees
+            </div>
 
-          {/* Decorative top-right shape */}
-          <div
-            className="
+            {/* Decorative top-right shape */}
+            <div
+              className="
               hidden
               pointer-events-none
               absolute
@@ -515,20 +651,20 @@ const LoginPage = () => {
               rounded-full
               bg-[#effbff]
             "
-          />
-
-          {/* Logo at top */}
-          <div className="relative z-10 flex w-full justify-center pt-14 sm:pt-8 lg:pt-2">
-            <img
-              src={logo}
-              alt="CtrlBooks logo"
-              className="h-auto w-[190px] max-w-full object-contain"
             />
-          </div>
 
-          {/* Login content */}
-          <div
-            className="
+            {/* Logo at top */}
+            <div className="relative z-10 flex w-full justify-center pt-14 sm:pt-10 lg:pt-2">
+              <img
+                src={logo}
+                alt="CtrlBooks logo"
+                className="h-auto w-[2600px] max-w-full object-contain"
+              />
+            </div>
+
+            {/* Login content */}
+            <div
+              className="
     relative
     z-10
     mx-auto
@@ -539,52 +675,51 @@ const LoginPage = () => {
     flex-col
     items-center
     justify-start
-    pt-[21vh]
+    pt-[4vh]
     pb-10
-    sm:justify-center
-    sm:pt-0
+    sm:pt-5
   "
-          >
-            {/* Heading */}
-            <h2
-              className="
-                text-[1.8rem]
+            >
+              {/* Heading */}
+              <h2
+                className="
+                text-[1.3rem]
                 font-bold
                 leading-[1.05]
                 tracking-tight
                 text-center text-[#092f52]
-                sm:text-[2rem]
+                sm:text-[1.25rem]
               "
-            >
-              {otpSent ? "Enter OTP" : "To continue"}
-            </h2>
+              >
+                {otpSent ? "Enter OTP" : "To continue enter your email to receive a secure one-time code"}
+              </h2>
 
-            <p className="mt-3 max-w-[300px] text-center text-sm leading-5 text-[#61758a]">
-              {otpSent ? "Use the verification code sent to your email." : "Enter your email to receive a secure one-time login code."}
-            </p>
+              <p className="mt-3 max-w-[300px] text-center text-sm leading-5 text-[#61758a]">
+                {otpSent ? "Use the verification code sent to your email." : ""}
+              </p>
 
-            {message && (
-              <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-[#dce5ee] bg-white px-3 py-2 text-xs text-[#61758a]">
-                {message}
-              </div>
-            )}
+              {message && (
+                <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-[#dce5ee] bg-white px-3 py-2 text-xs text-[#61758a]">
+                  {message}
+                </div>
+              )}
 
-            {/* Form */}
-            {!otpSent ? (
-              <form onSubmit={handleSendOtp} className="mt-7 w-full">
-                <label
-                  className="
+              {/* Form */}
+              {!otpSent ? (
+                <form onSubmit={handleSendOtp} className="mt-7 w-full">
+                  <label
+                    className="
                     block
                     text-[0.92rem]
                     font-semibold
                     text-[#102a43]
                   "
-                >
-                  Email Address
+                  >
+                    Email Address
 
-                  <div className="relative mt-2">
-                    <Mail
-                      className="
+                    <div className="relative mt-2">
+                      <Mail
+                        className="
                         pointer-events-none
                         absolute
                         left-4
@@ -594,15 +729,15 @@ const LoginPage = () => {
                         -translate-y-1/2
                         text-[#8ba0b3]
                       "
-                    />
+                      />
 
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="Enter your email address"
-                      disabled={loading}
-                      className="
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="Enter your email address"
+                        disabled={loading}
+                        className="
                         h-11
                         w-full
                         rounded-lg
@@ -621,58 +756,14 @@ const LoginPage = () => {
                         focus:ring-[#d9f4e9]
                         disabled:opacity-60
                       "
-                    />
-                  </div>
-                </label>
+                      />
+                    </div>
+                  </label>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="
-                    mt-5
-                    flex
-                    h-11
-                    w-full
-                    items-center
-                    justify-center
-                    gap-3
-                    rounded-md
-                    bg-[#10a66f]
-                    text-[0.96rem]
-                    font-bold
-                    text-white
-                    shadow-[0_8px_18px_rgba(16,166,111,0.18)]
-                    transition
-                    hover:bg-[#0b935f]
-                    active:scale-[0.99]
-                    disabled:cursor-not-allowed
-                    disabled:opacity-60
-                  "
-                >
-                  {loading ? "Sending..." : "Continue"}
-                  {!loading && <ArrowRight className="h-4 w-4" />}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="mt-7 w-full">
-                <label className="block text-[0.92rem] font-semibold text-[#102a43]">
-                  OTP
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="Enter OTP"
+                  <button
+                    type="submit"
                     disabled={loading}
-                    className="mt-2 h-11 w-full rounded-md border border-[#dce5ee] bg-white px-4 text-[1.1rem] text-[#102a43] placeholder:text-[#8ba0b3] outline-none transition focus:border-[#10a66f] focus:ring-2 focus:ring-[#d9f4e9] disabled:opacity-60"
-                  />
-                </label>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="
+                    className="
                     mt-5
                     flex
                     h-11
@@ -692,47 +783,91 @@ const LoginPage = () => {
                     disabled:cursor-not-allowed
                     disabled:opacity-60
                   "
-                >
-                  {loading ? "Verifying..." : "Verify OTP"}
-                  {!loading && <Check className="h-4 w-4" />}
-                </button>
-
-                <div className="mt-3 text-center">
-                  {getOtpResendState(resendSeconds).canResend ? (
-                    <button
-                      type="button"
-                      onClick={handleResendOtp}
+                  >
+                    {loading ? "Sending..." : "Continue"}
+                    {!loading && <ArrowRight className="h-4 w-4" />}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOtp} className="mt-7 w-full">
+                  <label className="block text-[0.92rem] font-semibold text-[#102a43]">
+                    OTP
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="Enter OTP"
                       disabled={loading}
-                      className="w-full rounded-lg border border-[#dce5ee] bg-white px-4 py-3 text-sm font-medium text-[#102a43] transition hover:bg-[#edf7f2] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {getOtpResendState(resendSeconds).label}
-                    </button>
-                  ) : (
-                    <p className="text-sm font-medium text-[#61758a]">
-                      {getOtpResendState(resendSeconds).label}
-                    </p>
-                  )}
-                </div>
+                      className="mt-2 h-11 w-full rounded-md border border-[#dce5ee] bg-white px-4 text-[1.1rem] text-[#102a43] placeholder:text-[#8ba0b3] outline-none transition focus:border-[#10a66f] focus:ring-2 focus:ring-[#d9f4e9] disabled:opacity-60"
+                    />
+                  </label>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOtpSent(false);
-                    setOtp("");
-                    setResendSeconds(0);
-                    setMessage("");
-                  }}
-                  className="mt-3 w-full rounded-lg border border-[#dce5ee] bg-white px-4 py-3 text-sm font-medium text-[#102a43] transition hover:bg-[#edf7f2]"
-                >
-                  Use a different email
-                </button>
-              </form>
-            )}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="
+                    mt-5
+                    flex
+                    h-11
+                    w-full
+                    items-center
+                    justify-center
+                    gap-3
+                    rounded-md
+                    bg-[#10a66f]
+                    text-[0.96rem]
+                    font-bold
+                    text-white
+                    shadow-[0_8px_18px_rgba(16,166,111,0.18)]
+                    transition
+                    hover:bg-[#0b935f]
+                    active:scale-[0.99]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-60
+                  "
+                  >
+                    {loading ? "Verifying..." : "Verify OTP"}
+                    {!loading && <Check className="h-4 w-4" />}
+                  </button>
 
-            <div className="mt-6 flex items-center gap-3 text-[#8493a4]">
+                  <div className="mt-3 text-center">
+                    {getOtpResendState(resendSeconds).canResend ? (
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={loading}
+                        className="w-full rounded-lg border border-[#dce5ee] bg-white px-4 py-3 text-sm font-medium text-[#102a43] transition hover:bg-[#edf7f2] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {getOtpResendState(resendSeconds).label}
+                      </button>
+                    ) : (
+                      <p className="text-sm font-medium text-[#61758a]">
+                        {getOtpResendState(resendSeconds).label}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setOtp("");
+                      setResendSeconds(0);
+                      setMessage("");
+                    }}
+                    className="mt-3 w-full rounded-lg border border-[#dce5ee] bg-white px-4 py-3 text-sm font-medium text-[#102a43] transition hover:bg-[#edf7f2]"
+                  >
+                    Use a different email
+                  </button>
+                </form>
+              )}
+
+              <div className="mt-6 flex items-center gap-3 text-[#8493a4]">
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
         </div>
       </main>
     </>
