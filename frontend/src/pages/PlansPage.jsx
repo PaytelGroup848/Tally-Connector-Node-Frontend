@@ -632,14 +632,6 @@ function PlansPage() {
           </div>
         )}
 
-        {/* =================================================
-            DURATION
-        ================================================= */}
-
-        {/* =================================================
-            PLANS GRID
-        ================================================= */}
-
         <div className="mt-2 min-h-0 flex-1 sm:mt-3">
           <div className="flex h-full flex-wrap items-stretch justify-center gap-3">
             {visiblePlans.map((plan) => {
