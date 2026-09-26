@@ -1,4 +1,20 @@
-import { ArrowRight, Check, Minus, Plus } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Minus,
+  Plus,
+  ShieldCheck,
+  CreditCard,
+  Clock,
+  Users,
+  Sparkles,
+  Receipt,
+  Lock,
+  ChevronLeft,
+  BadgeCheck,
+  Building2,
+  Layers,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { createPaymentOrder, verifyPayment } from "../services/paymentApi";
@@ -11,9 +27,7 @@ const RAZORPAY_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
 ========================================================= */
 
 function loadRazorpay() {
-  if (window.Razorpay) {
-    return Promise.resolve();
-  }
+  if (window.Razorpay) return Promise.resolve();
 
   return new Promise((resolve, reject) => {
     const existingScript = document.querySelector(
@@ -22,23 +36,16 @@ function loadRazorpay() {
 
     if (existingScript) {
       existingScript.addEventListener("load", resolve, { once: true });
-
       existingScript.addEventListener("error", reject, { once: true });
-
       return;
     }
 
     const script = document.createElement("script");
-
     script.src = RAZORPAY_SCRIPT_URL;
-
     script.async = true;
-
     script.onload = resolve;
-
     script.onerror = () =>
       reject(new Error("Unable to load Razorpay checkout"));
-
     document.body.appendChild(script);
   });
 }
@@ -50,6 +57,7 @@ function loadRazorpay() {
 const CheckoutPage = ({
   selectedPlanData,
   selectedDurationData,
+  setSelectedDuration,
   accessToken,
   extraSeats,
   setExtraSeats,
@@ -63,11 +71,10 @@ const CheckoutPage = ({
   formatPrice,
 }) => {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-
   const [orderMessage, setOrderMessage] = useState("");
 
   /* =======================================================
-     FEATURES
+     GST
   ======================================================= */
 
   const GST_PERCENT = 18;
@@ -77,10 +84,14 @@ const CheckoutPage = ({
     Math.round(estimatedSubtotal * (GST_PERCENT / 100) * 100) / 100;
   const estimatedGrandTotal = estimatedSubtotal + estimatedGstAmount;
 
+  const billableExtraSeats = Math.max(0, Number(extraSeats) - 1);
+
+  /* =======================================================
+     FEATURES
+  ======================================================= */
+
   const features = useMemo(() => {
-    if (!Array.isArray(selectedPlanData?.features)) {
-      return [];
-    }
+    if (!Array.isArray(selectedPlanData?.features)) return [];
 
     return [
       ...new Set(
@@ -92,10 +103,6 @@ const CheckoutPage = ({
     ];
   }, [selectedPlanData]);
 
-  /* =======================================================
-     FEATURE COLUMN COUNT
-  ======================================================= */
-
   const featureGridClass =
     features.length >= 13
       ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
@@ -104,45 +111,37 @@ const CheckoutPage = ({
         : "grid-cols-2";
 
   /* =======================================================
-     CREATE PAYMENT ORDER
+     CREATE ORDER
   ======================================================= */
 
   const handleCreateOrder = async () => {
     const safeAddonPrice = Number(addonPricePerSeat) || 0;
-
     const safeExtraSeats = Number(extraSeats) || 0;
-
-    const billableExtraSeats = Math.max(0, safeExtraSeats - 1);
-
+    const billableExtra = Math.max(0, safeExtraSeats - 1);
     const safeTotalAmount = Number(totalAmount) || 0;
 
     if (safeTotalAmount <= 0) {
       setOrderMessage("Invalid payment amount.");
-
       return;
     }
 
     if (safeAddonPrice < 0) {
       setOrderMessage("Invalid additional user price.");
-
       return;
     }
 
     if (!selectedPlanData?.id) {
       setOrderMessage("Invalid plan selected.");
-
       return;
     }
 
     if (!selectedDurationData?.months) {
       setOrderMessage("Invalid plan duration.");
-
       return;
     }
 
     if (!accessToken) {
       setOrderMessage("Please login before making a payment.");
-
       return;
     }
 
@@ -150,36 +149,18 @@ const CheckoutPage = ({
     setOrderMessage("");
 
     try {
-      /* ===============================================
-           CREATE ORDER
-        =============================================== */
-
       const response = await createPaymentOrder({
         accessToken,
-
         planId: selectedPlanData?.id,
-
         durationMonths: selectedDurationData?.months,
-
-        extraSeats: billableExtraSeats,
-
+        extraSeats: billableExtra,
         totalSeats: safeExtraSeats,
-
         addonPricePerSeat: safeAddonPrice,
-
         totalAmount: safeTotalAmount,
       });
 
-      /* ===============================================
-           ORDER RESPONSE
-        =============================================== */
-
       const order =
         response?.data?.order || response?.data || response?.order || response;
-
-      /* ===============================================
-           ORDER ID
-        =============================================== */
 
       const orderId =
         order?.id ||
@@ -187,10 +168,6 @@ const CheckoutPage = ({
         order?.razorpay_order_id ||
         response?.razorpay_order_id ||
         response?.razorpayOrderId;
-
-      /* ===============================================
-           RAZORPAY KEY
-        =============================================== */
 
       const razorpayKey =
         order?.key ||
@@ -203,20 +180,12 @@ const CheckoutPage = ({
         response?.razorpayKeyId ||
         import.meta.env.VITE_RAZORPAY_KEY_ID;
 
-      /* ===============================================
-           AMOUNT
-        =============================================== */
-
       const amount =
         Number(order?.amount) > 0
           ? Number(order.amount)
           : Math.round(safeTotalAmount * 100);
 
       const currency = order?.currency || response?.currency || "INR";
-
-      /* ===============================================
-           VALIDATE ORDER
-        =============================================== */
 
       if (!Number.isFinite(amount) || amount <= 0) {
         throw new Error("Invalid payment amount.");
@@ -228,56 +197,27 @@ const CheckoutPage = ({
         );
       }
 
-      /* ===============================================
-           LOAD RAZORPAY
-        =============================================== */
-
       await loadRazorpay();
-
-      /* ===============================================
-           OPEN RAZORPAY
-        =============================================== */
 
       const razorpay = new window.Razorpay({
         key: razorpayKey,
-
         amount,
-
         currency,
-
         name: "CtrlBooks",
-
         description: `${selectedPlanData?.name || "Plan"} subscription`,
-
         order_id: orderId,
-
-        /* ===========================================
-               PAYMENT SUCCESS CALLBACK
-            =========================================== */
 
         handler: async (payment) => {
           setIsCreatingOrder(true);
-
           setOrderMessage("Verifying payment...");
 
           try {
-            /* =====================================
-                     VERIFY PAYMENT
-                  ===================================== */
-
             const verification = await verifyPayment({
               accessToken,
-
               razorpay_order_id: payment?.razorpay_order_id,
-
               razorpay_payment_id: payment?.razorpay_payment_id,
-
               razorpay_signature: payment?.razorpay_signature,
             });
-
-            /* =====================================
-                     CHECK API SUCCESS
-                  ===================================== */
 
             if (verification?.success === false) {
               throw new Error(
@@ -294,82 +234,40 @@ const CheckoutPage = ({
               {};
 
             if (authStore?.accessToken) {
+              const isActive =
+                verifiedUser?.activeSubscription === true ||
+                verifiedUser?.subscriptionActive === true ||
+                verifiedUser?.isActiveSubscription === true ||
+                verifiedUser?.isSubscribed === true ||
+                verifiedUser?.subscription?.active === true ||
+                verifiedUser?.plan?.active === true ||
+                ["active", "paid", "success"].includes(
+                  String(
+                    verifiedUser?.subscriptionStatus ||
+                      verifiedUser?.status ||
+                      verifiedUser?.subscription?.status ||
+                      verifiedUser?.plan?.status ||
+                      "",
+                  ).toLowerCase(),
+                );
+
               const normalizedUser = {
                 ...(authStore.user || {}),
                 ...(verifiedUser || {}),
-
-                activeSubscription:
-                  verifiedUser?.activeSubscription === true ||
-                  verifiedUser?.subscriptionActive === true ||
-                  verifiedUser?.isActiveSubscription === true ||
-                  verifiedUser?.isSubscribed === true ||
-                  verifiedUser?.subscription?.active === true ||
-                  verifiedUser?.plan?.active === true ||
-                  String(
-                    verifiedUser?.subscriptionStatus ||
-                      verifiedUser?.status ||
-                      verifiedUser?.subscription?.status ||
-                      verifiedUser?.plan?.status ||
-                      "",
-                  ).toLowerCase() === "active" ||
-                  String(
-                    verifiedUser?.subscriptionStatus ||
-                      verifiedUser?.status ||
-                      verifiedUser?.subscription?.status ||
-                      verifiedUser?.plan?.status ||
-                      "",
-                  ).toLowerCase() === "paid" ||
-                  String(
-                    verifiedUser?.subscriptionStatus ||
-                      verifiedUser?.status ||
-                      verifiedUser?.subscription?.status ||
-                      verifiedUser?.plan?.status ||
-                      "",
-                  ).toLowerCase() === "success",
-
-                subscriptionActive:
-                  verifiedUser?.subscriptionActive === true ||
-                  verifiedUser?.activeSubscription === true ||
-                  verifiedUser?.isActiveSubscription === true ||
-                  verifiedUser?.isSubscribed === true ||
-                  verifiedUser?.subscription?.active === true ||
-                  verifiedUser?.plan?.active === true ||
-                  String(
-                    verifiedUser?.subscriptionStatus ||
-                      verifiedUser?.status ||
-                      verifiedUser?.subscription?.status ||
-                      verifiedUser?.plan?.status ||
-                      "",
-                  ).toLowerCase() === "active" ||
-                  String(
-                    verifiedUser?.subscriptionStatus ||
-                      verifiedUser?.status ||
-                      verifiedUser?.subscription?.status ||
-                      verifiedUser?.plan?.status ||
-                      "",
-                  ).toLowerCase() === "paid" ||
-                  String(
-                    verifiedUser?.subscriptionStatus ||
-                      verifiedUser?.status ||
-                      verifiedUser?.subscription?.status ||
-                      verifiedUser?.plan?.status ||
-                      "",
-                  ).toLowerCase() === "success",
-
+                activeSubscription: isActive,
+                subscriptionActive: isActive,
                 subscriptionStatus:
                   verifiedUser?.subscriptionStatus ||
                   verifiedUser?.status ||
                   verifiedUser?.subscription?.status ||
                   verifiedUser?.plan?.status ||
                   "active",
-
                 status:
                   verifiedUser?.status ||
                   verifiedUser?.subscriptionStatus ||
                   verifiedUser?.subscription?.status ||
                   verifiedUser?.plan?.status ||
                   "active",
-
                 paymentVerified: true,
               };
 
@@ -379,54 +277,32 @@ const CheckoutPage = ({
               });
             }
 
-            /* =====================================
-                     REDIRECT ONLY AFTER
-                     SUCCESSFUL VERIFICATION
-                  ===================================== */
-
             window.history.replaceState({}, "", "/dashboard");
-
             window.dispatchEvent(new PopStateEvent("popstate"));
           } catch (error) {
             setOrderMessage(error?.message || "Payment verification failed.");
-
             setIsCreatingOrder(false);
           }
         },
 
-        /* ===========================================
-               MODAL CLOSED
-            =========================================== */
-
         modal: {
           ondismiss: () => {
             setIsCreatingOrder(false);
-
             setOrderMessage("Payment window closed.");
           },
         },
       });
 
-      /* ===============================================
-           PAYMENT FAILED
-        =============================================== */
-
       razorpay.on("payment.failed", (payment) => {
         setIsCreatingOrder(false);
-
         setOrderMessage(
           payment?.error?.description || "Payment failed. Please try again.",
         );
       });
 
-      /* ===============================================
-           OPEN PAYMENT WINDOW
-        =============================================== */
-
       razorpay.open();
     } catch (error) {
       setOrderMessage(error?.message || "Unable to create payment order.");
-
       setIsCreatingOrder(false);
     } finally {
       if (!window.Razorpay) {
@@ -440,1011 +316,331 @@ const CheckoutPage = ({
   ========================================================= */
 
   return (
-    <div
-      className="
-        h-auto
-        min-h-screen
-        overflow-y-auto
-        bg-gradient-to-br
-        from-[#F0FDF4]
-        via-[#F7FAF8]
-        to-white
-        px-3
-        py-2
-        sm:px-4
-        sm:py-3
-        lg:px-6
-        lg:h-screen
-        lg:overflow-hidden
-      "
-    >
-      <div
-        className="
-          mx-auto
-          flex
-          h-full
-          w-full
-          max-w-6xl
-          flex-col
-          lg:h-full
-        "
-      >
+    <div className="min-h-screen bg-[#F8FAFC] px-3 py-4 sm:px-4 sm:py-6 lg:px-6">
+      <div className="mx-auto w-full max-w-6xl">
         {/* =================================================
             BACK BUTTON
         ================================================= */}
 
-        <div className="shrink-0">
-          <button
-            type="button"
-            onClick={onBack}
-            className="
-              mb-2
-              inline-flex
-              items-center
-              gap-2
-              rounded-full
-              border
-              border-slate-200
-              bg-white
-              px-3
-              py-1.5
-              text-[10px]
-              font-semibold
-              text-slate-700
-              shadow-sm
-              transition
-              hover:bg-slate-50
-              sm:mb-3
-              sm:px-3.5
-              sm:text-xs
-            "
-          >
-            <ArrowRight
-              className="
-                h-3
-                w-3
-                rotate-180
-                sm:h-3.5
-                sm:w-3.5
-              "
-            />
-            Back to plans
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onBack}
+          className="group mb-4 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:text-xs"
+        >
+          <ChevronLeft
+            size={13}
+            className="transition-transform group-hover:-translate-x-0.5"
+          />
+          Back
+        </button>
 
         {/* =================================================
-            MAIN CONTENT
+            MAIN CARD
         ================================================= */}
 
-        <div
-          className="
-            grid
-            min-h-0
-            flex-none
-            grid-cols-1
-            gap-3
-            lg:grid-cols-[1.12fr_0.88fr]
-            lg:gap-4
-            lg:flex-1
-          "
-        >
-          {/* =================================================
-              LEFT SIDE
-          ================================================= */}
-
-          <section
-            className="
-              flex
-              min-h-0
-              flex-col
-              overflow-visible
-              rounded-2xl
-              border
-              border-slate-200
-              bg-white
-              shadow-[0_12px_35px_rgba(15,23,42,0.07)]
-            "
-          >
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr]">
             {/* =================================================
-                LEFT HEADER
+                LEFT SIDE
             ================================================= */}
 
-            <div
-              className="
-                shrink-0
-                px-4
-                pb-2
-                pt-3
-                sm:px-5
-                sm:pb-3
-                sm:pt-4
-                lg:px-6
-              "
-            >
-              <div
-                className="
-                  mb-1
-                  text-[8px]
-                  font-bold
-                  uppercase
-                  tracking-[0.2em]
-                  text-green-700
-                  sm:text-[9px]
-                "
-              >
-                Checkout
-              </div>
-            </div>
+            <div className="border-b border-slate-200 p-5 sm:p-6 lg:border-b-0 lg:border-r">
+              {/* =============================================
+                  HEADER WITH ICON
+              ============================================= */}
 
-            {/* =================================================
-                LEFT CONTENT
-            ================================================= */}
-
-            <div
-              className="
-                flex
-                min-h-0
-                flex-1
-                flex-col
-                overflow-visible
-                px-4
-                pb-3
-                sm:px-5
-                sm:pb-4
-                lg:px-6
-              "
-            >
-              {/* =================================================
-                  SELECTED PLAN
-              ================================================= */}
-
-              <div
-                className="
-                  shrink-0
-                  rounded-xl
-                  border
-                  border-green-100
-                  bg-green-50
-                  p-3
-                  sm:p-4
-                "
-              >
-                <div
-                  className="
-                    flex
-                    items-center
-                    justify-between
-                    gap-3
-                  "
-                >
-                  <div className="min-w-0">
-                    <div
-                      className="
-                        text-[8px]
-                        font-bold
-                        uppercase
-                        tracking-[0.16em]
-                        text-green-700
-                        sm:text-[9px]
-                      "
-                    >
-                      Selected Plan
-                    </div>
-
-                    <div
-                      className="
-                        mt-0.5
-                        truncate
-                        text-lg
-                        font-bold
-                        text-[#143D2A]
-                        sm:text-xl
-                      "
-                    >
-                      {selectedPlanData?.name}
-                    </div>
-
-                    {/* =================================================
-                        PLAN DESCRIPTION
-                    ================================================= */}
-
-                    <div
-                      className="
-                        mt-1
-                        text-[10px]
-                        font-medium
-                        leading-4
-                        text-green-700
-                        sm:text-xs
-                      "
-                    >
-                      {selectedPlanData?.description || "Plan details"}
-                    </div>
-                  </div>
-
-                  <div
-                    className="
-                      flex
-                      h-9
-                      w-9
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-xl
-                      bg-white
-                      text-green-700
-                      shadow-sm
-                      sm:h-10
-                      sm:w-10
-                    "
-                  >
-                    <PlanIcon planName={selectedPlanData?.name} />
-                  </div>
+              <div className="mb-6 flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#16A34A] to-[#0284C7] text-white shadow-sm">
+                  <Layers size={20} />
                 </div>
 
-                {/* =================================================
-                    PLAN INFO
-                ================================================= */}
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg font-bold text-slate-900 sm:text-xl">
+                    Configure {selectedPlanData?.name || "Plan"} plan
+                  </h1>
+                  <p className="mt-0.5 text-[11px] text-slate-500 sm:text-xs">
+                    Customize your plan specifications
+                  </p>
+                </div>
+              </div>
 
-                <div
-                  className="
-                    mt-2
-                    grid
-                    grid-cols-2
-                    gap-2
-                    sm:mt-3
-                  "
-                >
+              {/* =============================================
+                  PLAN SPECIFICATIONS
+              ============================================= */}
+
+              <div className="mb-6">
+                <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                  Plan Specifications
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* USERS */}
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-3.5">
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <Users size={15} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                        Users
+                      </span>
+                    </div>
+                    <div className="mt-1.5 text-base font-bold text-slate-900">
+                      {extraSeats} {extraSeats === 1 ? "User" : "Users"}
+                    </div>
+                  </div>
+
                   {/* DURATION */}
 
-                  <div
-                    className="
-                      rounded-lg
-                      bg-white
-                      p-2
-                      sm:p-2.5
-                    "
-                  >
-                    <div
-                      className="
-                        text-[8px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.1em]
-                        text-slate-400
-                        sm:text-[9px]
-                      "
-                    >
-                      Duration
+                  <div className="rounded-xl border border-slate-200 bg-white p-3.5">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <Clock size={15} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                        Duration
+                      </span>
                     </div>
-
-                    <div
-                      className="
-                        mt-0.5
-                        text-xs
-                        font-bold
-                        text-slate-800
-                        sm:text-sm
-                      "
-                    >
-                      {selectedDurationData?.fullLabel}
+                    <div className="mt-1.5 text-base font-bold text-slate-900">
+                      {selectedDurationData?.fullLabel || "—"}
                     </div>
                   </div>
 
-                  {/* BASE PRICE */}
+                  {/* BASE SEATS */}
 
-                  <div
-                    className="
-                      rounded-lg
-                      bg-white
-                      p-2
-                      sm:p-2.5
-                    "
-                  >
-                    <div
-                      className="
-                        text-[8px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.1em]
-                        text-slate-400
-                        sm:text-[9px]
-                      "
-                    >
-                      Base price
+                  <div className="rounded-xl border border-slate-200 bg-white p-3.5">
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <ShieldCheck size={15} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                        Admin + 1 User (Default)
+                      </span>
                     </div>
+                    <div className="mt-1.5 text-base font-bold text-slate-900">
+                      {selectedPlanData?.seatLimit || 1}
+                    </div>
+                  </div>
 
-                    <div
-                      className="
-                        mt-0.5
-                        text-xs
-                        font-bold
-                        text-slate-800
-                        sm:text-sm
-                      "
-                    >
-                      ₹{formatPrice(basePlanPrice)}
+                  {/* ADDON PRICE */}
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-3.5">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <Sparkles size={15} />
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                        Per Extra User
+                      </span>
+                    </div>
+                    <div className="mt-1.5 text-base font-bold text-slate-900">
+                      ₹{formatPrice(addonPricePerSeat)}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* =================================================
-                  TOTAL SEATS
-              ================================================= */}
+              {/* =============================================
+                  TOTAL USERS COUNTER
+              ============================================= */}
 
-              <div
-                className="
-                  mt-2.5
-                  shrink-0
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-slate-50
-                  p-3
-                  sm:mt-3
-                  sm:p-4
-                "
-              >
-                <div
-                  className="
-                    flex
-                    items-center
-                    justify-between
-                    gap-3
-                  "
-                >
+              <div className="mb-6">
+                <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                  Total Users
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4">
                   <div className="min-w-0">
-                    <div
-                      className="
-                        text-[8px]
-                        font-bold
-                        uppercase
-                        tracking-[0.16em]
-                        text-slate-500
-                        sm:text-[9px]
-                      "
-                    >
-                      Total Users
+                    <div className="text-sm font-semibold text-slate-900">
+                      Additional users
                     </div>
-
-                    <div
-                      className="
-                        mt-0.5
-                        text-[8px]
-                        font-medium
-                        uppercase
-                        tracking-[0.1em]
-                        text-green-600
-                        sm:text-[9px]
-                      "
-                    >
-                      Additional user price
-                    </div>
-
-                    <div
-                      className="
-                        mt-0.5
-                        text-xs
-                        font-semibold
-                        text-slate-600
-                        sm:text-sm
-                      "
-                    >
-                      ₹{formatPrice(addonPricePerSeat)} per User
+                    <div className="mt-0.5 text-[10px] text-slate-500 sm:text-[11px]">
+                      ₹{formatPrice(addonPricePerSeat)} per user
                     </div>
                   </div>
 
-                  {/* COUNTER */}
-
-                  <div
-                    className="
-                      flex
-                      shrink-0
-                      items-center
-                      gap-1.5
-                      rounded-full
-                      border
-                      border-slate-200
-                      bg-white
-                      px-1.5
-                      py-1
-                      shadow-sm
-                      sm:gap-2
-                      sm:px-2
-                      sm:py-1.5
-                    "
-                  >
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() =>
-                        setExtraSeats((count) => Math.max(1, Number(count) - 1))
+                        setExtraSeats((c) => Math.max(1, Number(c) - 1))
                       }
-                      className="
-                        flex
-                        h-6
-                        w-6
-                        items-center
-                        justify-center
-                        rounded-full
-                        bg-slate-100
-                        text-slate-700
-                        transition
-                        hover:bg-slate-200
-                        sm:h-7
-                        sm:w-7
-                      "
-                      aria-label="Decrease User"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 active:scale-95"
+                      aria-label="Decrease"
                     >
-                      <Minus size={13} />
+                      <Minus size={14} />
                     </button>
 
-                    <span
-                      className="
-                        min-w-[20px]
-                        text-center
-                        text-sm
-                        font-bold
-                        text-slate-900
-                        sm:min-w-[24px]
-                        sm:text-base
-                      "
-                    >
+                    <span className="min-w-[28px] text-center text-base font-bold text-slate-900">
                       {extraSeats}
                     </span>
 
                     <button
                       type="button"
-                      onClick={() =>
-                        setExtraSeats((count) => Number(count) + 1)
-                      }
-                      className="
-                        flex
-                        h-6
-                        w-6
-                        items-center
-                        justify-center
-                        rounded-full
-                        bg-green-100
-                        text-green-700
-                        transition
-                        hover:bg-green-200
-                        sm:h-7
-                        sm:w-7
-                      "
-                      aria-label="Increase Users"
+                      onClick={() => setExtraSeats((c) => Number(c) + 1)}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-green-200 bg-green-50 text-green-700 transition hover:bg-green-100 active:scale-95"
+                      aria-label="Increase"
                     >
-                      <Plus size={13} />
+                      <Plus size={14} />
                     </button>
                   </div>
                 </div>
-
-                {/* SEAT TOTAL */}
-
-                <div
-                  className="
-                    mt-2
-                    flex
-                    items-center
-                    justify-between
-                    border-t
-                    border-slate-200
-                    pt-2
-                    sm:mt-3
-                    sm:pt-3
-                  "
-                >
-                  <span
-                    className="
-                      text-[10px]
-                      font-medium
-                      text-slate-500
-                      sm:text-xs
-                    "
-                  >
-                    Additional User total
-                  </span>
-
-                  <span
-                    className="
-                      text-xs
-                      font-bold
-                      text-[#143D2A]
-                      sm:text-sm
-                    "
-                  >
-                    ₹{formatPrice(extraSeatTotal)}
-                  </span>
-                </div>
               </div>
 
-              {/* =================================================
+              {/* =============================================
                   INCLUDED FEATURES
-              ================================================= */}
+              ============================================= */}
 
-              <div
-                className="
-                  mt-2.5
-                  flex
-                  min-h-0
-                  flex-1
-                  flex-col
-                  overflow-visible
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-white
-                  p-3
-                  sm:mt-3
-                  sm:p-4
-                "
-              >
-                {/* FEATURES HEADER */}
-
-                <div
-                  className="
-                    flex
-                    shrink-0
-                    items-center
-                    justify-between
-                    gap-2
-                  "
-                >
-                  <div
-                    className="
-                      text-[10px]
-                      font-bold
-                      text-slate-700
-                      sm:text-xs
-                    "
-                  >
-                    Included features
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                    Included Features
                   </div>
-
-                  <div
-                    className="
-                      shrink-0
-                      font-bold
-                      text-[8px]
-                      uppercase
-                      tracking-[0.12em]
-                      text-slate-400
-                      sm:text-[9px]
-                    "
-                  >
+                  <div className="flex items-center gap-1 text-[10px] font-semibold text-green-700">
+                    <BadgeCheck size={12} />
                     {selectedPlanData?.name}
                   </div>
                 </div>
 
-                {/* FEATURES */}
-
                 <div
-                  className={`
-                    mt-2.5
-                    grid
-                    ${featureGridClass}
-                    content-start
-                    gap-x-3
-                    gap-y-1.5
-                    sm:mt-3
-                    sm:gap-x-4
-                    sm:gap-y-2
-                  `}
+                  className={`grid ${featureGridClass} content-start gap-x-4 gap-y-2`}
                 >
                   {features.map((feature) => (
                     <div
                       key={feature}
-                      className="
-                          flex
-                          min-w-0
-                          items-start
-                          gap-1.5
-                        "
+                      className="flex min-w-0 items-start gap-1.5"
                     >
-                      <div
-                        className="
-                            mt-0.5
-                            flex
-                            h-3.5
-                            w-3.5
-                            shrink-0
-                            items-center
-                            justify-center
-                            rounded-full
-                            bg-green-100
-                            text-green-600
-                            sm:h-4
-                            sm:w-4
-                          "
-                      >
-                        <Check size={8} strokeWidth={3} />
+                      <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                        <Check size={9} strokeWidth={3} />
                       </div>
-
-                      <span
-                        className="
-                            min-w-0
-                            break-words
-                            font-bold
-                            text-[8px]
-                            leading-3
-                            text-slate-700
-                            sm:text-[9px]
-                            sm:leading-3.5
-                            lg:text-[10px]
-                          "
-                      >
+                      <span className="min-w-0 break-words text-[10px] leading-4 text-slate-600">
                         {featureLabels?.[feature] || feature}
                       </span>
                     </div>
                   ))}
 
                   {features.length === 0 && (
-                    <div
-                      className="
-                        col-span-full
-                        py-3
-                        text-center
-                        text-[10px]
-                        text-slate-400
-                      "
-                    >
+                    <div className="col-span-full py-3 text-center text-[10px] text-slate-400">
                       No features available
                     </div>
                   )}
                 </div>
               </div>
             </div>
-          </section>
-
-          {/* =================================================
-              RIGHT SIDE
-          ================================================= */}
-
-          <aside
-            className="
-              flex
-              min-h-0
-              flex-col
-              overflow-hidden
-              rounded-2xl
-              border
-              border-green-200
-              bg-[#143D2A]
-              p-4
-              text-white
-              shadow-[0_12px_35px_rgba(20,61,42,0.18)]
-              sm:p-5
-              lg:p-6
-            "
-          >
-            {/* =================================================
-                SUMMARY HEADER
-            ================================================= */}
-
-            <div className="shrink-0">
-              <div
-                className="
-                  text-[8px]
-                  font-bold
-                  uppercase
-                  tracking-[0.2em]
-                  text-green-200
-                  sm:text-[9px]
-                "
-              >
-                Order summary
-              </div>
-
-              <h2
-                className="
-                  mt-0.5
-                  text-lg
-                  font-bold
-                  sm:text-xl
-                "
-              >
-                Your order
-              </h2>
-
-              {/* PLAN DESCRIPTION IN SUMMARY */}
-
-              <p
-                className="
-                  mt-1
-                  text-[9px]
-                  leading-4
-                  text-green-100/80
-                  sm:text-[10px]
-                "
-              >
-                {selectedPlanData?.description || "Plan details"}
-              </p>
-            </div>
 
             {/* =================================================
-                ORDER DETAILS
+                RIGHT SIDE
             ================================================= */}
 
-            <div
-              className="
-                mt-4
-                shrink-0
-                space-y-2.5
-                sm:mt-5
-                sm:space-y-3
-              "
-            >
-              {/* PLAN */}
+            <div className="bg-slate-50/60 p-5 sm:p-6">
+              {/* =============================================
+                  BILLING TENURE
+              ============================================= */}
 
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  gap-3
-                  text-[10px]
-                  text-green-100
-                  sm:text-xs
-                "
-              >
-                <span>{selectedPlanData?.name} plan</span>
+              {/* =============================================
+    BILLING TENURE
+============================================= */}
 
-                <span className="shrink-0">₹{formatPrice(basePlanPrice)}</span>
-              </div>
+              <div className="mb-6">
+                <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                  Billing Tenure
+                </div>
 
-              {/* EXTRA SEATS */}
+                <div className="space-y-2">
+                  {selectedPlanData?.pricingOptions?.map((pricing) => {
+                    const months = Number(pricing.durationMonths);
+                    const isSelected =
+                      Number(selectedDurationData?.months) === months;
 
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  gap-3
-                  text-[10px]
-                  text-green-100
-                  sm:text-xs
-                "
-              >
-                <span>Extra Users</span>
+                    const label =
+                      months === 6
+                        ? "6 Months"
+                        : months === 12
+                          ? "1 Year"
+                          : months === 24
+                            ? "2 Years"
+                            : `${months} Months`;
 
-                <span className="shrink-0">
-                  {Math.max(0, Number(extraSeats) - 1)} × ₹
-                  {formatPrice(addonPricePerSeat)}
-                </span>
-              </div>
+                    return (
+                      <button
+                        key={months}
+                        type="button"
+                        onClick={() => setSelectedDuration?.(months)}
+                        className={`flex w-full items-center justify-between rounded-xl border bg-white p-3 text-left transition-all ${
+                          isSelected
+                            ? "border-green-500 ring-1 ring-green-500/30 shadow-sm"
+                            : "border-slate-200 hover:border-green-300 hover:bg-green-50/40"
+                        }`}
+                      >
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">
+                            {label}
+                          </div>
+                          {pricing.discountPercent > 0 && (
+                            <div className="mt-1 inline-flex rounded-full bg-green-50 px-2 py-0.5 text-[9px] font-semibold text-green-700">
+                              Save {pricing.discountPercent}%
+                            </div>
+                          )}
+                        </div>
 
-              {/* DURATION */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-slate-900">
+                            ₹{formatPrice(pricing.price)}
+                          </span>
 
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  gap-3
-                  text-[10px]
-                  text-green-100
-                  sm:text-xs
-                "
-              >
-                <span>Duration</span>
-
-                <span className="shrink-0">{selectedDurationData?.label}</span>
-              </div>
-
-              {/* SUBTOTAL */}
-
-              <div
-                className="
-                  border-t
-                  border-white/15
-                  pt-2.5
-                  sm:pt-3
-                "
-              >
-                <div
-                  className="
-                    flex
-                    items-center
-                    justify-between
-                    gap-3
-                    text-green-100
-                  "
-                >
-                  <span className="text-[10px] sm:text-xs">Subtotal</span>
-
-                  <span className="shrink-0 text-[10px] sm:text-xs">
-                    ₹{formatPrice(basePlanPrice + extraSeatTotal)}
-                  </span>
+                          {isSelected && (
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-white">
+                              <Check size={11} strokeWidth={3} />
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
 
-            {/* =================================================
-                ADDITIONAL SEAT SUMMARY
-            ================================================= */}
+              {/* =============================================
+                  ORDER SUMMARY
+              ============================================= */}
 
-            <div
-              className="
-                mt-3
-                shrink-0
-                rounded-xl
-                bg-white/10
-                p-3
-                sm:mt-4
-              "
-            >
-              <div
-                className="
-                  text-[8px]
-                  uppercase
-                  tracking-[0.15em]
-                  text-green-200
-                  sm:text-[9px]
-                "
-              >
-                Additional User
-              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                  Order Summary
+                </div>
 
-              <div
-                className="
-                  mt-1
-                  flex
-                  items-end
-                  justify-between
-                  gap-2
-                "
-              >
-                <div>
-                  <div
-                    className="
-                      text-[10px]
-                      text-green-100
-                      sm:text-xs
-                    "
-                  >
-                    {Math.max(0, Number(extraSeats) - 1)} billable{" "}
-                    {Math.max(0, Number(extraSeats) - 1) === 1
-                      ? "User"
-                      : "Users"}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-600">Subtotal</span>
+                    <span className="font-semibold text-slate-900">
+                      ₹{formatPrice(estimatedSubtotal)}
+                    </span>
                   </div>
 
-                  <div
-                    className="
-                      mt-0.5
-                      text-[8px]
-                      text-green-100/70
-                      sm:text-[10px]
-                    "
-                  >
-                    ₹{formatPrice(addonPricePerSeat)} each
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-600">GST (18%)</span>
+                    <span className="font-semibold text-slate-900">
+                      ₹{formatPrice(estimatedGstAmount)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-slate-200 pt-2.5">
+                    <span className="text-sm font-bold text-slate-900">
+                      Total Due
+                    </span>
+                    <span className="text-base font-extrabold text-[#16A34A]">
+                      ₹{formatPrice(estimatedGrandTotal)}
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                <div
-                  className="
-                    shrink-0
-                    text-base
-                    font-bold
-                    sm:text-lg
-                  "
-                >
-                  ₹{formatPrice(extraSeatTotal)}
+              {/* =============================================
+                  MESSAGE
+              ============================================= */}
+
+              {orderMessage && (
+                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-center text-[10px] leading-4 text-amber-800 sm:text-[11px]">
+                  {orderMessage}
                 </div>
-              </div>
-            </div>
+              )}
 
-            {/* =================================================
-                TOTAL
-            ================================================= */}
+              {/* =============================================
+                  PAY NOW BUTTON
+              ============================================= */}
 
-            <div
-              className="
-                mt-3
-                shrink-0
-                flex
-                items-center
-                justify-between
-                gap-3
-                text-[10px]
-                text-green-100
-                sm:text-xs
-              "
-            >
-              <span>GST ({GST_PERCENT}%)</span>
-
-              <span className="shrink-0">
-                ₹{formatPrice(estimatedGstAmount)}
-              </span>
-            </div>
-
-            {/* =================================================
-                TOTAL
-            ================================================= */}
-
-            <div
-              className="
-                mt-3
-                shrink-0
-                rounded-xl
-                bg-white/10
-                p-3
-                sm:mt-4
-                sm:p-4
-              "
-            >
-              <div
-                className="
-                  text-[8px]
-                  uppercase
-                  tracking-[0.16em]
-                  text-green-100
-                  sm:text-[9px]
-                "
-              >
-                Total payable (incl. GST)
-              </div>
-
-              <div
-                className="
-                  mt-1
-                  text-2xl
-                  font-extrabold
-                  sm:text-3xl
-                "
-              >
-                ₹{formatPrice(estimatedGrandTotal)}
-              </div>
-
-              <div
-                className="
-                  mt-0.5
-                  text-[8px]
-                  text-green-100/70
-                  sm:text-[10px]
-                "
-              >
-                Base plan + additional User + 18% GST
-              </div>
-            </div>
-
-            {/* =================================================
-                PAYMENT MESSAGE
-            ================================================= */}
-
-            {orderMessage && (
-              <div
-                className="
-                  mt-2.5
-                  shrink-0
-                  rounded-lg
-                  bg-white/10
-                  px-3
-                  py-2
-                  text-center
-                  text-[9px]
-                  leading-3.5
-                  text-green-100
-                  sm:mt-3
-                  sm:text-[10px]
-                  sm:leading-4
-                "
-              >
-                {orderMessage}
-              </div>
-            )}
-
-            {/* =================================================
-                PAY BUTTON
-            ================================================= */}
-
-            <div
-              className="
-                mt-auto
-                shrink-0
-                pt-3
-                sm:pt-4
-              "
-            >
               <button
                 type="button"
                 onClick={handleCreateOrder}
@@ -1454,47 +650,31 @@ const CheckoutPage = ({
                   !selectedPlanData?.id ||
                   !selectedDurationData?.months
                 }
-                className="
-                  flex
-                  w-full
-                  items-center
-                  justify-center
-                  gap-2
-                  rounded-xl
-                  bg-white
-                  px-4
-                  py-2.5
-                  text-xs
-                  font-bold
-                  text-[#143D2A]
-                  shadow-lg
-                  transition
-                  hover:bg-green-50
-                  disabled:cursor-not-allowed
-                  disabled:opacity-60
-                  sm:py-3
-                  sm:text-sm
-                "
+                className="group mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#16A34A] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#15803D] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isCreatingOrder ? "Processing..." : "Confirm & Pay"}
-
-                <ArrowRight size={14} />
+                {isCreatingOrder ? (
+                  <>
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={15} />
+                    PAY NOW
+                    <ArrowRight
+                      size={15}
+                      className="transition-transform group-hover:translate-x-0.5"
+                    />
+                  </>
+                )}
               </button>
 
-              <p
-                className="
-                  mt-1.5
-                  text-center
-                  text-[8px]
-                  text-green-100/70
-                  sm:mt-2
-                  sm:text-[9px]
-                "
-              >
-                Secure billing • No hidden fees
-              </p>
+              <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
+                <Lock size={11} />
+                SECURED BY RAZORPAY
+              </div>
             </div>
-          </aside>
+          </div>
         </div>
       </div>
     </div>

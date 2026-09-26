@@ -6,12 +6,25 @@ import {
   inviteMember,
   normalizeMember,
   updateMemberRole,
+  updateMemberSuspension,
+  updateMemberSchedule,
 } from "../services/membersApi";
 import useAuthStore from "../store/authStore";
 import { navItems, submenuItems } from "../routes/navigation";
 import { updateMemberModules } from "../services/membersApi";
-import { Edit, LockKeyhole, Trash2 } from "lucide-react";
+import {
+  Edit,
+  LockKeyhole,
+  Trash2,
+  Clock,
+  Calendar,
+  Save,
+  Clock3,
+  Play,
+  Pause,
+} from "lucide-react";
 import ManageAccessModal from "./Manageaccessmodal";
+import ScheduleManagementModal from "./ScheduleManagementModal";
 
 const ROLE_OPTIONS = [
   {
@@ -53,6 +66,8 @@ function UsersTable({
   onRoleChange,
   onDelete,
   onManageAccess,
+  onToggleSuspend,
+  onManageSchedule,
 }) {
   const [editingId, setEditingId] = useState(null);
 
@@ -226,7 +241,15 @@ function UsersTable({
                   </td>
 
                   {/* STATUS */}
-                  <td className="px-4 py-4">{user.status || "-"}</td>
+                  <td className="px-4 py-4">
+                    {user.isSuspended ? (
+                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                        Suspended
+                      </span>
+                    ) : (
+                      user.status || "-"
+                    )}
+                  </td>
 
                   {/* CREATED AT */}
                   <td className="px-4 py-4">{formatDate(user.createdAt)}</td>
@@ -299,6 +322,55 @@ function UsersTable({
                           >
                             <Edit className="h-4 w-4" />
                           </button>
+
+                          {user.role !== "OWNER" && (
+                            <button
+                              type="button"
+                              onClick={() => onToggleSuspend(user)}
+                              title={
+                                user.isSuspended
+                                  ? "Reactivate user"
+                                  : "Suspend user"
+                              }
+                              aria-label={
+                                user.isSuspended
+                                  ? "Reactivate user"
+                                  : "Suspend user"
+                              }
+                              className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-all duration-200 ${
+                                user.isSuspended
+                                  ? "border-green-200 bg-green-50 text-green-600 hover:border-green-300 hover:bg-green-100 hover:text-green-700"
+                                  : "border-orange-200 bg-orange-50 text-orange-500 hover:border-orange-300 hover:bg-orange-100 hover:text-orange-600"
+                              }`}
+                            >
+                              {user.isSuspended ? (
+                                <Play className="h-4 w-4" strokeWidth={2.2} />
+                              ) : (
+                                <Pause className="h-4 w-4" strokeWidth={2.2} />
+                              )}
+                            </button>
+                          )}
+
+                          {/* SCHEDULE */}
+                          {user.role !== "OWNER" && (
+                            <button
+                              type="button"
+                              onClick={() => onManageSchedule(user)}
+                              title="Manage login schedule"
+                              aria-label="Manage login schedule"
+                              className="
+      flex h-8 w-8 items-center justify-center
+      rounded-lg border border-slate-200
+      bg-slate-50 text-slate-600
+      transition-all duration-200
+      hover:border-slate-300
+      hover:bg-slate-100
+      hover:text-slate-900
+    "
+                            >
+                              <Clock3 className="h-4 w-4" strokeWidth={2.2} />
+                            </button>
+                          )}
 
                           {user.role !== "OWNER" && (
                             <button
@@ -584,6 +656,7 @@ function AllUsersPage() {
   const [loading, setLoading] = useState(() => Boolean(accessToken));
 
   const [accessModalUser, setAccessModalUser] = useState(null);
+  const [scheduleModalUser, setScheduleModalUser] = useState(null);
 
   const [error, setError] = useState("");
 
@@ -643,6 +716,31 @@ function AllUsersPage() {
     setUsers((current) =>
       current.map((user) =>
         user.id === id ? { ...user, allowedModules } : user,
+      ),
+    );
+  };
+
+  const handleToggleSuspend = async (user) => {
+    try {
+      await updateMemberSuspension({
+        accessToken,
+        id: user.id,
+        isSuspended: !user.isSuspended,
+      });
+      setUsers((current) =>
+        current.map((u) =>
+          u.id === user.id ? { ...u, isSuspended: !u.isSuspended } : u,
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to toggle suspension", err);
+    }
+  };
+
+  const updateLoginSchedule = (id, loginSchedule) => {
+    setUsers((current) =>
+      current.map((user) =>
+        user.id === id ? { ...user, loginSchedule } : user,
       ),
     );
   };
@@ -713,6 +811,8 @@ function AllUsersPage() {
             onRoleChange={updateRole}
             onDelete={removeUserFromList}
             onManageAccess={setAccessModalUser}
+            onToggleSuspend={handleToggleSuspend}
+            onManageSchedule={setScheduleModalUser}
           />
         )}
       </div>
@@ -732,6 +832,15 @@ function AllUsersPage() {
           accessToken={accessToken}
           onClose={() => setAccessModalUser(null)}
           onSuccess={updateAllowedModules}
+        />
+      )}
+
+      {scheduleModalUser && (
+        <ScheduleManagementModal
+          user={scheduleModalUser}
+          accessToken={accessToken}
+          onClose={() => setScheduleModalUser(null)}
+          onSuccess={updateLoginSchedule}
         />
       )}
     </div>

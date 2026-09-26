@@ -12,10 +12,7 @@ import logo from "../assets/logo.png";
 import logoFull from "../assets/logoFull.png";
 import { sendOtp, verifyOtp } from "../services/authApi";
 import useAuthStore from "../store/authStore";
-import {
-  getOtpResendState,
-  OTP_RESEND_SECONDS,
-} from "../utils/otpUtils";
+import { getOtpResendState, OTP_RESEND_SECONDS } from "../utils/otpUtils";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -41,9 +38,7 @@ const LoginPage = () => {
     }
 
     const timer = setTimeout(() => {
-      setResendSeconds((current) =>
-        Math.max(0, current - 1),
-      );
+      setResendSeconds((current) => Math.max(0, current - 1));
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -73,10 +68,7 @@ const LoginPage = () => {
       setResendSeconds(OTP_RESEND_SECONDS);
       setMessage(`OTP sent to ${trimmedEmail}`);
     } catch (error) {
-      setMessage(
-        error.message ||
-        "Unable to send OTP. Please try again.",
-      );
+      setMessage(error.message || "Unable to send OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -89,11 +81,7 @@ const LoginPage = () => {
   const handleResendOtp = async () => {
     const trimmedEmail = email.trim();
 
-    if (
-      !trimmedEmail ||
-      loading ||
-      resendSeconds > 0
-    ) {
+    if (!trimmedEmail || loading || resendSeconds > 0) {
       return;
     }
 
@@ -107,10 +95,7 @@ const LoginPage = () => {
       setResendSeconds(OTP_RESEND_SECONDS);
       setMessage(`OTP resent to ${trimmedEmail}`);
     } catch (error) {
-      setMessage(
-        error.message ||
-        "Unable to resend OTP. Please try again.",
-      );
+      setMessage(error.message || "Unable to resend OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -146,9 +131,7 @@ const LoginPage = () => {
         data?.data?.token;
 
       if (!accessToken) {
-        throw new Error(
-          "No access token returned after OTP verification.",
-        );
+        throw new Error("No access token returned after OTP verification.");
       }
 
       setAuth({
@@ -159,10 +142,7 @@ const LoginPage = () => {
         },
       });
     } catch (error) {
-      setMessage(
-        error.message ||
-        "OTP verification failed. Please try again.",
-      );
+      setMessage(error.message || "OTP verification failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -826,9 +806,7 @@ const LoginPage = () => {
                 lg:text-left
               "
             >
-              {otpSent
-                ? "Use the verification code sent to your email."
-                : ""}
+              {otpSent ? "Use the verification code sent to your email." : ""}
             </p>
 
             {/* =================================================
@@ -848,22 +826,19 @@ const LoginPage = () => {
 
                   rounded-lg
 
-                  border
-                  border-[#dce5ee]
-
-                  bg-white
+                 
 
                   px-3
                   py-2
 
                   text-center
                   text-xs
-                  text-[#61758a]
+                  text-red-500
 
                   shadow-[0_3px_10px_rgba(15,23,42,0.025)]
                 "
               >
-                {message}
+                <b>{message}*</b>
               </div>
             )}
 
@@ -872,10 +847,7 @@ const LoginPage = () => {
             ================================================== */}
 
             {!otpSent ? (
-              <form
-                onSubmit={handleSendOtp}
-                className="mt-1 w-full"
-              >
+              <form onSubmit={handleSendOtp} className="mt-1 w-full">
                 <div className="relative mt-2 w-full">
                   <Mail
                     className="
@@ -897,9 +869,7 @@ const LoginPage = () => {
                   <input
                     type="email"
                     value={email}
-                    onChange={(event) =>
-                      setEmail(event.target.value)
-                    }
+                    onChange={(event) => setEmail(event.target.value)}
                     placeholder="Enter your email address"
                     disabled={loading}
                     className="
@@ -970,13 +940,9 @@ const LoginPage = () => {
                     disabled:opacity-60
                   "
                 >
-                  {loading
-                    ? "Sending..."
-                    : "Continue"}
+                  {loading ? "Sending..." : "Continue"}
 
-                  {!loading && (
-                    <ArrowRight className="h-4 w-4" />
-                  )}
+                  {!loading && <ArrowRight className="h-4 w-4" />}
                 </button>
               </form>
             ) : (
@@ -984,10 +950,7 @@ const LoginPage = () => {
                  OTP FORM
               ================================================== */
 
-              <form
-                onSubmit={handleVerifyOtp}
-                className="mt-7 w-full"
-              >
+              <form onSubmit={handleVerifyOtp} className="mt-7 w-full">
                 <label
                   className="
                     block
@@ -1001,18 +964,13 @@ const LoginPage = () => {
                   "
                 >
                   OTP
-
                   <input
                     type="text"
                     inputMode="numeric"
                     maxLength={6}
                     value={otp}
                     onChange={(event) =>
-                      setOtp(
-                        event.target.value
-                          .replace(/\D/g, "")
-                          .slice(0, 6),
-                      )
+                      setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))
                     }
                     placeholder="Enter OTP"
                     disabled={loading}
@@ -1091,13 +1049,9 @@ const LoginPage = () => {
                     disabled:opacity-60
                   "
                 >
-                  {loading
-                    ? "Verifying..."
-                    : "Verify OTP"}
+                  {loading ? "Verifying..." : "Verify OTP"}
 
-                  {!loading && (
-                    <Check className="h-4 w-4" />
-                  )}
+                  {!loading && <Check className="h-4 w-4" />}
                 </button>
 
                 {/* =================================================
@@ -1105,9 +1059,7 @@ const LoginPage = () => {
                 ================================================== */}
 
                 <div className="mt-3 w-full text-center">
-                  {getOtpResendState(
-                    resendSeconds,
-                  ).canResend ? (
+                  {getOtpResendState(resendSeconds).canResend ? (
                     <button
                       type="button"
                       onClick={handleResendOtp}
@@ -1137,11 +1089,7 @@ const LoginPage = () => {
                         disabled:opacity-60
                       "
                     >
-                      {
-                        getOtpResendState(
-                          resendSeconds,
-                        ).label
-                      }
+                      {getOtpResendState(resendSeconds).label}
                     </button>
                   ) : (
                     <p
@@ -1151,11 +1099,7 @@ const LoginPage = () => {
                         text-[#61758a]
                       "
                     >
-                      {
-                        getOtpResendState(
-                          resendSeconds,
-                        ).label
-                      }
+                      {getOtpResendState(resendSeconds).label}
                     </p>
                   )}
                 </div>
@@ -1202,7 +1146,6 @@ const LoginPage = () => {
                 w-full
               "
             >
-
               {/* =================================================
                   LEGAL / SUPPORT CARD
               ================================================== */}
@@ -1271,8 +1214,7 @@ const LoginPage = () => {
                     text-[#718096]
                   "
                 >
-                  *Limited period offer. Terms and
-                  conditions apply.
+                  *Limited period offer. Terms and conditions apply.
                 </p>
 
                 <div
@@ -1297,7 +1239,6 @@ const LoginPage = () => {
                 >
                   Need help?{" "}
                   <a
-
                     className="
                       font-semibold
 
