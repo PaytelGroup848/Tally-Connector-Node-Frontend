@@ -1,7 +1,7 @@
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL ||
   import.meta.env.BaseUrl ||
-  "http://localhost:5000/api"
+  "https://connector.cloudata.in/api"
 ).replace(/\/$/, "");
 
 function buildUrl(path) {

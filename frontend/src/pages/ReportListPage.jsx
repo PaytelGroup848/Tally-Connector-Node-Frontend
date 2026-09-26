@@ -922,9 +922,12 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 
     const fetchTemplate = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/reminder-template`, {
-          headers: { Authorization: `Bearer ${accessToken}` }, // <-- fix
-        });
+        const res = await fetch(
+          `https://connector.cloudata.in/api/reminder-template`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` }, // <-- fix
+          },
+        );
         const json = await res.json();
         if (json?.data?.message) {
           setReminderTemplate(json.data.message);
@@ -1301,7 +1304,7 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/companies/${companyId}/reminders/email`,
+        `https://connector.cloudata.in/api/companies/${companyId}/reminders/email`,
         {
           method: "POST",
           headers: {
