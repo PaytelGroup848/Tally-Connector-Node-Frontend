@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   ArrowRight,
+  Download,
   BarChart3,
   Bell,
   Check,
@@ -26,7 +27,7 @@ import {
   ArrowUpRight,
   IndianRupee,
 } from "lucide-react";
-
+import { Link } from "react-router-dom";
 const features = [
   {
     icon: LayoutDashboard,
@@ -205,8 +206,6 @@ function App() {
   };
 
   const goToLogin = () => {
-    setMobileOpen(false);
-    setFeaturesOpen(false);
     window.history.pushState({}, "", "/login");
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
@@ -304,19 +303,30 @@ function App() {
 
           {/* Desktop Actions */}
           <div className="hidden items-center gap-3 lg:flex">
+            <div className="rounded-xl bg-[#61c928] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-[#4fb31d]">
+              <a
+                href="http://191.44.87.205:8000/downloads/CtrlBooks_Setup_v1.0.2.exe"
+                download
+                title="Download CtrlBooks Connector"
+                className="flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                <span>Download Connector</span>
+                <Download size={18} strokeWidth={2.2} />
+              </a>
+            </div>
             <button
               onClick={goToLogin}
-              className="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+              className="rounded-xl bg-black/50 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-black/70"
             >
               Login
             </button>
 
-            <button
+            {/* <button
               onClick={() => scrollTo("footer")}
               className="rounded-xl bg-[#61c928] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-[#4fb31d]"
             >
               Get Started
-            </button>
+            </button> */}
           </div>
 
           {/* Mobile menu button */}
@@ -369,7 +379,9 @@ function App() {
                   </button>
                 ))}
               </div>
+              <div>
 
+              </div>
               <div className="mt-2 grid grid-cols-2 gap-3">
                 <button
                   onClick={goToLogin}
@@ -423,7 +435,7 @@ function App() {
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-start">
                 <button
-                  onClick={() => scrollTo("contact")}
+                 onClick={goToLogin}
                   className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c]"
                 >
                   Start using CtrlBooks
@@ -434,7 +446,7 @@ function App() {
                   />
                 </button>
 
-               
+
               </div>
 
               <div className="mt-8 grid max-w-lg grid-cols-2 gap-4 sm:grid-cols-3">
@@ -858,7 +870,7 @@ function App() {
               </div>
 
               <button
-                onClick={() => scrollTo("footer")}
+             onClick={goToLogin}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-green-700 transition hover:bg-green-50"
               >
                 Get Started
@@ -895,65 +907,65 @@ function App() {
             </div>
           </div>
 
-          
+
           {/* Quick Links */}
-<div>
-  <h3 className="text-[22px] font-extrabold text-[#4fc52a]">
-    Quick Links
-  </h3>
+          <div>
+            <h3 className="text-[22px] font-extrabold text-[#4fc52a]">
+              Quick Links
+            </h3>
 
-  <div className="mt-6 space-y-2">
-    <button
-      onClick={() => scrollTo("home")}
-      className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
-    >
-      Home
-    </button>
+            <div className="mt-6 space-y-2">
+              <button
+                onClick={() => scrollTo("home")}
+                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+              >
+                Home
+              </button>
 
-    <button
-      onClick={() => scrollTo("features")}
-      className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
-    >
-      Features
-    </button>
-    
+              <button
+                onClick={() => scrollTo("features")}
+                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+              >
+                Features
+              </button>
 
-    <button
-      onClick={() => scrollTo("product")}
-      className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
-    >
-      Product
-    </button>
 
-    <button
-      onClick={() => scrollTo("pricing")}
-      className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
-    >
-      Pricing
-    </button>
+              <button
+                onClick={() => scrollTo("product")}
+                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+              >
+                Product
+              </button>
 
-    <button
-      onClick={() => scrollTo("testimonials")}
-      className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
-    >
-      Testimonials
-    </button>
+              <button
+                onClick={() => scrollTo("pricing")}
+                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+              >
+                Pricing
+              </button>
 
-    <button
-      onClick={() => scrollTo("faq")}
-      className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
-    >
-      FAQ
-    </button>
+              <button
+                onClick={() => scrollTo("testimonials")}
+                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+              >
+                Testimonials
+              </button>
 
-    <button
-      onClick={() => scrollTo("footer")}
-      className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
-    >
-      Contact Us
-    </button>
-  </div>
-</div>
+              <button
+                onClick={() => scrollTo("faq")}
+                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+              >
+                FAQ
+              </button>
+
+              <button
+                onClick={() => scrollTo("footer")}
+                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+              >
+                Contact Us
+              </button>
+            </div>
+          </div>
 
           {/* Contact Us */}
           <div>
@@ -978,14 +990,14 @@ function App() {
                   href="mailto:info@clouddata.com"
                   className="hover:text-[#4fc52a]"
                 >
-                  info@clouddata.com
+                  info@cloudedata.com
                 </a>
               </p>
 
               <p className="font-semibold text-slate-700">
                 Support Mobile:{" "}
                 <a
-                  href="tel:+91 9311472357"
+                  href="tel:+91 9311472355"
                   className="hover:text-[#4fc52a]"
                 >
                   +91 9311472357
@@ -1101,7 +1113,7 @@ function SectionHeading({
 }) {
   return (
     <div className="mx-auto max-w-3xl text-center">
-      <p className="text-xs font-extrabold tracking-[0.2em] text-[#61c928]">
+      <p className="text-xl font-extrabold tracking-[0.2em] text-[#61c928]">
         {eyebrow}
       </p>
 
@@ -1135,10 +1147,10 @@ function FeatureCard({
         {description}
       </p>
 
-      <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-[#61c928]">
+      {/* <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-[#61c928]">
         Learn more
         <ArrowRight size={14} />
-      </div>
+      </div> */}
     </div>
   );
 }
@@ -1258,9 +1270,9 @@ function FeatureShowcase() {
 function LeadCapture() {
   return (
     <div>
-      
 
- 
+
+
     </div>
   );
 }
@@ -1627,7 +1639,7 @@ function DashboardPreview() {
           </aside>
 
           <main className="min-w-0 flex-1 bg-[#f4f6f5] p-2 sm:p-4">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 sm:pb-3">
+            {/* <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 sm:pb-3">
               <div className="min-w-0 text-[9px] text-slate-500 sm:text-xs">
                 <span className="block truncate font-semibold text-slate-700">
                   Annual Agency - 2022-2023
@@ -1647,7 +1659,7 @@ function DashboardPreview() {
                   Connector status
                 </button>
               </div>
-            </div>
+            </div> */}
 
             <div className="mt-3 flex items-center justify-between gap-3 sm:mt-5">
               <h3 className="text-xl font-black tracking-tight text-slate-900 sm:text-3xl">

@@ -341,20 +341,20 @@ function ItemsPage({ companyId }) {
               items-center
               gap-1
               rounded-lg
-              bg-slate-900
+              bg-emerald-600
               px-4
               py-2
               text-xs
               font-semibold
               text-white
               transition
-              hover:bg-slate-800
+              hover:bg-emerald-700
             "
             type="button"
             onClick={handleAddNew}
           >
             <span className="text-sm">+</span>
-            Add New
+            Add New Item
           </button>
 
           {/* <button

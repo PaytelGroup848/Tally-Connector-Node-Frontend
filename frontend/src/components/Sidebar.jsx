@@ -6,7 +6,7 @@ import { navItems, submenuItems } from "../routes/navigation";
 function Arrow() {
   return (
     <span
-      className="ml-auto text-base leading-none text-white/60"
+      className="ml-auto text-base leading-none text-white/50"
       aria-hidden="true"
     >
       ›
@@ -29,12 +29,9 @@ function Sidebar({
 }) {
   const entryPath = currentPath.toLowerCase();
 
-  const isGroupAllowed = (path) =>
-    !Array.isArray(allowedModules) || allowedModules.includes(path);
-
   const isSubItemAllowed = (parentPath, itemPath) => {
-    if (!Array.isArray(allowedModules)) return true; // unrestricted (Owner)
-    if (allowedModules.includes(parentPath)) return true; // whole group granted
+    if (!Array.isArray(allowedModules)) return true;
+    if (allowedModules.includes(parentPath)) return true;
     return allowedModules.includes(itemPath);
   };
 
@@ -42,19 +39,21 @@ function Sidebar({
     if (!Array.isArray(allowedModules)) return true;
 
     const subItems = submenuItems[label];
+
     if (!subItems) {
-      // simple item — visible only if its own key is allowed
       return allowedModules.includes(path);
     }
 
-    // expandable group — visible if whole group granted OR at least one child allowed
     return (
       allowedModules.includes(path) ||
-      subItems.some(([, itemPath]) => isSubItemAllowed(path, itemPath))
+      subItems.some(([, itemPath]) =>
+        isSubItemAllowed(path, itemPath),
+      )
     );
   });
 
-  const isSubmenuActive = (itemPath) => entryPath === itemPath.toLowerCase();
+  const isSubmenuActive = (itemPath) =>
+    entryPath === itemPath.toLowerCase();
 
   const isCollectPaymentsRoute = (label) =>
     label === "Collect Payments" &&
@@ -70,7 +69,9 @@ function Sidebar({
   const isNavExpanded = (label, path) =>
     expandedNav[label] ??
     (currentPath.startsWith(`/${path}`) ||
-      submenuItems[label]?.some(([, itemPath]) => isSubmenuActive(itemPath)));
+      submenuItems[label]?.some(([, itemPath]) =>
+        isSubmenuActive(itemPath),
+      ));
 
   const closeOnMobile = () => {
     if (isCompact) {
@@ -89,10 +90,26 @@ function Sidebar({
   return (
     <aside
       className={`
-        app-sidebar fixed left-0 top-0 z-40
+        app-sidebar
+        fixed left-0 top-0 z-40
+
         flex h-screen shrink-0 flex-col
-        overflow-hidden text-white
+
+        overflow-hidden
+
+        border-r border-emerald-300/[0.12]
+
+        bg-[#08221d]/[0.88]
+
+        text-white
+
+        shadow-[8px_0_35px_rgba(0,0,0,0.26)]
+
+        backdrop-blur-[24px]
+        backdrop-saturate-[150%]
+
         transition-all duration-200
+
         ${
           isCompact
             ? `${collapsed ? "-translate-x-full" : "translate-x-0"} w-[228px]`
@@ -103,17 +120,263 @@ function Sidebar({
       `}
       data-collapsed={collapsed}
     >
+      {/* =====================================================
+          STATIC LIQUID GLASS BACKGROUND
+          DESIGN ONLY - DOES NOT AFFECT LAYOUT
+      ====================================================== */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          overflow-hidden
+        "
+      >
+        {/* Main glass surface */}
+        <div
+          className="
+            absolute
+            inset-0
+
+            bg-gradient-to-b
+            from-[#123a32]/[0.74]
+            via-[#0b2923]/[0.82]
+            to-[#041512]/[0.94]
+          "
+        />
+
+        {/* Top-left subtle green glow */}
+        <div
+          className="
+            absolute
+            -left-24
+            -top-24
+
+            h-64
+            w-64
+
+            rounded-full
+
+            bg-emerald-400/[0.07]
+
+            blur-[72px]
+          "
+        />
+
+        {/* Bottom-left green glow */}
+        <div
+          className="
+            absolute
+            -bottom-24
+            -left-20
+
+            h-72
+            w-72
+
+            rounded-full
+
+            bg-emerald-500/[0.055]
+
+            blur-[80px]
+          "
+        />
+
+        {/* Very subtle cyan glow */}
+        <div
+          className="
+            absolute
+            -bottom-20
+            -right-28
+
+            h-64
+            w-64
+
+            rounded-full
+
+            bg-cyan-400/[0.035]
+
+            blur-[80px]
+          "
+        />
+
+        {/* =================================================
+            STATIC CURVED LIQUID LINES
+        ================================================= */}
+
+        <div
+          className="
+            absolute
+
+            -bottom-[115px]
+            -left-[125px]
+
+            h-[225px]
+            w-[455px]
+
+            rotate-[-14deg]
+
+            rounded-[50%]
+
+            border-t
+            border-emerald-300/[0.11]
+          "
+        />
+
+        <div
+          className="
+            absolute
+
+            -bottom-[155px]
+            -left-[110px]
+
+            h-[245px]
+            w-[475px]
+
+            rotate-[-14deg]
+
+            rounded-[50%]
+
+            border-t
+            border-emerald-300/[0.07]
+          "
+        />
+
+        <div
+          className="
+            absolute
+
+            -bottom-[195px]
+            -left-[90px]
+
+            h-[270px]
+            w-[500px]
+
+            rotate-[-14deg]
+
+            rounded-[50%]
+
+            border-t
+            border-white/[0.025]
+          "
+        />
+
+        {/* Soft diagonal glass reflection */}
+        <div
+          className="
+            absolute
+
+            -left-[32%]
+            top-0
+
+            h-full
+            w-[52%]
+
+            rotate-[14deg]
+
+            bg-gradient-to-r
+            from-white/[0.03]
+            via-white/[0.008]
+            to-transparent
+
+            blur-[10px]
+          "
+        />
+
+        {/* Soft dark vignette */}
+        <div
+          className="
+            absolute
+            inset-0
+
+            bg-[radial-gradient(circle_at_45%_18%,transparent_0%,rgba(0,0,0,0.04)_52%,rgba(0,0,0,0.20)_100%)]
+          "
+        />
+
+        {/* Top glass edge */}
+        <div
+          className="
+            absolute
+            left-0
+            right-0
+            top-0
+
+            h-px
+
+            bg-gradient-to-r
+            from-transparent
+            via-white/[0.25]
+            to-transparent
+          "
+        />
+
+        {/* Right glass edge */}
+        <div
+          className="
+            absolute
+            bottom-0
+            right-0
+            top-0
+
+            w-px
+
+            bg-gradient-to-b
+            from-white/[0.24]
+            via-emerald-300/[0.07]
+            to-transparent
+          "
+        />
+      </div>
+
+      {/* =====================================================
+          MOBILE CLOSE BUTTON
+          SAME LAYOUT
+      ====================================================== */}
+
       {isCompact && !collapsed && (
-        <div className="flex h-10 shrink-0 items-center justify-end px-3">
+        <div
+          className="
+            relative
+            z-10
+
+            flex
+            h-10
+            shrink-0
+            items-center
+            justify-end
+
+            px-3
+          "
+        >
           <button
             type="button"
             aria-label="Close sidebar"
             onClick={() => setSidebarCollapsed(true)}
             className="
-              flex h-8 w-8 items-center justify-center
-              rounded-lg border border-white/10
-              bg-white/5 text-white transition
-              hover:bg-white/10
+              flex
+              h-8
+              w-8
+              items-center
+              justify-center
+
+              rounded-lg
+
+              border
+              border-white/[0.10]
+
+              bg-white/[0.055]
+
+              text-white/65
+
+              backdrop-blur-md
+
+              shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]
+
+              transition
+
+              hover:border-white/[0.16]
+              hover:bg-white/[0.10]
+              hover:text-white
             "
           >
             <X className="h-4 w-4" />
@@ -121,11 +384,32 @@ function Sidebar({
         </div>
       )}
 
+      {/* =====================================================
+          LOGO
+          SAME SIZE / SAME POSITION
+      ====================================================== */}
+
       <div
         className={`
-          flex h-[68px] w-full shrink-0 items-center
-          border-b border-white/10 bg-white
-          ${collapsed ? "justify-center" : "justify-center px-4"}
+          relative
+          z-10
+
+          flex
+          h-[68px]
+          w-full
+          shrink-0
+          items-center
+
+          border-b
+          border-white/[0.07]
+
+          bg-white/[0.018]
+
+          ${
+            collapsed
+              ? "justify-center"
+              : "justify-center px-4"
+          }
         `}
       >
         <button
@@ -136,26 +420,60 @@ function Sidebar({
           }}
           aria-label="Go to dashboard"
           className="
-            flex items-center justify-center
-            border-0 bg-transparent p-0 outline-none
+            flex
+            items-center
+            justify-center
+
+            border-0
+            bg-transparent
+            p-0
+            outline-none
           "
         >
           <img
             src={collapsed ? smallLogo : logo}
             alt="CtrlBooks logo"
             className={`
-              block object-contain
-              ${collapsed ? "h-9 w-9" : "h-[45px] w-auto max-w-[140px]"}
+              block
+              object-contain
+
+              ${
+                collapsed
+                  ? "h-9 w-9"
+                  : "h-[45px] w-auto max-w-[140px]"
+              }
             `}
           />
         </button>
       </div>
 
-      <nav className="sidebar-nav min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
+      {/* =====================================================
+          NAVIGATION
+          SAME LAYOUT / SAME HEIGHTS
+      ====================================================== */}
+
+      <nav
+        className="
+          sidebar-nav
+          relative
+          z-10
+
+          min-h-0
+          flex-1
+
+          overflow-y-auto
+          overflow-x-hidden
+
+          px-3
+          py-5
+        "
+      >
         {visibleNavItems.map(
           ([IconComponent, label, expandable, badge, path]) => {
             const targetPath =
-              label === "Dashboard" ? "/dashboard" : `/${path}`;
+              label === "Dashboard"
+                ? "/dashboard"
+                : `/${path}`;
 
             const active =
               (label === "Dashboard" && showDashboard) ||
@@ -167,16 +485,26 @@ function Sidebar({
               );
 
             return (
-              <div className="mb-1" key={label}>
+              <div
+                className="mb-1"
+                key={label}
+              >
                 <a
-                  href={expandable ? undefined : targetPath}
+                  href={
+                    expandable
+                      ? undefined
+                      : targetPath
+                  }
                   onClick={(event) => {
                     if (expandable) {
                       event.preventDefault();
 
                       setExpandedNav((current) => ({
                         ...current,
-                        [label]: !isNavExpanded(label, path),
+                        [label]: !isNavExpanded(
+                          label,
+                          path,
+                        ),
                       }));
 
                       return;
@@ -188,78 +516,252 @@ function Sidebar({
                       return;
                     }
 
-                    handleNavClick(event, targetPath);
+                    handleNavClick(
+                      event,
+                      targetPath,
+                    );
                   }}
                   className={`
-                  sidebar-link flex h-[42px] w-full
-                  items-center gap-3 rounded-lg px-3
-                  text-left text-[13px] font-medium
-                  no-underline transition-all duration-200
-                  ${
-                    active
-                      ? "is-active"
-                      : "text-slate-200 hover:bg-white/10 hover:text-white"
-                  }
-                `}
+                    sidebar-link
+                    group
+                    relative
+
+                    flex
+                    h-[42px]
+                    w-full
+                    items-center
+                    gap-3
+
+                    overflow-hidden
+
+                    rounded-lg
+
+                    border
+
+                    px-3
+
+                    text-left
+                    text-[13px]
+                    font-medium
+
+                    no-underline
+
+                    transition-all
+                    duration-200
+
+                    ${
+                      active
+                        ? `
+                          border-emerald-300/[0.15]
+
+                          bg-emerald-300/[0.10]
+
+                          text-white
+
+                          shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]
+                        `
+                        : `
+                          border-transparent
+
+                          bg-transparent
+
+                          text-white/[0.68]
+
+                          hover:border-white/[0.05]
+                          hover:bg-white/[0.045]
+                          hover:text-white
+                        `
+                    }
+                  `}
                 >
-                  <span className="flex w-5 shrink-0 items-center justify-center">
+                  {/* Active liquid glass shine */}
+                  {active && (
+                    <span
+                      className="
+                        pointer-events-none
+                        absolute
+                        inset-0
+
+                        bg-gradient-to-r
+                        from-white/[0.045]
+                        via-transparent
+                        to-emerald-300/[0.035]
+                      "
+                    />
+                  )}
+
+                  {/* Icon */}
+                  <span
+                    className={`
+                      relative
+                      z-10
+
+                      flex
+                      w-5
+                      shrink-0
+                      items-center
+                      justify-center
+
+                      transition-colors
+                      duration-200
+
+                      ${
+                        active
+                          ? "text-emerald-200"
+                          : "text-white/[0.50] group-hover:text-white/[0.90]"
+                      }
+                    `}
+                  >
                     <IconComponent className="h-4 w-4" />
                   </span>
 
                   {!collapsed && (
                     <>
-                      <span className="min-w-0 flex-1 truncate">{label}</span>
+                      {/* Label */}
+                      <span
+                        className="
+                          relative
+                          z-10
 
+                          min-w-0
+                          flex-1
+                          truncate
+                        "
+                      >
+                        {label}
+                      </span>
+
+                      {/* Badge */}
                       {badge && (
                         <em
                           className="
-                          rounded-full bg-red-500 px-1.5 py-0.5
-                          text-[9px] font-semibold not-italic text-white
-                        "
+                            relative
+                            z-10
+
+                            rounded-full
+
+                            bg-red-500/[0.78]
+
+                            px-1.5
+                            py-0.5
+
+                            text-[9px]
+                            font-semibold
+                            not-italic
+                            text-white
+                          "
                         >
                           {badge}
                         </em>
                       )}
 
-                      {expandable && <Arrow />}
+                      {/* Arrow */}
+                      {expandable && (
+                        <span className="relative z-10">
+                          <Arrow />
+                        </span>
+                      )}
                     </>
                   )}
                 </a>
 
+                {/* =================================================
+                    SUBMENU
+                ================================================== */}
+
                 {!collapsed &&
                   submenuItems[label] &&
-                  isNavExpanded(label, path) && (
-                    <div className="ml-4 border-l border-white/10 py-1 pl-3">
+                  isNavExpanded(
+                    label,
+                    path,
+                  ) && (
+                    <div
+                      className="
+                        relative
+                        z-10
+
+                        ml-4
+
+                        border-l
+                        border-white/[0.07]
+
+                        py-1
+                        pl-3
+                      "
+                    >
                       {submenuItems[label]
                         .filter(([, itemPath]) =>
-                          isSubItemAllowed(path, itemPath),
+                          isSubItemAllowed(
+                            path,
+                            itemPath,
+                          ),
                         )
-                        .map(([item, itemPath]) => (
-                          <a
-                            key={item}
-                            href={itemPath}
-                            onClick={(event) => {
-                              if (itemPath === "/create-voucher/Quotation") {
-                                onQuotation(event);
-                                closeOnMobile();
-                                return;
-                              }
+                        .map(
+                          ([item, itemPath]) => (
+                            <a
+                              key={item}
+                              href={itemPath}
+                              onClick={(event) => {
+                                if (
+                                  itemPath ===
+                                  "/create-voucher/Quotation"
+                                ) {
+                                  onQuotation(
+                                    event,
+                                  );
+                                  closeOnMobile();
+                                  return;
+                                }
 
-                              handleNavClick(event, itemPath);
-                            }}
-                            className={`
-                          block rounded-md px-3 py-2
-                          text-[12px] no-underline transition
-                          ${
-                            isSubmenuActive(itemPath)
-                              ? "bg-white/10 font-semibold text-emerald-300"
-                              : "text-slate-300 hover:bg-white/5 hover:text-white"
-                          }
-                        `}
-                          >
-                            {item}
-                          </a>
-                        ))}
+                                handleNavClick(
+                                  event,
+                                  itemPath,
+                                );
+                              }}
+                              className={`
+                                block
+                                rounded-md
+
+                                border
+                                border-transparent
+
+                                px-3
+                                py-2
+
+                                text-[12px]
+
+                                no-underline
+
+                                transition-all
+                                duration-200
+
+                                ${
+                                  isSubmenuActive(
+                                    itemPath,
+                                  )
+                                    ? `
+                                      border-emerald-300/[0.10]
+
+                                      bg-emerald-300/[0.07]
+
+                                      font-semibold
+
+                                      text-emerald-200
+                                    `
+                                    : `
+                                      text-white/[0.50]
+
+                                      hover:bg-white/[0.035]
+
+                                      hover:text-white/[0.90]
+                                    `
+                                }
+                              `}
+                            >
+                              {item}
+                            </a>
+                          ),
+                        )}
                     </div>
                   )}
               </div>
@@ -268,25 +770,99 @@ function Sidebar({
         )}
       </nav>
 
+      {/* =====================================================
+          NEED HELP
+          SAME LAYOUT / SAME POSITION
+      ====================================================== */}
+
       {!collapsed && (
         <div
           className="
-            mx-3 mb-4 flex shrink-0 items-center gap-3
-            rounded-xl border border-white/10 bg-[#059669]
-            px-4 py-3
+            relative
+            z-10
+
+            mx-3
+            mb-4
+
+            flex
+            shrink-0
+            items-center
+            gap-3
+
+            overflow-hidden
+
+            rounded-xl
+
+            border
+            border-emerald-300/[0.11]
+
+            bg-emerald-300/[0.055]
+
+            px-4
+            py-3
+
+            backdrop-blur-md
+
+            shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
           "
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center">
-            <Phone size={17} strokeWidth={2} className="text-white" />
+          {/* Phone icon */}
+          <div
+            className="
+              flex
+              h-9
+              w-9
+              shrink-0
+              items-center
+              justify-center
+
+              rounded-full
+
+              bg-emerald-400/[0.12]
+            "
+          >
+            <Phone
+              size={17}
+              strokeWidth={2}
+              className="text-emerald-200"
+            />
           </div>
 
-          <div className="flex min-w-0 flex-col">
-            <p className="text-[11px] font-medium leading-4 text-white">
+          {/* Text */}
+          <div
+            className="
+              flex
+              min-w-0
+              flex-col
+            "
+          >
+            <p
+              className="
+                text-[11px]
+                font-medium
+                leading-4
+                text-emerald-100/[0.70]
+              "
+            >
               Need help?
             </p>
+
             <a
               href="tel:+919311472357"
-              className="mt-0.5 text-[12px] font-semibold text-white no-underline hover:underline"
+              className="
+                mt-0.5
+
+                text-[12px]
+                font-semibold
+
+                text-white/[0.90]
+
+                no-underline
+
+                transition
+
+                hover:text-emerald-200
+              "
             >
               +91 9311472357
             </a>
