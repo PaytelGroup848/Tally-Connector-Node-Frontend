@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://connector.cloudata.in/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
 function buildUrl(path) {
   const cleanPath = path.startsWith('/') ? path : `/${path}`

@@ -1,7 +1,7 @@
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL ||
   import.meta.env.BaseUrl ||
-  "https://connector.cloudata.in/api"
+  "http://localhost:5000/api"
 ).replace(/\/$/, "");
 
 function getAuthHeaders(accessToken) {
@@ -88,6 +88,8 @@ export function normalizeMember(member, index) {
       ? member.allowedModules
       : null,
     createdAt: member?.createdAt || member?.created_at || null,
+    isSuspended: Boolean(member?.isSuspended),
+    loginSchedule: member?.loginSchedule || null,
   };
 }
 
@@ -97,4 +99,18 @@ export function extractMembers(response) {
   if (Array.isArray(response?.members)) return response.members;
   if (Array.isArray(response)) return response;
   return [];
+}
+
+export function updateMemberSuspension({ accessToken, id, isSuspended }) {
+  return request(`/members/${id}/suspend`, accessToken, {
+    method: "PATCH",
+    body: JSON.stringify({ isSuspended }),
+  });
+}
+
+export function updateMemberSchedule({ accessToken, id, enabled, days }) {
+  return request(`/members/${id}/schedule`, accessToken, {
+    method: "PATCH",
+    body: JSON.stringify({ enabled, days }),
+  });
 }

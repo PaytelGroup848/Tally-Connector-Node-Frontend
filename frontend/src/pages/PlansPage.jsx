@@ -44,18 +44,6 @@ const fallbackPlans = [
 
     pricingOptions: [
       {
-        durationMonths: 1,
-        price: 275,
-        discountPercent: 0,
-        addonPricePerSeat: 275,
-      },
-      {
-        durationMonths: 3,
-        price: 825,
-        discountPercent: 0,
-        addonPricePerSeat: 825,
-      },
-      {
         durationMonths: 6,
         price: 1650,
         discountPercent: 0,
@@ -68,10 +56,10 @@ const fallbackPlans = [
         addonPricePerSeat: 3000,
       },
       {
-        durationMonths: 36,
-        price: 8100,
-        discountPercent: 10,
-        addonPricePerSeat: 8100,
+        durationMonths: 24,
+        price: 60000,
+        discountPercent: 0,
+        addonPricePerSeat: 60000,
       },
     ],
 
@@ -85,16 +73,6 @@ const fallbackPlans = [
 
 const durations = [
   {
-    months: 1,
-    label: "1M",
-    fullLabel: "1 Month",
-  },
-  {
-    months: 3,
-    label: "3M",
-    fullLabel: "3 Months",
-  },
-  {
     months: 6,
     label: "6M",
     fullLabel: "6 Months",
@@ -105,15 +83,11 @@ const durations = [
     fullLabel: "1 Year",
   },
   {
-    months: 36,
-    label: "3Y",
-    fullLabel: "3 Years",
+    months: 24,
+    label: "2Y",
+    fullLabel: "2 Years",
   },
 ];
-
-/* =========================================================
-   FEATURE LABELS
-========================================================= */
 
 const featureLabels = {
   LEDGER_READ: "Read Ledger",
@@ -146,10 +120,6 @@ const featureLabels = {
   USER_READ: "Read Users",
   USER_CREATE: "Create Users",
 };
-
-/* =========================================================
-   PLAN ICON
-========================================================= */
 
 const PlanIcon = ({ planName }) => {
   if (planName === "Growth") {
@@ -595,10 +565,6 @@ function PlansPage() {
     return Number(pricing?.addonPricePerSeat ?? plan?.addonPricePerSeat ?? 0);
   };
 
-  /* =========================================================
-     TOTAL
-  ========================================================= */
-
   const basePlanPrice = Number(basePricing?.price) || 0;
 
   const additionalSeatRate = getPlanSeatRate(
@@ -611,10 +577,6 @@ function PlansPage() {
 
   const totalAmount = basePlanPrice + extraSeatTotal;
 
-  /* =========================================================
-     CHECKOUT
-  ========================================================= */
-
   const openCheckout = (planName, planId) => {
     setSelectedPlan(planName);
 
@@ -625,15 +587,12 @@ function PlansPage() {
     setIsCheckoutOpen(true);
   };
 
-  /* =========================================================
-     CHECKOUT PAGE
-  ========================================================= */
-
   if (isCheckoutOpen) {
     return (
       <CheckoutPage
         selectedPlanData={selectedPlanData}
         selectedDurationData={selectedDurationData}
+        setSelectedDuration={setSelectedDuration}
         accessToken={accessToken}
         extraSeats={extraSeats}
         setExtraSeats={setExtraSeats}
@@ -649,20 +608,12 @@ function PlansPage() {
     );
   }
 
-  /* =========================================================
-     UI
-  ========================================================= */
-
   return (
     <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-[#F0FDF4] via-[#F7FAF8] to-white px-3 py-2 sm:px-4 sm:py-3 lg:px-6">
       <div className="mx-auto flex h-full max-w-7xl flex-col">
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
         <div className="shrink-0 text-center">
           <div className="mb-1 inline-flex items-center rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[8px] font-bold uppercase tracking-[0.18em] text-green-700 sm:text-[9px]">
-            Flexible Plans
+            Flexible Plan
           </div>
 
           <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-[#143D2A] sm:text-3xl lg:text-4xl">
@@ -675,10 +626,6 @@ function PlansPage() {
           </p>
         </div>
 
-        {/* =================================================
-            ERROR
-        ================================================= */}
-
         {isError && (
           <div className="mt-2 shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-[10px] text-red-700">
             {error?.message || "Unable to load plans right now."}
@@ -688,61 +635,6 @@ function PlansPage() {
         {/* =================================================
             DURATION
         ================================================= */}
-
-        <div className="mt-2 flex shrink-0 justify-center sm:mt-3">
-          <div className="inline-flex flex-wrap justify-center gap-0.5 rounded-xl border border-green-100 bg-white p-1 shadow-sm">
-            {durations.map((duration) => {
-              const isAvailable = visiblePlans.some(
-                (plan) =>
-                  Array.isArray(plan.pricingOptions) &&
-                  plan.pricingOptions.some(
-                    (option) =>
-                      Number(option.durationMonths) === Number(duration.months),
-                  ),
-              );
-
-              const isSelected = selectedDuration === duration.months;
-
-              return (
-                <button
-                  key={duration.months}
-                  type="button"
-                  disabled={!isAvailable}
-                  onClick={() =>
-                    isAvailable && setSelectedDuration(duration.months)
-                  }
-                  className={`min-w-[55px] rounded-lg px-2 py-1.5 text-[9px] font-semibold transition-all sm:min-w-[62px] sm:px-3 sm:text-[10px] ${
-                    isSelected
-                      ? "bg-[#16A34A] text-white shadow-sm shadow-green-200"
-                      : isAvailable
-                        ? "text-slate-600 hover:bg-green-50 hover:text-green-700"
-                        : "cursor-not-allowed text-slate-300"
-                  }`}
-                >
-                  {duration.label}
-
-                  {!isAvailable && (
-                    <span className="ml-0.5 text-[7px]">N/A</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* =================================================
-            DURATION LABEL
-        ================================================= */}
-
-        <p className="mt-0.5 shrink-0 text-center text-[8px] text-slate-400 sm:text-[9px]">
-          {selectedDurationData?.fullLabel}
-
-          {basePricing?.discountPercent > 0 && (
-            <span className="ml-1 font-semibold text-green-600">
-              Save {basePricing.discountPercent}%
-            </span>
-          )}
-        </p>
 
         {/* =================================================
             PLANS GRID

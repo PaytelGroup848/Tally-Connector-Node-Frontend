@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://connector.cloudata.in";
+const API_BASE_URL = "http://localhost:5000";
 
 export async function fetchParties({
   accessToken,
