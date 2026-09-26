@@ -89,10 +89,10 @@ function App() {
     return storedCompanyId
       ? { id: storedCompanyId }
       : {
-          name: "",
-          meta: "",
-          isCurrent: true,
-        };
+        name: "",
+        meta: "",
+        isCurrent: true,
+      };
   });
   const selectedCompanyRef = useRef(selectedCompany);
   const [connectorStatusRows, setConnectorStatusRows] = useState([]);
@@ -277,7 +277,7 @@ function App() {
             return (
               (companyId &&
                 String(companyId) ===
-                  String(storedCompanyId || selectedCompanyId)) ||
+                String(storedCompanyId || selectedCompanyId)) ||
               (selectedCompanyName && companyName === selectedCompanyName)
             );
           }) || companies[0];
@@ -773,12 +773,11 @@ function App() {
         className={`
           app-main relative min-h-screen min-w-0
           transition-[margin-left,width] duration-200
-          ${
-            isCompact
-              ? "ml-0 w-full"
-              : sidebarCollapsed
-                ? "ml-[68px] sidebar-collapsed w-[calc(100%-68px)]"
-                : "ml-[228px] w-[calc(100%-228px)]"
+          ${isCompact
+            ? "ml-0 w-full"
+            : sidebarCollapsed
+              ? "ml-[68px] sidebar-collapsed w-[calc(100%-68px)]"
+              : "ml-[228px] w-[calc(100%-228px)]"
           }
         `}
       >
@@ -866,19 +865,60 @@ function App() {
         <button
           type="button"
           aria-label="Quick create"
-          onClick={() => setShowQuickCreate((current) => !current)}
+          aria-expanded={showQuickCreate}
+          onClick={() =>
+            setShowQuickCreate((current) => !current)
+          }
           className="
-          flex h-14 w-14
-          items-center justify-center
-          rounded-full
-          bg-app-navy
-          text-3xl font-light leading-none
-          text-white
-          shadow-[0_10px_28px_rgba(15,23,42,0.25)]
-          transition
-          hover:scale-105"
+    flex
+    h-14
+    w-14
+    items-center
+    justify-center
+
+    rounded-full
+
+    border
+    border-emerald-300/[0.18]
+
+    bg-[#08221d]/[0.94]
+
+    text-white
+
+    shadow-[0_12px_32px_rgba(0,0,0,0.28)]
+
+    backdrop-blur-[20px]
+    backdrop-saturate-[150%]
+  "
         >
-          <span className="-translate-y-[2px]">+</span>
+          <span
+            className="
+      flex
+      h-9
+      w-9
+      items-center
+      justify-center
+
+      rounded-full
+
+      border
+      border-white/[0.08]
+
+      bg-white/[0.045]
+
+      text-2xl
+      font-light
+      leading-none
+
+      text-emerald-100/[0.88]
+
+      shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]
+
+      backdrop-blur-md
+    "
+          >
+            +
+          </span>
         </button>
       </div>
     </div>
