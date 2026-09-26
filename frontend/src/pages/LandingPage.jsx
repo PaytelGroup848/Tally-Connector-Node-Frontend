@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import logoFull from "../assets/logoFull.png";
 import {
   ArrowRight,
   Download,
@@ -179,11 +180,10 @@ const formatPrice = (value) =>
 function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState(null);
-  const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(showcaseFeatures[0]?.id || "feature-invoices");
 
   const scrollTo = (id) => {
     setMobileOpen(false);
-    setFeaturesOpen(false);
 
     requestAnimationFrame(() => {
       const target = document.getElementById(id);
@@ -221,7 +221,7 @@ function App() {
             className="flex items-center gap-2"
           >
             <img
-              src="./src/assets/logo.png"
+              src={logoFull}
               alt="CtrlBooks Logo"
               className="h-12 w-auto object-contain"
             />
@@ -244,40 +244,12 @@ function App() {
               Home
             </button>
 
-            <div className="relative">
-              <button
-                onClick={() =>
-                  setFeaturesOpen((value) => !value)
-                }
-                className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 transition hover:text-[#54ba23]"
-                aria-expanded={featuresOpen}
-              >
-                Features
-
-                <ChevronDown
-                  size={14}
-                  className={
-                    featuresOpen
-                      ? "rotate-180 transition"
-                      : "transition"
-                  }
-                />
-              </button>
-
-              {featuresOpen && (
-                <div className="absolute left-1/2 top-full mt-4 w-72 -translate-x-1/2 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl shadow-slate-200/60">
-                  {showcaseFeatures.map((feature) => (
-                    <button
-                      key={feature.id}
-                      onClick={() => scrollTo(feature.id)}
-                      className="block w-full rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-700 transition hover:bg-green-50 hover:text-[#54ba23]"
-                    >
-                      {feature.title}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <button
+              onClick={() => scrollTo("features")}
+              className="text-sm font-semibold text-slate-700 transition hover:text-[#54ba23]"
+            >
+              Features
+            </button>
 
             <button
               onClick={() => scrollTo("pricing")}
@@ -330,18 +302,94 @@ function App() {
           </div>
 
           {/* Mobile menu button */}
-          <button
-            onClick={() =>
-              setMobileOpen((value) => !value)
-            }
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 lg:hidden"
-          >
-            {mobileOpen ? (
-              <X size={22} />
-            ) : (
-              <Menu size={22} />
-            )}
-          </button>
+          {/* Mobile menu button */}
+          {/* ================= MOBILE NAV ACTIONS ================= */}
+          <div className="flex items-center gap-2 lg:hidden">
+
+            {/* Download Connector */}
+            <a
+              href="http://191.44.87.205:8000/downloads/CtrlBooks_Setup_v1.0.2.exe"
+              download
+              title="Download CtrlBooks Connector"
+              aria-label="Download CtrlBooks Connector"
+              className="
+      flex
+      h-9
+      w-9
+      items-center
+      justify-center
+
+      rounded-lg
+
+      border
+      border-[#61c928]
+
+      bg-[#61c928]
+
+      text-white
+
+      shadow-sm
+
+      transition
+
+      hover:bg-[#4fb31d]
+    "
+            >
+          
+              <Download
+                size={17}
+                strokeWidth={2.3}
+              />
+            </a>
+
+            {/* Login */}
+            <button
+              onClick={goToLogin}
+              className="rounded-xl bg-black/50 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-black/70"
+            >
+              Login
+            </button>
+
+            {/* Menu */}
+            <button
+              type="button"
+              onClick={() =>
+                setMobileOpen((value) => !value)
+              }
+              aria-label={
+                mobileOpen
+                  ? "Close navigation menu"
+                  : "Open navigation menu"
+              }
+              aria-expanded={mobileOpen}
+              className="
+      flex
+      h-9
+      w-9
+      items-center
+      justify-center
+
+      rounded-lg
+
+      border
+      border-slate-200
+
+      bg-white
+
+      text-slate-700
+
+      transition
+
+      hover:bg-slate-50
+    "
+            >
+              {mobileOpen ? (
+                <X size={20} />
+              ) : (
+                <Menu size={20} />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -364,7 +412,7 @@ function App() {
                 </button>
               ))}
 
-              <div className="ml-4 border-l border-green-100 pl-3">
+              {/* <div className="ml-4 border-l border-green-100 pl-3">
                 <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#61c928]">
                   Feature workflows
                 </p>
@@ -378,11 +426,11 @@ function App() {
                     {feature.title}
                   </button>
                 ))}
-              </div>
+              </div> */}
               <div>
 
               </div>
-              <div className="mt-2 grid grid-cols-2 gap-3">
+              {/* <div className="mt-2 grid grid-cols-2 gap-3">
                 <button
                   onClick={goToLogin}
                   className="rounded-xl border border-slate-200 py-3 text-sm font-bold"
@@ -396,7 +444,7 @@ function App() {
                 >
                   Get Started
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         )}
@@ -435,8 +483,8 @@ function App() {
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-start">
                 <button
-                 onClick={goToLogin}
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c]"
+                  onClick={goToLogin}
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-8"
                 >
                   Start using CtrlBooks
 
@@ -497,17 +545,48 @@ function App() {
             />
 
             <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {features.map((feature) => (
-                <FeatureCard
-                  key={feature.title}
-                  icon={feature.icon}
-                  title={feature.title}
-                  description={feature.description}
-                />
-              ))}
+              {features.map((feature, index) => {
+                const showcaseFeature = showcaseFeatures[index];
+
+                return (
+                  <FeatureCard
+                    key={feature.title}
+                    icon={feature.icon}
+                    title={feature.title}
+                    description={feature.description}
+                    active={activeFeature === showcaseFeature?.id}
+                    onClick={() => {
+                      if (!showcaseFeature) return;
+                      setActiveFeature(showcaseFeature.id);
+
+                      requestAnimationFrame(() => {
+                        const target = document.getElementById(
+                          "feature-showcase-details"
+                        );
+
+                        if (target) {
+                          const headerOffset = 96;
+                          const targetPosition =
+                            target.getBoundingClientRect().top +
+                            window.scrollY -
+                            headerOffset;
+
+                          window.scrollTo({
+                            top: targetPosition,
+                            behavior: "smooth",
+                          });
+                        }
+                      });
+                    }}
+                  />
+                );
+              })}
             </div>
 
-            <FeatureShowcase />
+            <FeatureShowcase
+              activeFeature={activeFeature}
+              setActiveFeature={setActiveFeature}
+            />
           </div>
         </section>
 
@@ -629,13 +708,11 @@ function App() {
 
             {/* content */}
             <div className="order-1 lg:order-2">
-              <p className="text-sm font-extrabold tracking-[0.18em] text-[#61c928]">
+              <p className="text-xl font-extrabold tracking-[0.18em] text-[#61c928]">
                 MOBILE BUSINESS
               </p>
 
-              <h2 className="mt-4 max-w-xl text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
-                Run your business from wherever you are.
-              </h2>
+              
 
               <p className="mt-5 max-w-xl text-base leading-8 text-slate-600">
                 Keep track of transactions, customer activity, business
@@ -749,7 +826,7 @@ function App() {
         </section>
 
         {/* ================= PRICING ================= */}
-        <section
+        {/* <section
           id="pricing"
           className="bg-white px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
         >
@@ -774,7 +851,7 @@ function App() {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* ================= FAQ ================= */}
         <section
@@ -870,7 +947,7 @@ function App() {
               </div>
 
               <button
-             onClick={goToLogin}
+                onClick={goToLogin}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-green-700 transition hover:bg-green-50"
               >
                 Get Started
@@ -1132,11 +1209,41 @@ function FeatureCard({
   icon: Icon,
   title,
   description,
+  active = false,
+  onClick,
 }) {
   return (
-    <div className="group rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-green-200 hover:shadow-xl hover:shadow-slate-200/40">
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-50 text-[#61c928] transition group-hover:bg-[#61c928] group-hover:text-white">
-        <Icon size={22} />
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`group w-full rounded-2xl border p-6 text-left transition duration-300 focus:outline-none focus:ring-2 focus:ring-[#61c928]/30 ${
+        active
+          ? "border-[#61c928] bg-[#f7fff3] shadow-xl shadow-green-100/70"
+          : "border-slate-200 bg-white hover:-translate-y-1 hover:border-green-200 hover:shadow-xl hover:shadow-slate-200/40"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition ${
+            active
+              ? "bg-[#61c928] text-white"
+              : "bg-green-50 text-[#61c928] group-hover:bg-[#61c928] group-hover:text-white"
+          }`}
+        >
+          <Icon size={22} />
+        </div>
+
+        <div
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition ${
+            active
+              ? "bg-[#61c928] text-white rotate-90"
+              : "bg-slate-50 text-slate-400 group-hover:bg-green-50 group-hover:text-[#61c928]"
+          }`}
+          aria-hidden="true"
+        >
+          <ArrowRight size={16} />
+        </div>
       </div>
 
       <h3 className="mt-5 text-lg font-extrabold text-slate-800">
@@ -1147,11 +1254,14 @@ function FeatureCard({
         {description}
       </p>
 
-      {/* <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-[#61c928]">
-        Learn more
-        <ArrowRight size={14} />
-      </div> */}
-    </div>
+      <div
+        className={`mt-5 text-xs font-black uppercase tracking-[0.14em] transition ${
+          active ? "text-[#61c928]" : "text-slate-400 group-hover:text-[#61c928]"
+        }`}
+      >
+        {active ? "Selected feature" : "View feature"}
+      </div>
+    </button>
   );
 }
 
@@ -1224,43 +1334,116 @@ const showcaseFeatures = [
   },
 ];
 
-function FeatureShowcase() {
+function FeatureShowcase({ activeFeature, setActiveFeature }) {
+  const selectedFeature =
+    showcaseFeatures.find((feature) => feature.id === activeFeature) ||
+    showcaseFeatures[0];
+
+  if (!selectedFeature) {
+    return null;
+  }
+
   return (
-    <div className="mt-20 overflow-hidden border-t border-slate-200 bg-white py-16 lg:mt-28 lg:py-24">
+    <div
+      id="feature-showcase-details"
+      className="mt-20 overflow-hidden border-t border-slate-200 bg-white py-12 lg:mt-28 lg:py-20"
+    >
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="BUILT FOR DAILY WORK"
-          title=""
-          description="Create, share, track and recover from one connected CtrlBooks workspace."
+          title="Explore each feature"
+          description="Select any feature above to see how it fits into your daily CtrlBooks workflow."
         />
 
-        <div className="mt-16 space-y-20 lg:mt-24 lg:space-y-28">
-          {showcaseFeatures.map((feature, index) => (
-            <div
-              key={feature.title}
-              id={feature.id}
-              className={`grid min-w-0 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-20 ${index % 2
-                ? "lg:[&>div:first-child]:order-2 lg:[&>div:last-child]:order-1"
-                : ""
+        <div className="mt-10 flex gap-2 overflow-x-auto pb-2 lg:mt-12 lg:justify-center lg:overflow-visible">
+          {showcaseFeatures.map((feature) => {
+            const active = feature.id === selectedFeature.id;
+
+            return (
+              <button
+                key={feature.id}
+                type="button"
+                onClick={() => setActiveFeature(feature.id)}
+                aria-pressed={active}
+                className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${
+                  active
+                    ? "border-[#61c928] bg-[#61c928] text-white shadow-lg shadow-green-100"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-green-200 hover:bg-green-50 hover:text-[#54ba23]"
                 }`}
-            >
-              <div className="min-w-0">
-                <ShowcaseIllustration kind={feature.kind} />
-              </div>
+              >
+                {feature.title}
+              </button>
+            );
+          })}
+        </div>
 
-              <div className="min-w-0 max-w-xl lg:justify-self-stretch">
-                <h3 className="text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
-                  {feature.title}
-                </h3>
+        <div
+          id={selectedFeature.id}
+          className="mt-12 grid min-w-0 items-center gap-10 lg:mt-16 lg:grid-cols-2 lg:gap-20"
+        >
+          <div className="min-w-0">
+            <ShowcaseIllustration kind={selectedFeature.kind} />
+          </div>
 
-                <p className="mt-5 text-base leading-8 text-slate-600">
-                  {feature.description}
-                </p>
+          <div className="min-w-0 max-w-xl lg:justify-self-stretch">
+            <span className="inline-flex rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-[#54ba23]">
+              CtrlBooks feature
+            </span>
 
-                <LeadCapture />
-              </div>
+            <h3 className="mt-5 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+              {selectedFeature.title}
+            </h3>
+
+            <p className="mt-5 text-base leading-8 text-slate-600">
+              {selectedFeature.description}
+            </p>
+
+            <LeadCapture />
+
+            <div className="mt-7 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const currentIndex = showcaseFeatures.findIndex(
+                    (feature) => feature.id === selectedFeature.id
+                  );
+                  const nextFeature =
+                    showcaseFeatures[
+                      (currentIndex + 1) % showcaseFeatures.length
+                    ];
+
+                  setActiveFeature(nextFeature.id);
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#61c928] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#4eaf1c]"
+              >
+                Next feature
+                <ArrowRight size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const target = document.getElementById("features");
+
+                  if (target) {
+                    const headerOffset = 96;
+                    const targetPosition =
+                      target.getBoundingClientRect().top +
+                      window.scrollY -
+                      headerOffset;
+
+                    window.scrollTo({
+                      top: targetPosition,
+                      behavior: "smooth",
+                    });
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+              >
+                Back to features
+              </button>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </div>

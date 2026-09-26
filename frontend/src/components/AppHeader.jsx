@@ -1,10 +1,16 @@
 ﻿import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Menu, Search, Smartphone, User } from "lucide-react";
+import {
+  ChevronDown,
+  Menu,
+  Search,
+  Smartphone,
+  User,
+} from "lucide-react";
 
 const profileItems = [
   "Profile",
   "All User",
-  // 'Download Invoice',
+  // "Download Invoice",
   "Logout",
 ];
 
@@ -22,12 +28,17 @@ function ConnectorStatusButton({
   const menuRef = useRef(null);
 
   useEffect(() => {
-    const handleRouteChange = () => setOpen(false);
+    const handleRouteChange = () => {
+      setOpen(false);
+    };
 
     const handleOutsideClick = (event) => {
       if (!open) return;
 
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target)
+      ) {
         setOpen(false);
       }
     };
@@ -36,12 +47,21 @@ function ConnectorStatusButton({
     document.addEventListener("mousedown", handleOutsideClick);
 
     return () => {
-      window.removeEventListener("popstate", handleRouteChange);
-      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener(
+        "popstate",
+        handleRouteChange,
+      );
+
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick,
+      );
     };
   }, [open]);
 
-  const syncMeta = Array.isArray(lastSyncMeta) ? lastSyncMeta[0] : lastSyncMeta;
+  const syncMeta = Array.isArray(lastSyncMeta)
+    ? lastSyncMeta[0]
+    : lastSyncMeta;
 
   const lastSyncValue =
     syncMeta?.completedAt ||
@@ -82,11 +102,19 @@ function ConnectorStatusButton({
   const getStatusType = (status) => {
     const statusKey = String(status || "").toLowerCase();
 
-    if (["online", "active", "connected"].includes(statusKey)) {
+    if (
+      ["online", "active", "connected"].includes(
+        statusKey,
+      )
+    ) {
       return "online";
     }
 
-    if (["offline", "inactive", "disconnected"].includes(statusKey)) {
+    if (
+      ["offline", "inactive", "disconnected"].includes(
+        statusKey,
+      )
+    ) {
       return "offline";
     }
 
@@ -95,317 +123,661 @@ function ConnectorStatusButton({
 
   const getStatusDotClass = (statusType) => {
     if (statusType === "online") {
-      return "bg-emerald-500";
+      return `
+        bg-emerald-400
+        shadow-[0_0_8px_rgba(52,211,153,0.65)]
+      `;
     }
 
     if (statusType === "offline") {
-      return "bg-red-500";
+      return `
+        bg-red-400
+        shadow-[0_0_8px_rgba(248,113,113,0.55)]
+      `;
     }
 
-    return "bg-amber-500";
+    return `
+      bg-amber-400
+      shadow-[0_0_8px_rgba(251,191,36,0.55)]
+    `;
   };
 
   const getStatusBadgeClass = (statusType) => {
     if (statusType === "online") {
-      return "bg-emerald-50 text-emerald-700";
+      return `
+        border
+        border-emerald-300/[0.12]
+        bg-emerald-300/[0.10]
+        text-emerald-200
+      `;
     }
 
     if (statusType === "offline") {
-      return "bg-red-50 text-red-700";
+      return `
+        border
+        border-red-300/[0.12]
+        bg-red-300/[0.08]
+        text-red-200
+      `;
     }
 
-    return "bg-amber-50 text-amber-700";
+    return `
+      border
+      border-amber-300/[0.12]
+      bg-amber-300/[0.08]
+      text-amber-200
+    `;
   };
 
   const getConnectionTextClass = (tallyConnected) => {
     if (tallyConnected === true) {
-      return "text-emerald-600";
+      return "text-emerald-300";
     }
 
     if (tallyConnected === false) {
-      return "text-red-600";
+      return "text-red-300";
     }
 
-    return "text-amber-600";
+    return "text-amber-300";
   };
 
   const overallStatusType =
     rows.length > 0
       ? getStatusType(
-          rows.find((row) =>
-            ["online", "active", "connected"].includes(
-              String(row?.status || "").toLowerCase(),
-            ),
-          )?.status || rows[0]?.status,
-        )
+        rows.find((row) =>
+          ["online", "active", "connected"].includes(
+            String(row?.status || "").toLowerCase(),
+          ),
+        )?.status || rows[0]?.status,
+      )
       : "unknown";
 
   return (
     <div
       ref={menuRef}
-      className="connector-status relative flex w-full min-w-0 items-center justify-center"
+      className="
+        connector-status
+        relative
+        flex
+        w-full
+        min-w-0
+        items-center
+        justify-center
+      "
     >
+      {/* ========================================================
+          CONNECTOR BUTTON
+      ======================================================== */}
+
       <button
         type="button"
         aria-label="Open connector status"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
         className="
-          flex h-10 min-w-0 max-w-full
+          group
+
+          flex
+          h-11
           w-full
-          items-center gap-2
-          rounded-lg
-          border border-app-border
-          bg-white
-          px-2.5
-          shadow-sm
-          transition
-          hover:border-slate-300
+          min-w-0
+          max-w-full
+
+          items-center
+          gap-2
+
+          rounded-xl
+
+          border
+          border-white/[0.10]
+
+          bg-white/[0.055]
+
+          px-3
+
+          text-white
+
+          shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
+
+          backdrop-blur-md
+
+          transition-all
+          duration-200
+
+          hover:border-white/[0.16]
+          hover:bg-white/[0.08]
+
+          active:bg-white/[0.10]
         "
       >
         <span
-          className={`h-2.5 w-2.5 shrink-0 rounded-full ${getStatusDotClass(
-            overallStatusType,
-          )}`}
+          className={`
+            h-2.5
+            w-2.5
+            shrink-0
+            rounded-full
+            ${getStatusDotClass(overallStatusType)}
+          `}
         />
 
-        <span className="flex min-w-0 flex-1 flex-col items-start justify-center leading-none">
-          <span className="truncate text-[10px] font-semibold text-app-text">
+        <span
+          className="
+            flex
+            min-w-0
+            flex-1
+            flex-col
+            items-start
+            justify-center
+            leading-none
+          "
+        >
+          <span
+            className="
+              truncate
+              text-[10px]
+              font-semibold
+              text-white/[0.90]
+            "
+          >
             Connector Status
           </span>
 
-          <span className="mt-0.5 whitespace-nowrap truncate text-[8px] text-slate-400">
+          <span
+            className="
+              mt-0.5
+              truncate
+              whitespace-nowrap
+              text-[8px]
+              text-white/[0.42]
+            "
+          >
             Last Sync History
           </span>
         </span>
 
-        <span
+        {/* <span
           className="
-            flex h-5 min-w-5
+            flex
+            h-5
+            min-w-5
             shrink-0
-            items-center justify-center
+            items-center
+            justify-center
+
             rounded-full
-            bg-slate-100
+
+            border
+            border-white/[0.07]
+
+            bg-white/[0.07]
+
             px-1.5
+          
             text-[9px]
             font-semibold
-            text-slate-700
+            text-white/[0.72]
           "
         >
           {rows.length || 0}
-        </span>
+        </span> */}
 
         <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`
+            h-3.5
+            w-3.5
+            shrink-0
+
+            text-white/[0.45]
+
+            transition-transform
+            duration-200
+
+            ${open ? "rotate-180" : ""}
+          `}
         />
       </button>
+
+      {/* ========================================================
+          CONNECTOR DROPDOWN
+      ======================================================== */}
 
       {open && (
         <div
           className="
             connector-status-menu
-            absolute right-0 top-full z-[1100]
+
+            absolute
+            right-0
+            top-full
+            z-[1100]
+
             mt-2
+
             w-[min(420px,calc(100vw-16px))]
+
             overflow-hidden
+
             rounded-xl
-            border border-app-border
-            bg-white
-            shadow-[0_18px_42px_rgba(15,23,42,0.14)]
+
+            border
+            border-white/[0.10]
+
+            bg-[#08221d]/[0.97]
+
+            text-white
+
+            shadow-[0_18px_42px_rgba(0,0,0,0.35)]
+
+            backdrop-blur-[24px]
+            backdrop-saturate-[150%]
           "
         >
-          {/* DROPDOWN HEADER */}
+          {/* Background glows */}
           <div
             className="
-              flex min-h-14
-              items-center
-              justify-between
-              border-b border-app-border
-              bg-slate-50
-              px-4
-              py-2.5
+              pointer-events-none
+              absolute
+              inset-0
+              overflow-hidden
             "
           >
-            <div className="flex flex-col">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-app-text-secondary">
-                Connector Status
-              </p>
-            </div>
-          </div>
-
-          {/* LAST SYNC SUMMARY */}
-          <div className="flex items-center justify-center border-b border-app-border bg-white px-4 py-2.5">
-            <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-app-text-secondary">
-              Last Sync History
-            </span>
-          </div>
-
-          {lastSyncMeta && (
             <div
               className="
-                grid grid-cols-1 gap-3
-                border-b border-app-border
-                px-4 py-3
-                sm:grid-cols-2
+                absolute
+                -right-16
+                -top-16
+
+                h-40
+                w-40
+
+                rounded-full
+
+                bg-emerald-400/[0.06]
+
+                blur-[50px]
+              "
+            />
+
+            <div
+              className="
+                absolute
+                -bottom-20
+                -left-16
+
+                h-40
+                w-40
+
+                rounded-full
+
+                bg-cyan-400/[0.025]
+
+                blur-[55px]
+              "
+            />
+          </div>
+
+          <div className="relative z-10">
+            {/* HEADER */}
+            <div
+              className="
+                flex
+                min-h-14
+                items-center
+                justify-between
+
+                border-b
+                border-white/[0.07]
+
+                bg-white/[0.025]
+
+                px-4
+                py-2.5
               "
             >
-              <div>
-                <span className="block text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                  Type
-                </span>
-
-                <span className="mt-1 block text-[11px] font-medium text-app-text">
-                  {syncMeta?.type || "N/A"}
-                </span>
-              </div>
-
-              <div>
-                <span className="block text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                  Status
-                </span>
-
-                <span
-                  className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                    getStatusType(syncMeta?.status) === "online"
-                      ? "bg-emerald-50 text-emerald-700"
-                      : getStatusType(syncMeta?.status) === "offline"
-                        ? "bg-red-50 text-red-700"
-                        : "bg-amber-50 text-amber-700"
-                  }`}
+              <div className="flex flex-col">
+                <p
+                  className="
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-wide
+                    text-emerald-200/[0.88]
+                  "
                 >
-                  {syncMeta?.status || "N/A"}
-                </span>
+                  Connector Status
+                </p>
               </div>
 
-              <div className="sm:col-span-2">
-                <span className="block text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                  Last Sync At
-                </span>
+              <span
+                className={`
+                  rounded-full
+                  px-2.5
+                  py-1
 
-                <span className="mt-1 block text-[11px] font-medium text-app-text">
-                  {lastSyncLabel}
-                </span>
-              </div>
+                  text-[9px]
+                  font-semibold
+                  uppercase
+                  tracking-wide
+
+                  ${getStatusBadgeClass(
+                  overallStatusType,
+                )}
+                `}
+              >
+                {overallStatusType}
+              </span>
             </div>
-          )}
 
-          {/* CONNECTOR LIST */}
-          <div className="max-h-[320px] overflow-y-auto">
-            {isConnectorStatusLoading ? (
-              <div className="px-4 py-5 text-sm text-slate-500">
-                Loading connector status...
-              </div>
-            ) : connectorStatusError ? (
-              <div className="px-4 py-5 text-sm text-red-600">
-                {connectorStatusError}
-              </div>
-            ) : rows.length === 0 ? (
-              <div className="px-4 py-5 text-sm text-slate-500">
-                No connector status available.
-              </div>
-            ) : (
-              rows.map((connector, index) => {
-                const deviceName =
-                  connector?.deviceName ||
-                  connector?.name ||
-                  connector?.connectorName ||
-                  `Connector ${index + 1}`;
+            {/* LAST SYNC */}
+            <div
+              className="
+                flex
+                items-center
+                justify-center
 
-                const status = connector?.status || "UNKNOWN";
+                border-b
+                border-white/[0.07]
 
-                const statusType = getStatusType(status);
+                bg-white/[0.018]
 
-                const statusDotClass = getStatusDotClass(statusType);
+                px-4
+                py-2.5
+              "
+            >
+              <span
+                className="
+                  whitespace-nowrap
 
-                const statusBadgeClass = getStatusBadgeClass(statusType);
+                  text-[10px]
+                  font-semibold
+                  uppercase
+                  tracking-wide
 
-                const heartbeat =
-                  connector?.lastHeartbeatAt ||
-                  connector?.lastHeartbeat ||
-                  connector?.heartbeatAt ||
-                  null;
+                  text-white/[0.45]
+                "
+              >
+                Last Sync History
+              </span>
+            </div>
 
-                const connectionClass = getConnectionTextClass(
-                  connector?.tallyConnected,
-                );
+            {/* LAST SYNC META */}
+            {lastSyncMeta && (
+              <div
+                className="
+                  grid
+                  grid-cols-1
+                  gap-3
 
-                return (
-                  <div
-                    key={`${deviceName}-${index}`}
+                  border-b
+                  border-white/[0.07]
+
+                  px-4
+                  py-3
+
+                  sm:grid-cols-2
+                "
+              >
+                <div>
+                  <span
                     className="
-                      border-b border-app-border-light
-                      px-4 py-4
-                      last:border-b-0
+                      block
+                      text-[9px]
+                      font-semibold
+                      uppercase
+                      tracking-wide
+                      text-white/[0.35]
                     "
                   >
-                    {/* DEVICE + STATUS */}
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span
-                          className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusDotClass}`}
-                        />
+                    Type
+                  </span>
 
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-semibold text-app-text">
-                            {deviceName}
+                  <span
+                    className="
+                      mt-1
+                      block
+                      text-[11px]
+                      font-medium
+                      text-white/[0.86]
+                    "
+                  >
+                    {syncMeta?.type || "N/A"}
+                  </span>
+                </div>
+
+                <div>
+                  <span
+                    className="
+                      block
+                      text-[9px]
+                      font-semibold
+                      uppercase
+                      tracking-wide
+                      text-white/[0.35]
+                    "
+                  >
+                    Status
+                  </span>
+
+                  <span
+                    className={`
+                      mt-1
+                      inline-flex
+                      rounded-full
+                      px-2
+                      py-0.5
+
+                      text-[10px]
+                      font-semibold
+                      uppercase
+
+                      ${getStatusBadgeClass(
+                      getStatusType(
+                        syncMeta?.status,
+                      ),
+                    )}
+                    `}
+                  >
+                    {syncMeta?.status || "N/A"}
+                  </span>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <span
+                    className="
+                      block
+                      text-[9px]
+                      font-semibold
+                      uppercase
+                      tracking-wide
+                      text-white/[0.35]
+                    "
+                  >
+                    Last Sync At
+                  </span>
+
+                  <span
+                    className="
+                      mt-1
+                      block
+                      text-[11px]
+                      font-medium
+                      text-white/[0.86]
+                    "
+                  >
+                    {lastSyncLabel}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* CONNECTOR LIST */}
+            <div
+              className="
+    glass-scrollbar
+    max-h-[320px]
+    overflow-y-auto
+  "
+            >
+              {isConnectorStatusLoading ? (
+                <div className="px-4 py-5 text-sm text-white/[0.52]">
+                  Loading connector status...
+                </div>
+              ) : connectorStatusError ? (
+                <div className="px-4 py-5 text-sm text-red-300">
+                  {connectorStatusError}
+                </div>
+              ) : rows.length === 0 ? (
+                <div className="px-4 py-5 text-sm text-white/[0.52]">
+                  No connector status available.
+                </div>
+              ) : (
+                rows.map((connector, index) => {
+                  const deviceName =
+                    connector?.deviceName ||
+                    connector?.name ||
+                    connector?.connectorName ||
+                    `Connector ${index + 1}`;
+
+                  const status =
+                    connector?.status || "UNKNOWN";
+
+                  const statusType =
+                    getStatusType(status);
+
+                  const statusDotClass =
+                    getStatusDotClass(statusType);
+
+                  const statusBadgeClass =
+                    getStatusBadgeClass(statusType);
+
+                  const heartbeat =
+                    connector?.lastHeartbeatAt ||
+                    connector?.lastHeartbeat ||
+                    connector?.heartbeatAt ||
+                    null;
+
+                  const connectionClass =
+                    getConnectionTextClass(
+                      connector?.tallyConnected,
+                    );
+
+                  return (
+                    <div
+                      key={`${deviceName}-${index}`}
+                      className="
+                        border-b
+                        border-white/[0.06]
+
+                        px-4
+                        py-4
+
+                        last:border-b-0
+                      "
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span
+                            className={`
+                              h-2.5
+                              w-2.5
+                              shrink-0
+                              rounded-full
+                              ${statusDotClass}
+                            `}
+                          />
+
+                          <div className="min-w-0">
+                            <p
+                              className="
+                                truncate
+                                text-xs
+                                font-semibold
+                                text-white/[0.90]
+                              "
+                            >
+                              {deviceName}
+                            </p>
+
+                            <p
+                              className="
+                                mt-1
+                                text-[10px]
+                                font-bold
+                                text-white/[0.55]
+                              "
+                            >
+                              Tally connection
+                            </p>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`
+                            shrink-0
+                            rounded-full
+
+                            px-2.5
+                            py-1
+
+                            text-[10px]
+                            font-semibold
+                            uppercase
+                            tracking-wide
+
+                            ${statusBadgeClass}
+                          `}
+                        >
+                          {status}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-[9px] font-medium text-white/[0.32]">
+                            Connection
                           </p>
 
-                          <p className="mt-1 text-[10px] font-bold text-app-text">
-                            Tally connection
+                          <p
+                            className={`
+                              mt-1
+                              text-[11px]
+                              font-semibold
+                              ${connectionClass}
+                            `}
+                          >
+                            {connector?.tallyConnected ===
+                              true
+                              ? "Connected"
+                              : connector?.tallyConnected ===
+                                false
+                                ? "Disconnected"
+                                : "N/A"}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-[9px] font-medium text-white/[0.32]">
+                            Last Updated
+                          </p>
+
+                          <p
+                            className="
+                              mt-1
+                              truncate
+                              text-[11px]
+                              font-medium
+                              text-white/[0.80]
+                            "
+                          >
+                            {formatDateTime(heartbeat)}
                           </p>
                         </div>
                       </div>
-
-                      <span
-                        className={`
-                          shrink-0
-                          rounded-full
-                          px-2.5 py-1
-                          text-[10px]
-                          font-semibold
-                          uppercase
-                          tracking-wide
-                          ${statusBadgeClass}
-                        `}
-                      >
-                        {status}
-                      </span>
                     </div>
-
-                    {/* CONNECTION DETAILS */}
-                    <div className="mt-3 grid grid-cols-2 gap-3">
-                      <div>
-                        <p className="text-[9px] font-medium text-slate-400">
-                          Connection
-                        </p>
-
-                        <p
-                          className={`mt-1 text-[11px] font-semibold ${connectionClass}`}
-                        >
-                          {connector?.tallyConnected === true
-                            ? "Connected"
-                            : connector?.tallyConnected === false
-                              ? "Disconnected"
-                              : "N/A"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-[9px] font-medium text-slate-400">
-                          Last Updated
-                        </p>
-
-                        <p className="mt-1 truncate text-[11px] font-medium text-app-text">
-                          {formatDateTime(heartbeat)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -454,24 +826,28 @@ function AppHeader({
 
   const companies = Array.isArray(companyOptions)
     ? companyOptions.filter((company) => {
-        const name = String(company?.name || company?.companyName || "")
-          .trim()
-          .toLowerCase();
+      const name = String(
+        company?.name ||
+        company?.companyName ||
+        "",
+      )
+        .trim()
+        .toLowerCase();
 
-        if (!name) return false;
+      if (!name) return false;
 
-        const dummyNames = [
-          "dummy",
-          "dummy company",
-          "unnamed company",
-          "test",
-          "test company",
-          "na",
-          "n/a",
-        ];
+      const dummyNames = [
+        "dummy",
+        "dummy company",
+        "unnamed company",
+        "test",
+        "test company",
+        "na",
+        "n/a",
+      ];
 
-        return !dummyNames.includes(name);
-      })
+      return !dummyNames.includes(name);
+    })
     : [];
 
   /* ============================================================
@@ -485,20 +861,39 @@ function AppHeader({
     };
 
     const handleOutsideClick = (event) => {
-      if (headerRef.current?.contains(event.target)) return;
+      if (headerRef.current?.contains(event.target)) {
+        return;
+      }
 
       setShowCompanyMenu(false);
       setShowProfileMenu(false);
     };
 
-    window.addEventListener("popstate", handleRouteClose);
-    document.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener(
+      "popstate",
+      handleRouteClose,
+    );
+
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick,
+    );
 
     return () => {
-      window.removeEventListener("popstate", handleRouteClose);
-      document.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener(
+        "popstate",
+        handleRouteClose,
+      );
+
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick,
+      );
     };
-  }, [setShowCompanyMenu, setShowProfileMenu]);
+  }, [
+    setShowCompanyMenu,
+    setShowProfileMenu,
+  ]);
 
   /* ============================================================
      DROPDOWN TOGGLES
@@ -566,46 +961,255 @@ function AppHeader({
 
   return (
     <>
-      <header ref={headerRef} className="app-header relative z-[1000] w-full">
+      <header
+        ref={headerRef}
+        className="
+          app-header
+          relative
+          z-[1000]
+
+          w-full
+
+          overflow-visible
+
+          border-b
+          border-emerald-300/[0.10]
+
+          bg-[#08221d]/[0.96]
+
+          text-white
+
+          shadow-[0_8px_35px_rgba(0,0,0,0.18)]
+
+          backdrop-blur-[24px]
+          backdrop-saturate-[150%]
+        "
+      >
+        {/* =====================================================
+            LIQUID GLASS BACKGROUND
+        ====================================================== */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            inset-0
+            overflow-hidden
+          "
+        >
+          {/* Main glass surface */}
+          <div
+            className="
+              absolute
+              inset-0
+
+              bg-gradient-to-r
+              from-[#123a32]/[0.72]
+              via-[#0b2923]/[0.82]
+              to-[#041512]/[0.95]
+            "
+          />
+
+          {/* Top-left green glow */}
+          <div
+            className="
+              absolute
+              -left-24
+              -top-24
+
+              h-64
+              w-64
+
+              rounded-full
+
+              bg-emerald-400/[0.07]
+
+              blur-[72px]
+            "
+          />
+
+          {/* Center green glow */}
+          <div
+            className="
+              absolute
+              left-[38%]
+              -top-32
+
+              h-60
+              w-60
+
+              rounded-full
+
+              bg-emerald-300/[0.035]
+
+              blur-[75px]
+            "
+          />
+
+          {/* Right cyan glow */}
+          <div
+            className="
+              absolute
+              -bottom-28
+              right-[-90px]
+
+              h-72
+              w-72
+
+              rounded-full
+
+              bg-cyan-400/[0.035]
+
+              blur-[80px]
+            "
+          />
+
+          {/* Diagonal reflection */}
+          <div
+            className="
+              absolute
+              -left-[12%]
+              top-[-100%]
+
+              h-[300%]
+              w-[24%]
+
+              rotate-[16deg]
+
+              bg-gradient-to-r
+              from-white/[0.045]
+              via-white/[0.008]
+              to-transparent
+
+              blur-[12px]
+            "
+          />
+
+          {/* Vignette */}
+          <div
+            className="
+              absolute
+              inset-0
+
+              bg-[radial-gradient(circle_at_45%_18%,transparent_0%,rgba(0,0,0,0.03)_52%,rgba(0,0,0,0.18)_100%)]
+            "
+          />
+
+          {/* Top glass edge */}
+          <div
+            className="
+              absolute
+              left-0
+              right-0
+              top-0
+
+              h-px
+
+              bg-gradient-to-r
+              from-transparent
+              via-white/[0.26]
+              to-transparent
+            "
+          />
+
+          {/* Bottom glass edge */}
+          <div
+            className="
+              absolute
+              bottom-0
+              left-0
+              right-0
+
+              h-px
+
+              bg-gradient-to-r
+              from-transparent
+              via-emerald-300/[0.10]
+              to-transparent
+            "
+          />
+        </div>
+
         {/* ====================================================
             TOP ROW
         ===================================================== */}
+
         <div
           className="
-            flex h-16 min-h-16
-            w-full min-w-0
-            items-stretch
-            overflow-visible
-            bg-white
-            px-0 sm:px-2
-          "
+    relative
+    z-50
+
+    flex
+    h-16
+    min-h-16
+    w-full
+    min-w-0
+    items-stretch
+    overflow-visible
+    bg-transparent
+    px-0
+    sm:px-2
+  "
         >
           {/* ==================================================
               MENU
           =================================================== */}
+
           <div
             className="
-              flex h-16 w-12 sm:w-14
+              flex
+              h-16
+              w-12
               shrink-0
+
               items-center
               justify-center
-              border-r border-app-border
+
+              border-r
+              border-white/[0.07]
+
+              bg-white/[0.018]
+
+              sm:w-14
             "
           >
             <button
               type="button"
               aria-label="Toggle sidebar"
               aria-expanded={!sidebarCollapsed}
-              onClick={() => setSidebarCollapsed((current) => !current)}
+              onClick={() =>
+                setSidebarCollapsed(
+                  (current) => !current,
+                )
+              }
               className="
-                flex h-10 w-10
-                items-center justify-center
-                rounded-lg
-                bg-white
-                text-app-text-secondary
-                transition
-                hover:bg-slate-50
-                hover:text-app-text
+                flex
+                h-10
+                w-10
+
+                items-center
+                justify-center
+
+                rounded-xl
+
+                border
+                border-white/[0.08]
+
+                bg-white/[0.055]
+
+                text-emerald-100/[0.78]
+
+                shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
+
+                backdrop-blur-md
+
+                transition-all
+
+                active:scale-95
+
+                hover:border-white/[0.15]
+                hover:bg-white/[0.09]
+                hover:text-white
               "
             >
               <Menu className="h-5 w-5" />
@@ -615,15 +1219,24 @@ function AppHeader({
           {/* ==================================================
               COMPANY
           =================================================== */}
+
           <div
             className="
               relative
-              flex h-16
+
+              flex
+              h-16
               min-w-0
               flex-1
               shrink
+
               items-center
-              border-r border-app-border
+
+              border-r
+              border-white/[0.07]
+
+              bg-white/[0.018]
+
               sm:w-[230px]
               sm:min-w-[180px]
               sm:flex-none
@@ -632,23 +1245,45 @@ function AppHeader({
             <button
               type="button"
               aria-label={
-                selectedCompany ? "Select company" : "No company selected"
+                selectedCompany
+                  ? "Select company"
+                  : "No company selected"
               }
-              aria-expanded={selectedCompany ? showCompanyMenu : false}
+              aria-expanded={
+                selectedCompany
+                  ? showCompanyMenu
+                  : false
+              }
               onClick={toggleCompanyMenu}
               disabled={!selectedCompany}
               className={`
-                flex h-full w-full
+                flex
+                h-full
+                w-full
+
                 items-center
                 gap-2
-                px-2 sm:gap-3 sm:px-5
+
+                px-2
+
                 text-left
+
                 outline-none
-                transition
-                ${
-                  selectedCompany
-                    ? "cursor-pointer hover:bg-slate-50"
-                    : "cursor-not-allowed bg-slate-50"
+
+                transition-all
+
+                sm:gap-3
+                sm:px-5
+
+                ${selectedCompany
+                  ? `
+                      cursor-pointer
+                      hover:bg-white/[0.035]
+                    `
+                  : `
+                      cursor-not-allowed
+                      bg-black/[0.08]
+                    `
                 }
               `}
             >
@@ -656,11 +1291,14 @@ function AppHeader({
               <span className="min-w-0 flex-1">
                 <strong
                   className="
-                    block truncate
+                    block
+                    truncate
+
                     text-[12px]
                     font-semibold
                     leading-4
-                    text-app-text
+
+                    text-white/[0.92]
                   "
                 >
                   {selectedCompany?.name ||
@@ -670,13 +1308,19 @@ function AppHeader({
 
                 <span
                   className="
-                    mt-0.5 block truncate
+                    mt-0.5
+                    block
+                    truncate
+
                     text-[10px]
                     leading-3
-                    text-slate-500
+
+                    text-white/[0.40]
                   "
                 >
-                  {selectedCompany?.meta || selectedCompany?.city || ""}
+                  {selectedCompany?.meta ||
+                    selectedCompany?.city ||
+                    ""}
                 </span>
               </span>
 
@@ -684,11 +1328,18 @@ function AppHeader({
               {selectedCompany && (
                 <ChevronDown
                   className={`
-                    h-4 w-4
+                    h-4
+                    w-4
                     shrink-0
-                    text-slate-500
+
+                    text-white/[0.45]
+
                     transition-transform
-                    ${showCompanyMenu ? "rotate-180" : ""}
+
+                    ${showCompanyMenu
+                      ? "rotate-180"
+                      : ""
+                    }
                   `}
                 />
               )}
@@ -697,205 +1348,347 @@ function AppHeader({
             {/* ==================================================
                 COMPANY DROPDOWN
             =================================================== */}
-            {showCompanyMenu && selectedCompany && (
-              <div
-                className="
-                  absolute
-                  left-2
-                  top-[62px]
-                  z-[1100]
-                  w-[min(300px,calc(100vw-16px))]
-                  overflow-hidden
-                  rounded-xl
-                  border border-app-border
-                  bg-white
-                  shadow-[0_18px_42px_rgba(15,23,42,0.14)]
-                "
-              >
-                {/* DROPDOWN HEADER */}
+
+            {showCompanyMenu &&
+              selectedCompany && (
                 <div
                   className="
-                    border-b
-                    border-app-border
-                    bg-slate-50
-                    px-4
-                    py-3
+                    absolute
+                    left-2
+                    top-[62px]
+                    z-[1100]
+
+                    w-[min(300px,calc(100vw-16px))]
+
+                    overflow-hidden
+
+                    rounded-xl
+
+                    border
+                    border-white/[0.10]
+
+                    bg-[#08221d]/[0.97]
+
+                    text-white
+
+                    shadow-[0_18px_42px_rgba(0,0,0,0.35)]
+
+                    backdrop-blur-[24px]
+                    backdrop-saturate-[150%]
                   "
                 >
-                  <p
+                  {/* Dropdown glow */}
+                  <div
                     className="
-                      m-0
-                      text-[10px]
-                      font-semibold
-                      uppercase
-                      tracking-wide
-                      text-slate-500
+                      pointer-events-none
+                      absolute
+                      inset-0
+                      overflow-hidden
                     "
                   >
-                    My Companies
-                  </p>
-                </div>
+                    <div
+                      className="
+                        absolute
+                        -left-10
+                        -top-10
 
-                {/* COMPANY LIST / EMPTY STATE */}
-                {companies.length > 0 ? (
-                  <div className="max-h-[320px] overflow-y-auto p-1.5">
-                    {companies.map((company, index) => {
-                      const companyId = getCompanyId(company);
+                        h-32
+                        w-32
 
-                      const key =
-                        companyId ||
-                        company?.name ||
-                        company?.companyName ||
-                        `company-${index}`;
+                        rounded-full
 
-                      const selectedCompanyId = getCompanyId(selectedCompany);
+                        bg-emerald-400/[0.06]
 
-                      const isSelected =
-                        companyId &&
-                        selectedCompanyId &&
-                        String(companyId) === String(selectedCompanyId);
+                        blur-[45px]
+                      "
+                    />
+                  </div>
 
-                      const companyName =
-                        company?.name || company?.companyName || "";
+                  <div className="relative z-10">
+                    {/* DROPDOWN HEADER */}
+                    <div
+                      className="
+                        border-b
+                        border-white/[0.07]
 
-                      const companyMeta =
-                        company?.meta ||
-                        company?.city ||
-                        company?.address ||
-                        "";
+                        bg-white/[0.025]
 
-                      return (
-                        <button
-                          type="button"
-                          key={key}
-                          onClick={() => handleCompanySelect(company)}
-                          className={`
-                            flex w-full
-                            items-center
-                            gap-3
-                            rounded-lg
-                            px-3 py-3
-                            text-left
-                            transition
-                            ${
-                              isSelected ? "bg-emerald-50" : "hover:bg-slate-50"
-                            }
-                          `}
-                        >
-                          {/* COMPANY ICON */}
-                          <span
-                            className={`
-                              flex
-                              h-9 w-9
-                              shrink-0
-                              items-center
-                              justify-center
-                              rounded-lg
-                              text-xs
-                              font-bold
-                              ${
-                                isSelected
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-slate-100 text-slate-500"
-                              }
-                            `}
-                          >
-                            {companyName.trim().charAt(0).toUpperCase()}
-                          </span>
+                        px-4
+                        py-3
+                      "
+                    >
+                      <p
+                        className="
+                          m-0
 
-                          {/* COMPANY DETAILS */}
-                          <span className="min-w-0 flex-1">
-                            <span
-                              className={`
-                                block truncate
-                                text-xs
-                                font-semibold
-                                ${
-                                  isSelected
-                                    ? "text-emerald-800"
-                                    : "text-app-text"
+                          text-[10px]
+                          font-semibold
+                          uppercase
+                          tracking-wide
+
+                          text-emerald-200/[0.72]
+                        "
+                      >
+                        My Companies
+                      </p>
+                    </div>
+
+                    {/* COMPANY LIST */}
+                    {companies.length > 0 ? (
+                      <div
+                        className="
+                        glass-scrollbar
+                         max-h-[320px]
+                         overflow-y-auto
+                        p-1.5"
+
+                      >
+                        {companies.map(
+                          (company, index) => {
+                            const companyId =
+                              getCompanyId(
+                                company,
+                              );
+
+                            const key =
+                              companyId ||
+                              company?.name ||
+                              company?.companyName ||
+                              `company-${index}`;
+
+                            const selectedCompanyId =
+                              getCompanyId(
+                                selectedCompany,
+                              );
+
+                            const isSelected =
+                              companyId &&
+                              selectedCompanyId &&
+                              String(companyId) ===
+                              String(
+                                selectedCompanyId,
+                              );
+
+                            const companyName =
+                              company?.name ||
+                              company?.companyName ||
+                              "";
+
+                            const companyMeta =
+                              company?.meta ||
+                              company?.city ||
+                              company?.address ||
+                              "";
+
+                            return (
+                              <button
+                                type="button"
+                                key={key}
+                                onClick={() =>
+                                  handleCompanySelect(
+                                    company,
+                                  )
                                 }
-                              `}
-                            >
-                              {companyName}
-                            </span>
+                                className={`
+                                  flex
+                                  w-full
 
-                            {companyMeta && (
-                              <span
-                                className="
-                                  mt-0.5
-                                  block truncate
-                                  text-[10px]
-                                  text-slate-500
-                                "
+                                  items-center
+                                  gap-3
+
+                                  rounded-lg
+
+                                  px-3
+                                  py-3
+
+                                  text-left
+
+                                  transition-all
+
+                                  ${isSelected
+                                    ? `
+                                        bg-emerald-300/[0.08]
+
+                                        shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]
+                                      `
+                                    : `
+                                        hover:bg-white/[0.045]
+                                      `
+                                  }
+                                `}
                               >
-                                {companyMeta}
-                              </span>
-                            )}
-                          </span>
+                                {/* COMPANY ICON */}
+                                <span
+                                  className={`
+                                    flex
+                                    h-9
+                                    w-9
+                                    shrink-0
 
-                          {/* SELECTED CHECK */}
-                          {isSelected && (
-                            <span
-                              className="
-                                flex
-                                h-5 w-5
-                                shrink-0
-                                items-center
-                                justify-center
-                                rounded-full
-                                bg-emerald-500
-                                text-[10px]
-                                font-bold
-                                text-white
-                              "
-                            >
-                              ✓
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="px-4 py-6 text-center">
-                    <p className="text-sm font-medium text-slate-600">
-                      No companies available
-                    </p>
+                                    items-center
+                                    justify-center
 
-                    <p className="mt-1 text-[11px] text-slate-400">
-                      No companies were found for your account.
-                    </p>
+                                    rounded-lg
+
+                                    text-xs
+                                    font-bold
+
+                                    ${isSelected
+                                      ? `
+                                          border
+                                          border-emerald-300/[0.12]
+
+                                          bg-emerald-300/[0.10]
+
+                                          text-emerald-200
+                                        `
+                                      : `
+                                          border
+                                          border-white/[0.07]
+
+                                          bg-white/[0.05]
+
+                                          text-white/[0.50]
+                                        `
+                                    }
+                                  `}
+                                >
+                                  {companyName
+                                    .trim()
+                                    .charAt(0)
+                                    .toUpperCase()}
+                                </span>
+
+                                {/* COMPANY DETAILS */}
+                                <span className="min-w-0 flex-1">
+                                  <span
+                                    className={`
+                                      block
+                                      truncate
+
+                                      text-xs
+                                      font-semibold
+
+                                      ${isSelected
+                                        ? "text-emerald-100"
+                                        : "text-white/[0.82]"
+                                      }
+                                    `}
+                                  >
+                                    {companyName}
+                                  </span>
+
+                                  {companyMeta && (
+                                    <span
+                                      className="
+                                        mt-0.5
+                                        block
+                                        truncate
+
+                                        text-[10px]
+
+                                        text-white/[0.38]
+                                      "
+                                    >
+                                      {companyMeta}
+                                    </span>
+                                  )}
+                                </span>
+
+                                {/* SELECTED CHECK */}
+                                {isSelected && (
+                                  <span
+                                    className="
+                                      flex
+                                      h-5
+                                      w-5
+                                      shrink-0
+
+                                      items-center
+                                      justify-center
+
+                                      rounded-full
+
+                                      bg-emerald-400
+
+                                      text-[10px]
+                                      font-bold
+                                      text-[#06251d]
+
+                                      shadow-[0_0_12px_rgba(52,211,153,0.25)]
+                                    "
+                                  >
+                                    ✓
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          },
+                        )}
+                      </div>
+                    ) : (
+                      <div className="px-4 py-6 text-center">
+                        <p className="text-sm font-medium text-white/[0.65]">
+                          No companies available
+                        </p>
+
+                        <p className="mt-1 text-[11px] text-white/[0.32]">
+                          No companies were found for
+                          your account.
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
           </div>
 
           {/* ==================================================
               DESKTOP SEARCH
           =================================================== */}
-          {/*
-          <div className="hidden min-w-0 flex-1 items-center lg:flex">
+
+          {/* 
+          <div
+            className="
+              hidden
+              min-w-0
+              flex-1
+              items-center
+              lg:flex
+            "
+          >
             <label
               className="
                 mx-4
-                flex h-10
+
+                flex
+                h-10
                 min-w-0
                 max-w-[460px]
                 flex-1
+
                 items-center
                 gap-2
-                rounded-lg
-                border border-app-border
-                bg-slate-50/50
+
+                rounded-xl
+
+                border
+                border-white/[0.08]
+
+                bg-white/[0.055]
+
                 px-3
-                text-slate-400
+
+                text-white/[0.45]
+
+                backdrop-blur-md
+
                 transition
-                focus-within:border-app-primary
-                focus-within:bg-white
+
+                focus-within:border-emerald-300/[0.20]
+                focus-within:bg-white/[0.075]
                 focus-within:ring-2
-                focus-within:ring-emerald-100
+                focus-within:ring-emerald-300/[0.08]
               "
             >
               <Search className="h-4 w-4 shrink-0" />
@@ -904,12 +1697,17 @@ function AppHeader({
                 type="text"
                 placeholder="Search vouchers, ledgers, items..."
                 className="
-                  w-full min-w-0
+                  w-full
+                  min-w-0
+
                   bg-transparent
+
                   text-[12px]
-                  text-app-text
+                  text-white
+
                   outline-none
-                  placeholder:text-slate-400
+
+                  placeholder:text-white/[0.32]
                 "
               />
             </label>
@@ -919,14 +1717,23 @@ function AppHeader({
           {/* ==================================================
               RIGHT ACTIONS
           =================================================== */}
+
           <div
             className="
               ml-auto
-              flex h-16
+
+              flex
+              h-16
+
               shrink-0
+
               items-stretch
             "
           >
+            {/* ==================================================
+                LINK E-INVOICE
+            =================================================== */}
+
             {/* LINK E-INVOICE
             <button
               type="button"
@@ -936,32 +1743,52 @@ function AppHeader({
                   : setShowEway?.(true)
               }
               className="
-                hidden h-16 w-[78px]
+                hidden
+                h-16
+                w-[78px]
                 shrink-0
+
                 items-center
                 justify-center
                 gap-1.5
-                border-r border-app-border
-                bg-white
+
+                border-r
+                border-white/[0.07]
+
+                bg-white/[0.018]
+
                 text-[9px]
                 leading-3
-                text-app-text-secondary
+                text-white/[0.55]
+
                 transition
-                hover:bg-slate-50
+
+                hover:bg-white/[0.05]
+                hover:text-white
+
                 md:flex
               "
             >
               <span
                 className="
-                  flex h-5 w-5
+                  flex
+                  h-5
+                  w-5
                   shrink-0
+
                   items-center
                   justify-center
+
                   rounded-full
-                  border border-red-400
+
+                  border
+                  border-red-400/[0.60]
+
+                  bg-red-400/[0.05]
+
                   text-[10px]
                   font-bold
-                  text-red-500
+                  text-red-300
                 "
               >
                 !
@@ -972,9 +1799,13 @@ function AppHeader({
                 <br />
                 eInvoice
               </span>
-            </button> */}
+            </button>
+            */}
 
-            {/* MOBILE VERSION */}
+            {/* ==================================================
+                MOBILE VERSION
+            =================================================== */}
+
             <button
               type="button"
               onClick={
@@ -987,22 +1818,42 @@ function AppHeader({
                   ))
               }
               className="
-                hidden h-16 w-[82px]
+                hidden
+
+                h-16
+                w-[82px]
                 shrink-0
+
                 items-center
                 justify-center
                 gap-1.5
-                border-r border-app-border
-                bg-white
+
+                border-r
+                border-white/[0.07]
+
+                bg-white/[0.018]
+
                 text-[9px]
                 leading-3
-                text-app-text-secondary
-                transition
-                hover:bg-slate-50
+                text-white/[0.55]
+
+                transition-all
+
+                hover:bg-white/[0.05]
+                hover:text-white
+
                 lg:flex
               "
             >
-              <Smartphone className="h-4 w-4 shrink-0" />
+              <Smartphone
+                className="
+                  h-4
+                  w-4
+                  shrink-0
+
+                  text-emerald-200/[0.72]
+                "
+              />
 
               <span>
                 Mobile
@@ -1011,35 +1862,57 @@ function AppHeader({
               </span>
             </button>
 
-            {/* CONNECTOR */}
+            {/* ==================================================
+                CONNECTOR
+            =================================================== */}
+
             <div
               className="
-                hidden h-16
+                hidden
+
+                h-16
                 w-[180px]
                 shrink-0
+
                 items-center
                 justify-center
-                border-r border-app-border
-                bg-white
+
+                border-r
+                border-white/[0.07]
+
+                bg-white/[0.018]
+
                 px-2
+
                 lg:flex
               "
             >
               <ConnectorStatusButton
                 rows={connectorStatusRows}
                 lastSyncMeta={lastSyncMeta}
-                connectorStatusError={connectorStatusError}
-                isConnectorStatusLoading={isConnectorStatusLoading}
+                connectorStatusError={
+                  connectorStatusError
+                }
+                isConnectorStatusLoading={
+                  isConnectorStatusLoading
+                }
               />
             </div>
 
-            {/* PROFILE */}
+            {/* ==================================================
+                PROFILE
+            =================================================== */}
+
             <div
               className="
                 relative
-                flex h-16
-                w-14 sm:w-[92px]
+
+                flex
+                h-16
+                w-14
                 shrink-0
+
+                sm:w-[92px]
               "
             >
               <button
@@ -1048,80 +1921,171 @@ function AppHeader({
                 aria-expanded={showProfileMenu}
                 onClick={toggleProfileMenu}
                 className="
-                  flex h-16
+                  flex
+                  h-16
                   w-full
+
                   items-center
                   justify-center
-                  gap-1 sm:gap-2
-                  bg-white
-                  px-1 sm:px-2
-                  transition
-                  hover:bg-slate-50
+
+                  gap-1
+
+                  bg-white/[0.018]
+
+                  px-1
+
+                  transition-all
+
+                  active:bg-white/[0.06]
+
+                  hover:bg-white/[0.045]
+
+                  sm:gap-2
+                  sm:px-2
                 "
               >
                 <span
                   className="
-                    flex h-9 w-9
+                    flex
+                    h-9
+                    w-9
                     shrink-0
+
                     items-center
                     justify-center
+
                     rounded-full
-                    border border-app-border
-                    bg-slate-50
+
+                    border
+                    border-white/[0.09]
+
+                    bg-white/[0.055]
+
+                    shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]
+
+                    backdrop-blur-md
                   "
                 >
-                  <User className="h-4 w-4 text-app-text-secondary" />
+                  <User
+                    className="
+                      h-4
+                      w-4
+                      text-emerald-100/[0.68]
+                    "
+                  />
                 </span>
 
                 <ChevronDown
                   className={`
-                    hidden h-4 w-4 sm:block
+                    hidden
+
+                    h-4
+                    w-4
                     shrink-0
-                    text-slate-500
+
+                    text-white/[0.40]
+
                     transition-transform
-                    ${showProfileMenu ? "rotate-180" : ""}
+
+                    sm:block
+
+                    ${showProfileMenu
+                      ? "rotate-180"
+                      : ""
+                    }
                   `}
                 />
               </button>
 
-              {/* PROFILE DROPDOWN */}
+              {/* ==================================================
+                  PROFILE DROPDOWN
+              =================================================== */}
+
               {showProfileMenu && (
                 <div
                   className="
                     absolute
+
                     right-0
                     top-[62px]
-                    z-[1100]
+                    z-[11000]
+
                     w-52
+                    max-w-[calc(100vw-16px)]
+
                     overflow-hidden
+
                     rounded-xl
-                    border border-app-border
-                    bg-white
+
+                    border
+                    border-white/[0.10]
+
+                    bg-[#08221d]/[0.97]
+
                     p-1.5
-                    shadow-[0_18px_42px_rgba(15,23,42,0.14)]
+
+                    text-white
+
+                    shadow-[0_18px_42px_rgba(0,0,0,0.35)]
+
+                    backdrop-blur-[24px]
+                    backdrop-saturate-[150%]
                   "
                 >
-                  {profileItems.map((label) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => handleProfileAction(label)}
-                      className="
-                        block
-                        w-full
-                        rounded-lg
-                        px-3 py-2.5
-                        text-left
-                        text-xs
-                        text-app-text-secondary
-                        transition
-                        hover:bg-slate-50
-                        hover:text-app-text
-                      "
-                    >
-                      {label}
-                    </button>
-                  ))}
+                  {/* PROFILE GLOW */}
+                  <div
+                    className="
+                      pointer-events-none
+                      absolute
+
+                      -right-10
+                      -top-10
+
+                      h-28
+                      w-28
+
+                      rounded-full
+
+                      bg-emerald-400/[0.05]
+
+                      blur-[40px]
+                    "
+                  />
+
+                  <div className="relative z-10">
+                    {profileItems.map((label) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() =>
+                          handleProfileAction(label)
+                        }
+                        className="
+                          block
+                          w-full
+
+                          rounded-lg
+
+                          px-3
+                          py-3
+
+                          text-left
+                          text-xs
+
+                          text-white/[0.60]
+
+                          transition-all
+
+                          active:bg-white/[0.08]
+
+                          hover:bg-white/[0.055]
+                          hover:text-white
+                        "
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -1131,46 +2095,170 @@ function AppHeader({
         {/* ====================================================
             MOBILE ACTIONS
         ===================================================== */}
+
         <div
           className="
+            relative
+            z-10
+
             flex
             min-h-16
+            w-full
+
             border-t
-            border-app-border-light
-            bg-white
+            border-white/[0.07]
+
+            bg-[#08221d]/[0.82]
+
+            backdrop-blur-[24px]
+            backdrop-saturate-[150%]
+
             lg:hidden
           "
         >
-          {/* <button
+          {/* ==================================================
+              MOBILE GLASS EFFECT
+          =================================================== */}
+
+          <div
+            className="
+              pointer-events-none
+              absolute
+              inset-0
+              overflow-hidden
+            "
+          >
+            {/* Green glow */}
+            <div
+              className="
+                absolute
+                -left-16
+                -top-16
+
+                h-40
+                w-40
+
+                rounded-full
+
+                bg-emerald-400/[0.06]
+
+                blur-[55px]
+              "
+            />
+
+            {/* Cyan glow */}
+            <div
+              className="
+                absolute
+                -bottom-20
+                -right-16
+
+                h-40
+                w-40
+
+                rounded-full
+
+                bg-cyan-400/[0.025]
+
+                blur-[55px]
+              "
+            />
+
+            {/* Glass reflection */}
+            <div
+              className="
+                absolute
+                -left-[20%]
+                top-[-120%]
+
+                h-[340%]
+                w-[28%]
+
+                rotate-[16deg]
+
+                bg-gradient-to-r
+                from-white/[0.04]
+                via-white/[0.008]
+                to-transparent
+
+                blur-[10px]
+              "
+            />
+
+            {/* Bottom edge */}
+            <div
+              className="
+                absolute
+                bottom-0
+                left-0
+                right-0
+
+                h-px
+
+                bg-gradient-to-r
+                from-transparent
+                via-emerald-300/[0.12]
+                to-transparent
+              "
+            />
+          </div>
+
+          {/* ==================================================
+              MOBILE E-INVOICE
+          =================================================== */}
+
+          {/* 
+          <button
             type="button"
-            onClick={() => (onOpenEway ? onOpenEway() : setShowEway?.(true))}
+            onClick={() =>
+              onOpenEway
+                ? onOpenEway()
+                : setShowEway?.(true)
+            }
             className="
               flex
               min-w-0
               flex-1
+
               items-center
               justify-center
               gap-1.5
-              border-r border-app-border
-              bg-white
+
+              border-r
+              border-white/[0.07]
+
+              bg-transparent
+
               text-[9px]
               leading-3
-              text-app-text-secondary
-              transition
-              hover:bg-slate-50
+
+              text-white/[0.55]
+
+              transition-all
+
+              hover:bg-white/[0.05]
+              hover:text-white
             "
           >
             <span
               className="
-                flex h-5 w-5
+                flex
+                h-5
+                w-5
                 shrink-0
+
                 items-center
                 justify-center
+
                 rounded-full
-                border border-red-400
+
+                border
+                border-red-400/[0.60]
+
                 text-[10px]
                 font-bold
-                text-red-500
+
+                text-red-300
               "
             >
               !
@@ -1181,24 +2269,40 @@ function AppHeader({
               <br />
               eInvoice
             </span>
-          </button> */}
+          </button>
+          */}
+
+          {/* ==================================================
+              MOBILE CONNECTOR
+          =================================================== */}
 
           <div
             className="
+              relative
+              z-10
+
               flex
               min-w-0
               flex-1
+
               items-center
               justify-center
-              bg-white
-              px-2
+
+              bg-transparent
+
+              px-3
+              py-2
             "
           >
             <ConnectorStatusButton
               rows={connectorStatusRows}
               lastSyncMeta={lastSyncMeta}
-              connectorStatusError={connectorStatusError}
-              isConnectorStatusLoading={isConnectorStatusLoading}
+              connectorStatusError={
+                connectorStatusError
+              }
+              isConnectorStatusLoading={
+                isConnectorStatusLoading
+              }
             />
           </div>
         </div>
