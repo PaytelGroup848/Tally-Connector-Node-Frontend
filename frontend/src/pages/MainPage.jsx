@@ -1,54 +1,54 @@
-import { useEffect, useRef, useState } from 'react'
-import { Clock3, FileText, Rocket } from 'lucide-react'
-import AppHeader from '../components/AppHeader'
-import Sidebar from '../components/Sidebar'
-import useAuthStore from '../store/authStore'
-import DashboardPage from './Dashboard'
-import EwayPage from './EwayPage'
-import ProfilePage from './ProfilePage'
-import AddNewPage from './AddNewPage'
-import AddUserPage from './AddUserPage'
-import AllUsersPage from './AllUsersPage'
-import ContraPage from './ContraPage'
-import DownloadInvoicePage from './DownloadInvoicePage'
-import CreditNotePage from './CreditNotePage'
-import InactiveCustomersPage from './InactiveCustomersPage'
-import ConfigurationsPage from './ConfigurationsPage'
-import DebitNotePage from './DebitNotePage'
-import DeliveryNotePage from './DeliveryNotePage'
-import JournalPage from './JournalPage'
-import GstSearchPage from './GstSearchPage'
-import ItemsPage from './ItemsPage'
-import CreateItemPage from './CreateItemPage'
-import CreatePartyPage from './CreatePartyPage'
-import MyEntryListPage from './MyEntryListPage'
-import MyVouchersPage from './MyVouchersPage'
-import NotFoundPage from './NotFoundPage'
-import PartiesPage from './PartiesPage'
-import PaymentPage from './PaymentPage'
-import PurchasePage from './PurchasePage'
-import PurchaseOrderPage from './PurchaseOrderPage'
-import PhysicalStockPage from './PhysicalStockPage'
-import ReportListPage from './ReportListPage'
-import TrialBalancePage from './TrialBalancePage'
-import DayBookPage from './DayBookPage'
-import ProfitLossPage from './Profit&LossPage'
-import BalanceSheetPage from './BalanceSheetPage'
-import VoucherLinesPage from './VoucherLinesPage'
-import ReportsPage from './ReportsPage'
-import ReceiptPage from './ReceiptPage'
-import ReceiptNotePage from './ReceiptNotePage'
-import SectionPage from './SectionPage'
-import SalesOrderPage from './SalesOrderPage'
-import { DocumentVoucherPage } from './DocumentVoucherPage'
-import StockJournalPage from './StockJournalPage'
-import MangaeReminderPage from './ManageReminderPage'
-import InactiveStocksPage from './InactiveStocksPage'
-import DataBackupPage from './DataBackupPage'
-import PlansPage from './PlansPage'
-import VouchersPage from './VouchersPage'
-import MyCompanyDetailsPage from '../components/MyCompanyDetailsPage'
-import { getRouteFlags } from '../routes/routeConfig'
+import { useEffect, useRef, useState } from "react";
+import { Clock3, FileText, Rocket } from "lucide-react";
+import AppHeader from "../components/AppHeader";
+import Sidebar from "../components/Sidebar";
+import useAuthStore from "../store/authStore";
+import DashboardPage from "./Dashboard";
+import EwayPage from "./EwayPage";
+import ProfilePage from "./ProfilePage";
+import AddNewPage from "./AddNewPage";
+import AddUserPage from "./AddUserPage";
+import AllUsersPage from "./AllUsersPage";
+import ContraPage from "./ContraPage";
+import DownloadInvoicePage from "./DownloadInvoicePage";
+import CreditNotePage from "./CreditNotePage";
+import InactiveCustomersPage from "./InactiveCustomersPage";
+import ConfigurationsPage from "./ConfigurationsPage";
+import DebitNotePage from "./DebitNotePage";
+import DeliveryNotePage from "./DeliveryNotePage";
+import JournalPage from "./JournalPage";
+import GstSearchPage from "./GstSearchPage";
+import ItemsPage from "./ItemsPage";
+import CreateItemPage from "./CreateItemPage";
+import CreatePartyPage from "./CreatePartyPage";
+import MyEntryListPage from "./MyEntryListPage";
+import MyVouchersPage from "./MyVouchersPage";
+import NotFoundPage from "./NotFoundPage";
+import PartiesPage from "./PartiesPage";
+import PaymentPage from "./PaymentPage";
+import PurchasePage from "./PurchasePage";
+import PurchaseOrderPage from "./PurchaseOrderPage";
+import PhysicalStockPage from "./PhysicalStockPage";
+import ReportListPage from "./ReportListPage";
+import TrialBalancePage from "./TrialBalancePage";
+import DayBookPage from "./DayBookPage";
+import ProfitLossPage from "./Profit&LossPage";
+import BalanceSheetPage from "./BalanceSheetPage";
+import VoucherLinesPage from "./VoucherLinesPage";
+import ReportsPage from "./ReportsPage";
+import ReceiptPage from "./ReceiptPage";
+import ReceiptNotePage from "./ReceiptNotePage";
+import SectionPage from "./SectionPage";
+import SalesOrderPage from "./SalesOrderPage";
+import { DocumentVoucherPage } from "./DocumentVoucherPage";
+import StockJournalPage from "./StockJournalPage";
+import MangaeReminderPage from "./ManageReminderPage";
+import InactiveStocksPage from "./InactiveStocksPage";
+import DataBackupPage from "./DataBackupPage";
+import PlansPage from "./PlansPage";
+import VouchersPage from "./VouchersPage";
+import MyCompanyDetailsPage from "../components/MyCompanyDetailsPage";
+import { getRouteFlags } from "../routes/routeConfig";
 import {
   extractCompanies,
   extractConnectorsStatusRows,
@@ -56,69 +56,87 @@ import {
   fetchCompanies,
   fetchConnectorsStatus,
   normalizeCompany,
-} from '../services/companiesApi'
+} from "../services/companiesApi";
+import {
+  extractOrganizationContext,
+  fetchProfile,
+} from "../services/profileApi";
 
-const selectedCompanyStorageKey = 'selectedCompanyId'
+const selectedCompanyStorageKey = "selectedCompanyId";
 
 function getCompanyId(company) {
-  return company?.id || company?._id || company?.companyId || company?.company_id
+  return (
+    company?.id || company?._id || company?.companyId || company?.company_id
+  );
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState('Customers')
-  const [selectedPeriod, setSelectedPeriod] = useState('This Year (1st Apr ’26 - 31st Mar ’27)')
-  const [dayBookDate, setDayBookDate] = useState('')
-  const customDateInput = useRef(null)
-  const [currentPath, setCurrentPath] = useState(window.location.pathname)
-  const [showEway, setShowEway] = useState(false)
-  const [showProfileMenu, setShowProfileMenu] = useState(false)
-  const [showCompanyMenu, setShowCompanyMenu] = useState(false)
+  const [activeTab, setActiveTab] = useState("Customers");
+  const [selectedPeriod, setSelectedPeriod] = useState(
+    "This Year (1st Apr ’26 - 31st Mar ’27)",
+  );
+  const [dayBookDate, setDayBookDate] = useState("");
+  const customDateInput = useRef(null);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [showEway, setShowEway] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showCompanyMenu, setShowCompanyMenu] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(() => {
-    const storedCompanyId = typeof window !== 'undefined' ? window.localStorage.getItem(selectedCompanyStorageKey) : null
-    return storedCompanyId ? { id: storedCompanyId } : {
-      name: '',
-      meta: '',
-      isCurrent: true,
-    }
-  })
-  const selectedCompanyRef = useRef(selectedCompany)
-  const [connectorStatusRows, setConnectorStatusRows] = useState([])
-  const [lastSyncMeta, setLastSyncMeta] = useState(null)
-  const [connectorStatusError, setConnectorStatusError] = useState('')
-  const [isConnectorStatusLoading, setIsConnectorStatusLoading] = useState(false)
+    const storedCompanyId =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem(selectedCompanyStorageKey)
+        : null;
+    return storedCompanyId
+      ? { id: storedCompanyId }
+      : {
+          name: "",
+          meta: "",
+          isCurrent: true,
+        };
+  });
+  const selectedCompanyRef = useRef(selectedCompany);
+  const [connectorStatusRows, setConnectorStatusRows] = useState([]);
+  const [lastSyncMeta, setLastSyncMeta] = useState(null);
+  const [connectorStatusError, setConnectorStatusError] = useState("");
+  const [isConnectorStatusLoading, setIsConnectorStatusLoading] =
+    useState(false);
   const [companyOptions, setCompanyOptions] = useState([
-    { name: '', meta: '', isCurrent: true },
-    { name: '', meta: '', isCurrent: false },
-  ])
-  const [expandedNav, setExpandedNav] = useState({})
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [isCompact, setIsCompact] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
-  const [showQuickCreate, setShowQuickCreate] = useState(false)
-  const accessToken = useAuthStore((state) => state.accessToken)
-  const logout = useAuthStore((state) => state.logout)
+    { name: "", meta: "", isCurrent: true },
+    { name: "", meta: "", isCurrent: false },
+  ]);
+  const [expandedNav, setExpandedNav] = useState({});
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isCompact, setIsCompact] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < 1024 : false,
+  );
+
+  const [allowedModules, setAllowedModules] = useState(null);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const logout = useAuthStore((state) => state.logout);
 
   const quickCreateGroups = [
     {
-      title: 'Sales',
+      title: "Sales",
       items: [
-        ['Sales Invoice', '/create-voucher/SalesInvoice'],
-        ['Sales Order', '/create-voucher/SalesOrder'],
-        ['Credit Note', '/create-voucher/CreditNote'],
-        ['Quotation', '/create-voucher/Quotation'],
-        ['Receipt', '/create-voucher/Receipt'],
-        ['Delivery Note', '/create-voucher/DeliveryNote'],
+        ["Sales Invoice", "/create-voucher/SalesInvoice"],
+        ["Sales Order", "/create-voucher/SalesOrder"],
+        ["Credit Note", "/create-voucher/CreditNote"],
+        ["Quotation", "/create-voucher/Quotation"],
+        ["Receipt", "/create-voucher/Receipt"],
+        ["Delivery Note", "/create-voucher/DeliveryNote"],
       ],
     },
     {
-      title: 'Purchase',
+      title: "Purchase",
       items: [
-        ['Purchase Invoice', '/create-voucher/PurchaseInvoice'],
-        ['Purchase Order', '/create-voucher/PurchaseOrder'],
-        ['Debit Note', '/create-voucher/DebitNote'],
-        ['Payment', '/create-voucher/Payment'],
-        ['Journal', '/create-voucher/Journal'],
-        ['Contra', '/create-voucher/Contra'],
-        ['Receipt Note', '/create-voucher/ReceiptNote'],
+        ["Purchase Invoice", "/create-voucher/PurchaseInvoice"],
+        ["Purchase Order", "/create-voucher/PurchaseOrder"],
+        ["Debit Note", "/create-voucher/DebitNote"],
+        ["Payment", "/create-voucher/Payment"],
+        ["Journal", "/create-voucher/Journal"],
+        ["Contra", "/create-voucher/Contra"],
+        ["Receipt Note", "/create-voucher/ReceiptNote"],
       ],
     },
     // {
@@ -129,215 +147,297 @@ function App() {
     //   ],
     // },
     {
-      title: 'Inventory',
+      title: "Inventory",
       items: [
-        ['Physical Stock', '/create-voucher/PhysicalStock'],
-        ['Stock Journal', '/create-voucher/StockJournal'],
+        ["Physical Stock", "/create-voucher/PhysicalStock"],
+        ["Stock Journal", "/create-voucher/StockJournal"],
       ],
     },
-  ]
-
-  useEffect(() => {
-    const handleResize = () => {
-      const compact = window.innerWidth < 1024
-      setIsCompact(compact)
-      if (compact) setSidebarCollapsed(true)
-    }
-
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  const openCustomDatePicker = () => {
-    const input = customDateInput.current
-    if (!input) return
-    try {
-      if (input.showPicker) input.showPicker()
-      else input.click()
-    } catch {
-      input.click()
-    }
-  }
-
-  useEffect(() => {
-    const refreshRoute = () => setCurrentPath(window.location.pathname)
-    window.addEventListener('popstate', refreshRoute)
-    return () => window.removeEventListener('popstate', refreshRoute)
-  }, [])
+  ];
 
   useEffect(() => {
     if (!accessToken) {
-      setConnectorStatusRows([])
-      setLastSyncMeta(null)
-      setConnectorStatusError('')
-      return undefined
+      setAllowedModules(null);
+      return undefined;
     }
 
-    let isMounted = true
-    setIsConnectorStatusLoading(true)
-    setConnectorStatusError('')
+    let isMounted = true;
+
+    fetchProfile(accessToken)
+      .then((response) => {
+        if (!isMounted) return;
+        const ctx = extractOrganizationContext(response);
+        // Owner (or no member restriction found) => full sidebar
+        setAllowedModules(ctx.role === "OWNER" ? null : ctx.allowedModules);
+      })
+      .catch((error) => {
+        console.warn(
+          "Failed to load organization profile for sidebar access:",
+          error,
+        );
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [accessToken]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const compact = window.innerWidth < 1024;
+      setIsCompact(compact);
+      if (compact) setSidebarCollapsed(true);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const openCustomDatePicker = () => {
+    const input = customDateInput.current;
+    if (!input) return;
+    try {
+      if (input.showPicker) input.showPicker();
+      else input.click();
+    } catch {
+      input.click();
+    }
+  };
+
+  useEffect(() => {
+    const refreshRoute = () => setCurrentPath(window.location.pathname);
+    window.addEventListener("popstate", refreshRoute);
+    return () => window.removeEventListener("popstate", refreshRoute);
+  }, []);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setConnectorStatusRows([]);
+      setLastSyncMeta(null);
+      setConnectorStatusError("");
+      return undefined;
+    }
+
+    let isMounted = true;
+    setIsConnectorStatusLoading(true);
+    setConnectorStatusError("");
 
     fetchConnectorsStatus(accessToken)
       .then((response) => {
-        if (!isMounted) return
-        const rows = extractConnectorsStatusRows(response)
-        setConnectorStatusRows(rows)
-        setLastSyncMeta(extractLastSyncMeta(response))
+        if (!isMounted) return;
+        const rows = extractConnectorsStatusRows(response);
+        setConnectorStatusRows(rows);
+        setLastSyncMeta(extractLastSyncMeta(response));
       })
       .catch((error) => {
-        if (!isMounted) return
-        setConnectorStatusError(error?.message || 'Unable to load connector status.')
+        if (!isMounted) return;
+        setConnectorStatusError(
+          error?.message || "Unable to load connector status.",
+        );
       })
       .finally(() => {
-        if (isMounted) setIsConnectorStatusLoading(false)
-      })
+        if (isMounted) setIsConnectorStatusLoading(false);
+      });
 
     return () => {
-      isMounted = false
-    }
-  }, [accessToken])
+      isMounted = false;
+    };
+  }, [accessToken]);
 
   useEffect(() => {
-    if (!accessToken) return undefined
+    if (!accessToken) return undefined;
 
-    let isMounted = true
+    let isMounted = true;
 
     fetchCompanies(accessToken)
       .then((response) => {
-        if (!isMounted) return
+        if (!isMounted) return;
 
-        const companies = extractCompanies(response).map(normalizeCompany)
-        if (companies.length === 0) return
+        const companies = extractCompanies(response).map(normalizeCompany);
+        if (companies.length === 0) return;
 
-        const storedCompanyId = typeof window !== 'undefined' ? window.localStorage.getItem(selectedCompanyStorageKey) : null
-        const selectedCompanyState = selectedCompanyRef.current
-        const selectedCompanyId = getCompanyId(selectedCompanyState)
+        const storedCompanyId =
+          typeof window !== "undefined"
+            ? window.localStorage.getItem(selectedCompanyStorageKey)
+            : null;
+        const selectedCompanyState = selectedCompanyRef.current;
+        const selectedCompanyId = getCompanyId(selectedCompanyState);
         const selectedCompanyName = String(
-          selectedCompanyState?.name ||
-          selectedCompanyState?.companyName ||
-          '',
-        ).trim().toLowerCase()
-        const currentCompany = companies.find((company) => {
-          const companyId = getCompanyId(company)
-          const companyName = String(company?.name || '').trim().toLowerCase()
-          return (
-            (companyId && String(companyId) === String(storedCompanyId || selectedCompanyId)) ||
-            (selectedCompanyName && companyName === selectedCompanyName)
-          )
-        }) || companies[0]
-        const remainingCompanies = companies.filter((company) => company !== currentCompany)
-        setSelectedCompany({ ...currentCompany, isCurrent: true })
+          selectedCompanyState?.name || selectedCompanyState?.companyName || "",
+        )
+          .trim()
+          .toLowerCase();
+        const currentCompany =
+          companies.find((company) => {
+            const companyId = getCompanyId(company);
+            const companyName = String(company?.name || "")
+              .trim()
+              .toLowerCase();
+            return (
+              (companyId &&
+                String(companyId) ===
+                  String(storedCompanyId || selectedCompanyId)) ||
+              (selectedCompanyName && companyName === selectedCompanyName)
+            );
+          }) || companies[0];
+        const remainingCompanies = companies.filter(
+          (company) => company !== currentCompany,
+        );
+        setSelectedCompany({ ...currentCompany, isCurrent: true });
         setCompanyOptions([
           { ...currentCompany, isCurrent: true },
-          ...remainingCompanies.map((company) => ({ ...company, isCurrent: false })),
-        ])
-        if (typeof window !== 'undefined' && getCompanyId(currentCompany)) window.localStorage.setItem(selectedCompanyStorageKey, String(getCompanyId(currentCompany)))
+          ...remainingCompanies.map((company) => ({
+            ...company,
+            isCurrent: false,
+          })),
+        ]);
+        if (typeof window !== "undefined" && getCompanyId(currentCompany))
+          window.localStorage.setItem(
+            selectedCompanyStorageKey,
+            String(getCompanyId(currentCompany)),
+          );
       })
       .catch((error) => {
-        console.warn('Company list API failed, using local company list:', error)
-      })
+        console.warn(
+          "Company list API failed, using local company list:",
+          error,
+        );
+      });
 
     return () => {
-      isMounted = false
-    }
-  }, [accessToken])
+      isMounted = false;
+    };
+  }, [accessToken]);
 
   const navigateTo = (path) => {
-    if (!path) return
-    const isEwayPath = path === '/eway' || path === '/e-way'
-    setShowEway(isEwayPath)
-    if (window.location.pathname === path) return
-    window.history.pushState({}, '', path)
-    window.dispatchEvent(new PopStateEvent('popstate'))
-  }
+    if (!path) return;
+    const isEwayPath = path === "/eway" || path === "/e-way";
+    setShowEway(isEwayPath);
+    if (window.location.pathname === path) return;
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
 
   const handleNavigate = (event, path) => {
-    if (!path) return
-    event.preventDefault()
-    navigateTo(path)
-  }
+    if (!path) return;
+    event.preventDefault();
+    navigateTo(path);
+  };
 
   const openQuotation = (event) => {
-    handleNavigate(event, '/create-voucher/Quotation')
-  }
+    handleNavigate(event, "/create-voucher/Quotation");
+  };
 
   const openMobileVersion = () => {
     window.open(
-      '/dashboard',
-      '_blank',
-      'width=390,height=844,noopener,noreferrer',
-    )
-  }
+      "/dashboard",
+      "_blank",
+      "width=390,height=844,noopener,noreferrer",
+    );
+  };
 
   const openDashboard = (event) => {
-    handleNavigate(event, '/dashboard')
-    setShowEway(false)
-  }
+    handleNavigate(event, "/dashboard");
+    setShowEway(false);
+  };
 
-  const flags = getRouteFlags(currentPath)
-  const entryPath = flags.normalizedPath
+  const flags = getRouteFlags(currentPath);
+  const entryPath = flags.normalizedPath;
 
   const handleCompanyAdd = () => {
-    const candidate = { name: '', meta: '', isCurrent: true }
+    const candidate = { name: "", meta: "", isCurrent: true };
     setCompanyOptions((current) => {
-      const next = current.map((company) => ({ ...company, isCurrent: false }))
-      const alreadyExists = next.some((company) => company.name === candidate.name)
-      if (alreadyExists) return next
-      return [candidate, ...next]
-    })
-    setSelectedCompany(candidate)
-    if (typeof window !== 'undefined' && getCompanyId(candidate)) window.localStorage.setItem(selectedCompanyStorageKey, String(getCompanyId(candidate)))
-    setShowCompanyMenu(false)
-  }
+      const next = current.map((company) => ({ ...company, isCurrent: false }));
+      const alreadyExists = next.some(
+        (company) => company.name === candidate.name,
+      );
+      if (alreadyExists) return next;
+      return [candidate, ...next];
+    });
+    setSelectedCompany(candidate);
+    if (typeof window !== "undefined" && getCompanyId(candidate))
+      window.localStorage.setItem(
+        selectedCompanyStorageKey,
+        String(getCompanyId(candidate)),
+      );
+    setShowCompanyMenu(false);
+  };
 
   const selectCompany = (company) => {
-    if (!company) return
+    if (!company) return;
 
-    const companyId = getCompanyId(company)
-    const nextCompany = { ...company, isCurrent: true }
-    selectedCompanyRef.current = nextCompany
-    setSelectedCompany(nextCompany)
-    setCompanyOptions((current) => current.map((option) => ({
-      ...option,
-      isCurrent: option === company || (
-        companyId && getCompanyId(option) &&
-        String(getCompanyId(option)) === String(companyId)
-      ),
-    })))
-    if (typeof window !== 'undefined' && companyId) {
-      window.localStorage.setItem(selectedCompanyStorageKey, String(companyId))
+    const companyId = getCompanyId(company);
+    const nextCompany = { ...company, isCurrent: true };
+    selectedCompanyRef.current = nextCompany;
+    setSelectedCompany(nextCompany);
+    setCompanyOptions((current) =>
+      current.map((option) => ({
+        ...option,
+        isCurrent:
+          option === company ||
+          (companyId &&
+            getCompanyId(option) &&
+            String(getCompanyId(option)) === String(companyId)),
+      })),
+    );
+    if (typeof window !== "undefined" && companyId) {
+      window.localStorage.setItem(selectedCompanyStorageKey, String(companyId));
     }
-    setShowCompanyMenu(false)
-  }
+    setShowCompanyMenu(false);
+  };
 
   const renderPage = () => {
-    if (flags.showCompanyDetailsPage) return <MyCompanyDetailsPage />
-    if (entryPath === '/my-ledgers') {
+    if (flags.showCompanyDetailsPage) return <MyCompanyDetailsPage />;
+    if (entryPath === "/my-ledgers") {
       return (
         <MyCompanyDetailsPage
-          companyId={getCompanyId(selectedCompany) || '6aa0f659f858467a84d08d57'}
+          companyId={
+            getCompanyId(selectedCompany) || "6aa0f659f858467a84d08d57"
+          }
         />
-      )
+      );
     }
-    if (currentPath === '/profile') return <ProfilePage />
-    if (flags.showPlansPage) return <PlansPage />
-    if (flags.showDashboard) return <DashboardPage companyId={getCompanyId(selectedCompany)} activeTab={activeTab} setActiveTab={setActiveTab} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod} dayBookDate={dayBookDate} setDayBookDate={setDayBookDate} openCustomDatePicker={openCustomDatePicker} customDateInput={customDateInput} onMetricClick={(label) => {
-      const routes = {
-        CASH: '/cash-bank/cash',
-        BANK: '/cash-bank/bank',
-      }
-      const target = routes[label]
-      if (target) navigateTo(target)
-    }} />
-    if (flags.showAddNewPage) return <AddNewPage path={currentPath} companyId={getCompanyId(selectedCompany)} />
-    if (flags.showEwayPage || showEway) return <EwayPage />
-    if (flags.showReportsPage) return <ReportsPage />
-    if (flags.showCreateItemPage) return <CreateItemPage />
-    if (flags.showCreatePartyPage) return <CreatePartyPage />
-    if (flags.showItemsPage) return <ItemsPage companyId={selectedCompany?.id} />
-    if (flags.showPartiesPage) return <PartiesPage selectedCompany={selectedCompany} />
-    if (currentPath === '/my-eway-bill') {
+    if (currentPath === "/profile") return <ProfilePage />;
+    if (flags.showPlansPage) return <PlansPage />;
+    if (flags.showDashboard)
+      return (
+        <DashboardPage
+          companyId={getCompanyId(selectedCompany)}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          selectedPeriod={selectedPeriod}
+          setSelectedPeriod={setSelectedPeriod}
+          dayBookDate={dayBookDate}
+          setDayBookDate={setDayBookDate}
+          openCustomDatePicker={openCustomDatePicker}
+          customDateInput={customDateInput}
+          onMetricClick={(label) => {
+            const routes = {
+              CASH: "/cash-bank/cash",
+              BANK: "/cash-bank/bank",
+            };
+            const target = routes[label];
+            if (target) navigateTo(target);
+          }}
+        />
+      );
+    if (flags.showAddNewPage)
+      return (
+        <AddNewPage
+          path={currentPath}
+          companyId={getCompanyId(selectedCompany)}
+        />
+      );
+    if (flags.showEwayPage || showEway) return <EwayPage />;
+    if (flags.showReportsPage) return <ReportsPage />;
+    if (flags.showCreateItemPage) return <CreateItemPage />;
+    if (flags.showCreatePartyPage) return <CreatePartyPage />;
+    if (flags.showItemsPage)
+      return <ItemsPage companyId={selectedCompany?.id} />;
+    if (flags.showPartiesPage)
+      return <PartiesPage selectedCompany={selectedCompany} />;
+    if (currentPath === "/my-eway-bill") {
       return (
         <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 font-sans box-border">
           <div className="mb-3 flex min-h-[58px] items-center rounded-md border border-slate-200 bg-white px-4 shadow-sm">
@@ -350,7 +450,11 @@ function App() {
             <div className="w-full max-w-2xl px-6 py-12 text-center">
               <div className="mb-7 flex justify-center">
                 <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-[#092f52] shadow-lg">
-                  <FileText size={46} strokeWidth={1.7} className="text-white" />
+                  <FileText
+                    size={46}
+                    strokeWidth={1.7}
+                    className="text-white"
+                  />
                   <div className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#10a66f] shadow-md">
                     <Clock3 size={18} strokeWidth={2} className="text-white" />
                   </div>
@@ -362,9 +466,9 @@ function App() {
               </h2>
 
               <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
-                Our My Eway Bill feature is currently under development.
-                We are preparing a faster, cleaner, and more reliable way to
-                manage your eWay bill records from the dashboard.
+                Our My Eway Bill feature is currently under development. We are
+                preparing a faster, cleaner, and more reliable way to manage
+                your eWay bill records from the dashboard.
               </p>
 
               <div className="mx-auto mt-7 flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2">
@@ -378,24 +482,42 @@ function App() {
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <FileText size={22} className="mx-auto mb-2 text-[#092f52]" strokeWidth={1.8} />
-                  <p className="text-xs font-semibold text-slate-800">Track Records</p>
+                  <FileText
+                    size={22}
+                    className="mx-auto mb-2 text-[#092f52]"
+                    strokeWidth={1.8}
+                  />
+                  <p className="text-xs font-semibold text-slate-800">
+                    Track Records
+                  </p>
                   <p className="mt-1 text-[11px] text-slate-500">
                     Access and monitor eWay bill entries.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <Rocket size={22} className="mx-auto mb-2 text-[#10a66f]" strokeWidth={1.8} />
-                  <p className="text-xs font-semibold text-slate-800">Fast Access</p>
+                  <Rocket
+                    size={22}
+                    className="mx-auto mb-2 text-[#10a66f]"
+                    strokeWidth={1.8}
+                  />
+                  <p className="text-xs font-semibold text-slate-800">
+                    Fast Access
+                  </p>
                   <p className="mt-1 text-[11px] text-slate-500">
                     Smooth workflow for daily operations.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <Clock3 size={22} className="mx-auto mb-2 text-[#1478ff]" strokeWidth={1.8} />
-                  <p className="text-xs font-semibold text-slate-800">Coming Soon</p>
+                  <Clock3
+                    size={22}
+                    className="mx-auto mb-2 text-[#1478ff]"
+                    strokeWidth={1.8}
+                  />
+                  <p className="text-xs font-semibold text-slate-800">
+                    Coming Soon
+                  </p>
                   <p className="mt-1 text-[11px] text-slate-500">
                     This feature will be available shortly.
                   </p>
@@ -408,9 +530,9 @@ function App() {
             </div>
           </div>
         </div>
-      )
+      );
     }
-    if (currentPath === '/my-receipts') {
+    if (currentPath === "/my-receipts") {
       return (
         <MyVouchersPage
           companyId={getCompanyId(selectedCompany)}
@@ -418,9 +540,9 @@ function App() {
           voucherType="Receipt"
           commandType="CREATE_VOUCHER"
         />
-      )
+      );
     }
-    if (currentPath === '/my-payments') {
+    if (currentPath === "/my-payments") {
       return (
         <MyVouchersPage
           companyId={getCompanyId(selectedCompany)}
@@ -428,9 +550,9 @@ function App() {
           voucherType="Payment"
           commandType="CREATE_VOUCHER"
         />
-      )
+      );
     }
-    if (currentPath === '/my-sales-order') {
+    if (currentPath === "/my-sales-order") {
       return (
         <MyVouchersPage
           companyId={getCompanyId(selectedCompany)}
@@ -438,9 +560,9 @@ function App() {
           voucherType="Sales Order"
           commandType="CREATE_VOUCHER"
         />
-      )
+      );
     }
-    if (currentPath === '/my-purchase') {
+    if (currentPath === "/my-purchase") {
       return (
         <MyVouchersPage
           companyId={getCompanyId(selectedCompany)}
@@ -448,20 +570,20 @@ function App() {
           voucherType="Purchase"
           commandType="CREATE_VOUCHER"
         />
-      )
+      );
     }
     const additionalMyVoucherTypes = {
-      '/my-journal': ['My Journal', 'Journal'],
-      '/my-contra': ['My Contra', 'Contra'],
-      '/my-purchase-order': ['My Purchase Order', 'Purchase Order'],
-      '/my-credit-note': ['My Credit Note', 'Credit Note'],
-      '/my-debit-note': ['My Debit Note', 'Debit Note'],
-      '/my-stock-journal': ['My Stock Journal', 'Stock Journal'],
-      '/my-physical-stock': ['My Physical Stock', 'Physical Stock'],
-      '/my-receipt-note': ['My Receipt Note', 'Receipt Note'],
-      '/my-delivery-note': ['My Delivery Note', 'Delivery Note'],
-    }
-    const additionalMyVoucher = additionalMyVoucherTypes[currentPath]
+      "/my-journal": ["My Journal", "Journal"],
+      "/my-contra": ["My Contra", "Contra"],
+      "/my-purchase-order": ["My Purchase Order", "Purchase Order"],
+      "/my-credit-note": ["My Credit Note", "Credit Note"],
+      "/my-debit-note": ["My Debit Note", "Debit Note"],
+      "/my-stock-journal": ["My Stock Journal", "Stock Journal"],
+      "/my-physical-stock": ["My Physical Stock", "Physical Stock"],
+      "/my-receipt-note": ["My Receipt Note", "Receipt Note"],
+      "/my-delivery-note": ["My Delivery Note", "Delivery Note"],
+    };
+    const additionalMyVoucher = additionalMyVoucherTypes[currentPath];
     if (additionalMyVoucher) {
       return (
         <MyVouchersPage
@@ -470,47 +592,166 @@ function App() {
           voucherType={additionalMyVoucher[1]}
           commandType="CREATE_VOUCHER"
         />
-      )
+      );
     }
-    if (flags.showMyVouchersPage) return <MyVouchersPage companyId={getCompanyId(selectedCompany)} title={currentPath === '/my-quotations' ? 'My Quotations' : currentPath === '/my-invoices' ? 'My Invoices' : currentPath === '/my-parties' ? 'My Parties' : currentPath === '/my-stock-items' ? 'My Stock Items' : 'My Vouchers'} voucherType={currentPath === '/my-quotations' ? 'Quotation' : currentPath === '/my-invoices' ? 'Sales' : currentPath === '/my-vouchers' ? 'Sales' : ''} commandType={currentPath === '/my-parties' ? 'CREATE_PARTY' : currentPath === '/my-stock-items' ? 'CREATE_STOCK_ITEM' : 'CREATE_VOUCHER'} />
-    if (flags.showManageReminderPage) return <ManageReminderPage />
-    if (flags.showEntryList) return <MyEntryListPage path={entryPath} />
-    if (flags.showGstPage) return <GstSearchPage />
-    if (flags.showVouchersPage) return <VouchersPage companyId={getCompanyId(selectedCompany)} />
-    if (flags.showConfigurationsPage) return <ConfigurationsPage />
-    if (flags.showAllUsersPage) return <AllUsersPage />
-    if (flags.showAddUserPage) return <AddUserPage />
-    if (flags.showInactiveCustomersPage) return <InactiveCustomersPage />
-    if (flags.showInactiveStocksPage) return <InactiveStocksPage />
-    if (flags.showDownloadInvoicePage) return <DownloadInvoicePage />
-    if (entryPath === '/trial-balance') return <TrialBalancePage companyId={selectedCompany?.id} />
-    if (entryPath === '/day-book') return <DayBookPage companyId={selectedCompany?.id} />
-    if (entryPath === '/profit-loss') return <ProfitLossPage companyId={selectedCompany?.id} />
-    if (entryPath === '/balance-sheet') return <BalanceSheetPage companyId={selectedCompany?.id} />
-    if (entryPath === '/voucher-lines') return <VoucherLinesPage companyId={selectedCompany?.id} companyName={selectedCompany?.name} />
-    if (flags.showPayment) return <ReceiptPage companyId={selectedCompany?.id} selectedCompany={selectedCompany} documentType="Payment" />
-    if (flags.showReceiptNote) return <DocumentVoucherPage title="Receipt Note" companyId={selectedCompany?.id} />
-    if (flags.showReceipt) return <ReceiptPage companyId={selectedCompany?.id} selectedCompany={selectedCompany} />
-    if (flags.showPurchaseOrder) return <DocumentVoucherPage title="Purchase Order" companyId={selectedCompany?.id} />
+    if (flags.showMyVouchersPage)
+      return (
+        <MyVouchersPage
+          companyId={getCompanyId(selectedCompany)}
+          title={
+            currentPath === "/my-quotations"
+              ? "My Quotations"
+              : currentPath === "/my-invoices"
+                ? "My Invoices"
+                : currentPath === "/my-parties"
+                  ? "My Parties"
+                  : currentPath === "/my-stock-items"
+                    ? "My Stock Items"
+                    : "My Vouchers"
+          }
+          voucherType={
+            currentPath === "/my-quotations"
+              ? "Quotation"
+              : currentPath === "/my-invoices"
+                ? "Sales"
+                : currentPath === "/my-vouchers"
+                  ? "Sales"
+                  : ""
+          }
+          commandType={
+            currentPath === "/my-parties"
+              ? "CREATE_PARTY"
+              : currentPath === "/my-stock-items"
+                ? "CREATE_STOCK_ITEM"
+                : "CREATE_VOUCHER"
+          }
+        />
+      );
+    if (flags.showManageReminderPage) return <ManageReminderPage />;
+    if (flags.showEntryList) return <MyEntryListPage path={entryPath} />;
+    if (flags.showGstPage) return <GstSearchPage />;
+    if (flags.showVouchersPage)
+      return <VouchersPage companyId={getCompanyId(selectedCompany)} />;
+    if (flags.showConfigurationsPage) return <ConfigurationsPage />;
+    if (flags.showAllUsersPage) return <AllUsersPage />;
+    if (flags.showAddUserPage) return <AddUserPage />;
+    if (flags.showInactiveCustomersPage) return <InactiveCustomersPage />;
+    if (flags.showInactiveStocksPage) return <InactiveStocksPage />;
+    if (flags.showDownloadInvoicePage) return <DownloadInvoicePage />;
+    if (entryPath === "/trial-balance")
+      return <TrialBalancePage companyId={selectedCompany?.id} />;
+    if (entryPath === "/day-book")
+      return <DayBookPage companyId={selectedCompany?.id} />;
+    if (entryPath === "/profit-loss")
+      return <ProfitLossPage companyId={selectedCompany?.id} />;
+    if (entryPath === "/balance-sheet")
+      return <BalanceSheetPage companyId={selectedCompany?.id} />;
+    if (entryPath === "/voucher-lines")
+      return (
+        <VoucherLinesPage
+          companyId={selectedCompany?.id}
+          companyName={selectedCompany?.name}
+        />
+      );
+    if (flags.showPayment)
+      return (
+        <ReceiptPage
+          companyId={selectedCompany?.id}
+          selectedCompany={selectedCompany}
+          documentType="Payment"
+        />
+      );
+    if (flags.showReceiptNote)
+      return (
+        <DocumentVoucherPage
+          title="Receipt Note"
+          companyId={selectedCompany?.id}
+        />
+      );
+    if (flags.showReceipt)
+      return (
+        <ReceiptPage
+          companyId={selectedCompany?.id}
+          selectedCompany={selectedCompany}
+        />
+      );
+    if (flags.showPurchaseOrder)
+      return (
+        <DocumentVoucherPage
+          title="Purchase Order"
+          companyId={selectedCompany?.id}
+        />
+      );
     if (flags.showPurchase) {
-      return currentPath.toLowerCase() === '/create-voucher/purchaseinvoice'
-        ? <DocumentVoucherPage title="Purchase" companyId={selectedCompany?.id} />
-        : <PurchasePage companyId={selectedCompany?.id} />
+      return currentPath.toLowerCase() === "/create-voucher/purchaseinvoice" ? (
+        <DocumentVoucherPage title="Purchase" companyId={selectedCompany?.id} />
+      ) : (
+        <PurchasePage companyId={selectedCompany?.id} />
+      );
     }
-    if (flags.showReport) return <ReportListPage path={entryPath} companyId={selectedCompany?.id} />
-    if (flags.showStockJournal) return <DocumentVoucherPage title="Stock Journal" companyId={selectedCompany?.id} />
-    if (flags.showDataBackupPage) return <DataBackupPage />
-    if (flags.showJournal) return <DocumentVoucherPage title="Journal" companyId={selectedCompany?.id} />
-    if (flags.showContra) return <DocumentVoucherPage title="Contra" companyId={selectedCompany?.id} />
-    if (flags.showDeliveryNote) return <DocumentVoucherPage title="Delivery Note" companyId={selectedCompany?.id} />
-    if (flags.showPhysicalStock) return <PhysicalStockPage companyId={selectedCompany?.id} />
-    if (flags.showDebitNote) return <DocumentVoucherPage title="Debit Note" companyId={selectedCompany?.id} />
-    if (flags.showCreditNote) return <DocumentVoucherPage title="Credit Note" companyId={selectedCompany?.id} />
-    if (flags.showSalesOrder) return <DocumentVoucherPage title="Sales Order" companyId={selectedCompany?.id} />
-    if (flags.showQuotation) return <DocumentVoucherPage title="Quotation" companyId={selectedCompany?.id} />
-    if (flags.showSalesVoucher) return <DocumentVoucherPage title="Sales" companyId={selectedCompany?.id} />
-    return <NotFoundPage path={currentPath} />
-  }
+    if (flags.showReport)
+      return (
+        <ReportListPage path={entryPath} companyId={selectedCompany?.id} />
+      );
+    if (flags.showStockJournal)
+      return (
+        <DocumentVoucherPage
+          title="Stock Journal"
+          companyId={selectedCompany?.id}
+        />
+      );
+    if (flags.showDataBackupPage) return <DataBackupPage />;
+    if (flags.showJournal)
+      return (
+        <DocumentVoucherPage title="Journal" companyId={selectedCompany?.id} />
+      );
+    if (flags.showContra)
+      return (
+        <DocumentVoucherPage title="Contra" companyId={selectedCompany?.id} />
+      );
+    if (flags.showDeliveryNote)
+      return (
+        <DocumentVoucherPage
+          title="Delivery Note"
+          companyId={selectedCompany?.id}
+        />
+      );
+    if (flags.showPhysicalStock)
+      return <PhysicalStockPage companyId={selectedCompany?.id} />;
+    if (flags.showDebitNote)
+      return (
+        <DocumentVoucherPage
+          title="Debit Note"
+          companyId={selectedCompany?.id}
+        />
+      );
+    if (flags.showCreditNote)
+      return (
+        <DocumentVoucherPage
+          title="Credit Note"
+          companyId={selectedCompany?.id}
+        />
+      );
+    if (flags.showSalesOrder)
+      return (
+        <DocumentVoucherPage
+          title="Sales Order"
+          companyId={selectedCompany?.id}
+        />
+      );
+    if (flags.showQuotation)
+      return (
+        <DocumentVoucherPage
+          title="Quotation"
+          companyId={selectedCompany?.id}
+        />
+      );
+    if (flags.showSalesVoucher)
+      return (
+        <DocumentVoucherPage title="Sales" companyId={selectedCompany?.id} />
+      );
+    return <NotFoundPage path={currentPath} />;
+  };
 
   return (
     <div className="app-shell relative min-h-screen bg-app-bg text-app-text">
@@ -525,17 +766,19 @@ function App() {
         onDashboard={openDashboard}
         onQuotation={openQuotation}
         onNavigate={(path) => navigateTo(path)}
+        allowedModules={allowedModules}
       />
 
       <main
         className={`
           app-main relative min-h-screen min-w-0
           transition-[margin-left,width] duration-200
-          ${isCompact
-            ? 'ml-0 w-full'
-            : sidebarCollapsed
-              ? 'ml-[68px] sidebar-collapsed w-[calc(100%-68px)]'
-              : 'ml-[228px] w-[calc(100%-228px)]'
+          ${
+            isCompact
+              ? "ml-0 w-full"
+              : sidebarCollapsed
+                ? "ml-[68px] sidebar-collapsed w-[calc(100%-68px)]"
+                : "ml-[228px] w-[calc(100%-228px)]"
           }
         `}
       >
@@ -543,22 +786,22 @@ function App() {
           sidebarCollapsed={sidebarCollapsed}
           setSidebarCollapsed={setSidebarCollapsed}
           setShowEway={setShowEway}
-          onOpenEway={() => navigateTo('/eway')}
+          onOpenEway={() => navigateTo("/eway")}
           showProfileMenu={showProfileMenu}
           setShowProfileMenu={setShowProfileMenu}
           showCompanyMenu={showCompanyMenu}
           setShowCompanyMenu={setShowCompanyMenu}
           onNavigate={navigateTo}
-          onProfileClick={() => navigateTo('/profile')}
-          onAllUsersClick={() => navigateTo('/all-users')}
+          onProfileClick={() => navigateTo("/profile")}
+          onAllUsersClick={() => navigateTo("/all-users")}
           onMobileVersionClick={openMobileVersion}
           selectedCompany={selectedCompany}
           companyOptions={companyOptions}
           onAddCompany={handleCompanyAdd}
           onSelectCompany={selectCompany}
           onLogout={async () => {
-            await logout()
-            window.location.replace('/')
+            await logout();
+            window.location.replace("/");
           }}
           connectorStatusRows={connectorStatusRows}
           lastSyncMeta={lastSyncMeta}
@@ -569,14 +812,11 @@ function App() {
         {renderPage()}
       </main>
 
-
       <div className="fixed bottom-5 right-5 z-40">
         {showQuickCreate && (
           <div className="mb-3 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-app-border bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
             <div className="flex items-center justify-between bg-app-navy px-3 py-2 text-white">
-              <span className="text-xs font-semibold">
-                Quick Create
-              </span>
+              <span className="text-xs font-semibold">Quick Create</span>
 
               <button
                 type="button"
@@ -604,8 +844,8 @@ function App() {
                         key={`${group.title}-${label}`}
                         type="button"
                         onClick={() => {
-                          setShowQuickCreate(false)
-                          navigateTo(targetPath)
+                          setShowQuickCreate(false);
+                          navigateTo(targetPath);
                         }}
                         className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-xs text-app-text-secondary transition hover:bg-slate-50 hover:text-app-text"
                       >
@@ -613,9 +853,7 @@ function App() {
                           •
                         </span>
 
-                        <span className="flex-1">
-                          {label}
-                        </span>
+                        <span className="flex-1">{label}</span>
                       </button>
                     ))}
                   </div>
@@ -644,8 +882,7 @@ function App() {
         </button>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
-
+export default App;

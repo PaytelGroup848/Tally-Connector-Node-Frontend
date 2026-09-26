@@ -1,8 +1,8 @@
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL ||
   import.meta.env.BaseUrl ||
-  'https://connector.cloudata.in/api'
-).replace(/\/$/, '')
+  "https://connector.cloudata.in/api"
+).replace(/\/$/, "");
 
 function buildUrl(path) {
   const cleanPath = path.startsWith('/') ? path : `/${path}`

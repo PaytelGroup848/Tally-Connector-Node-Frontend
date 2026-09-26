@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 import {
   deleteMember,
   extractMembers,
@@ -6,37 +6,41 @@ import {
   inviteMember,
   normalizeMember,
   updateMemberRole,
-} from '../services/membersApi'
-import useAuthStore from '../store/authStore'
+} from "../services/membersApi";
+import useAuthStore from "../store/authStore";
+import { navItems, submenuItems } from "../routes/navigation";
+import { updateMemberModules } from "../services/membersApi";
+import { Edit, LockKeyhole, Trash2 } from "lucide-react";
+import ManageAccessModal from "./Manageaccessmodal";
 
 const ROLE_OPTIONS = [
   {
-    value: 'ACCOUNTANT',
-    label: 'Accountant',
+    value: "VIEWER",
+    label: "View Only",
   },
   {
-    value: 'ADMIN',
-    label: 'Admin',
+    value: "ACCOUNTANT",
+    label: "View & Create",
   },
   {
-    value: 'VIEWER',
-    label: 'Viewer',
+    value: "ADMIN",
+    label: "Admin Access",
   },
-]
+];
 
 function formatDate(value) {
-  if (!value) return '-'
+  if (!value) return "-";
 
-  const date = new Date(value)
+  const date = new Date(value);
 
   return Number.isNaN(date.getTime())
-    ? '-'
-    : date.toLocaleDateString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
+    ? "-"
+    : date.toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
 }
 
 /* ============================================================
@@ -48,117 +52,91 @@ function UsersTable({
   accessToken,
   onRoleChange,
   onDelete,
+  onManageAccess,
 }) {
-  const [editingId, setEditingId] =
-    useState(null)
+  const [editingId, setEditingId] = useState(null);
 
-  const [editingRole, setEditingRole] =
-    useState('')
+  const [editingRole, setEditingRole] = useState("");
 
-  const [savingId, setSavingId] =
-    useState(null)
+  const [savingId, setSavingId] = useState(null);
 
-  const [deletingId, setDeletingId] =
-    useState(null)
+  const [deletingId, setDeletingId] = useState(null);
 
-  const [error, setError] =
-    useState('')
+  const [error, setError] = useState("");
 
   const removeUser = async (user) => {
     if (!user.hasPersistedId) {
-      setError(
-        'This member has no database ID and cannot be removed.',
-      )
-      return
+      setError("This member has no database ID and cannot be removed.");
+      return;
     }
 
-    if (
-      !window.confirm(
-        `Remove ${user.email}?`,
-      )
-    ) {
-      return
+    if (!window.confirm(`Remove ${user.email}?`)) {
+      return;
     }
 
     try {
-      setDeletingId(user.id)
-      setError('')
+      setDeletingId(user.id);
+      setError("");
 
-      await deleteMember(
-        accessToken,
-        user.id,
-      )
+      await deleteMember(accessToken, user.id);
 
-      onDelete(user.id)
+      onDelete(user.id);
     } catch (deleteError) {
-      setError(
-        deleteError?.message ||
-          'Failed to delete user.',
-      )
+      setError(deleteError?.message || "Failed to delete user.");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   const cancelEdit = () => {
-    setEditingId(null)
-    setEditingRole('')
-    setError('')
-  }
+    setEditingId(null);
+    setEditingRole("");
+    setError("");
+  };
 
   const startEdit = (user) => {
-    setEditingId(user.id)
-    setEditingRole(
-      user.role || 'ACCOUNTANT',
-    )
-    setError('')
-  }
+    setEditingId(user.id);
+    setEditingRole(user.role || "ACCOUNTANT");
+    setError("");
+  };
 
   const saveRole = async (user) => {
     if (!user.hasPersistedId) {
-      setError(
-        'This member has no database ID and cannot be updated.',
-      )
-      return
+      setError("This member has no database ID and cannot be updated.");
+      return;
     }
 
-    const role = editingRole.trim()
+    const role = editingRole.trim();
 
     if (!role) {
-      setError('Role cannot be empty.')
-      return
+      setError("Role cannot be empty.");
+      return;
     }
 
     if (role === user.role) {
-      cancelEdit()
-      return
+      cancelEdit();
+      return;
     }
 
     try {
-      setSavingId(user.id)
-      setError('')
+      setSavingId(user.id);
+      setError("");
 
       await updateMemberRole({
         accessToken,
         id: user.id,
         role,
-      })
+      });
 
-      onRoleChange(
-        user.id,
-        role,
-      )
+      onRoleChange(user.id, role);
 
-      cancelEdit()
+      cancelEdit();
     } catch (saveError) {
-      setError(
-        saveError?.message ||
-          'Failed to update role.',
-      )
+      setError(saveError?.message || "Failed to update role.");
     } finally {
-      setSavingId(null)
+      setSavingId(null);
     }
-  }
+  };
 
   return (
     <div>
@@ -172,21 +150,13 @@ function UsersTable({
         <table className="min-w-full border-collapse">
           <thead className="bg-[#eef1f3] text-left text-[15px] font-semibold text-slate-700">
             <tr>
-              <th className="whitespace-nowrap px-4 py-3">
-                Email
-              </th>
+              <th className="whitespace-nowrap px-4 py-3">Email</th>
 
-              <th className="whitespace-nowrap px-4 py-3">
-                Role
-              </th>
+              <th className="whitespace-nowrap px-4 py-3">Role</th>
 
-              <th className="whitespace-nowrap px-4 py-3">
-                Status
-              </th>
+              <th className="whitespace-nowrap px-4 py-3">Status</th>
 
-              <th className="whitespace-nowrap px-4 py-3">
-                Created At
-              </th>
+              <th className="whitespace-nowrap px-4 py-3">Created At</th>
 
               <th className="w-[180px] whitespace-nowrap px-4 pr-8 py-3 text-right">
                 Action
@@ -196,20 +166,14 @@ function UsersTable({
 
           <tbody className="bg-[#f5f5f5] text-[14px] text-slate-700">
             {users.map((user) => {
-              const isEditing =
-                editingId === user.id
+              const isEditing = editingId === user.id;
 
-              const isSaving =
-                savingId === user.id
+              const isSaving = savingId === user.id;
 
-              const isDeleting =
-                deletingId === user.id
+              const isDeleting = deletingId === user.id;
 
               return (
-                <tr
-                  key={user.id}
-                  className="border-t border-slate-200"
-                >
+                <tr key={user.id} className="border-t border-slate-200">
                   {/* EMAIL */}
                   <td className="px-4 py-4 font-medium text-slate-800">
                     {user.email}
@@ -220,11 +184,7 @@ function UsersTable({
                     {isEditing ? (
                       <select
                         value={editingRole}
-                        onChange={(event) =>
-                          setEditingRole(
-                            event.target.value,
-                          )
-                        }
+                        onChange={(event) => setEditingRole(event.target.value)}
                         disabled={isSaving}
                         autoFocus
                         className="
@@ -245,37 +205,31 @@ function UsersTable({
                           cursor-pointer
                         "
                       >
-                        {ROLE_OPTIONS.map(
-                          (roleOption) => (
-                            <option
-                              key={
-                                roleOption.value
-                              }
-                              value={
-                                roleOption.value
-                              }
-                            >
-                              {roleOption.label}
-                            </option>
-                          ),
-                        )}
+                        {ROLE_OPTIONS.map((roleOption) => (
+                          <option
+                            key={roleOption.value}
+                            value={roleOption.value}
+                          >
+                            {roleOption.label}
+                          </option>
+                        ))}
                       </select>
+                    ) : user.role === "ADMIN" ? (
+                      "Admin Access"
+                    ) : user.role === "ACCOUNTANT" ? (
+                      "View & Create"
+                    ) : user.role === "VIEWER" ? (
+                      "View Only"
                     ) : (
-                      user.role || '-'
+                      user.role || "-"
                     )}
                   </td>
 
                   {/* STATUS */}
-                  <td className="px-4 py-4">
-                    {user.status || '-'}
-                  </td>
+                  <td className="px-4 py-4">{user.status || "-"}</td>
 
                   {/* CREATED AT */}
-                  <td className="px-4 py-4">
-                    {formatDate(
-                      user.createdAt,
-                    )}
-                  </td>
+                  <td className="px-4 py-4">{formatDate(user.createdAt)}</td>
 
                   {/* ACTION */}
                   <td className="w-[180px] px-4 py-4">
@@ -285,9 +239,7 @@ function UsersTable({
                           {/* SAVE */}
                           <button
                             type="button"
-                            onClick={() =>
-                              saveRole(user)
-                            }
+                            onClick={() => saveRole(user)}
                             disabled={isSaving}
                             className="
                               rounded-md
@@ -302,17 +254,13 @@ function UsersTable({
                               disabled:opacity-50
                             "
                           >
-                            {isSaving
-                              ? 'Saving...'
-                              : 'Save'}
+                            {isSaving ? "Saving..." : "Save"}
                           </button>
 
                           {/* CANCEL */}
                           <button
                             type="button"
-                            onClick={
-                              cancelEdit
-                            }
+                            onClick={cancelEdit}
                             disabled={isSaving}
                             className="
                               rounded-md
@@ -333,62 +281,74 @@ function UsersTable({
                         </>
                       ) : (
                         <>
-                          {/* EDIT */}
                           <button
                             type="button"
-                            onClick={() =>
-                              startEdit(user)
-                            }
+                            onClick={() => startEdit(user)}
                             title="Edit role"
                             aria-label="Edit role"
                             className="
-                              flex
-                              h-8
-                              w-8
-                              items-center
-                              justify-center
-                              text-[19px]
-                              text-slate-600
-                              transition
-                              hover:text-slate-900
-                            "
+    flex
+    h-8
+    w-8
+    items-center
+    justify-center
+    text-indigo-500
+    transition
+    hover:text-indigo-700
+  "
                           >
-                            ✎
+                            <Edit className="h-4 w-4" />
                           </button>
+
+                          {user.role !== "OWNER" && (
+                            <button
+                              type="button"
+                              onClick={() => onManageAccess(user)}
+                              title="Manage sidebar access"
+                              aria-label="Manage sidebar access"
+                              className="
+      flex
+      h-8
+      w-8
+      items-center
+      justify-center
+      text-yellow-500
+      transition
+      hover:text-yellow-700
+    "
+                            >
+                              <LockKeyhole className="h-4 w-4" />
+                            </button>
+                          )}
 
                           {/* DELETE */}
                           <button
                             type="button"
-                            onClick={() =>
-                              removeUser(user)
-                            }
+                            onClick={() => removeUser(user)}
                             disabled={isDeleting}
                             title="Delete user"
                             aria-label="Delete user"
                             className="
-                              flex
-                              h-8
-                              w-8
-                              items-center
-                              justify-center
-                              text-[18px]
-                              text-red-500
-                              transition
-                              hover:text-red-700
-                              disabled:cursor-not-allowed
-                              disabled:opacity-50
-                            "
+    flex
+    h-8
+    w-8
+    items-center
+    justify-center
+    text-red-500
+    transition
+    hover:text-red-700
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+  "
                           >
-                            {isDeleting
-                              ? '…'
-                              : '🗑'}
+                            {isDeleting ? "…" : <Trash2 className="h-4 w-4" />}
                           </button>
                         </>
                       )}
                     </div>
                   </td>
                 </tr>
-              )
+              );
             })}
 
             {users.length === 0 && (
@@ -405,112 +365,78 @@ function UsersTable({
         </table>
       </div>
     </div>
-  )
+  );
 }
 
 /* ============================================================
    ADD USER MODAL
 ============================================================ */
 
-function AddUserModal({
-  accessToken,
-  onClose,
-  onSuccess,
-}) {
-  const [email, setEmail] =
-    useState('')
+function AddUserModal({ accessToken, onClose, onSuccess }) {
+  const [email, setEmail] = useState("");
 
-  const [role, setRole] =
-    useState('ACCOUNTANT')
+  const [role, setRole] = useState("ACCOUNTANT");
 
-  const [loading, setLoading] =
-    useState(false)
+  const [loading, setLoading] = useState(false);
 
-  const [error, setError] =
-    useState('')
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (
-    event,
-  ) => {
-    event.preventDefault()
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-    const trimmedEmail =
-      email.trim()
+    const trimmedEmail = email.trim();
 
-    const trimmedRole =
-      role.trim()
+    const trimmedRole = role.trim();
 
-    if (
-      !trimmedEmail ||
-      !trimmedRole
-    ) {
-      setError(
-        'Email and role are required.',
-      )
-      return
+    if (!trimmedEmail || !trimmedRole) {
+      setError("Email and role are required.");
+      return;
     }
 
     try {
-      setLoading(true)
-      setError('')
+      setLoading(true);
+      setError("");
 
-      const response =
-        await inviteMember({
-          accessToken,
-          email: trimmedEmail,
-          role: trimmedRole,
-        })
+      const response = await inviteMember({
+        accessToken,
+        email: trimmedEmail,
+        role: trimmedRole,
+      });
 
-      const invitedUser =
-        response?.data ||
-        response
+      const invitedUser = response?.data || response;
 
       onSuccess(
         normalizeMember(
           {
             ...invitedUser,
 
-            email:
-              invitedUser?.email ||
-              trimmedEmail,
+            email: invitedUser?.email || trimmedEmail,
 
-            role:
-              invitedUser?.role ||
-              trimmedRole,
+            role: invitedUser?.role || trimmedRole,
 
-            status:
-              invitedUser?.status ||
-              'Invited',
+            status: invitedUser?.status || "Invited",
 
-            createdAt:
-              invitedUser?.createdAt ||
-              new Date().toISOString(),
+            createdAt: invitedUser?.createdAt || new Date().toISOString(),
           },
           Date.now(),
         ),
-      )
+      );
 
-      onClose()
+      onClose();
     } catch (submitError) {
-      setError(
-        submitError?.message ||
-          'Failed to invite user.',
-      )
+      setError(submitError?.message || "Failed to invite user.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-x-0 bottom-0 top-16 z-[200] flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-
         {/* HEADER */}
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-800">
-              Add User
-            </h2>
+            <h2 className="text-xl font-bold text-slate-800">Add User</h2>
 
             <p className="mt-1 text-sm text-slate-500">
               Invite a user to your organization
@@ -534,22 +460,14 @@ function AddUserModal({
         </div>
 
         {/* FORM */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-        >
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* EMAIL */}
           <label className="block text-sm font-semibold text-slate-700">
             Email Address
-
             <input
               type="email"
               value={email}
-              onChange={(event) =>
-                setEmail(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setEmail(event.target.value)}
               disabled={loading}
               placeholder="user@example.com"
               className="
@@ -571,14 +489,9 @@ function AddUserModal({
           {/* ROLE */}
           <label className="block text-sm font-semibold text-slate-700">
             Role
-
             <select
               value={role}
-              onChange={(event) =>
-                setRole(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setRole(event.target.value)}
               disabled={loading}
               className="
                 mt-2
@@ -598,18 +511,11 @@ function AddUserModal({
                 cursor-pointer
               "
             >
-              {ROLE_OPTIONS.map(
-                (roleOption) => (
-                  <option
-                    key={roleOption.value}
-                    value={
-                      roleOption.value
-                    }
-                  >
-                    {roleOption.label}
-                  </option>
-                ),
-              )}
+              {ROLE_OPTIONS.map((roleOption) => (
+                <option key={roleOption.value} value={roleOption.value}>
+                  {roleOption.label}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -657,97 +563,70 @@ function AddUserModal({
                 disabled:opacity-50
               "
             >
-              {loading
-                ? 'Inviting...'
-                : 'Invite User'}
+              {loading ? "Inviting..." : "Invite User"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }
 
-/* ============================================================
-   ALL USERS PAGE
-============================================================ */
-
 function AllUsersPage() {
-  const accessToken = useAuthStore(
-    (state) => state.accessToken,
-  )
+  const accessToken = useAuthStore((state) => state.accessToken);
 
-  const [users, setUsers] =
-    useState([])
+  const [users, setUsers] = useState([]);
 
-  const [usersToken, setUsersToken] =
-    useState(null)
+  const [usersToken, setUsersToken] = useState(null);
 
-  const [showAddUser, setShowAddUser] =
-    useState(false)
+  const [showAddUser, setShowAddUser] = useState(false);
 
-  const [loading, setLoading] =
-    useState(() =>
-      Boolean(accessToken),
-    )
+  const [loading, setLoading] = useState(() => Boolean(accessToken));
 
-  const [error, setError] =
-    useState('')
+  const [accessModalUser, setAccessModalUser] = useState(null);
+
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
 
     if (!accessToken) {
       return () => {
-        mounted = false
-      }
+        mounted = false;
+      };
     }
 
-    setLoading(true)
+    setLoading(true);
 
     fetchMembers(accessToken)
       .then((response) => {
-        if (!mounted) return
+        if (!mounted) return;
 
-        setUsers(
-          extractMembers(
-            response,
-          ).map(normalizeMember),
-        )
+        setUsers(extractMembers(response).map(normalizeMember));
 
-        setUsersToken(
-          accessToken,
-        )
+        setUsersToken(accessToken);
 
-        setError('')
+        setError("");
       })
       .catch((loadError) => {
-        if (!mounted) return
+        if (!mounted) return;
 
-        setUsersToken(
-          accessToken,
-        )
+        setUsersToken(accessToken);
 
-        setError(
-          loadError?.message ||
-            'Failed to load users.',
-        )
+        setError(loadError?.message || "Failed to load users.");
       })
       .finally(() => {
         if (mounted) {
-          setLoading(false)
+          setLoading(false);
         }
-      })
+      });
 
     return () => {
-      mounted = false
-    }
-  }, [accessToken])
+      mounted = false;
+    };
+  }, [accessToken]);
 
-  const updateRole = (
-    id,
-    role,
-  ) => {
+  const updateRole = (id, role) => {
     setUsers((current) =>
       current.map((user) =>
         user.id === id
@@ -757,40 +636,31 @@ function AllUsersPage() {
             }
           : user,
       ),
-    )
-  }
+    );
+  };
 
-  const removeUserFromList = (
-    id,
-  ) => {
+  const updateAllowedModules = (id, allowedModules) => {
     setUsers((current) =>
-      current.filter(
-        (user) => user.id !== id,
+      current.map((user) =>
+        user.id === id ? { ...user, allowedModules } : user,
       ),
-    )
-  }
+    );
+  };
 
-  const visibleUsers =
-    usersToken === accessToken
-      ? users
-      : []
+  const removeUserFromList = (id) => {
+    setUsers((current) => current.filter((user) => user.id !== id));
+  };
 
-  const visibleError =
-    usersToken === accessToken
-      ? error
-      : ''
+  const visibleUsers = usersToken === accessToken ? users : [];
+
+  const visibleError = usersToken === accessToken ? error : "";
 
   const isLoadingUsers =
-    loading ||
-    Boolean(
-      accessToken &&
-        usersToken !== accessToken,
-    )
+    loading || Boolean(accessToken && usersToken !== accessToken);
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef1f1] p-4 md:p-5">
       <div className="rounded-[14px] border border-slate-200 bg-[#f4f4f4] p-4 shadow-sm md:p-5">
-
         {/* PAGE HEADER */}
         <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <h1 className="text-[26px] font-bold tracking-tight text-slate-800">
@@ -800,7 +670,6 @@ function AllUsersPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="text-[14px] text-slate-600">
               Total Users-
-
               <strong className="ml-1 font-bold text-slate-800">
                 {visibleUsers.length}
               </strong>
@@ -808,9 +677,7 @@ function AllUsersPage() {
 
             <button
               type="button"
-              onClick={() =>
-                setShowAddUser(true)
-              }
+              onClick={() => setShowAddUser(true)}
               className="
                 rounded-[10px]
                 bg-slate-900
@@ -843,12 +710,9 @@ function AllUsersPage() {
           <UsersTable
             users={visibleUsers}
             accessToken={accessToken}
-            onRoleChange={
-              updateRole
-            }
-            onDelete={
-              removeUserFromList
-            }
+            onRoleChange={updateRole}
+            onDelete={removeUserFromList}
+            onManageAccess={setAccessModalUser}
           />
         )}
       </div>
@@ -857,19 +721,21 @@ function AllUsersPage() {
       {showAddUser && (
         <AddUserModal
           accessToken={accessToken}
-          onClose={() =>
-            setShowAddUser(false)
-          }
-          onSuccess={(user) =>
-            setUsers((current) => [
-              ...current,
-              user,
-            ])
-          }
+          onClose={() => setShowAddUser(false)}
+          onSuccess={(user) => setUsers((current) => [...current, user])}
+        />
+      )}
+
+      {accessModalUser && (
+        <ManageAccessModal
+          user={accessModalUser}
+          accessToken={accessToken}
+          onClose={() => setAccessModalUser(null)}
+          onSuccess={updateAllowedModules}
         />
       )}
     </div>
-  )
+  );
 }
 
-export default AllUsersPage
+export default AllUsersPage;
