@@ -202,7 +202,7 @@
 .app-sidebar .sidebar-nav {
   /* Firefox */
   scrollbar-width: thin;
-  scrollbar-color: rgba(44, 98, 87, 0.95) transparent;
+  scrollbar-color: rgba(156, 165, 164, 0.95) transparent;
 }
 
 /* Chrome / Edge / Safari */

@@ -131,14 +131,14 @@ function ConnectorStatusButton({
 
     if (statusType === "offline") {
       return `
-        bg-red-400
+        bg-red-500
         shadow-[0_0_8px_rgba(248,113,113,0.55)]
       `;
     }
 
     return `
-      bg-amber-400
-      shadow-[0_0_8px_rgba(251,191,36,0.55)]
+      bg-red-500
+      shadow-[0_0_8px_rgba(248,113,113,0.55)]
     `;
   };
 
@@ -163,9 +163,9 @@ function ConnectorStatusButton({
 
     return `
       border
-      border-amber-300/[0.12]
-      bg-amber-300/[0.08]
-      text-amber-200
+      border-red-300/[0.12]
+      bg-red-300/[0.08]
+      text-red-700
     `;
   };
 
@@ -178,7 +178,7 @@ function ConnectorStatusButton({
       return "text-red-300";
     }
 
-    return "text-amber-300";
+    return "text-red-300";
   };
 
   const overallStatusType =
@@ -229,13 +229,13 @@ function ConnectorStatusButton({
           rounded-xl
 
           border
-          border-white/[0.10]
+          border-black/[0.10]
 
           bg-white/[0.055]
 
           px-3
 
-          text-white
+          text-black
 
           shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
 
@@ -276,7 +276,7 @@ function ConnectorStatusButton({
               truncate
               text-[10px]
               font-semibold
-              text-white/[0.90]
+              text-black
             "
           >
             Connector Status
@@ -288,7 +288,7 @@ function ConnectorStatusButton({
               truncate
               whitespace-nowrap
               text-[8px]
-              text-white/[0.42]
+              text-black
             "
           >
             Last Sync History
@@ -327,7 +327,7 @@ function ConnectorStatusButton({
             w-3.5
             shrink-0
 
-            text-white/[0.45]
+            text-black
 
             transition-transform
             duration-200
@@ -360,11 +360,11 @@ function ConnectorStatusButton({
             rounded-xl
 
             border
-            border-white/[0.10]
+            border-black/[0.10]
 
-            bg-[#08221d]/[0.97]
+            bg-white
 
-            text-white
+            text-black
 
             shadow-[0_18px_42px_rgba(0,0,0,0.35)]
 
@@ -424,12 +424,10 @@ function ConnectorStatusButton({
                 min-h-14
                 items-center
                 justify-between
-
+                text-black
                 border-b
-                border-white/[0.07]
-
-                bg-white/[0.025]
-
+                border-black/[0.07]
+                bg-white
                 px-4
                 py-2.5
               "
@@ -441,7 +439,7 @@ function ConnectorStatusButton({
                     font-semibold
                     uppercase
                     tracking-wide
-                    text-emerald-200/[0.88]
+                    text-gray-900
                   "
                 >
                   Connector Status
@@ -476,9 +474,9 @@ function ConnectorStatusButton({
                 justify-center
 
                 border-b
-                border-white/[0.07]
+                border-gray-100
 
-                bg-white/[0.018]
+                bg-black/[0.02]
 
                 px-4
                 py-2.5
@@ -493,7 +491,7 @@ function ConnectorStatusButton({
                   uppercase
                   tracking-wide
 
-                  text-white/[0.45]
+                  text-gray-500
                 "
               >
                 Last Sync History
@@ -509,7 +507,7 @@ function ConnectorStatusButton({
                   gap-3
 
                   border-b
-                  border-white/[0.07]
+                  border-gray-100
 
                   px-4
                   py-3
@@ -525,7 +523,7 @@ function ConnectorStatusButton({
                       font-semibold
                       uppercase
                       tracking-wide
-                      text-white/[0.35]
+                      text-gray-400
                     "
                   >
                     Type
@@ -537,7 +535,7 @@ function ConnectorStatusButton({
                       block
                       text-[11px]
                       font-medium
-                      text-white/[0.86]
+                      text-gray-800
                     "
                   >
                     {syncMeta?.type || "N/A"}
@@ -552,7 +550,7 @@ function ConnectorStatusButton({
                       font-semibold
                       uppercase
                       tracking-wide
-                      text-white/[0.35]
+                      text-gray-400
                     "
                   >
                     Status
@@ -589,7 +587,7 @@ function ConnectorStatusButton({
                       font-semibold
                       uppercase
                       tracking-wide
-                      text-white/[0.35]
+                      text-gray-400
                     "
                   >
                     Last Sync At
@@ -601,7 +599,7 @@ function ConnectorStatusButton({
                       block
                       text-[11px]
                       font-medium
-                      text-white/[0.86]
+                      text-gray-800
                     "
                   >
                     {lastSyncLabel}
@@ -619,7 +617,7 @@ function ConnectorStatusButton({
   "
             >
               {isConnectorStatusLoading ? (
-                <div className="px-4 py-5 text-sm text-white/[0.52]">
+                <div className="px-4 py-5 text-sm text-gray-500">
                   Loading connector status...
                 </div>
               ) : connectorStatusError ? (
@@ -627,7 +625,7 @@ function ConnectorStatusButton({
                   {connectorStatusError}
                 </div>
               ) : rows.length === 0 ? (
-                <div className="px-4 py-5 text-sm text-white/[0.52]">
+                <div className="px-4 py-5 text-sm text-gray-500">
                   No connector status available.
                 </div>
               ) : (
@@ -666,7 +664,7 @@ function ConnectorStatusButton({
                       key={`${deviceName}-${index}`}
                       className="
                         border-b
-                        border-white/[0.06]
+                        border-gray-100
 
                         px-4
                         py-4
@@ -692,7 +690,7 @@ function ConnectorStatusButton({
                                 truncate
                                 text-xs
                                 font-semibold
-                                text-white/[0.90]
+                                text-gray-900
                               "
                             >
                               {deviceName}
@@ -703,7 +701,7 @@ function ConnectorStatusButton({
                                 mt-1
                                 text-[10px]
                                 font-bold
-                                text-white/[0.55]
+                                text-gray-500
                               "
                             >
                               Tally connection
@@ -733,7 +731,7 @@ function ConnectorStatusButton({
 
                       <div className="mt-3 grid grid-cols-2 gap-3">
                         <div>
-                          <p className="text-[9px] font-medium text-white/[0.32]">
+                          <p className="text-[9px] font-medium text-gray-400">
                             Connection
                           </p>
 
@@ -756,7 +754,7 @@ function ConnectorStatusButton({
                         </div>
 
                         <div>
-                          <p className="text-[9px] font-medium text-white/[0.32]">
+                          <p className="text-[9px] font-medium text-gray-400">
                             Last Updated
                           </p>
 
@@ -766,7 +764,7 @@ function ConnectorStatusButton({
                               truncate
                               text-[11px]
                               font-medium
-                              text-white/[0.80]
+                              text-gray-700
                             "
                           >
                             {formatDateTime(heartbeat)}
@@ -973,163 +971,15 @@ function AppHeader({
           overflow-visible
 
           border-b
-          border-emerald-300/[0.10]
+          border-gray-200
 
-          bg-[#08221d]/[0.96]
+          bg-white
 
-          text-white
+          text-gray-900
 
-          shadow-[0_8px_35px_rgba(0,0,0,0.18)]
-
-          backdrop-blur-[24px]
-          backdrop-saturate-[150%]
+          shadow-sm
         "
       >
-        {/* =====================================================
-            LIQUID GLASS BACKGROUND
-        ====================================================== */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            inset-0
-            overflow-hidden
-          "
-        >
-          {/* Main glass surface */}
-          <div
-            className="
-              absolute
-              inset-0
-
-              bg-gradient-to-r
-              from-[#123a32]/[0.72]
-              via-[#0b2923]/[0.82]
-              to-[#041512]/[0.95]
-            "
-          />
-
-          {/* Top-left green glow */}
-          <div
-            className="
-              absolute
-              -left-24
-              -top-24
-
-              h-64
-              w-64
-
-              rounded-full
-
-              bg-emerald-400/[0.07]
-
-              blur-[72px]
-            "
-          />
-
-          {/* Center green glow */}
-          <div
-            className="
-              absolute
-              left-[38%]
-              -top-32
-
-              h-60
-              w-60
-
-              rounded-full
-
-              bg-emerald-300/[0.035]
-
-              blur-[75px]
-            "
-          />
-
-          {/* Right cyan glow */}
-          <div
-            className="
-              absolute
-              -bottom-28
-              right-[-90px]
-
-              h-72
-              w-72
-
-              rounded-full
-
-              bg-cyan-400/[0.035]
-
-              blur-[80px]
-            "
-          />
-
-          {/* Diagonal reflection */}
-          <div
-            className="
-              absolute
-              -left-[12%]
-              top-[-100%]
-
-              h-[300%]
-              w-[24%]
-
-              rotate-[16deg]
-
-              bg-gradient-to-r
-              from-white/[0.045]
-              via-white/[0.008]
-              to-transparent
-
-              blur-[12px]
-            "
-          />
-
-          {/* Vignette */}
-          <div
-            className="
-              absolute
-              inset-0
-
-              bg-[radial-gradient(circle_at_45%_18%,transparent_0%,rgba(0,0,0,0.03)_52%,rgba(0,0,0,0.18)_100%)]
-            "
-          />
-
-          {/* Top glass edge */}
-          <div
-            className="
-              absolute
-              left-0
-              right-0
-              top-0
-
-              h-px
-
-              bg-gradient-to-r
-              from-transparent
-              via-white/[0.26]
-              to-transparent
-            "
-          />
-
-          {/* Bottom glass edge */}
-          <div
-            className="
-              absolute
-              bottom-0
-              left-0
-              right-0
-
-              h-px
-
-              bg-gradient-to-r
-              from-transparent
-              via-emerald-300/[0.10]
-              to-transparent
-            "
-          />
-        </div>
-
         {/* ====================================================
             TOP ROW
         ===================================================== */}
@@ -1166,9 +1016,9 @@ function AppHeader({
               justify-center
 
               border-r
-              border-white/[0.07]
+              border-black/[0.06]
 
-              bg-white/[0.018]
+              bg-black/[0.02]
 
               sm:w-14
             "
@@ -1193,23 +1043,21 @@ function AppHeader({
                 rounded-xl
 
                 border
-                border-white/[0.08]
+                border-black/[0.08]
 
-                bg-white/[0.055]
+                bg-black/[0.04]
 
-                text-emerald-100/[0.78]
+                text-emerald-700
 
-                shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
-
-                backdrop-blur-md
+                shadow-[inset_0_1px_0_rgba(0,0,0,0.04)]
 
                 transition-all
 
                 active:scale-95
 
-                hover:border-white/[0.15]
-                hover:bg-white/[0.09]
-                hover:text-white
+                hover:border-black/[0.15]
+                hover:bg-black/[0.05]
+                hover:text-gray-900
               "
             >
               <Menu className="h-5 w-5" />
@@ -1233,9 +1081,9 @@ function AppHeader({
               items-center
 
               border-r
-              border-white/[0.07]
+              border-black/[0.06]
 
-              bg-white/[0.018]
+              bg-black/[0.02]
 
               sm:w-[230px]
               sm:min-w-[180px]
@@ -1278,11 +1126,11 @@ function AppHeader({
                 ${selectedCompany
                   ? `
                       cursor-pointer
-                      hover:bg-white/[0.035]
+                      hover:bg-black/[0.03]
                     `
                   : `
                       cursor-not-allowed
-                      bg-black/[0.08]
+                      bg-black/[0.04]
                     `
                 }
               `}
@@ -1298,7 +1146,7 @@ function AppHeader({
                     font-semibold
                     leading-4
 
-                    text-white/[0.92]
+                    text-gray-900
                   "
                 >
                   {selectedCompany?.name ||
@@ -1315,7 +1163,7 @@ function AppHeader({
                     text-[10px]
                     leading-3
 
-                    text-white/[0.40]
+                    text-gray-500
                   "
                 >
                   {selectedCompany?.meta ||
@@ -1332,7 +1180,7 @@ function AppHeader({
                     w-4
                     shrink-0
 
-                    text-white/[0.45]
+                    text-gray-500
 
                     transition-transform
 
@@ -1365,53 +1213,23 @@ function AppHeader({
                     rounded-xl
 
                     border
-                    border-white/[0.10]
+                    border-gray-200
 
-                    bg-[#08221d]/[0.97]
+                    bg-white
 
-                    text-white
+                    text-gray-900
 
-                    shadow-[0_18px_42px_rgba(0,0,0,0.35)]
-
-                    backdrop-blur-[24px]
-                    backdrop-saturate-[150%]
+                    shadow-lg
                   "
                 >
-                  {/* Dropdown glow */}
-                  <div
-                    className="
-                      pointer-events-none
-                      absolute
-                      inset-0
-                      overflow-hidden
-                    "
-                  >
-                    <div
-                      className="
-                        absolute
-                        -left-10
-                        -top-10
-
-                        h-32
-                        w-32
-
-                        rounded-full
-
-                        bg-emerald-400/[0.06]
-
-                        blur-[45px]
-                      "
-                    />
-                  </div>
-
                   <div className="relative z-10">
                     {/* DROPDOWN HEADER */}
                     <div
                       className="
                         border-b
-                        border-white/[0.07]
+                        border-black/[0.06]
 
-                        bg-white/[0.025]
+                        bg-black/[0.02]
 
                         px-4
                         py-3
@@ -1426,7 +1244,7 @@ function AppHeader({
                           uppercase
                           tracking-wide
 
-                          text-emerald-200/[0.72]
+                          text-emerald-700
                         "
                       >
                         My Companies
@@ -1509,10 +1327,10 @@ function AppHeader({
                                     ? `
                                         bg-emerald-300/[0.08]
 
-                                        shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]
+                                        shadow-[inset_0_1px_0_rgba(0,0,0,0.04)]
                                       `
                                     : `
-                                        hover:bg-white/[0.045]
+                                        hover:bg-black/[0.03]
                                       `
                                   }
                                 `}
@@ -1540,15 +1358,15 @@ function AppHeader({
 
                                           bg-emerald-300/[0.10]
 
-                                          text-emerald-200
+                                          text-emerald-800
                                         `
                                       : `
                                           border
-                                          border-white/[0.07]
+                                          border-black/[0.06]
 
-                                          bg-white/[0.05]
+                                          bg-black/[0.04]
 
-                                          text-white/[0.50]
+                                          text-gray-500
                                         `
                                     }
                                   `}
@@ -1570,8 +1388,8 @@ function AppHeader({
                                       font-semibold
 
                                       ${isSelected
-                                        ? "text-emerald-100"
-                                        : "text-white/[0.82]"
+                                        ? "text-emerald-800"
+                                        : "text-gray-800"
                                       }
                                     `}
                                   >
@@ -1587,7 +1405,7 @@ function AppHeader({
 
                                         text-[10px]
 
-                                        text-white/[0.38]
+                                        text-gray-500
                                       "
                                     >
                                       {companyMeta}
@@ -1628,11 +1446,11 @@ function AppHeader({
                       </div>
                     ) : (
                       <div className="px-4 py-6 text-center">
-                        <p className="text-sm font-medium text-white/[0.65]">
+                        <p className="text-sm font-medium text-gray-600">
                           No companies available
                         </p>
 
-                        <p className="mt-1 text-[11px] text-white/[0.32]">
+                        <p className="mt-1 text-[11px] text-gray-400">
                           No companies were found for
                           your account.
                         </p>
@@ -1642,77 +1460,6 @@ function AppHeader({
                 </div>
               )}
           </div>
-
-          {/* ==================================================
-              DESKTOP SEARCH
-          =================================================== */}
-
-          {/* 
-          <div
-            className="
-              hidden
-              min-w-0
-              flex-1
-              items-center
-              lg:flex
-            "
-          >
-            <label
-              className="
-                mx-4
-
-                flex
-                h-10
-                min-w-0
-                max-w-[460px]
-                flex-1
-
-                items-center
-                gap-2
-
-                rounded-xl
-
-                border
-                border-white/[0.08]
-
-                bg-white/[0.055]
-
-                px-3
-
-                text-white/[0.45]
-
-                backdrop-blur-md
-
-                transition
-
-                focus-within:border-emerald-300/[0.20]
-                focus-within:bg-white/[0.075]
-                focus-within:ring-2
-                focus-within:ring-emerald-300/[0.08]
-              "
-            >
-              <Search className="h-4 w-4 shrink-0" />
-
-              <input
-                type="text"
-                placeholder="Search vouchers, ledgers, items..."
-                className="
-                  w-full
-                  min-w-0
-
-                  bg-transparent
-
-                  text-[12px]
-                  text-white
-
-                  outline-none
-
-                  placeholder:text-white/[0.32]
-                "
-              />
-            </label>
-          </div>
-          */}
 
           {/* ==================================================
               RIGHT ACTIONS
@@ -1730,78 +1477,6 @@ function AppHeader({
               items-stretch
             "
           >
-            {/* ==================================================
-                LINK E-INVOICE
-            =================================================== */}
-
-            {/* LINK E-INVOICE
-            <button
-              type="button"
-              onClick={() =>
-                onOpenEway
-                  ? onOpenEway()
-                  : setShowEway?.(true)
-              }
-              className="
-                hidden
-                h-16
-                w-[78px]
-                shrink-0
-
-                items-center
-                justify-center
-                gap-1.5
-
-                border-r
-                border-white/[0.07]
-
-                bg-white/[0.018]
-
-                text-[9px]
-                leading-3
-                text-white/[0.55]
-
-                transition
-
-                hover:bg-white/[0.05]
-                hover:text-white
-
-                md:flex
-              "
-            >
-              <span
-                className="
-                  flex
-                  h-5
-                  w-5
-                  shrink-0
-
-                  items-center
-                  justify-center
-
-                  rounded-full
-
-                  border
-                  border-red-400/[0.60]
-
-                  bg-red-400/[0.05]
-
-                  text-[10px]
-                  font-bold
-                  text-red-300
-                "
-              >
-                !
-              </span>
-
-              <span>
-                Link
-                <br />
-                eInvoice
-              </span>
-            </button>
-            */}
-
             {/* ==================================================
                 MOBILE VERSION
             =================================================== */}
@@ -1829,18 +1504,18 @@ function AppHeader({
                 gap-1.5
 
                 border-r
-                border-white/[0.07]
+                border-black/[0.06]
 
-                bg-white/[0.018]
+                bg-black/[0.02]
 
                 text-[9px]
                 leading-3
-                text-white/[0.55]
+                text-gray-500
 
                 transition-all
 
-                hover:bg-white/[0.05]
-                hover:text-white
+                hover:bg-black/[0.04]
+                hover:text-gray-900
 
                 lg:flex
               "
@@ -1851,7 +1526,7 @@ function AppHeader({
                   w-4
                   shrink-0
 
-                  text-emerald-200/[0.72]
+                  text-emerald-700
                 "
               />
 
@@ -1878,9 +1553,9 @@ function AppHeader({
                 justify-center
 
                 border-r
-                border-white/[0.07]
+                border-black/[0.06]
 
-                bg-white/[0.018]
+                bg-black/[0.02]
 
                 px-2
 
@@ -1930,15 +1605,15 @@ function AppHeader({
 
                   gap-1
 
-                  bg-white/[0.018]
+                  bg-black/[0.02]
 
                   px-1
 
                   transition-all
 
-                  active:bg-white/[0.06]
+                  active:bg-black/[0.05]
 
-                  hover:bg-white/[0.045]
+                  hover:bg-black/[0.03]
 
                   sm:gap-2
                   sm:px-2
@@ -1957,20 +1632,18 @@ function AppHeader({
                     rounded-full
 
                     border
-                    border-white/[0.09]
+                    border-black/[0.08]
 
-                    bg-white/[0.055]
+                    bg-black/[0.04]
 
-                    shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]
-
-                    backdrop-blur-md
+                    shadow-[inset_0_1px_0_rgba(0,0,0,0.05)]
                   "
                 >
                   <User
                     className="
                       h-4
                       w-4
-                      text-emerald-100/[0.68]
+                      text-emerald-700
                     "
                   />
                 </span>
@@ -1983,7 +1656,7 @@ function AppHeader({
                     w-4
                     shrink-0
 
-                    text-white/[0.40]
+                    text-gray-500
 
                     transition-transform
 
@@ -2018,40 +1691,17 @@ function AppHeader({
                     rounded-xl
 
                     border
-                    border-white/[0.10]
+                    border-gray-200
 
-                    bg-[#08221d]/[0.97]
+                    bg-white
 
                     p-1.5
 
-                    text-white
+                    text-gray-900
 
-                    shadow-[0_18px_42px_rgba(0,0,0,0.35)]
-
-                    backdrop-blur-[24px]
-                    backdrop-saturate-[150%]
+                    shadow-lg
                   "
                 >
-                  {/* PROFILE GLOW */}
-                  <div
-                    className="
-                      pointer-events-none
-                      absolute
-
-                      -right-10
-                      -top-10
-
-                      h-28
-                      w-28
-
-                      rounded-full
-
-                      bg-emerald-400/[0.05]
-
-                      blur-[40px]
-                    "
-                  />
-
                   <div className="relative z-10">
                     {profileItems.map((label) => (
                       <button
@@ -2072,14 +1722,14 @@ function AppHeader({
                           text-left
                           text-xs
 
-                          text-white/[0.60]
+                          text-gray-600
 
                           transition-all
 
-                          active:bg-white/[0.08]
+                          active:bg-black/[0.06]
 
-                          hover:bg-white/[0.055]
-                          hover:text-white
+                          hover:bg-black/[0.04]
+                          hover:text-gray-900
                         "
                       >
                         {label}
@@ -2106,172 +1756,13 @@ function AppHeader({
             w-full
 
             border-t
-            border-white/[0.07]
+            border-gray-200
 
-            bg-[#08221d]/[0.82]
-
-            backdrop-blur-[24px]
-            backdrop-saturate-[150%]
+            bg-white
 
             lg:hidden
           "
         >
-          {/* ==================================================
-              MOBILE GLASS EFFECT
-          =================================================== */}
-
-          <div
-            className="
-              pointer-events-none
-              absolute
-              inset-0
-              overflow-hidden
-            "
-          >
-            {/* Green glow */}
-            <div
-              className="
-                absolute
-                -left-16
-                -top-16
-
-                h-40
-                w-40
-
-                rounded-full
-
-                bg-emerald-400/[0.06]
-
-                blur-[55px]
-              "
-            />
-
-            {/* Cyan glow */}
-            <div
-              className="
-                absolute
-                -bottom-20
-                -right-16
-
-                h-40
-                w-40
-
-                rounded-full
-
-                bg-cyan-400/[0.025]
-
-                blur-[55px]
-              "
-            />
-
-            {/* Glass reflection */}
-            <div
-              className="
-                absolute
-                -left-[20%]
-                top-[-120%]
-
-                h-[340%]
-                w-[28%]
-
-                rotate-[16deg]
-
-                bg-gradient-to-r
-                from-white/[0.04]
-                via-white/[0.008]
-                to-transparent
-
-                blur-[10px]
-              "
-            />
-
-            {/* Bottom edge */}
-            <div
-              className="
-                absolute
-                bottom-0
-                left-0
-                right-0
-
-                h-px
-
-                bg-gradient-to-r
-                from-transparent
-                via-emerald-300/[0.12]
-                to-transparent
-              "
-            />
-          </div>
-
-          {/* ==================================================
-              MOBILE E-INVOICE
-          =================================================== */}
-
-          {/* 
-          <button
-            type="button"
-            onClick={() =>
-              onOpenEway
-                ? onOpenEway()
-                : setShowEway?.(true)
-            }
-            className="
-              flex
-              min-w-0
-              flex-1
-
-              items-center
-              justify-center
-              gap-1.5
-
-              border-r
-              border-white/[0.07]
-
-              bg-transparent
-
-              text-[9px]
-              leading-3
-
-              text-white/[0.55]
-
-              transition-all
-
-              hover:bg-white/[0.05]
-              hover:text-white
-            "
-          >
-            <span
-              className="
-                flex
-                h-5
-                w-5
-                shrink-0
-
-                items-center
-                justify-center
-
-                rounded-full
-
-                border
-                border-red-400/[0.60]
-
-                text-[10px]
-                font-bold
-
-                text-red-300
-              "
-            >
-              !
-            </span>
-
-            <span>
-              Link
-              <br />
-              eInvoice
-            </span>
-          </button>
-          */}
-
           {/* ==================================================
               MOBILE CONNECTOR
           =================================================== */}

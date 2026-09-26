@@ -6,7 +6,7 @@ import { navItems, submenuItems } from "../routes/navigation";
 function Arrow() {
   return (
     <span
-      className="ml-auto text-base leading-none text-white/50"
+      className="ml-auto text-base leading-none text-slate-400"
       aria-hidden="true"
     >
       ›
@@ -97,13 +97,13 @@ function Sidebar({
 
         overflow-hidden
 
-        border-r border-emerald-300/[0.12]
+        border-r border-slate-300/40
 
-        bg-[#08221d]/[0.88]
+        bg-slate-200/[0.72]
 
-        text-white
+        text-slate-800
 
-        shadow-[8px_0_35px_rgba(0,0,0,0.26)]
+        shadow-[8px_0_35px_rgba(0,0,0,0.10)]
 
         backdrop-blur-[24px]
         backdrop-saturate-[150%]
@@ -140,13 +140,13 @@ function Sidebar({
             inset-0
 
             bg-gradient-to-b
-            from-[#123a32]/[0.74]
-            via-[#0b2923]/[0.82]
-            to-[#041512]/[0.94]
+            from-white/[0.72]
+            via-slate-100/[0.78]
+            to-slate-300/[0.72]
           "
         />
 
-        {/* Top-left subtle green glow */}
+        {/* Top-left subtle grey glow */}
         <div
           className="
             absolute
@@ -158,13 +158,13 @@ function Sidebar({
 
             rounded-full
 
-            bg-emerald-400/[0.07]
+            bg-white/[0.35]
 
             blur-[72px]
           "
         />
 
-        {/* Bottom-left green glow */}
+        {/* Bottom-left grey glow */}
         <div
           className="
             absolute
@@ -176,13 +176,13 @@ function Sidebar({
 
             rounded-full
 
-            bg-emerald-500/[0.055]
+            bg-slate-400/[0.12]
 
             blur-[80px]
           "
         />
 
-        {/* Very subtle cyan glow */}
+        {/* Very subtle white glow */}
         <div
           className="
             absolute
@@ -194,7 +194,7 @@ function Sidebar({
 
             rounded-full
 
-            bg-cyan-400/[0.035]
+            bg-white/[0.28]
 
             blur-[80px]
           "
@@ -219,7 +219,7 @@ function Sidebar({
             rounded-[50%]
 
             border-t
-            border-emerald-300/[0.11]
+            border-white/[0.55]
           "
         />
 
@@ -238,7 +238,7 @@ function Sidebar({
             rounded-[50%]
 
             border-t
-            border-emerald-300/[0.07]
+            border-slate-400/[0.18]
           "
         />
 
@@ -257,7 +257,7 @@ function Sidebar({
             rounded-[50%]
 
             border-t
-            border-white/[0.025]
+            border-white/[0.30]
           "
         />
 
@@ -275,8 +275,8 @@ function Sidebar({
             rotate-[14deg]
 
             bg-gradient-to-r
-            from-white/[0.03]
-            via-white/[0.008]
+            from-white/[0.28]
+            via-white/[0.06]
             to-transparent
 
             blur-[10px]
@@ -289,7 +289,7 @@ function Sidebar({
             absolute
             inset-0
 
-            bg-[radial-gradient(circle_at_45%_18%,transparent_0%,rgba(0,0,0,0.04)_52%,rgba(0,0,0,0.20)_100%)]
+            bg-[radial-gradient(circle_at_45%_18%,transparent_0%,rgba(0,0,0,0.015)_52%,rgba(0,0,0,0.08)_100%)]
           "
         />
 
@@ -305,7 +305,7 @@ function Sidebar({
 
             bg-gradient-to-r
             from-transparent
-            via-white/[0.25]
+            via-white/[0.75]
             to-transparent
           "
         />
@@ -321,8 +321,8 @@ function Sidebar({
             w-px
 
             bg-gradient-to-b
-            from-white/[0.24]
-            via-emerald-300/[0.07]
+            from-white/[0.70]
+            via-slate-300/[0.20]
             to-transparent
           "
         />
@@ -362,21 +362,21 @@ function Sidebar({
               rounded-lg
 
               border
-              border-white/[0.10]
+              border-slate-300/50
 
-              bg-white/[0.055]
+              bg-white/[0.30]
 
-              text-white/65
+              text-slate-500
 
               backdrop-blur-md
 
-              shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]
+              shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]
 
               transition
 
-              hover:border-white/[0.16]
-              hover:bg-white/[0.10]
-              hover:text-white
+              hover:border-slate-300/70
+              hover:bg-white/[0.45]
+              hover:text-slate-800
             "
           >
             <X className="h-4 w-4" />
@@ -401,9 +401,9 @@ function Sidebar({
           items-center
 
           border-b
-          border-white/[0.07]
+          border-slate-300/[0.30]
 
-          bg-white/[0.018]
+          bg-white/[0.18]
 
           ${
             collapsed
@@ -552,24 +552,26 @@ function Sidebar({
                     ${
                       active
                         ? `
-                          border-emerald-300/[0.15]
+                          border-slate-300/[0.55]
 
-                          bg-emerald-300/[0.10]
+                          bg-white/[0.48]
 
-                          text-white
+                          text-slate-900
 
-                          shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]
+                          shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]
+
+                          backdrop-blur-md
                         `
                         : `
                           border-transparent
 
                           bg-transparent
 
-                          text-white/[0.68]
+                          text-slate-600
 
-                          hover:border-white/[0.05]
-                          hover:bg-white/[0.045]
-                          hover:text-white
+                          hover:border-slate-300/[0.35]
+                          hover:bg-white/[0.28]
+                          hover:text-slate-900
                         `
                     }
                   `}
@@ -583,9 +585,9 @@ function Sidebar({
                         inset-0
 
                         bg-gradient-to-r
-                        from-white/[0.045]
+                        from-white/[0.18]
                         via-transparent
-                        to-emerald-300/[0.035]
+                        to-slate-300/[0.08]
                       "
                     />
                   )}
@@ -607,8 +609,8 @@ function Sidebar({
 
                       ${
                         active
-                          ? "text-emerald-200"
-                          : "text-white/[0.50] group-hover:text-white/[0.90]"
+                          ? "text-slate-800"
+                          : "text-slate-800 group-hover:text-slate-700"
                       }
                     `}
                   >
@@ -640,7 +642,7 @@ function Sidebar({
 
                             rounded-full
 
-                            bg-red-500/[0.78]
+                            bg-slate-600/[0.78]
 
                             px-1.5
                             py-0.5
@@ -683,7 +685,7 @@ function Sidebar({
                         ml-4
 
                         border-l
-                        border-white/[0.07]
+                        border-slate-300/[0.45]
 
                         py-1
                         pl-3
@@ -740,20 +742,22 @@ function Sidebar({
                                     itemPath,
                                   )
                                     ? `
-                                      border-emerald-300/[0.10]
+                                      border-slate-300/[0.45]
 
-                                      bg-emerald-300/[0.07]
+                                      bg-white/[0.38]
 
                                       font-semibold
 
-                                      text-emerald-200
+                                      text-slate-800
+
+                                      backdrop-blur-md
                                     `
                                     : `
-                                      text-white/[0.50]
+                                      text-slate-600
 
-                                      hover:bg-white/[0.035]
+                                      hover:bg-white/[0.22]
 
-                                      hover:text-white/[0.90]
+                                      hover:text-slate-800
                                     `
                                 }
                               `}
@@ -794,16 +798,16 @@ function Sidebar({
             rounded-xl
 
             border
-            border-emerald-300/[0.11]
+            border-slate-300/[0.45]
 
-            bg-emerald-300/[0.055]
+            bg-white/[0.36]
 
             px-4
             py-3
 
             backdrop-blur-md
 
-            shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
+            shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]
           "
         >
           {/* Phone icon */}
@@ -818,13 +822,16 @@ function Sidebar({
 
               rounded-full
 
-              bg-emerald-400/[0.12]
+              bg-white/[0.42]
+
+              border
+              border-slate-300/[0.35]
             "
           >
             <Phone
               size={17}
               strokeWidth={2}
-              className="text-emerald-200"
+              className="text-slate-700"
             />
           </div>
 
@@ -841,7 +848,7 @@ function Sidebar({
                 text-[11px]
                 font-medium
                 leading-4
-                text-emerald-100/[0.70]
+                text-slate-500
               "
             >
               Need help?
@@ -855,13 +862,13 @@ function Sidebar({
                 text-[12px]
                 font-semibold
 
-                text-white/[0.90]
+                text-slate-800
 
                 no-underline
 
                 transition
 
-                hover:text-emerald-200
+                hover:text-slate-950
               "
             >
               +91 9311472357
