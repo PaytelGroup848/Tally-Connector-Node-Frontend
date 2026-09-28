@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import DateRangePicker from '../components/DateRangePicker';
 import useAuthStore from '../store/authStore';
-import { Pencil,X } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import {
   extractCommands,
   extractLedgerPagination,
@@ -120,7 +120,7 @@ function isCreatedAtInRange(item, startDate, endDate) {
 function ItemsPage({ companyId }) {
   const accessToken = useAuthStore((state) => state.accessToken);
 
- const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const [editForm, setEditForm] = useState({
     tallyExternalId: '',
@@ -192,17 +192,17 @@ function ItemsPage({ companyId }) {
 
         const commandItemsFromApi = commandResult.status === 'fulfilled'
           ? extractCommands(commandResult.value).map((command) => {
-              const payload = command?.payload || command?.data?.payload || command?.data || command || {};
+            const payload = command?.payload || command?.data?.payload || command?.data || command || {};
 
-              if (!payload || typeof payload !== 'object') return null;
+            if (!payload || typeof payload !== 'object') return null;
 
-              return {
-                ...payload,
-                _id: command?._id || command?.id || command?.commandId || payload?._id || payload?.id,
-                createdAt: payload?.createdAt || command?.createdAt || command?.created_at,
-                updatedAt: payload?.updatedAt || command?.updatedAt || command?.updated_at,
-              };
-            }).filter(Boolean)
+            return {
+              ...payload,
+              _id: command?._id || command?.id || command?.commandId || payload?._id || payload?.id,
+              createdAt: payload?.createdAt || command?.createdAt || command?.created_at,
+              updatedAt: payload?.updatedAt || command?.updatedAt || command?.updated_at,
+            };
+          }).filter(Boolean)
           : [];
 
         const mergedItems = [...stockItemsFromApi, ...commandItemsFromApi].filter((item, index, arr) => {
@@ -318,97 +318,97 @@ function ItemsPage({ companyId }) {
     window.history.pushState({}, '', '/items/add-new');
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
- const handleEdit = (item) => {
-  setEditForm({
-    tallyExternalId:
-      item?.tallyExternalId ||
-      item?.itemTallyExternalId ||
-      item?.tallyExternalId ||
-      item?.externalId ||
-      '',
+  const handleEdit = (item) => {
+    setEditForm({
+      tallyExternalId:
+        item?.tallyExternalId ||
+        item?.itemTallyExternalId ||
+        item?.tallyExternalId ||
+        item?.externalId ||
+        '',
 
-    itemName:
-      item?.itemName ||
-      item?.name ||
-      item?.stockName ||
-      '',
+      itemName:
+        item?.itemName ||
+        item?.name ||
+        item?.stockName ||
+        '',
 
-    quantity:
-      item?.quantity ??
-      item?.qty ??
-      item?.closingStock ??
-      '',
+      quantity:
+        item?.quantity ??
+        item?.qty ??
+        item?.closingStock ??
+        '',
 
-    rate:
-      item?.rate ??
-      item?.avgPurRate ??
-      item?.purchaseRate ??
-      '',
+      rate:
+        item?.rate ??
+        item?.avgPurRate ??
+        item?.purchaseRate ??
+        '',
 
-    value:
-      item?.value ??
-      item?.amount ??
-      item?.stockValue ??
-      '',
+      value:
+        item?.value ??
+        item?.amount ??
+        item?.stockValue ??
+        '',
 
-    unit: item?.unit || '',
+      unit: item?.unit || '',
 
-    hsnCode:
-      item?.hsnCode ||
-      item?.hsn ||
-      item?.productHsn ||
-      '',
+      hsnCode:
+        item?.hsnCode ||
+        item?.hsn ||
+        item?.productHsn ||
+        '',
 
-    godown:
-      item?.godown ||
-      item?.warehouse ||
-      item?.location ||
-      '',
+      godown:
+        item?.godown ||
+        item?.warehouse ||
+        item?.location ||
+        '',
 
-    batch: item?.batch || '',
-  });
+      batch: item?.batch || '',
+    });
 
-  setIsEditOpen(true);
-};
-const handleUpdateStockItem = async () => {
-  if (!accessToken || !companyId) {
-    setErrorMessage('Please select a company before updating the item.');
-    return;
-  }
-
-  if (!editForm.tallyExternalId) {
-    setErrorMessage('Tally External ID is missing for this item.');
-    return;
-  }
-
-  const payload = {
-    type: 'UPDATE_STOCK_ITEM',
-    payload: {
-      tallyExternalId: editForm.tallyExternalId,
-      itemName: editForm.itemName,
-      quantity: Number(editForm.quantity) || 0,
-      rate: Number(editForm.rate) || 0,
-      value: Number(editForm.value) || 0,
-      unit: editForm.unit,
-      hsnCode: editForm.hsnCode,
-      godown: editForm.godown,
-      batch: editForm.batch,
-    },
+    setIsEditOpen(true);
   };
+  const handleUpdateStockItem = async () => {
+    if (!accessToken || !companyId) {
+      setErrorMessage('Please select a company before updating the item.');
+      return;
+    }
 
-  try {
-    setIsLoading(true);
-    setErrorMessage('');
+    if (!editForm.tallyExternalId) {
+      setErrorMessage('Tally External ID is missing for this item.');
+      return;
+    }
 
-    const response = await postCompanyCommand(accessToken, companyId, payload);
-    console.log('UPDATE_STOCK_ITEM response:', response);
+    const payload = {
+      type: 'UPDATE_STOCK_ITEM',
+      payload: {
+        tallyExternalId: editForm.tallyExternalId,
+        itemName: editForm.itemName,
+        quantity: Number(editForm.quantity) || 0,
+        rate: Number(editForm.rate) || 0,
+        value: Number(editForm.value) || 0,
+        unit: editForm.unit,
+        hsnCode: editForm.hsnCode,
+        godown: editForm.godown,
+        batch: editForm.batch,
+      },
+    };
 
-    setStockItems((currentItems) =>
-      currentItems.map((item) => {
-        const itemTallyId = getItemValue(item, 'itemTallyExternalId');
+    try {
+      setIsLoading(true);
+      setErrorMessage('');
 
-        return itemTallyId === editForm.tallyExternalId
-          ? {
+      const response = await postCompanyCommand(accessToken, companyId, payload);
+      console.log('UPDATE_STOCK_ITEM response:', response);
+
+      setStockItems((currentItems) =>
+        currentItems.map((item) => {
+          const itemTallyId = getItemValue(item, 'itemTallyExternalId');
+
+          return itemTallyId === editForm.tallyExternalId
+            ? {
               ...item,
               tallyExternalId: editForm.tallyExternalId,
               itemName: editForm.itemName,
@@ -420,18 +420,18 @@ const handleUpdateStockItem = async () => {
               godown: editForm.godown,
               batch: editForm.batch,
             }
-          : item;
-      })
-    );
+            : item;
+        })
+      );
 
-    setIsEditOpen(false);
-  } catch (error) {
-    console.error('UPDATE_STOCK_ITEM failed:', error);
-    setErrorMessage(error?.message || 'Unable to update stock item.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+      setIsEditOpen(false);
+    } catch (error) {
+      console.error('UPDATE_STOCK_ITEM failed:', error);
+      setErrorMessage(error?.message || 'Unable to update stock item.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="page-surface">
@@ -762,198 +762,242 @@ const handleUpdateStockItem = async () => {
         </div>
       </section>
       {isEditOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-    <div className="w-full max-w-2xl rounded-xl bg-white shadow-2xl">
-      
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 mt-2">
-        <div>
-          <h2 className="text-base font-semibold text-slate-800">
-            Edit Stock Item
-          </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Update stock item details
-          </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-2xl rounded-xl bg-white shadow-2xl">
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 mt-2">
+              <div>
+                <h2 className="text-base font-semibold text-slate-800">
+                  Edit Stock Item
+                </h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  Update stock item details
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsEditOpen(false)}
+                className="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
+
+              {/* Item Name */}
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  Item Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.itemName}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      itemName: e.target.value,
+                    })
+                  }
+                  className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  Quantity
+                </label>
+
+                <input
+                  type="number"
+                  value={editForm.quantity}
+                  onChange={(e) => {
+                    const quantity = e.target.value;
+
+                    setEditForm({
+                      ...editForm,
+                      quantity,
+                      value:
+                        Number(quantity || 0) *
+                        Number(editForm.rate || 0),
+                    });
+                  }}
+                  className="
+      h-10
+      w-full
+      rounded-lg
+      border
+      border-slate-300
+      px-3
+      text-sm
+      outline-none
+      focus:border-emerald-500
+      focus:ring-2
+      focus:ring-emerald-100
+    "
+                />
+              </div>
+
+              {/* Rate */}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  Rate
+                </label>
+
+                <input
+                  type="number"
+                  value={editForm.rate}
+                  onChange={(e) => {
+                    const rate = e.target.value;
+
+                    setEditForm({
+                      ...editForm,
+                      rate,
+                      value:
+                        Number(editForm.quantity || 0) *
+                        Number(rate || 0),
+                    });
+                  }}
+                  className="
+      h-10
+      w-full
+      rounded-lg
+      border
+      border-slate-300
+      px-3
+      text-sm
+      outline-none
+      focus:border-emerald-500
+      focus:ring-2
+      focus:ring-emerald-100
+    "
+                />
+              </div>
+
+              {/* Value */}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  Value
+                </label>
+
+                <input
+                  type="number"
+                  value={editForm.value}
+                  readOnly
+                  className="
+      h-10
+      w-full
+      cursor-not-allowed
+      rounded-lg
+      border
+      border-slate-300
+      bg-slate-50
+      px-3
+      text-sm
+      text-slate-700
+      outline-none
+    "
+                />
+              </div>
+
+              {/* Unit */}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  Unit
+                </label>
+                <input
+                  type="text"
+                  value={editForm.unit}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      unit: e.target.value,
+                    })
+                  }
+                  className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </div>
+
+              {/* HSN Code */}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  HSN Code
+                </label>
+                <input
+                  type="text"
+                  value={editForm.hsnCode}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      hsnCode: e.target.value,
+                    })
+                  }
+                  className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </div>
+
+              {/* Godown */}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  Godown
+                </label>
+                <input
+                  type="text"
+                  value={editForm.godown}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      godown: e.target.value,
+                    })
+                  }
+                  className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </div>
+
+              {/* Batch */}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  Batch
+                </label>
+                <input
+                  type="text"
+                  value={editForm.batch}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      batch: e.target.value,
+                    })
+                  }
+                  className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 border-t border-slate-200 px-5 py-4">
+              <button
+                type="button"
+                onClick={() => setIsEditOpen(false)}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleUpdateStockItem}
+                className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Update Item
+              </button>
+            </div>
+          </div>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setIsEditOpen(false)}
-          className="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-
-      {/* Form */}
-      <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
-
-        {/* Item Name */}
-        <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-slate-600">
-            Item Name
-          </label>
-          <input
-            type="text"
-            value={editForm.itemName}
-            onChange={(e) =>
-              setEditForm({
-                ...editForm,
-                itemName: e.target.value,
-              })
-            }
-            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-        </div>
-
-        {/* Quantity */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">
-            Quantity
-          </label>
-          <input
-            type="number"
-            value={editForm.quantity}
-            onChange={(e) =>
-              setEditForm({
-                ...editForm,
-                quantity: e.target.value,
-              })
-            }
-            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-        </div>
-
-        {/* Rate */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">
-            Rate
-          </label>
-          <input
-            type="number"
-            value={editForm.rate}
-            onChange={(e) =>
-              setEditForm({
-                ...editForm,
-                rate: e.target.value,
-              })
-            }
-            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-        </div>
-
-        {/* Value */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">
-            Value
-          </label>
-          <input
-            type="number"
-            value={editForm.value}
-            onChange={(e) =>
-              setEditForm({
-                ...editForm,
-                value: e.target.value,
-              })
-            }
-            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-        </div>
-
-        {/* Unit */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">
-            Unit
-          </label>
-          <input
-            type="text"
-            value={editForm.unit}
-            onChange={(e) =>
-              setEditForm({
-                ...editForm,
-                unit: e.target.value,
-              })
-            }
-            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-        </div>
-
-        {/* HSN Code */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">
-            HSN Code
-          </label>
-          <input
-            type="text"
-            value={editForm.hsnCode}
-            onChange={(e) =>
-              setEditForm({
-                ...editForm,
-                hsnCode: e.target.value,
-              })
-            }
-            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-        </div>
-
-        {/* Godown */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">
-            Godown
-          </label>
-          <input
-            type="text"
-            value={editForm.godown}
-            onChange={(e) =>
-              setEditForm({
-                ...editForm,
-                godown: e.target.value,
-              })
-            }
-            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-        </div>
-
-        {/* Batch */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">
-            Batch
-          </label>
-          <input
-            type="text"
-            value={editForm.batch}
-            onChange={(e) =>
-              setEditForm({
-                ...editForm,
-                batch: e.target.value,
-              })
-            }
-            className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="flex justify-end gap-3 border-t border-slate-200 px-5 py-4">
-        <button
-          type="button"
-          onClick={() => setIsEditOpen(false)}
-          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          onClick={handleUpdateStockItem}
-          className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-        >
-          Update Item
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }

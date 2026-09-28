@@ -778,7 +778,6 @@ function Sidebar({
                         pointer-events-none
                         absolute
                         inset-0
-
                         bg-gradient-to-r
                         from-white/[0.035]
                         via-transparent

@@ -901,20 +901,13 @@ function App() {
 
       rounded-full
 
-      border
-      border-white/[0.08]
-
-      bg-white/[0.045]
+   
+      
 
       text-2xl
       font-light
       leading-none
 
-      text-emerald-100/[0.88]
-
-      shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]
-
-      backdrop-blur-md
     "
           >
             +
