@@ -202,7 +202,7 @@
 .app-sidebar .sidebar-nav {
   /* Firefox */
   scrollbar-width: thin;
-  scrollbar-color: rgba(156, 165, 164, 0.95) transparent;
+  scrollbar-color: rgba(10,17,40) transparent;
 }
 
 /* Chrome / Edge / Safari */
@@ -215,13 +215,13 @@
 }
 
 .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(44, 98, 87, 0.95);
+  background: rgba(10,17,40);
   border-radius: 999px;
   border: none;
 }
 
 .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(56, 117, 103, 1);
+  background: rgba(10,17,40);
 }
 
 /* =========================================================

@@ -1,12 +1,20 @@
 import { X, Phone } from "lucide-react";
 import logo from "../assets/Control-Books-Dashboard.png";
 import smallLogo from "../assets/logo.png";
-import { navItems, submenuItems } from "../routes/navigation";
+import {
+  navItems,
+  submenuItems,
+} from "../routes/navigation";
 
 function Arrow() {
   return (
     <span
-      className="ml-auto text-base leading-none text-slate-400"
+      className="
+        ml-auto
+        text-base
+        leading-none
+        text-slate-500
+      "
       aria-hidden="true"
     >
       ›
@@ -27,51 +35,146 @@ function Sidebar({
   onNavigate,
   allowedModules,
 }) {
-  const entryPath = currentPath.toLowerCase();
+  const entryPath =
+    currentPath.toLowerCase();
 
-  const isSubItemAllowed = (parentPath, itemPath) => {
-    if (!Array.isArray(allowedModules)) return true;
-    if (allowedModules.includes(parentPath)) return true;
-    return allowedModules.includes(itemPath);
-  };
+  // ============================================================
+  // MODULE ACCESS
+  // ============================================================
 
-  const visibleNavItems = navItems.filter(([, label, , , path]) => {
-    if (!Array.isArray(allowedModules)) return true;
-
-    const subItems = submenuItems[label];
-
-    if (!subItems) {
-      return allowedModules.includes(path);
+  const isSubItemAllowed = (
+    parentPath,
+    itemPath,
+  ) => {
+    if (!Array.isArray(allowedModules)) {
+      return true;
     }
 
-    return (
-      allowedModules.includes(path) ||
-      subItems.some(([, itemPath]) =>
-        isSubItemAllowed(path, itemPath),
+    if (
+      allowedModules.includes(
+        parentPath,
       )
+    ) {
+      return true;
+    }
+
+    return allowedModules.includes(
+      itemPath,
     );
-  });
+  };
 
-  const isSubmenuActive = (itemPath) =>
-    entryPath === itemPath.toLowerCase();
+  // ============================================================
+  // VISIBLE NAV ITEMS
+  // ============================================================
 
-  const isCollectPaymentsRoute = (label) =>
-    label === "Collect Payments" &&
-    ["/receivables", "/receivablesnew"].includes(entryPath);
+  const visibleNavItems =
+    navItems.filter(
+      ([
+        ,
+        label,
+        ,
+        ,
+        path,
+      ]) => {
+        if (
+          !Array.isArray(
+            allowedModules,
+          )
+        ) {
+          return true;
+        }
 
-  const isCashBankRoute = (label) =>
+        const subItems =
+          submenuItems[label];
+
+        if (!subItems) {
+          return allowedModules.includes(
+            path,
+          );
+        }
+
+        return (
+          allowedModules.includes(
+            path,
+          ) ||
+          subItems.some(
+            ([
+              ,
+              itemPath,
+            ]) =>
+              isSubItemAllowed(
+                path,
+                itemPath,
+              ),
+          )
+        );
+      },
+    );
+
+  // ============================================================
+  // ACTIVE SUBMENU
+  // ============================================================
+
+  const isSubmenuActive = (
+    itemPath,
+  ) =>
+    entryPath ===
+    itemPath.toLowerCase();
+
+  // ============================================================
+  // SPECIAL ROUTES
+  // ============================================================
+
+  const isCollectPaymentsRoute = (
+    label,
+  ) =>
+    label ===
+    "Collect Payments" &&
+    [
+      "/receivables",
+      "/receivablesnew",
+    ].includes(entryPath);
+
+  const isCashBankRoute = (
+    label,
+  ) =>
     label === "Cash & Bank" &&
-    (entryPath.startsWith("/cash/") ||
-      entryPath.startsWith("/bank/") ||
-      entryPath === "/cash-bank/cash" ||
-      entryPath === "/cash-bank/bank");
+    (entryPath.startsWith(
+      "/cash/",
+    ) ||
+      entryPath.startsWith(
+        "/bank/",
+      ) ||
+      entryPath ===
+      "/cash-bank/cash" ||
+      entryPath ===
+      "/cash-bank/bank");
 
-  const isNavExpanded = (label, path) =>
+  // ============================================================
+  // NAV EXPANDED
+  // ============================================================
+
+  const isNavExpanded = (
+    label,
+    path,
+  ) =>
     expandedNav[label] ??
-    (currentPath.startsWith(`/${path}`) ||
-      submenuItems[label]?.some(([, itemPath]) =>
-        isSubmenuActive(itemPath),
+    (currentPath.startsWith(
+      `/${path}`,
+    ) ||
+      submenuItems[label]?.some(
+        ([
+          ,
+          itemPath,
+        ]) =>
+          isSubmenuActive(
+            itemPath,
+          ),
       ));
+
+  // ============================================================
+  // MOBILE
+  // ============================================================
 
   const closeOnMobile = () => {
     if (isCompact) {
@@ -79,11 +182,22 @@ function Sidebar({
     }
   };
 
-  const handleNavClick = (event, targetPath) => {
-    if (!targetPath) return;
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
+
+  const handleNavClick = (
+    event,
+    targetPath,
+  ) => {
+    if (!targetPath) {
+      return;
+    }
 
     event.preventDefault();
+
     onNavigate(targetPath);
+
     closeOnMobile();
   };
 
@@ -91,38 +205,47 @@ function Sidebar({
     <aside
       className={`
         app-sidebar
-        fixed left-0 top-0 z-40
 
-        flex h-screen shrink-0 flex-col
+        fixed
+        left-0
+        top-0
+        z-40
+
+        flex
+        h-screen
+        shrink-0
+        flex-col
 
         overflow-hidden
 
-        border-r border-slate-300/40
+        border-r
+        border-[#17233F]
 
-        bg-slate-200/[0.72]
+        bg-[#0A1128]
 
-        text-slate-800
+        text-white
 
-        shadow-[8px_0_35px_rgba(0,0,0,0.10)]
+        shadow-[8px_0_35px_rgba(0,0,0,0.30)]
 
-        backdrop-blur-[24px]
-        backdrop-saturate-[150%]
+        transition-all
+        duration-200
 
-        transition-all duration-200
-
-        ${
-          isCompact
-            ? `${collapsed ? "-translate-x-full" : "translate-x-0"} w-[228px]`
-            : collapsed
-              ? "w-[68px]"
-              : "w-[228px]"
+        ${isCompact
+          ? `${collapsed
+            ? "-translate-x-full"
+            : "translate-x-0"
+          } w-[228px]`
+          : collapsed
+            ? "w-[68px]"
+            : "w-[228px]"
         }
       `}
-      data-collapsed={collapsed}
+      data-collapsed={
+        collapsed
+      }
     >
       {/* =====================================================
           STATIC LIQUID GLASS BACKGROUND
-          DESIGN ONLY - DOES NOT AFFECT LAYOUT
       ====================================================== */}
 
       <div
@@ -133,20 +256,18 @@ function Sidebar({
           overflow-hidden
         "
       >
-        {/* Main glass surface */}
+        {/* Main solid background */}
+
         <div
           className="
             absolute
             inset-0
-
-            bg-gradient-to-b
-            from-white/[0.72]
-            via-slate-100/[0.78]
-            to-slate-300/[0.72]
+            bg-[#0A1128]
           "
         />
 
-        {/* Top-left subtle grey glow */}
+        {/* Top left subtle glow */}
+
         <div
           className="
             absolute
@@ -158,13 +279,33 @@ function Sidebar({
 
             rounded-full
 
-            bg-white/[0.35]
+            bg-white/[0.035]
 
             blur-[72px]
           "
         />
 
-        {/* Bottom-left grey glow */}
+        {/* Top right subtle glow */}
+
+        <div
+          className="
+            absolute
+            -right-24
+            top-20
+
+            h-56
+            w-56
+
+            rounded-full
+
+            bg-blue-400/[0.025]
+
+            blur-[80px]
+          "
+        />
+
+        {/* Bottom left glow */}
+
         <div
           className="
             absolute
@@ -176,13 +317,14 @@ function Sidebar({
 
             rounded-full
 
-            bg-slate-400/[0.12]
+            bg-blue-300/[0.035]
 
             blur-[80px]
           "
         />
 
-        {/* Very subtle white glow */}
+        {/* Bottom right glow */}
+
         <div
           className="
             absolute
@@ -194,17 +336,17 @@ function Sidebar({
 
             rounded-full
 
-            bg-white/[0.28]
+            bg-white/[0.025]
 
             blur-[80px]
           "
         />
 
         {/* =================================================
-            STATIC CURVED LIQUID LINES
+            CURVED LIQUID LINES
         ================================================= */}
 
-        <div
+        {/* <div
           className="
             absolute
 
@@ -219,7 +361,7 @@ function Sidebar({
             rounded-[50%]
 
             border-t
-            border-white/[0.55]
+            border-white/[0.10]
           "
         />
 
@@ -238,7 +380,7 @@ function Sidebar({
             rounded-[50%]
 
             border-t
-            border-slate-400/[0.18]
+            border-blue-200/[0.045]
           "
         />
 
@@ -257,11 +399,12 @@ function Sidebar({
             rounded-[50%]
 
             border-t
-            border-white/[0.30]
+            border-white/[0.055]
           "
-        />
+        /> */}
 
-        {/* Soft diagonal glass reflection */}
+        {/* Diagonal glass reflection */}
+
         <div
           className="
             absolute
@@ -275,25 +418,27 @@ function Sidebar({
             rotate-[14deg]
 
             bg-gradient-to-r
-            from-white/[0.28]
-            via-white/[0.06]
+            from-white/[0.025]
+            via-white/[0.008]
             to-transparent
 
             blur-[10px]
           "
         />
 
-        {/* Soft dark vignette */}
+        {/* Dark vignette */}
+
         <div
           className="
             absolute
             inset-0
 
-            bg-[radial-gradient(circle_at_45%_18%,transparent_0%,rgba(0,0,0,0.015)_52%,rgba(0,0,0,0.08)_100%)]
+            bg-[radial-gradient(circle_at_45%_18%,transparent_0%,rgba(0,0,0,0.015)_52%,rgba(0,0,0,0.16)_100%)]
           "
         />
 
-        {/* Top glass edge */}
+        {/* Top edge */}
+
         <div
           className="
             absolute
@@ -305,12 +450,13 @@ function Sidebar({
 
             bg-gradient-to-r
             from-transparent
-            via-white/[0.75]
+            via-white/[0.14]
             to-transparent
           "
         />
 
-        {/* Right glass edge */}
+        {/* Right edge */}
+
         <div
           className="
             absolute
@@ -321,8 +467,8 @@ function Sidebar({
             w-px
 
             bg-gradient-to-b
-            from-white/[0.70]
-            via-slate-300/[0.20]
+            from-white/[0.12]
+            via-white/[0.035]
             to-transparent
           "
         />
@@ -330,63 +476,65 @@ function Sidebar({
 
       {/* =====================================================
           MOBILE CLOSE BUTTON
-          SAME LAYOUT
       ====================================================== */}
 
-      {isCompact && !collapsed && (
-        <div
-          className="
-            relative
-            z-10
-
-            flex
-            h-10
-            shrink-0
-            items-center
-            justify-end
-
-            px-3
-          "
-        >
-          <button
-            type="button"
-            aria-label="Close sidebar"
-            onClick={() => setSidebarCollapsed(true)}
+      {isCompact &&
+        !collapsed && (
+          <div
             className="
+              relative
+              z-10
+
               flex
-              h-8
-              w-8
+              h-10
+              shrink-0
               items-center
-              justify-center
+              justify-end
 
-              rounded-lg
+              bg-[#0A1128]
 
-              border
-              border-slate-300/50
-
-              bg-white/[0.30]
-
-              text-slate-500
-
-              backdrop-blur-md
-
-              shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]
-
-              transition
-
-              hover:border-slate-300/70
-              hover:bg-white/[0.45]
-              hover:text-slate-800
+              px-3
             "
           >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+            <button
+              type="button"
+              aria-label="Close sidebar"
+              onClick={() =>
+                setSidebarCollapsed(
+                  true,
+                )
+              }
+              className="
+                flex
+                h-8
+                w-8
+                items-center
+                justify-center
+
+                rounded-lg
+
+                border
+                border-[#1B2948]
+
+                bg-[#0A1128]
+
+                text-slate-400
+
+                transition
+
+                hover:border-[#26385E]
+                hover:bg-[#111B35]
+                hover:text-white
+              "
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
       {/* =====================================================
           LOGO
-          SAME SIZE / SAME POSITION
+          SOLID #0A1128 BACKGROUND
       ====================================================== */}
 
       <div
@@ -401,14 +549,13 @@ function Sidebar({
           items-center
 
           border-b
-          border-slate-300/[0.30]
+          border-[#17233F]
 
-          bg-white/[0.18]
+          bg-[#0A1128]
 
-          ${
-            collapsed
-              ? "justify-center"
-              : "justify-center px-4"
+          ${collapsed
+            ? "justify-center"
+            : "justify-center px-4"
           }
         `}
       >
@@ -431,16 +578,19 @@ function Sidebar({
           "
         >
           <img
-            src={collapsed ? smallLogo : logo}
+            src={
+              collapsed
+                ? smallLogo
+                : logo
+            }
             alt="CtrlBooks logo"
             className={`
               block
               object-contain
 
-              ${
-                collapsed
-                  ? "h-9 w-9"
-                  : "h-[45px] w-auto max-w-[140px]"
+              ${collapsed
+                ? "h-10 w-10"
+                : "h-[50px] w-auto max-w-[180px]"
               }
             `}
           />
@@ -449,7 +599,6 @@ function Sidebar({
 
       {/* =====================================================
           NAVIGATION
-          SAME LAYOUT / SAME HEIGHTS
       ====================================================== */}
 
       <nav
@@ -466,22 +615,48 @@ function Sidebar({
 
           px-3
           py-5
+
+          [scrollbar-width:thin]
+          [scrollbar-color:#26385E_transparent]
         "
       >
         {visibleNavItems.map(
-          ([IconComponent, label, expandable, badge, path]) => {
+          ([
+            IconComponent,
+            label,
+            expandable,
+            badge,
+            path,
+          ]) => {
             const targetPath =
-              label === "Dashboard"
+              label ===
+                "Dashboard"
                 ? "/dashboard"
                 : `/${path}`;
 
             const active =
-              (label === "Dashboard" && showDashboard) ||
-              isCollectPaymentsRoute(label) ||
-              isCashBankRoute(label) ||
-              currentPath.startsWith(`/${path}`) ||
-              submenuItems[label]?.some(([, itemPath]) =>
-                isSubmenuActive(itemPath),
+              (label ===
+                "Dashboard" &&
+                showDashboard) ||
+              isCollectPaymentsRoute(
+                label,
+              ) ||
+              isCashBankRoute(
+                label,
+              ) ||
+              currentPath.startsWith(
+                `/${path}`,
+              ) ||
+              submenuItems[
+                label
+              ]?.some(
+                ([
+                  ,
+                  itemPath,
+                ]) =>
+                  isSubmenuActive(
+                    itemPath,
+                  ),
               );
 
             return (
@@ -489,30 +664,50 @@ function Sidebar({
                 className="mb-1"
                 key={label}
               >
+                {/* =================================================
+                    MAIN NAV ITEM
+                ================================================== */}
+
                 <a
                   href={
                     expandable
                       ? undefined
                       : targetPath
                   }
-                  onClick={(event) => {
-                    if (expandable) {
+                  onClick={(
+                    event,
+                  ) => {
+                    if (
+                      expandable
+                    ) {
                       event.preventDefault();
 
-                      setExpandedNav((current) => ({
-                        ...current,
-                        [label]: !isNavExpanded(
-                          label,
-                          path,
-                        ),
-                      }));
+                      setExpandedNav(
+                        (
+                          current,
+                        ) => ({
+                          ...current,
+                          [label]:
+                            !isNavExpanded(
+                              label,
+                              path,
+                            ),
+                        }),
+                      );
 
                       return;
                     }
 
-                    if (label === "Dashboard") {
-                      onDashboard(event);
+                    if (
+                      label ===
+                      "Dashboard"
+                    ) {
+                      onDashboard(
+                        event,
+                      );
+
                       closeOnMobile();
+
                       return;
                     }
 
@@ -549,34 +744,32 @@ function Sidebar({
                     transition-all
                     duration-200
 
-                    ${
-                      active
-                        ? `
-                          border-slate-300/[0.55]
+                    ${active
+                      ? `
+                          border-[#26385E]
 
-                          bg-white/[0.48]
+                          bg-[#111B35]
 
-                          text-slate-900
+                          text-white
 
-                          shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]
-
-                          backdrop-blur-md
+                          shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
                         `
-                        : `
+                      : `
                           border-transparent
 
                           bg-transparent
 
-                          text-slate-600
+                          text-slate-300
 
-                          hover:border-slate-300/[0.35]
-                          hover:bg-white/[0.28]
-                          hover:text-slate-900
+                          hover:border-[#1B2948]
+                          hover:bg-[#101932]
+                          hover:text-white
                         `
                     }
                   `}
                 >
-                  {/* Active liquid glass shine */}
+                  {/* Active shine */}
+
                   {active && (
                     <span
                       className="
@@ -585,14 +778,36 @@ function Sidebar({
                         inset-0
 
                         bg-gradient-to-r
-                        from-white/[0.18]
+                        from-white/[0.035]
                         via-transparent
-                        to-slate-300/[0.08]
+                        to-blue-200/[0.015]
+                      "
+                    />
+                  )}
+
+                  {/* Active indicator */}
+
+                  {active && (
+                    <span
+                      className="
+                        absolute
+                        left-0
+                        top-1/2
+
+                        h-5
+                        w-[2px]
+
+                        -translate-y-1/2
+
+                        rounded-r-full
+
+                        bg-emerald-400
                       "
                     />
                   )}
 
                   {/* Icon */}
+
                   <span
                     className={`
                       relative
@@ -607,10 +822,9 @@ function Sidebar({
                       transition-colors
                       duration-200
 
-                      ${
-                        active
-                          ? "text-slate-800"
-                          : "text-slate-800 group-hover:text-slate-700"
+                      ${active
+                        ? "text-emerald-400"
+                        : "text-slate-400 group-hover:text-emerald-400"
                       }
                     `}
                   >
@@ -620,6 +834,7 @@ function Sidebar({
                   {!collapsed && (
                     <>
                       {/* Label */}
+
                       <span
                         className="
                           relative
@@ -628,14 +843,16 @@ function Sidebar({
                           min-w-0
                           flex-1
                           truncate
-                          text-black
-                          text-slate-800
+
+                          text-slate-200
+                          group-hover:text-white
                         "
                       >
                         {label}
                       </span>
 
                       {/* Badge */}
+
                       {badge && (
                         <em
                           className="
@@ -644,7 +861,10 @@ function Sidebar({
 
                             rounded-full
 
-                            bg-slate-600/[0.78]
+                            border
+                            border-[#26385E]
+
+                            bg-[#111B35]
 
                             px-1.5
                             py-0.5
@@ -652,7 +872,7 @@ function Sidebar({
                             text-[9px]
                             font-semibold
                             not-italic
-                            text-white
+                            text-slate-300
                           "
                         >
                           {badge}
@@ -660,6 +880,7 @@ function Sidebar({
                       )}
 
                       {/* Arrow */}
+
                       {expandable && (
                         <span className="relative z-10">
                           <Arrow />
@@ -687,25 +908,38 @@ function Sidebar({
                         ml-4
 
                         border-l
-                        border-slate-300/[0.45]
+                        border-[#1B2948]
 
                         py-1
                         pl-3
                       "
                     >
-                      {submenuItems[label]
-                        .filter(([, itemPath]) =>
-                          isSubItemAllowed(
-                            path,
+                      {submenuItems[
+                        label
+                      ]
+                        .filter(
+                          ([
+                            ,
                             itemPath,
-                          ),
+                          ]) =>
+                            isSubItemAllowed(
+                              path,
+                              itemPath,
+                            ),
                         )
                         .map(
-                          ([item, itemPath]) => (
+                          ([
+                            item,
+                            itemPath,
+                          ]) => (
                             <a
                               key={item}
-                              href={itemPath}
-                              onClick={(event) => {
+                              href={
+                                itemPath
+                              }
+                              onClick={(
+                                event,
+                              ) => {
                                 if (
                                   itemPath ===
                                   "/create-voucher/Quotation"
@@ -713,7 +947,9 @@ function Sidebar({
                                   onQuotation(
                                     event,
                                   );
+
                                   closeOnMobile();
+
                                   return;
                                 }
 
@@ -725,7 +961,7 @@ function Sidebar({
                               className={`
                                 block
                                 rounded-md
-                                text-slate-800
+
                                 border
                                 border-transparent
 
@@ -739,27 +975,26 @@ function Sidebar({
                                 transition-all
                                 duration-200
 
-                                ${
-                                  isSubmenuActive(
-                                    itemPath,
-                                  )
-                                    ? `
-                                      border-slate-300/[0.45]
+                                ${isSubmenuActive(
+                                itemPath,
+                              )
+                                  ? `
+                                      border-[#26385E]
 
-                                      bg-white/[0.38]
+                                      bg-[#111B35]
 
                                       font-semibold
 
-                                      text-slate-800
-
-                                      backdrop-blur-md
+                                      text-white
                                     `
-                                    : `
-                                      text-slate-600
+                                  : `
+                                      text-slate-400
 
-                                      hover:bg-white/[0.22]
+                                      hover:border-[#1B2948]
 
-                                      hover:text-slate-800
+                                      hover:bg-[#101932]
+
+                                      hover:text-white
                                     `
                                 }
                               `}
@@ -778,7 +1013,7 @@ function Sidebar({
 
       {/* =====================================================
           NEED HELP
-          SAME LAYOUT / SAME POSITION
+          MATCHING YOUR SCREENSHOT
       ====================================================== */}
 
       {!collapsed && (
@@ -795,49 +1030,41 @@ function Sidebar({
             items-center
             gap-3
 
-            overflow-hidden
-
             rounded-xl
 
             border
-            border-slate-300/[0.45]
+            border-[#1B2948]
 
-            bg-white/[0.36]
+            bg-[#0A1128]
 
-            px-4
-            py-3
-
-            backdrop-blur-md
-
-            shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]
+            px-3
+            py-2.5
           "
         >
           {/* Phone icon */}
+
           <div
             className="
               flex
-              h-9
-              w-9
+              h-8
+              w-8
               shrink-0
               items-center
               justify-center
 
-              rounded-full
+              rounded-lg
 
-              bg-white/[0.42]
-
-              border
-              border-slate-300/[0.35]
+              text-emerald-400
             "
           >
             <Phone
-              size={17}
+              size={18}
               strokeWidth={2}
-              className="text-slate-700"
             />
           </div>
 
-          {/* Text */}
+          {/* Help text */}
+
           <div
             className="
               flex
@@ -850,7 +1077,7 @@ function Sidebar({
                 text-[11px]
                 font-medium
                 leading-4
-                text-slate-500
+                text-slate-400
               "
             >
               Need help?
@@ -859,19 +1086,15 @@ function Sidebar({
             <a
               href="tel:+919311472357"
               className="
-                mt-0.5
-
-                text-[12px]
-                font-semibold
-
-                text-slate-800
-
-                no-underline
-
-                transition
-
-                hover:text-slate-950
-              "
+    mt-0.5
+    text-[12px]
+    font-bold
+    leading-4
+    text-emerald-400
+    no-underline
+    transition
+    hover:text-[#43E198]
+  "
             >
               +91 9311472357
             </a>
