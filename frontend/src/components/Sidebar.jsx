@@ -586,11 +586,11 @@ function Sidebar({
             alt="CtrlBooks logo"
             className={`
               block
-              object-contain
+              
 
               ${collapsed
                 ? "h-10 w-10"
-                : "h-[50px] w-auto max-w-[180px]"
+                : "h-15 w-500 ml-4"
               }
             `}
           />
