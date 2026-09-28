@@ -751,6 +751,7 @@ function Sidebar({
                           bg-[#111B35]
 
                           text-white
+                          border-green-500
 
                           shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
                         `
@@ -761,9 +762,10 @@ function Sidebar({
 
                           text-slate-300
 
-                          hover:border-[#1B2948]
+                          hover:border-green-500
                           hover:bg-[#101932]
                           hover:text-white
+                          
                         `
                     }
                   `}
@@ -781,6 +783,7 @@ function Sidebar({
                         from-white/[0.035]
                         via-transparent
                         to-blue-200/[0.015]
+                        
                       "
                     />
                   )}
@@ -802,6 +805,7 @@ function Sidebar({
                         rounded-r-full
 
                         bg-emerald-400
+                        
                       "
                     />
                   )}
@@ -902,54 +906,35 @@ function Sidebar({
                   ) && (
                     <div
                       className="
-                        relative
-                        z-10
-
-                        ml-4
-
-                        border-l
-                        border-[#1B2948]
-
-                        py-1
-                        pl-3
-                      "
+    relative
+    z-10
+    ml-4
+    border-l
+    border-[#1B2948]
+    py-1
+    pl-3
+  "
                     >
-                      {submenuItems[
-                        label
-                      ]
+                      {submenuItems[label]
                         .filter(
-                          ([
-                            ,
-                            itemPath,
-                          ]) =>
+                          ([, itemPath]) =>
                             isSubItemAllowed(
                               path,
                               itemPath,
                             ),
                         )
                         .map(
-                          ([
-                            item,
-                            itemPath,
-                          ]) => (
+                          ([item, itemPath]) => (
                             <a
                               key={item}
-                              href={
-                                itemPath
-                              }
-                              onClick={(
-                                event,
-                              ) => {
+                              href={itemPath}
+                              onClick={(event) => {
                                 if (
                                   itemPath ===
                                   "/create-voucher/Quotation"
                                 ) {
-                                  onQuotation(
-                                    event,
-                                  );
-
+                                  onQuotation(event);
                                   closeOnMobile();
-
                                   return;
                                 }
 
@@ -959,45 +944,37 @@ function Sidebar({
                                 );
                               }}
                               className={`
-                                block
-                                rounded-md
+            block
+            rounded-md
 
-                                border
-                                border-transparent
+            border
 
-                                px-3
-                                py-2
+            px-3
+            py-2
 
-                                text-[12px]
+            text-[12px]
 
-                                no-underline
+            no-underline
 
-                                transition-all
-                                duration-200
+            transition-all
+            duration-200
 
-                                ${isSubmenuActive(
-                                itemPath,
-                              )
+            ${isSubmenuActive(itemPath)
                                   ? `
-                                      border-[#26385E]
-
-                                      bg-[#111B35]
-
-                                      font-semibold
-
-                                      text-white
-                                    `
+                  border-[#009966]
+                  bg-[#111B35]
+                  font-semibold
+                  text-white
+                `
                                   : `
-                                      text-slate-400
-
-                                      hover:border-[#1B2948]
-
-                                      hover:bg-[#101932]
-
-                                      hover:text-white
-                                    `
+                  border-transparent
+                  text-slate-400
+                  hover:border-[#009966]
+                  hover:bg-[#101932]
+                  hover:text-white
+                `
                                 }
-                              `}
+          `}
                             >
                               {item}
                             </a>
