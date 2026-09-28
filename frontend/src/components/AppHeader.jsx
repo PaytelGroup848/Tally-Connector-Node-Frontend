@@ -124,20 +124,20 @@ function ConnectorStatusButton({
   const getStatusDotClass = (statusType) => {
     if (statusType === "online") {
       return `
-        bg-emerald-400
+        bg-emerald-600
         shadow-[0_0_8px_rgba(52,211,153,0.65)]
       `;
     }
 
     if (statusType === "offline") {
       return `
-        bg-red-500
+        bg-red-600
         shadow-[0_0_8px_rgba(248,113,113,0.55)]
       `;
     }
 
     return `
-      bg-red-500
+      bg-red-200
       shadow-[0_0_8px_rgba(248,113,113,0.55)]
     `;
   };
@@ -146,24 +146,24 @@ function ConnectorStatusButton({
     if (statusType === "online") {
       return `
         border
-        border-emerald-300/[0.12]
+        border-emerald-600
         bg-emerald-300/[0.10]
-        text-emerald-200
+        text-emerald-600
       `;
     }
 
     if (statusType === "offline") {
       return `
         border
-        border-red-300/[0.12]
-        bg-red-300/[0.08]
-        text-red-200
+        border-red-500
+        bg-red-300
+        text-red-600
       `;
     }
 
     return `
       border
-      border-red-300/[0.12]
+      border-red-600
       bg-red-300/[0.08]
       text-red-700
     `;
@@ -171,11 +171,11 @@ function ConnectorStatusButton({
 
   const getConnectionTextClass = (tallyConnected) => {
     if (tallyConnected === true) {
-      return "text-emerald-300";
+      return "text-emerald-600";
     }
 
     if (tallyConnected === false) {
-      return "text-red-300";
+      return "text-red-600";
     }
 
     return "text-red-300";

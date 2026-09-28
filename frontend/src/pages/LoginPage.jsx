@@ -833,7 +833,7 @@ const LoginPage = () => {
 
                   text-center
                   text-xs
-                  text-red-500
+                  text-grey-500
 
                   shadow-[0_3px_10px_rgba(15,23,42,0.025)]
                 "

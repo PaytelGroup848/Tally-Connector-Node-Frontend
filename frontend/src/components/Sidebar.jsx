@@ -628,6 +628,8 @@ function Sidebar({
                           min-w-0
                           flex-1
                           truncate
+                          text-black
+                          text-slate-800
                         "
                       >
                         {label}
@@ -723,7 +725,7 @@ function Sidebar({
                               className={`
                                 block
                                 rounded-md
-
+                                text-slate-800
                                 border
                                 border-transparent
 

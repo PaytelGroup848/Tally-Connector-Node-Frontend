@@ -251,12 +251,12 @@ function App() {
               Features
             </button>
 
-            <button
+            {/* <button
               onClick={() => scrollTo("pricing")}
               className="text-sm font-semibold text-slate-700 transition hover:text-[#54ba23]"
             >
               Pricing
-            </button>
+            </button> */}
 
             <button
               onClick={() => scrollTo("testimonials")}
@@ -282,16 +282,16 @@ function App() {
                 title="Download CtrlBooks Connector"
                 className="flex items-center justify-center gap-2 whitespace-nowrap"
               >
-                <span>Download Connector</span>
+                <span className="text-sm font-bold">Download Connector</span>
                 <Download size={18} strokeWidth={2.2} />
               </a>
             </div>
-            <button
+            {/* <button
               onClick={goToLogin}
               className="rounded-xl bg-black/50 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-black/70"
             >
               Login
-            </button>
+            </button> */}
 
             {/* <button
               onClick={() => scrollTo("footer")}
@@ -314,11 +314,11 @@ function App() {
               aria-label="Download CtrlBooks Connector"
               className="
       flex
-      h-9
-      w-9
+      h-10
+      w-full
       items-center
       justify-center
-
+      gap-2
       rounded-lg
 
       border
@@ -336,19 +336,19 @@ function App() {
     "
             >
           
-              <Download
+              <span className="text-sm font-bold">Download Connector</span><Download
                 size={17}
                 strokeWidth={2.3}
               />
             </a>
 
             {/* Login */}
-            <button
+            {/* <button
               onClick={goToLogin}
               className="rounded-xl bg-black/50 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-black/70"
             >
               Login
-            </button>
+            </button> */}
 
             {/* Menu */}
             <button
@@ -400,7 +400,7 @@ function App() {
                 ["Home", "home"],
                 ["Features", "features"],
                 ["Product", "product"],
-                ["Pricing", "pricing"],
+                // ["Pricing", "pricing"],
                 ["FAQ", "faq"],
               ].map(([label, id]) => (
                 <button
@@ -462,7 +462,7 @@ function App() {
 
           <div className="relative mx-auto grid max-w-7xl items-start gap-10 px-4 py-8 sm:px-6 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-10">
             {/* Left */}
-            <div className="max-w-xl text-left">
+            <div className="max-w-xl text-left w-93">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-bold text-green-700">
                 <span className="h-2 w-2 rounded-full bg-[#61c928]" />
                 Business data on mobile & web
@@ -933,7 +933,7 @@ function App() {
             <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
               <div>
                 <p className="text-sm font-extrabold tracking-[0.18em] text-green-50">
-                  GET STARTED
+                  Start using CtrlBooks
                 </p>
 
                 <h2 className="mt-3 max-w-2xl text-3xl font-black leading-tight sm:text-4xl">
@@ -950,7 +950,7 @@ function App() {
                 onClick={goToLogin}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-green-700 transition hover:bg-green-50"
               >
-                Get Started
+                Start using CtrlBooks
                 <ArrowRight size={17} />
               </button>
             </div>
@@ -1014,12 +1014,12 @@ function App() {
                 Product
               </button>
 
-              <button
+              {/* <button
                 onClick={() => scrollTo("pricing")}
                 className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
               >
                 Pricing
-              </button>
+              </button> */}
 
               <button
                 onClick={() => scrollTo("testimonials")}
@@ -1346,104 +1346,43 @@ function FeatureShowcase({ activeFeature, setActiveFeature }) {
   return (
     <div
       id="feature-showcase-details"
-      className="mt-20 overflow-hidden border-t border-slate-200 bg-white py-12 lg:mt-28 lg:py-20"
+      className="mt-20 border-t border-slate-200 bg-white px-4 py-12 sm:px-6 lg:mt-28 lg:px-8 lg:py-20"
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="BUILT FOR DAILY WORK"
           title="Explore each feature"
-          description="Select any feature above to see how it fits into your daily CtrlBooks workflow."
+          description="Everything you need to manage daily business operations is designed to stay simple, clear, and ready to use."
         />
 
-        <div className="mt-10 flex gap-2 overflow-x-auto pb-2 lg:mt-12 lg:justify-center lg:overflow-visible">
-          {showcaseFeatures.map((feature) => {
-            const active = feature.id === selectedFeature.id;
+        <div className="mt-12 space-y-12 lg:mt-16">
+          {showcaseFeatures.map((feature) => (
+            <div
+              key={feature.id}
+              id={feature.id}
+              className="grid min-w-0 items-center gap-10 lg:grid-cols-2 lg:gap-20"
+            >
+              <div className="min-w-0">
+                <ShowcaseIllustration kind={feature.kind} />
+              </div>
 
-            return (
-              <button
-                key={feature.id}
-                type="button"
-                onClick={() => setActiveFeature(feature.id)}
-                aria-pressed={active}
-                className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${
-                  active
-                    ? "border-[#61c928] bg-[#61c928] text-white shadow-lg shadow-green-100"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-green-200 hover:bg-green-50 hover:text-[#54ba23]"
-                }`}
-              >
-                {feature.title}
-              </button>
-            );
-          })}
-        </div>
+              <div className="min-w-0 max-w-xl lg:justify-self-stretch">
+                <span className="inline-flex rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-[#54ba23]">
+                  CtrlBooks feature
+                </span>
 
-        <div
-          id={selectedFeature.id}
-          className="mt-12 grid min-w-0 items-center gap-10 lg:mt-16 lg:grid-cols-2 lg:gap-20"
-        >
-          <div className="min-w-0">
-            <ShowcaseIllustration kind={selectedFeature.kind} />
-          </div>
+                <h3 className="mt-5 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+                  {feature.title}
+                </h3>
 
-          <div className="min-w-0 max-w-xl lg:justify-self-stretch">
-            <span className="inline-flex rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-[#54ba23]">
-              CtrlBooks feature
-            </span>
+                <p className="mt-5 text-base leading-8 text-slate-600">
+                  {feature.description}
+                </p>
 
-            <h3 className="mt-5 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
-              {selectedFeature.title}
-            </h3>
-
-            <p className="mt-5 text-base leading-8 text-slate-600">
-              {selectedFeature.description}
-            </p>
-
-            <LeadCapture />
-
-            <div className="mt-7 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  const currentIndex = showcaseFeatures.findIndex(
-                    (feature) => feature.id === selectedFeature.id
-                  );
-                  const nextFeature =
-                    showcaseFeatures[
-                      (currentIndex + 1) % showcaseFeatures.length
-                    ];
-
-                  setActiveFeature(nextFeature.id);
-                }}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#61c928] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#4eaf1c]"
-              >
-                Next feature
-                <ArrowRight size={16} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const target = document.getElementById("features");
-
-                  if (target) {
-                    const headerOffset = 96;
-                    const targetPosition =
-                      target.getBoundingClientRect().top +
-                      window.scrollY -
-                      headerOffset;
-
-                    window.scrollTo({
-                      top: targetPosition,
-                      behavior: "smooth",
-                    });
-                  }
-                }}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
-              >
-                Back to features
-              </button>
+                <LeadCapture />
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
