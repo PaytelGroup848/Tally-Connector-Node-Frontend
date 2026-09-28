@@ -622,7 +622,7 @@ function App() {
             currentPath === "/my-parties"
               ? "CREATE_PARTY"
               : currentPath === "/my-stock-items"
-                ? "CREATE_STOCK_ITEM"
+                ? "UPDATE_STOCK_ITEM"
                 : "CREATE_VOUCHER"
           }
         />

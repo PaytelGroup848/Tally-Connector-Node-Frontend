@@ -278,7 +278,10 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
   const isQuotationPage = voucherType === 'Quotation'
   const isReceiptOrPaymentPage = voucherType === 'Receipt' || voucherType === 'Payment'
   const isJournalPage = voucherType === 'Journal'
-  const isSimpleCommandPage = commandType === 'CREATE_PARTY' || commandType === 'CREATE_STOCK_ITEM'
+  const isSimpleCommandPage =
+    commandType === 'CREATE_PARTY' ||
+    commandType === 'CREATE_STOCK_ITEM' ||
+    commandType === 'UPDATE_STOCK_ITEM'
   const [commands, setCommands] = useState([])
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('')
