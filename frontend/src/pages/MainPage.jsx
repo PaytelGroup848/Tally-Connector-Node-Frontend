@@ -881,7 +881,7 @@ function App() {
     border
     border-emerald-300/[0.18]
 
-    bg-[#08221d]/[0.94]
+    bg-emerald-600
 
     text-white
 

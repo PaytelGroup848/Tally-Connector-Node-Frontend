@@ -8,6 +8,7 @@ import {
   extractStockItems,
   fetchCompanyCommands,
   fetchCompanyStock,
+  postCompanyCommand,
 } from '../services/companiesApi';
 
 
@@ -369,15 +370,25 @@ function ItemsPage({ companyId }) {
 
   setIsEditOpen(true);
 };
-const handleUpdateStockItem = () => {
+const handleUpdateStockItem = async () => {
+  if (!accessToken || !companyId) {
+    setErrorMessage('Please select a company before updating the item.');
+    return;
+  }
+
+  if (!editForm.tallyExternalId) {
+    setErrorMessage('Tally External ID is missing for this item.');
+    return;
+  }
+
   const payload = {
     type: 'UPDATE_STOCK_ITEM',
     payload: {
       tallyExternalId: editForm.tallyExternalId,
       itemName: editForm.itemName,
-      quantity: Number(editForm.quantity),
-      rate: Number(editForm.rate),
-      value: Number(editForm.value),
+      quantity: Number(editForm.quantity) || 0,
+      rate: Number(editForm.rate) || 0,
+      value: Number(editForm.value) || 0,
       unit: editForm.unit,
       hsnCode: editForm.hsnCode,
       godown: editForm.godown,
@@ -385,12 +396,41 @@ const handleUpdateStockItem = () => {
     },
   };
 
-  console.log('UPDATE_STOCK_ITEM payload:', payload);
+  try {
+    setIsLoading(true);
+    setErrorMessage('');
 
-  // API call goes here
-  // await ...
+    const response = await postCompanyCommand(accessToken, companyId, payload);
+    console.log('UPDATE_STOCK_ITEM response:', response);
 
-  setIsEditOpen(false);
+    setStockItems((currentItems) =>
+      currentItems.map((item) => {
+        const itemTallyId = getItemValue(item, 'itemTallyExternalId');
+
+        return itemTallyId === editForm.tallyExternalId
+          ? {
+              ...item,
+              tallyExternalId: editForm.tallyExternalId,
+              itemName: editForm.itemName,
+              quantity: Number(editForm.quantity) || 0,
+              rate: Number(editForm.rate) || 0,
+              value: Number(editForm.value) || 0,
+              unit: editForm.unit,
+              hsnCode: editForm.hsnCode,
+              godown: editForm.godown,
+              batch: editForm.batch,
+            }
+          : item;
+      })
+    );
+
+    setIsEditOpen(false);
+  } catch (error) {
+    console.error('UPDATE_STOCK_ITEM failed:', error);
+    setErrorMessage(error?.message || 'Unable to update stock item.');
+  } finally {
+    setIsLoading(false);
+  }
 };
 
   return (
