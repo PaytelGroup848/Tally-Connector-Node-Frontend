@@ -353,30 +353,11 @@ export default function ScheduleManagementModal({
                 <button
                   type="button"
                   disabled={!scheduleEnabled}
-                  onClick={() => applyToKeys(WEEKDAY_KEYS, { enabled: true })}
-                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Briefcase size={11} />
-                  Weekdays
-                </button>
-                <button
-                  type="button"
-                  disabled={!scheduleEnabled}
                   onClick={() => applyToKeys(WEEKEND_KEYS, { enabled: false })}
                   className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <Sun size={11} />
                   Off weekends
-                </button>
-                <button
-                  type="button"
-                  disabled={!scheduleEnabled}
-                  onClick={copyMondayToAll}
-                  title="Copy Monday's hours to every day"
-                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Copy size={11} />
-                  Copy Mon to all
                 </button>
               </div>
             </div>
