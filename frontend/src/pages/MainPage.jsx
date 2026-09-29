@@ -862,57 +862,47 @@ function App() {
           </div>
         )}
 
-        <button
-          type="button"
-          aria-label="Quick create"
-          aria-expanded={showQuickCreate}
-          onClick={() =>
-            setShowQuickCreate((current) => !current)
-          }
-          className="
-    flex
-    h-14
-    w-14
-    items-center
-    justify-center
-
-    rounded-full
-
-    border
-    border-emerald-300/[0.18]
-
-    bg-[#0A1128]
-
-    text-white
-
-    shadow-[0_12px_32px_rgba(0,0,0,0.28)]
-
-    backdrop-blur-[20px]
-    backdrop-saturate-[150%]
-  "
-        >
-          <span
-            className="
+        {!showQuickCreate && (
+  <button
+    type="button"
+    aria-label="Quick create"
+    aria-expanded={showQuickCreate}
+    onClick={() =>
+      setShowQuickCreate((current) => !current)
+    }
+    className="
       flex
-      h-9
-      w-9
+      h-14
+      w-14
       items-center
       justify-center
-
       rounded-full
-
-   
-      
-
-      text-2xl
-      font-light
-      leading-none
-
+      border
+      border-emerald-300/[0.18]
+      bg-[#0A1128]
+      text-white
+      shadow-[0_12px_32px_rgba(0,0,0,0.28)]
+      backdrop-blur-[20px]
+      backdrop-saturate-[150%]
     "
-          >
-            +
-          </span>
-        </button>
+  >
+    <span
+      className="
+        flex
+        h-9
+        w-9
+        items-center
+        justify-center
+        rounded-full
+        text-2xl
+        font-light
+        leading-none
+      "
+    >
+      +
+    </span>
+  </button>
+)}
       </div>
     </div>
   );
