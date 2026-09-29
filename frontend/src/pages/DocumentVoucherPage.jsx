@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import useAuthStore from '../store/authStore'
+import { useNavigate } from "react-router-dom";
+import { Eye } from 'lucide-react'
 import {
   extractStockItems,
   extractCommandId,
@@ -787,11 +789,10 @@ export function SearchableDropdown({
             ? `Loading ${label.toLowerCase()}...`
             : placeholder
         }
-        className={`min-h-9 w-full rounded-md border border-slate-300 px-2.5 pr-14 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 ${
-          disabled
-            ? 'cursor-not-allowed bg-slate-100'
-            : 'bg-white'
-        }`}
+        className={`min-h-9 w-full rounded-md border border-slate-300 px-2.5 pr-14 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 ${disabled
+          ? 'cursor-not-allowed bg-slate-100'
+          : 'bg-white'
+          }`}
       />
 
       {query && !disabled && (
@@ -875,6 +876,7 @@ export function DocumentVoucherPage({
   extraField,
   date = new Date().toLocaleDateString('en-CA'),
 }) {
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
   const [submitError, setSubmitError] = useState(null)
@@ -1119,7 +1121,7 @@ export function DocumentVoucherPage({
 
             setStockError(
               stockResult.reason?.message ||
-                'Unable to load stock items.',
+              'Unable to load stock items.',
             )
           }
 
@@ -1491,13 +1493,13 @@ export function DocumentVoucherPage({
       typeof voucherType === 'string'
         ? voucherType
         : getDisplayValue(voucherType, [
-            'voucherType',
-            'voucher_type',
-            'type',
-            'name',
-            'value',
-            'displayName',
-          ]),
+          'voucherType',
+          'voucher_type',
+          'type',
+          'name',
+          'value',
+          'displayName',
+        ]),
     )
     .filter(Boolean)
     .filter(
@@ -1673,17 +1675,17 @@ export function DocumentVoucherPage({
 
     return matchingItem
       ? getStockValue(
-          matchingItem,
-          [
-            'rate',
-            'salesRate',
-            'sellingRate',
-            'price',
-            'mrp',
-            'avgPurRate',
-            'purchaseRate',
-          ],
-        )
+        matchingItem,
+        [
+          'rate',
+          'salesRate',
+          'sellingRate',
+          'price',
+          'mrp',
+          'avgPurRate',
+          'purchaseRate',
+        ],
+      )
       : ''
   }
 
@@ -1695,20 +1697,20 @@ export function DocumentVoucherPage({
 
     return matchingItem
       ? getStockValue(
-          matchingItem,
-          [
-            'units',
-            'unit',
-            'unitName',
-            'unit_name',
-            'uom',
-            'stockUnit',
-            'stock_unit',
-            'itemUnit',
-            'item_unit',
-            'measure',
-          ],
-        )
+        matchingItem,
+        [
+          'units',
+          'unit',
+          'unitName',
+          'unit_name',
+          'uom',
+          'stockUnit',
+          'stock_unit',
+          'itemUnit',
+          'item_unit',
+          'measure',
+        ],
+      )
       : ''
   }
 
@@ -1720,17 +1722,17 @@ export function DocumentVoucherPage({
 
     return matchingItem
       ? getStockValue(
-          matchingItem,
-          [
-            'hsnCode',
-            'hsn_code',
-            'hsn',
-            'hsnCodeValue',
-            'hsn_code_value',
-            'itemHsn',
-            'item_hsn',
-          ],
-        )
+        matchingItem,
+        [
+          'hsnCode',
+          'hsn_code',
+          'hsn',
+          'hsnCodeValue',
+          'hsn_code_value',
+          'itemHsn',
+          'item_hsn',
+        ],
+      )
       : ''
   }
 
@@ -1768,15 +1770,15 @@ export function DocumentVoucherPage({
 
     return matchingVoucher
       ? getVoucherValue(
-          matchingVoucher,
-          [
-            'voucherNumber',
-            'voucherNo',
-            'voucher no',
-            'voucher_no',
-            'number',
-          ],
-        )
+        matchingVoucher,
+        [
+          'voucherNumber',
+          'voucherNo',
+          'voucher no',
+          'voucher_no',
+          'number',
+        ],
+      )
       : ''
   }
 
@@ -1790,9 +1792,9 @@ export function DocumentVoucherPage({
         currentRows.map((row) =>
           row.id === rowId
             ? {
-                ...row,
-                [field]: value,
-              }
+              ...row,
+              [field]: value,
+            }
             : row,
         ),
     )
@@ -1807,9 +1809,9 @@ export function DocumentVoucherPage({
         currentRows.map((row) =>
           row.id === rowId
             ? {
-                ...row,
-                ...changes,
-              }
+              ...row,
+              ...changes,
+            }
             : row,
         ),
     )
@@ -1854,17 +1856,17 @@ export function DocumentVoucherPage({
         currentRows.map((row) =>
           row.id === rowId
             ? {
-                ...row,
-                item: '',
-                quantity: '0',
-                rate: '',
-                units: '',
-                discount: '0',
-                hsnCode: '',
-                godown: '',
-                description: '',
-                taxInclusive: false,
-              }
+              ...row,
+              item: '',
+              quantity: '0',
+              rate: '',
+              units: '',
+              discount: '0',
+              hsnCode: '',
+              godown: '',
+              description: '',
+              taxInclusive: false,
+            }
             : row,
         ),
     )
@@ -1940,7 +1942,7 @@ export function DocumentVoucherPage({
       if (
         !currentValue ||
         typeof currentValue !==
-          'object'
+        'object'
       ) {
         continue
       }
@@ -1965,7 +1967,7 @@ export function DocumentVoucherPage({
         if (
           value &&
           typeof value ===
-            'object'
+          'object'
         ) {
           queue.push(value)
         }
@@ -2213,45 +2215,45 @@ export function DocumentVoucherPage({
 
     const items = isStockJournal
       ? {
-          source: sourceRows.map((row) => ({ ...row, quantity: Number(row.qty) || 0, amount: (Number(row.qty) || 0) * (Number(row.rate) || 0) })),
-          destination: destinationRows.map((row) => ({ ...row, quantity: Number(row.qty) || 0, amount: (Number(row.qty) || 0) * (Number(row.rate) || 0) })),
-        }
+        source: sourceRows.map((row) => ({ ...row, quantity: Number(row.qty) || 0, amount: (Number(row.qty) || 0) * (Number(row.rate) || 0) })),
+        destination: destinationRows.map((row) => ({ ...row, quantity: Number(row.qty) || 0, amount: (Number(row.qty) || 0) * (Number(row.rate) || 0) })),
+      }
       : isJournalStyleVoucher
-      ? journalRows.map((row) => ({
+        ? journalRows.map((row) => ({
           type: row.type,
           partyName: row.partyName,
           amount: Number(row.amount) || 0,
         }))
-      : itemRows.map(
-      (row) => ({
-        itemName:
-          row.item || '',
-        quantity:
-          Number(row.quantity) ||
-          0,
-        rate:
-          Number(row.rate) || 0,
-        units:
-          row.units || '',
-        discount:
-          Number(row.discount) ||
-          0,
-        hsnCode:
-          row.hsnCode || '',
-        godown:
-          row.godown || '',
-        description:
-          row.description || '',
-        amount:
-          calculateRowAmount(
-            row,
-          ),
-        taxInclusive:
-          Boolean(
-            row.taxInclusive,
-          ),
-      }),
-    )
+        : itemRows.map(
+          (row) => ({
+            itemName:
+              row.item || '',
+            quantity:
+              Number(row.quantity) ||
+              0,
+            rate:
+              Number(row.rate) || 0,
+            units:
+              row.units || '',
+            discount:
+              Number(row.discount) ||
+              0,
+            hsnCode:
+              row.hsnCode || '',
+            godown:
+              row.godown || '',
+            description:
+              row.description || '',
+            amount:
+              calculateRowAmount(
+                row,
+              ),
+            taxInclusive:
+              Boolean(
+                row.taxInclusive,
+              ),
+          }),
+        )
 
     const ledgerTotals = calculateLedgerTotals()
 
@@ -2276,34 +2278,34 @@ export function DocumentVoucherPage({
       payload: isJournal
         ? journalPayload
         : {
-            voucherType,
-            partyLedger: submittedPartyName || '',
-            ledgerType: values.ledgerType || '',
-            date: values.date || '',
-            voucherNumber: values.voucherNumber || '',
-            items,
-            ledgers: ledgerTotals.entries.map((row) => ({
-              ledgerName: row.ledgerName,
-              category: row.category,
-              calculationType: row.calculationType,
-              value: Number(row.value) || 0,
-              effect: row.effect,
-              amount: Number(row.amount.toFixed(2)),
-            })),
-            subTotal: Number(subtotal.toFixed(2)),
-            taxes: Number(ledgerTotals.taxes.toFixed(2)),
-            otherLedgerAmount: Number(ledgerTotals.otherLedgers.toFixed(2)),
-            grandTotal: Number(ledgerTotals.grandTotal.toFixed(2)),
-            narration: values.narration || '',
-            referenceNumber: values.referenceNumber || '',
-            referenceDate: values.referenceDate || '',
-            orderType: values.orderType || '',
-            orderNumber: values.orderNumber || '',
-            orderDate: values.orderDate || '',
-            reasonForReturn: values.reasonForReturn || '',
-            advancedSettings,
-            ...advancedSettings,
-          },
+          voucherType,
+          partyLedger: submittedPartyName || '',
+          ledgerType: values.ledgerType || '',
+          date: values.date || '',
+          voucherNumber: values.voucherNumber || '',
+          items,
+          ledgers: ledgerTotals.entries.map((row) => ({
+            ledgerName: row.ledgerName,
+            category: row.category,
+            calculationType: row.calculationType,
+            value: Number(row.value) || 0,
+            effect: row.effect,
+            amount: Number(row.amount.toFixed(2)),
+          })),
+          subTotal: Number(subtotal.toFixed(2)),
+          taxes: Number(ledgerTotals.taxes.toFixed(2)),
+          otherLedgerAmount: Number(ledgerTotals.otherLedgers.toFixed(2)),
+          grandTotal: Number(ledgerTotals.grandTotal.toFixed(2)),
+          narration: values.narration || '',
+          referenceNumber: values.referenceNumber || '',
+          referenceDate: values.referenceDate || '',
+          orderType: values.orderType || '',
+          orderNumber: values.orderNumber || '',
+          orderDate: values.orderDate || '',
+          reasonForReturn: values.reasonForReturn || '',
+          advancedSettings,
+          ...advancedSettings,
+        },
     }
 
     try {
@@ -2435,7 +2437,7 @@ export function DocumentVoucherPage({
         getCommandFailureDetails(
           error,
           error?.message ||
-            'Unable to create sales invoice.',
+          'Unable to create sales invoice.',
         ),
       )
     } finally {
@@ -2500,11 +2502,10 @@ export function DocumentVoucherPage({
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
           <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
             <div
-              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${
-                showSuccessAnimation
-                  ? 'border-t-green-600 animate-spin'
-                  : 'border-t-[#1a1f24] animate-spin'
-              }`}
+              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${showSuccessAnimation
+                ? 'border-t-green-600 animate-spin'
+                : 'border-t-[#1a1f24] animate-spin'
+                }`}
               aria-hidden="true"
             />
 
@@ -2652,7 +2653,59 @@ export function DocumentVoucherPage({
         {/* Header */}
         <div className="flex min-h-14 items-center bg-[#63c45d] px-4 py-3 text-[17px] font-bold text-white sm:px-5 sm:py-4">
           {isJournalStyleVoucher ? `Create ${title}` : `Create ${title} Voucher`}
+          <div className="ml-auto">
+            <button
+              type="button"
+              className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
+              onClick={() => {
+                let path = "/";
+
+                if (title === "Quotation") {
+                  path = "/my-quotations";
+                } else if (title === "Sales") {
+                  path = "/my-invoices";
+                }
+                else if (title === "Receipt") {
+                  path = "/my-receipts";
+                }
+                else if (title === "Payment") {
+                  path = "/my-payments";
+                } else if (title === "Sales Order") {
+                  path = "/my-sales-order";
+                } else if (title === "Purchase") {
+                  path = "/my-purchase";
+                } else if (title === "Purchase Order") {
+                  path = "/my-purchase-order";
+                } else if (title === "Credit Note") {
+                  path = "/my-credit-note";
+                } else if (title === "Debit Note") {
+                  path = "/my-debit-note";
+                } else if (title === "Journal") {
+                  path = "/my-journal";
+                } else if (title === "Contra") {
+                  path = "/my-contra";
+                } else if (title === "Stock Journal") {
+                  path = "/my-stock-journal";
+                }
+                else if (title === "Physical Stock") {
+                  path = "/my-physical-stock";
+                } else if (title === "Receipt Note") {
+                  path = "/my-receipt-note";
+                } else if (title === "Delivery Note") {
+                  path = "/my-delivery-note";
+                }
+
+
+                window.history.pushState({}, "", path);
+                window.dispatchEvent(new PopStateEvent("popstate"));
+              }}
+            >
+              View status
+
+            </button>
+          </div>
         </div>
+
 
         <div className="bg-[#f5f7f4] p-3 sm:p-5">
           {isStockJournal ? (
@@ -2683,791 +2736,788 @@ export function DocumentVoucherPage({
             />
           ) : (
             <>
-          {/* Voucher Details */}
-          <div
-            className={`grid items-start gap-3 sm:grid-cols-2 ${
-              isSalesInvoice ||
-              isSalesOrder ||
-              title === 'Purchase'
-                ? 'xl:grid-cols-3'
-                : title === 'Receipt Note' || title === 'Delivery Note'
-                  ? 'xl:grid-cols-5'
-                : 'xl:grid-cols-4'
-            }`}
-          >
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>
-                Voucher Type
-              </span>
+              {/* Voucher Details */}
+              <div
+                className={`grid items-start gap-3 sm:grid-cols-2 ${isSalesInvoice ||
+                  isSalesOrder ||
+                  title === 'Purchase'
+                  ? 'xl:grid-cols-3'
+                  : title === 'Receipt Note' || title === 'Delivery Note'
+                    ? 'xl:grid-cols-5'
+                    : 'xl:grid-cols-4'
+                  }`}
+              >
+                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                  <span>
+                    Voucher Type
+                  </span>
 
-              <input
-                name="voucherType"
-                value={defaultVoucherType}
-                readOnly
-                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
-                placeholder="Select Voucher Type"
-              />
-            </label>
-
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>
-                Party Name
-              </span>
-
-              <div className="relative">
-                {title === 'Quotation' ||
-                isSalesInvoice ||
-                isSalesOrder ? (
-                  <SearchableDropdown
-                    name="partyName"
-                    label="parties"
-                    options={
-                      partyOptions
-                    }
-                    placeholder="Select Party"
-                    loading={
-                      isOptionsLoading
-                    }
-                    value={
-                      selectedParty
-                    }
-                    resetToken={
-                      clearToken
-                    }
-                    onSelect={(
-                      party,
-                    ) => {
-                      setSelectedParty(
-                        party,
-                      )
-
-                      setSelectedVoucherNumber(
-                        findVoucherNumberForParty(
-                          party,
-                        ),
-                      )
-                    }}
-                    onClear={() => {
-                      setSelectedParty(
-                        '',
-                      )
-
-                      setSelectedVoucherNumber(
-                        '',
-                      )
-                    }}
+                  <input
+                    name="voucherType"
+                    value={defaultVoucherType}
+                    readOnly
+                    className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
+                    placeholder="Select Voucher Type"
                   />
-                ) : (
-                  <select
-                    name="partyName"
-                    defaultValue=""
-                    className="min-h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                  >
-                    <option value="">
-                      {isOptionsLoading
-                        ? 'Loading parties...'
-                        : 'Select Party'}
-                    </option>
+                </label>
 
-                    {customerOptions.map(
-                      (name) => (
-                        <option
-                          key={name}
-                          value={
-                            name
-                          }
-                        >
-                          {name}
+                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                  <span>
+                    Party Name
+                  </span>
+
+                  <div className="relative">
+                    {title === 'Quotation' ||
+                      isSalesInvoice ||
+                      isSalesOrder ? (
+                      <SearchableDropdown
+                        name="partyName"
+                        label="parties"
+                        options={
+                          partyOptions
+                        }
+                        placeholder="Select Party"
+                        loading={
+                          isOptionsLoading
+                        }
+                        value={
+                          selectedParty
+                        }
+                        resetToken={
+                          clearToken
+                        }
+                        onSelect={(
+                          party,
+                        ) => {
+                          setSelectedParty(
+                            party,
+                          )
+
+                          setSelectedVoucherNumber(
+                            findVoucherNumberForParty(
+                              party,
+                            ),
+                          )
+                        }}
+                        onClear={() => {
+                          setSelectedParty(
+                            '',
+                          )
+
+                          setSelectedVoucherNumber(
+                            '',
+                          )
+                        }}
+                      />
+                    ) : (
+                      <select
+                        name="partyName"
+                        defaultValue=""
+                        className="min-h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                      >
+                        <option value="">
+                          {isOptionsLoading
+                            ? 'Loading parties...'
+                            : 'Select Party'}
                         </option>
-                      ),
+
+                        {customerOptions.map(
+                          (name) => (
+                            <option
+                              key={name}
+                              value={
+                                name
+                              }
+                            >
+                              {name}
+                            </option>
+                          ),
+                        )}
+                      </select>
                     )}
-                  </select>
-                )}
-              </div>
-            </label>
-
-            {(title === 'Receipt Note' || title === 'Delivery Note') && (
-              <>
-                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                  <span>Order Type</span>
-                  <SearchableDropdown name="orderType" label="order types" options={voucherTypeOptions} placeholder="Select ref" loading={isOptionsLoading} resetToken={clearToken} />
+                  </div>
                 </label>
-                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                  <span>Order Number</span>
-                  <input name="orderNumber" type="text" placeholder="Order Number" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" />
-                </label>
-                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                  <span>Order Date</span>
-                  <input name="orderDate" type="date" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" />
-                </label>
-              </>
-            )}
 
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>
-                Voucher No
-              </span>
-
-              {title === 'Quotation' ||
-              isSalesInvoice ? (
-                <SearchableDropdown
-                  name="voucherNumber"
-                  label="voucher numbers"
-                  options={
-                    voucherNumberOptions
-                  }
-                  placeholder="Voucher number"
-                  loading={
-                    isOptionsLoading
-                  }
-                  value={
-                    selectedVoucherNumber
-                  }
-                  resetToken={
-                    clearToken
-                  }
-                  disabled
-                />
-              ) : (
-                <input
-                  name="voucherNumber"
-                  type="text"
-                  defaultValue=""
-                  className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                  placeholder="Voucher Number"
-                />
-              )}
-            </label>
-
-            {(title === 'Quotation' ||
-              isSalesInvoice ||
-              isSalesOrder ||
-              title === 'Purchase' ||
-              title === 'Purchase Order' ||
-              isNoteVoucher) && (
-              <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                <span>
-                  Ledger Type
-                </span>
-
-                <SearchableDropdown
-                  name="ledgerType"
-                  label="ledger types"
-                  options={
-                    ledgerTypeOptions
-                  }
-                  placeholder="Select Ledger"
-                  loading={
-                    isOptionsLoading
-                  }
-                  resetToken={
-                    clearToken
-                  }
-                />
-              </label>
-            )}
-
-            {isNoteVoucher && (
-              <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                <span>Reason For Return</span>
-                <SearchableDropdown
-                  name="reasonForReturn"
-                  label="return reasons"
-                  options={[
-                    'Sales Return',
-                    'Damaged Goods',
-                    'Wrong Item',
-                    'Other',
-                  ]}
-                  placeholder="Select Reason for return"
-                  loading={isOptionsLoading}
-                  resetToken={clearToken}
-                />
-              </label>
-            )}
-
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Date</span>
-
-              <div className="relative">
-                <input
-                  name="date"
-                  type="date"
-                  defaultValue={
-                    defaultDate
-                  }
-                  className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  🗓
-                </span>
-
-                {title === 'Quotation' && (
-                  <button
-                    type="button"
-                    aria-label="Clear date"
-                    onClick={(
-                      event,
-                    ) => {
-                      event.currentTarget.previousElementSibling.value =
-                        ''
-                    }}
-                    className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                  >
-                    ×
-                  </button>
+                {(title === 'Receipt Note' || title === 'Delivery Note') && (
+                  <>
+                    <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                      <span>Order Type</span>
+                      <SearchableDropdown name="orderType" label="order types" options={voucherTypeOptions} placeholder="Select ref" loading={isOptionsLoading} resetToken={clearToken} />
+                    </label>
+                    <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                      <span>Order Number</span>
+                      <input name="orderNumber" type="text" placeholder="Order Number" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100" />
+                    </label>
+                    <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                      <span>Order Date</span>
+                      <input name="orderDate" type="date" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" />
+                    </label>
+                  </>
                 )}
 
-               
+                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                  <span>
+                    Voucher No
+                  </span>
+
+                  {title === 'Quotation' ||
+                    isSalesInvoice ? (
+                    <SearchableDropdown
+                      name="voucherNumber"
+                      label="voucher numbers"
+                      options={
+                        voucherNumberOptions
+                      }
+                      placeholder="Voucher number"
+                      loading={
+                        isOptionsLoading
+                      }
+                      value={
+                        selectedVoucherNumber
+                      }
+                      resetToken={
+                        clearToken
+                      }
+                      disabled
+                    />
+                  ) : (
+                    <input
+                      name="voucherNumber"
+                      type="text"
+                      defaultValue=""
+                      className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                      placeholder="Voucher Number"
+                    />
+                  )}
+                </label>
+
+                {(title === 'Quotation' ||
+                  isSalesInvoice ||
+                  isSalesOrder ||
+                  title === 'Purchase' ||
+                  title === 'Purchase Order' ||
+                  isNoteVoucher) && (
+                    <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                      <span>
+                        Ledger Type
+                      </span>
+
+                      <SearchableDropdown
+                        name="ledgerType"
+                        label="ledger types"
+                        options={
+                          ledgerTypeOptions
+                        }
+                        placeholder="Select Ledger"
+                        loading={
+                          isOptionsLoading
+                        }
+                        resetToken={
+                          clearToken
+                        }
+                      />
+                    </label>
+                  )}
+
+                {isNoteVoucher && (
+                  <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                    <span>Reason For Return</span>
+                    <SearchableDropdown
+                      name="reasonForReturn"
+                      label="return reasons"
+                      options={[
+                        'Sales Return',
+                        'Damaged Goods',
+                        'Wrong Item',
+                        'Other',
+                      ]}
+                      placeholder="Select Reason for return"
+                      loading={isOptionsLoading}
+                      resetToken={clearToken}
+                    />
+                  </label>
+                )}
+
+                <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                  <span>Date</span>
+
+                  <div className="relative">
+                    <input
+                      name="date"
+                      type="date"
+                      defaultValue={
+                        defaultDate
+                      }
+                      className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                      🗓
+                    </span>
+
+                    {title === 'Quotation' && (
+                      <button
+                        type="button"
+                        aria-label="Clear date"
+                        onClick={(
+                          event,
+                        ) => {
+                          event.currentTarget.previousElementSibling.value =
+                            ''
+                        }}
+                        className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                      >
+                        ×
+                      </button>
+                    )}
+
+
+                  </div>
+                </label>
               </div>
-            </label>
-          </div>
 
-          {/* Items Table */}
-          <div className="relative z-10 mt-5 overflow-visible rounded-lg border border-slate-200 bg-white">
-            <div className="overflow-x-auto lg:overflow-visible">
-              <div className="min-w-[1280px] lg:min-w-0">
-                {/* Table Header */}
-                <div className="grid grid-cols-[1.45fr_.55fr_.7fr_.7fr_.65fr_.9fr_1fr_1.4fr_.9fr_.6fr_.5fr] border-b border-slate-200 bg-slate-100 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
-                  <div className="border-r border-slate-200 px-2.5 py-3">
-                    Items
+              {/* Items Table */}
+              <div className="relative z-10 mt-5 overflow-visible rounded-lg border border-slate-200 bg-white">
+                <div className="overflow-x-auto lg:overflow-visible">
+                  <div className="min-w-[1280px] lg:min-w-0">
+                    {/* Table Header */}
+                    <div className="grid grid-cols-[1.45fr_.55fr_.7fr_.7fr_.65fr_.9fr_1fr_1.4fr_.9fr_.6fr_.5fr] border-b border-slate-200 bg-slate-100 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                      <div className="border-r border-slate-200 px-2.5 py-3">
+                        Items
+                      </div>
+
+                      <div className="border-r border-slate-200 px-2 py-3 text-center">
+                        Qty
+                      </div>
+
+                      <div className="border-r border-slate-200 px-2 py-3 text-center">
+                        Rate
+                      </div>
+
+                      <div className="border-r border-slate-200 px-2 py-3 text-center">
+                        Units
+                      </div>
+
+                      <div className="border-r border-slate-200 px-2 py-3 text-center">
+                        Disc %
+                      </div>
+
+                      <div className="border-r border-slate-200 px-2 py-3 text-center">
+                        HSN Code
+                      </div>
+
+                      <div className="border-r border-slate-200 px-2 py-3 text-center">
+                        Godown
+                      </div>
+
+                      <div className="border-r border-slate-200 px-2 py-3 text-center">
+                        Description
+                      </div>
+
+                      <div className="border-r border-slate-200 px-2 py-3 text-center">
+                        Amount
+                      </div>
+
+                      <div className="border-r border-slate-200 px-2 py-3 text-center">
+                        Tax Incl.
+                      </div>
+
+                      <button
+                        type="button"
+                        title="Add new item row"
+                        aria-label="Add new item row"
+                        onClick={
+                          addItemRow
+                        }
+                        className="flex min-h-full items-center justify-center bg-slate-700 px-2 py-3 text-base font-bold text-white transition hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    {/* Dynamic Rows */}
+                    {itemRows.map(
+                      (row, index) => {
+                        const amount =
+                          calculateRowAmount(
+                            row,
+                          )
+
+                        return (
+                          <div
+                            key={
+                              row.id
+                            }
+                            className={`grid grid-cols-[1.45fr_.55fr_.7fr_.7fr_.65fr_.9fr_1fr_1.4fr_.9fr_.6fr_.5fr] items-stretch border-b border-slate-200 bg-white last:border-b-0 ${index %
+                              2 ===
+                              1
+                              ? 'bg-slate-[25]'
+                              : 'bg-white'
+                              }`}
+                          >
+                            {/* Item */}
+                            <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
+                              {title ===
+                                'Quotation' ||
+                                isSalesInvoice ||
+                                isSalesOrder ||
+                                title === 'Purchase Order' ||
+                                isCreditNote ||
+                                isDebitNote ? (
+                                <SearchableDropdown
+                                  name={`item-${row.id}`}
+                                  label="items"
+                                  options={
+                                    isSalesInvoice || isSalesOrder
+                                      ? itemOptions
+                                      : quotationItemOptions
+                                  }
+                                  placeholder={
+                                    stockError ||
+                                    'Search item'
+                                  }
+                                  loading={
+                                    isOptionsLoading
+                                  }
+                                  value={
+                                    row.item
+                                  }
+                                  onSelect={(
+                                    itemName,
+                                  ) =>
+                                    handleItemSelect(
+                                      row.id,
+                                      itemName,
+                                    )
+                                  }
+                                  onClear={() =>
+                                    updateItemRowValues(
+                                      row.id,
+                                      {
+                                        item: '',
+                                        rate: '',
+                                      },
+                                    )
+                                  }
+                                />
+                              ) : (
+                                <select
+                                  name={`item-${row.id}`}
+                                  value={
+                                    row.item
+                                  }
+                                  onChange={(
+                                    event,
+                                  ) =>
+                                    handleItemSelect(
+                                      row.id,
+                                      event
+                                        .target
+                                        .value,
+                                    )
+                                  }
+                                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                                >
+                                  <option value="">
+                                    {isOptionsLoading
+                                      ? 'Loading items...'
+                                      : 'Select Item'}
+                                  </option>
+
+                                  {itemOptions.map(
+                                    (
+                                      name,
+                                    ) => (
+                                      <option
+                                        key={
+                                          name
+                                        }
+                                        value={
+                                          name
+                                        }
+                                      >
+                                        {
+                                          name
+                                        }
+                                      </option>
+                                    ),
+                                  )}
+                                </select>
+                              )}
+                            </div>
+
+                            {/* Quantity */}
+                            <div className="relative flex items-center border-r border-slate-200 p-1.5">
+                              <input
+                                name={`quantity-${row.id}`}
+                                type="number"
+                                min="0"
+                                step="any"
+                                value={
+                                  row.quantity
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateItemRow(
+                                    row.id,
+                                    'quantity',
+                                    event
+                                      .target
+                                      .value,
+                                  )
+                                }
+                                className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                              />
+
+                              {row.quantity && (
+                                <button
+                                  type="button"
+                                  aria-label="Clear quantity"
+                                  onClick={() =>
+                                    updateItemRow(
+                                      row.id,
+                                      'quantity',
+                                      '',
+                                    )
+                                  }
+                                  className="absolute right-2 text-sm text-slate-400 hover:text-slate-700"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Rate */}
+                            <div className="relative flex items-center border-r border-slate-200 p-1.5">
+                              <input
+                                name={`rate-${row.id}`}
+                                type="number"
+                                min="0"
+                                step="any"
+                                value={
+                                  row.rate
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateItemRow(
+                                    row.id,
+                                    'rate',
+                                    event
+                                      .target
+                                      .value,
+                                  )
+                                }
+                                placeholder="0"
+                                className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                              />
+
+                              {row.rate && (
+                                <button
+                                  type="button"
+                                  aria-label="Clear rate"
+                                  onClick={() =>
+                                    updateItemRow(
+                                      row.id,
+                                      'rate',
+                                      '',
+                                    )
+                                  }
+                                  className="absolute right-2 text-sm text-slate-400 hover:text-slate-700"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Units - Simple Text Input */}
+                            <div className="relative flex items-center border-r border-slate-200 p-1.5">
+                              <input
+                                name={`units-${row.id}`}
+                                type="text"
+                                value={
+                                  row.units
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateItemRow(
+                                    row.id,
+                                    'units',
+                                    event
+                                      .target
+                                      .value,
+                                  )
+                                }
+                                placeholder="Units"
+                                className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 pr-7 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                              />
+
+                              {row.units && (
+                                <button
+                                  type="button"
+                                  aria-label="Clear units"
+                                  onClick={() =>
+                                    updateItemRow(
+                                      row.id,
+                                      'units',
+                                      '',
+                                    )
+                                  }
+                                  className="absolute right-2 text-sm text-slate-400 hover:text-slate-700"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Discount */}
+                            <div className="flex items-center border-r border-slate-200 p-1.5">
+                              <input
+                                name={`discount-${row.id}`}
+                                type="number"
+                                min="0"
+                                step="any"
+                                value={
+                                  row.discount
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateItemRow(
+                                    row.id,
+                                    'discount',
+                                    event
+                                      .target
+                                      .value,
+                                  )
+                                }
+                                className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                              />
+                            </div>
+
+                            {/* HSN */}
+                            <div className="flex items-center border-r border-slate-200 p-1.5">
+                              <input
+                                name={`hsnCode-${row.id}`}
+                                value={
+                                  row.hsnCode
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateItemRow(
+                                    row.id,
+                                    'hsnCode',
+                                    event
+                                      .target
+                                      .value,
+                                  )
+                                }
+                                placeholder=""
+                                className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                              />
+                            </div>
+
+                            {/* Godown */}
+                            <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
+                              {title ===
+                                'Quotation' ||
+                                isSalesInvoice ||
+                                isSalesOrder ||
+                                title === 'Purchase Order' ||
+                                title === 'Receipt Note' ||
+                                title === 'Delivery Note' ||
+                                isCreditNote ||
+                                isDebitNote ? (
+                                <SearchableDropdown
+                                  name={`godown-${row.id}`}
+                                  label="godowns"
+                                  options={
+                                    godownOptions
+                                  }
+                                  placeholder="Search Godown"
+                                  loading={
+                                    isOptionsLoading
+                                  }
+                                  value={
+                                    row.godown
+                                  }
+                                  onSelect={(
+                                    value,
+                                  ) =>
+                                    updateItemRow(
+                                      row.id,
+                                      'godown',
+                                      value,
+                                    )
+                                  }
+                                  onClear={() =>
+                                    updateItemRow(
+                                      row.id,
+                                      'godown',
+                                      '',
+                                    )
+                                  }
+                                />
+                              ) : (
+                                <input
+                                  name={`godown-${row.id}`}
+                                  value={
+                                    row.godown
+                                  }
+                                  onChange={(
+                                    event,
+                                  ) =>
+                                    updateItemRow(
+                                      row.id,
+                                      'godown',
+                                      event
+                                        .target
+                                        .value,
+                                    )
+                                  }
+                                  placeholder="Search Godown"
+                                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                                />
+                              )}
+                            </div>
+
+                            {/* Description */}
+                            <div className="flex items-center border-r border-slate-200 p-1.5">
+                              <input
+                                name={`description-${row.id}`}
+                                value={
+                                  row.description
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateItemRow(
+                                    row.id,
+                                    'description',
+                                    event
+                                      .target
+                                      .value,
+                                  )
+                                }
+                                placeholder="Enter Notes"
+                                className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                              />
+                            </div>
+
+                            {/* Amount */}
+                            <div className="relative flex items-center border-r border-slate-200 p-1.5">
+                              <input
+                                name={`amount-${row.id}`}
+                                type="number"
+                                value={
+                                  amount
+                                }
+                                readOnly
+                                className="h-9 w-full rounded-md border border-slate-300 bg-slate-50 px-2 text-xs font-medium text-slate-700 outline-none"
+                              />
+
+                              <button
+                                type="button"
+                                aria-label="Clear amount"
+                                onClick={() =>
+                                  updateItemRowValues(
+                                    row.id,
+                                    {
+                                      quantity:
+                                        '',
+                                      rate: '',
+                                    },
+                                  )
+                                }
+                                className="absolute right-2 text-sm text-slate-400 hover:text-slate-700"
+                              >
+                                ×
+                              </button>
+                            </div>
+
+                            {/* Tax Inclusive */}
+                            <div className="flex items-center justify-center border-r border-slate-200 p-1.5">
+                              <input
+                                name={`taxInclusive-${row.id}`}
+                                type="checkbox"
+                                title="Add 18% GST"
+                                checked={
+                                  row.taxInclusive
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  updateItemRow(
+                                    row.id,
+                                    'taxInclusive',
+                                    event
+                                      .target
+                                      .checked,
+                                  )
+                                }
+                                className="h-4 w-4 cursor-pointer accent-green-600"
+                              />
+                            </div>
+
+                            {/* Delete */}
+                            <div className="flex items-center justify-center p-1.5">
+                              <button
+                                type="button"
+                                aria-label={`Delete item row ${index + 1
+                                  }`}
+                                title="Delete row"
+                                onClick={() =>
+                                  deleteItemRow(
+                                    row.id,
+                                  )
+                                }
+                                className="flex h-8 w-8 items-center justify-center rounded-md text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      },
+                    )}
                   </div>
-
-                  <div className="border-r border-slate-200 px-2 py-3 text-center">
-                    Qty
-                  </div>
-
-                  <div className="border-r border-slate-200 px-2 py-3 text-center">
-                    Rate
-                  </div>
-
-                  <div className="border-r border-slate-200 px-2 py-3 text-center">
-                    Units
-                  </div>
-
-                  <div className="border-r border-slate-200 px-2 py-3 text-center">
-                    Disc %
-                  </div>
-
-                  <div className="border-r border-slate-200 px-2 py-3 text-center">
-                    HSN Code
-                  </div>
-
-                  <div className="border-r border-slate-200 px-2 py-3 text-center">
-                    Godown
-                  </div>
-
-                  <div className="border-r border-slate-200 px-2 py-3 text-center">
-                    Description
-                  </div>
-
-                  <div className="border-r border-slate-200 px-2 py-3 text-center">
-                    Amount
-                  </div>
-
-                  <div className="border-r border-slate-200 px-2 py-3 text-center">
-                    Tax Incl.
-                  </div>
-
-                  <button
-                    type="button"
-                    title="Add new item row"
-                    aria-label="Add new item row"
-                    onClick={
-                      addItemRow
-                    }
-                    className="flex min-h-full items-center justify-center bg-slate-700 px-2 py-3 text-base font-bold text-white transition hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-                  >
-                    +
-                  </button>
                 </div>
 
-                {/* Dynamic Rows */}
-                {itemRows.map(
-                  (row, index) => {
-                    const amount =
-                      calculateRowAmount(
-                        row,
-                      )
+                {/* Add Row Footer */}
+                <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-3 py-2">
+                  <span className="text-xs text-slate-500">
+                    {itemRows.length}{' '}
+                    {itemRows.length === 1
+                      ? 'item row'
+                      : 'item rows'}
+                  </span>
 
-                    return (
-                      <div
-                        key={
-                          row.id
-                        }
-                        className={`grid grid-cols-[1.45fr_.55fr_.7fr_.7fr_.65fr_.9fr_1fr_1.4fr_.9fr_.6fr_.5fr] items-stretch border-b border-slate-200 bg-white last:border-b-0 ${
-                          index %
-                            2 ===
-                          1
-                            ? 'bg-slate-[25]'
-                            : 'bg-white'
-                        }`}
-                      >
-                        {/* Item */}
-                        <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
-                          {title ===
-                            'Quotation' ||
-                          isSalesInvoice ||
-                          isSalesOrder ||
-                          title === 'Purchase Order' ||
-                          isCreditNote ||
-                          isDebitNote ? (
-                            <SearchableDropdown
-                              name={`item-${row.id}`}
-                              label="items"
-                              options={
-                                isSalesInvoice || isSalesOrder
-                                  ? itemOptions
-                                  : quotationItemOptions
-                              }
-                              placeholder={
-                                stockError ||
-                                'Search item'
-                              }
-                              loading={
-                                isOptionsLoading
-                              }
-                              value={
-                                row.item
-                              }
-                              onSelect={(
-                                itemName,
-                              ) =>
-                                handleItemSelect(
-                                  row.id,
-                                  itemName,
-                                )
-                              }
-                              onClear={() =>
-                                updateItemRowValues(
-                                  row.id,
-                                  {
-                                    item: '',
-                                    rate: '',
-                                  },
-                                )
-                              }
-                            />
-                          ) : (
-                            <select
-                              name={`item-${row.id}`}
-                              value={
-                                row.item
-                              }
-                              onChange={(
-                                event,
-                              ) =>
-                                handleItemSelect(
-                                  row.id,
-                                  event
-                                    .target
-                                    .value,
-                                )
-                              }
-                              className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                            >
-                              <option value="">
-                                {isOptionsLoading
-                                  ? 'Loading items...'
-                                  : 'Select Item'}
-                              </option>
-
-                              {itemOptions.map(
-                                (
-                                  name,
-                                ) => (
-                                  <option
-                                    key={
-                                      name
-                                    }
-                                    value={
-                                      name
-                                    }
-                                  >
-                                    {
-                                      name
-                                    }
-                                  </option>
-                                ),
-                              )}
-                            </select>
-                          )}
-                        </div>
-
-                        {/* Quantity */}
-                        <div className="relative flex items-center border-r border-slate-200 p-1.5">
-                          <input
-                            name={`quantity-${row.id}`}
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={
-                              row.quantity
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateItemRow(
-                                row.id,
-                                'quantity',
-                                event
-                                  .target
-                                  .value,
-                              )
-                            }
-                            className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                          />
-
-                          {row.quantity && (
-                            <button
-                              type="button"
-                              aria-label="Clear quantity"
-                              onClick={() =>
-                                updateItemRow(
-                                  row.id,
-                                  'quantity',
-                                  '',
-                                )
-                              }
-                              className="absolute right-2 text-sm text-slate-400 hover:text-slate-700"
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Rate */}
-                        <div className="relative flex items-center border-r border-slate-200 p-1.5">
-                          <input
-                            name={`rate-${row.id}`}
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={
-                              row.rate
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateItemRow(
-                                row.id,
-                                'rate',
-                                event
-                                  .target
-                                  .value,
-                              )
-                            }
-                            placeholder="0"
-                            className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                          />
-
-                          {row.rate && (
-                            <button
-                              type="button"
-                              aria-label="Clear rate"
-                              onClick={() =>
-                                updateItemRow(
-                                  row.id,
-                                  'rate',
-                                  '',
-                                )
-                              }
-                              className="absolute right-2 text-sm text-slate-400 hover:text-slate-700"
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Units - Simple Text Input */}
-                        <div className="relative flex items-center border-r border-slate-200 p-1.5">
-                          <input
-                            name={`units-${row.id}`}
-                            type="text"
-                            value={
-                              row.units
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateItemRow(
-                                row.id,
-                                'units',
-                                event
-                                  .target
-                                  .value,
-                              )
-                            }
-                            placeholder="Units"
-                            className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 pr-7 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                          />
-
-                          {row.units && (
-                            <button
-                              type="button"
-                              aria-label="Clear units"
-                              onClick={() =>
-                                updateItemRow(
-                                  row.id,
-                                  'units',
-                                  '',
-                                )
-                              }
-                              className="absolute right-2 text-sm text-slate-400 hover:text-slate-700"
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Discount */}
-                        <div className="flex items-center border-r border-slate-200 p-1.5">
-                          <input
-                            name={`discount-${row.id}`}
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={
-                              row.discount
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateItemRow(
-                                row.id,
-                                'discount',
-                                event
-                                  .target
-                                  .value,
-                              )
-                            }
-                            className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                          />
-                        </div>
-
-                        {/* HSN */}
-                        <div className="flex items-center border-r border-slate-200 p-1.5">
-                          <input
-                            name={`hsnCode-${row.id}`}
-                            value={
-                              row.hsnCode
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateItemRow(
-                                row.id,
-                                'hsnCode',
-                                event
-                                  .target
-                                  .value,
-                              )
-                            }
-                            placeholder=""
-                            className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                          />
-                        </div>
-
-                        {/* Godown */}
-                        <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
-                          {title ===
-                            'Quotation' ||
-                          isSalesInvoice ||
-                          isSalesOrder ||
-                          title === 'Purchase Order' ||
-                          title === 'Receipt Note' ||
-                          title === 'Delivery Note' ||
-                          isCreditNote ||
-                          isDebitNote ? (
-                            <SearchableDropdown
-                              name={`godown-${row.id}`}
-                              label="godowns"
-                              options={
-                                godownOptions
-                              }
-                              placeholder="Search Godown"
-                              loading={
-                                isOptionsLoading
-                              }
-                              value={
-                                row.godown
-                              }
-                              onSelect={(
-                                value,
-                              ) =>
-                                updateItemRow(
-                                  row.id,
-                                  'godown',
-                                  value,
-                                )
-                              }
-                              onClear={() =>
-                                updateItemRow(
-                                  row.id,
-                                  'godown',
-                                  '',
-                                )
-                              }
-                            />
-                          ) : (
-                            <input
-                              name={`godown-${row.id}`}
-                              value={
-                                row.godown
-                              }
-                              onChange={(
-                                event,
-                              ) =>
-                                updateItemRow(
-                                  row.id,
-                                  'godown',
-                                  event
-                                    .target
-                                    .value,
-                                )
-                              }
-                              placeholder="Search Godown"
-                              className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                            />
-                          )}
-                        </div>
-
-                        {/* Description */}
-                        <div className="flex items-center border-r border-slate-200 p-1.5">
-                          <input
-                            name={`description-${row.id}`}
-                            value={
-                              row.description
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateItemRow(
-                                row.id,
-                                'description',
-                                event
-                                  .target
-                                  .value,
-                              )
-                            }
-                            placeholder="Enter Notes"
-                            className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                          />
-                        </div>
-
-                        {/* Amount */}
-                        <div className="relative flex items-center border-r border-slate-200 p-1.5">
-                          <input
-                            name={`amount-${row.id}`}
-                            type="number"
-                            value={
-                              amount
-                            }
-                            readOnly
-                            className="h-9 w-full rounded-md border border-slate-300 bg-slate-50 px-2 text-xs font-medium text-slate-700 outline-none"
-                          />
-
-                          <button
-                            type="button"
-                            aria-label="Clear amount"
-                            onClick={() =>
-                              updateItemRowValues(
-                                row.id,
-                                {
-                                  quantity:
-                                    '',
-                                  rate: '',
-                                },
-                              )
-                            }
-                            className="absolute right-2 text-sm text-slate-400 hover:text-slate-700"
-                          >
-                            ×
-                          </button>
-                        </div>
-
-                        {/* Tax Inclusive */}
-                        <div className="flex items-center justify-center border-r border-slate-200 p-1.5">
-                          <input
-                            name={`taxInclusive-${row.id}`}
-                            type="checkbox"
-                            title="Add 18% GST"
-                            checked={
-                              row.taxInclusive
-                            }
-                            onChange={(
-                              event,
-                            ) =>
-                              updateItemRow(
-                                row.id,
-                                'taxInclusive',
-                                event
-                                  .target
-                                  .checked,
-                              )
-                            }
-                            className="h-4 w-4 cursor-pointer accent-green-600"
-                          />
-                        </div>
-
-                        {/* Delete */}
-                        <div className="flex items-center justify-center p-1.5">
-                          <button
-                            type="button"
-                            aria-label={`Delete item row ${
-                              index + 1
-                            }`}
-                            title="Delete row"
-                            onClick={() =>
-                              deleteItemRow(
-                                row.id,
-                              )
-                            }
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-red-500 transition hover:bg-red-50 hover:text-red-700"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  },
-                )}
+                  <button
+                    type="button"
+                    onClick={addItemRow}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
+                  >
+                    <span className="text-sm leading-none">
+                      +
+                    </span>
+                    Add Item
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Add Row Footer */}
-            <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-3 py-2">
-              <span className="text-xs text-slate-500">
-                {itemRows.length}{' '}
-                {itemRows.length === 1
-                  ? 'item row'
-                  : 'item rows'}
-              </span>
-
-              <button
-                type="button"
-                onClick={addItemRow}
-                className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
-              >
-                <span className="text-sm leading-none">
-                  +
-                </span>
-                Add Item
-              </button>
-            </div>
-          </div>
-
-          <VoucherBottomSection
-            subtotal={subtotal}
-            itemTaxes={itemTaxes}
-            ledgerOptions={ledgerOptions}
-            additionalLedgers={additionalLedgers}
-            onAddLedger={addAdditionalLedger}
-            onRemoveLedger={removeAdditionalLedger}
-            onLedgerChange={updateAdditionalLedger}
-            showLedgerPanel={showLedgerPanel}
-            onToggleLedgerPanel={() => setShowLedgerPanel((open) => !open)}
-          />
+              <VoucherBottomSection
+                subtotal={subtotal}
+                itemTaxes={itemTaxes}
+                ledgerOptions={ledgerOptions}
+                additionalLedgers={additionalLedgers}
+                onAddLedger={addAdditionalLedger}
+                onRemoveLedger={removeAdditionalLedger}
+                onLedgerChange={updateAdditionalLedger}
+                showLedgerPanel={showLedgerPanel}
+                onToggleLedgerPanel={() => setShowLedgerPanel((open) => !open)}
+              />
             </>
           )}
         </div>
@@ -3509,7 +3559,7 @@ export function DocumentVoucherPage({
                   Creating...
                 </span>
               ) : (
-                isJournalStyleVoucher ? `Create ${title}` : 'Create Voucher'
+                isJournalStyleVoucher ? `Create ${title} ` : 'Create Voucher'
               )}
             </button>
           </div>

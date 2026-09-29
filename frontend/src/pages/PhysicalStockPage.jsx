@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { SearchableDropdown } from './DocumentVoucherPage'
 import useAuthStore from '../store/authStore'
+import { Eye } from 'lucide-react'
 import {
   extractGodowns,
   extractStockItems,
@@ -225,11 +226,10 @@ function PhysicalStockPage({ companyId }) {
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
           <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
             <div
-              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${
-                showSuccessAnimation
+              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${showSuccessAnimation
                   ? 'border-t-green-600 animate-spin'
                   : 'border-t-[#1a1f24] animate-spin'
-              }`}
+                }`}
               aria-hidden="true"
             />
             <span className="mt-3 text-sm font-semibold text-slate-700">
@@ -249,10 +249,34 @@ function PhysicalStockPage({ companyId }) {
         {/* HEADER */}
         {/* ================================================== */}
 
-        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white">
+        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white flex justify-center">
           <h1 className="leading-none">
             Create Physical Stock Voucher
           </h1>
+          <div className="ml-auto">
+            <div className="ml-auto">
+              <button
+
+                type="button"
+
+                className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
+
+                onClick={() => {
+
+                  window.history.pushState({}, "", path);
+                window.dispatchEvent(new PopStateEvent("popstate"));
+
+                }}
+
+              >
+
+                View status
+
+
+
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* ================================================== */}
@@ -312,7 +336,7 @@ function PhysicalStockPage({ companyId }) {
                   className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none"
                 />
 
-               
+
               </div>
             </label>
 

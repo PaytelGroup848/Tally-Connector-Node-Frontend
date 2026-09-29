@@ -60,6 +60,10 @@ export function useCurrentUser() {
 
         const subscription =
           organizationContext.subscription
+        const existingUser = useAuthStore.getState().user
+        const existingUserIsSuperAdmin =
+          String(existingUser?.role || '').toUpperCase() === 'SUPER_ADMIN' ||
+          existingUser?.isSuperAdmin === true
 
         setUser({
           ...currentUser,
@@ -71,6 +75,9 @@ export function useCurrentUser() {
           owner: organizationContext.owner,
           plan: organizationContext.plan,
           role: organizationContext.role,
+          ...(existingUserIsSuperAdmin
+            ? { role: 'SUPER_ADMIN', isSuperAdmin: true }
+            : {}),
           permissions: organizationContext.permissions,
           isMember: organizationContext.isMember,
           ...(subscription

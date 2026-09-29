@@ -1801,12 +1801,12 @@ function DashboardPreview() {
 
             <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 2xl:grid-cols-4">
               {[
-                ["Total Sales", "₹ 2.39L", ArrowUpRight],
-                ["Total Receipts", "₹ 12.33K", Receipt],
-                ["Total Payments", "₹ 599", CreditCard],
+                ["Total Sales", "", ArrowUpRight],
+                ["Total Receipts", "", Receipt],
+                ["Total Payments", "", CreditCard],
                 [
                   "Cash & Bank Balance",
-                  "₹ 29.72K",
+                  "",
                   Landmark,
                 ],
               ].map(([label, value, Icon]) => (

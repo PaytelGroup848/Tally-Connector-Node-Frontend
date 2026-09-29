@@ -64,6 +64,9 @@ const useAuthStore = create((set, get) => ({
       window.localStorage.removeItem(
         'accessToken',
       )
+      window.localStorage.removeItem(
+        'isSuperAdmin',
+      )
     }
 
     set({

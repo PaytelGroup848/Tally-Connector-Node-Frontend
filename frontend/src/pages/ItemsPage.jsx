@@ -539,7 +539,17 @@ function ItemsPage({ companyId }) {
             <span className="text-sm">+</span>
             Add New Item
           </button>
+          <button
+            type="button"
+            className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
+            onClick={() => {
+              window.history.pushState({}, "", "/my-stock-items");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+          >
+            View status
 
+          </button>
           {/* <button
             className="
               inline-flex

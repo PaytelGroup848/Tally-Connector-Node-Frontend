@@ -10,11 +10,17 @@ import {
 
 import logo from "../assets/logo.png";
 import logoFull from "../assets/logoFull.png";
-import { sendOtp, verifyOtp } from "../services/authApi";
+import {
+  sendOtp,
+  sendSuperAdminOtp,
+  verifyOtp,
+  verifySuperAdminOtp,
+} from "../services/authApi";
 import useAuthStore from "../store/authStore";
 import { getOtpResendState, OTP_RESEND_SECONDS } from "../utils/otpUtils";
 
 const LoginPage = () => {
+  const isSuperAdminLogin = window.location.pathname === "/login/super-admin";
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -61,7 +67,8 @@ const LoginPage = () => {
     setMessage("");
 
     try {
-      await sendOtp(trimmedEmail);
+      const sendOtpRequest = isSuperAdminLogin ? sendSuperAdminOtp : sendOtp;
+      await sendOtpRequest(trimmedEmail);
 
       setOtpSent(true);
       setOtp("");
@@ -89,7 +96,8 @@ const LoginPage = () => {
     setMessage("");
 
     try {
-      await sendOtp(trimmedEmail);
+      const sendOtpRequest = isSuperAdminLogin ? sendSuperAdminOtp : sendOtp;
+      await sendOtpRequest(trimmedEmail);
 
       setOtp("");
       setResendSeconds(OTP_RESEND_SECONDS);
@@ -119,7 +127,10 @@ const LoginPage = () => {
     setMessage("");
 
     try {
-      const data = await verifyOtp({
+      const verifyOtpRequest = isSuperAdminLogin
+        ? verifySuperAdminOtp
+        : verifyOtp;
+      const data = await verifyOtpRequest({
         email: trimmedEmail,
         otp: trimmedOtp,
       });
@@ -139,8 +150,15 @@ const LoginPage = () => {
         user: {
           email: trimmedEmail,
           ...(data?.user || {}),
+          ...(isSuperAdminLogin ? { role: "SUPER_ADMIN", isSuperAdmin: true } : {}),
         },
       });
+
+      if (isSuperAdminLogin) {
+        window.localStorage.setItem("isSuperAdmin", "true");
+        window.history.replaceState({}, "", "/super-admin");
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
     } catch (error) {
       setMessage(error.message || "OTP verification failed. Please try again.");
     } finally {

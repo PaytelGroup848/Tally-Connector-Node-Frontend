@@ -1,8 +1,24 @@
+import { Eye } from 'lucide-react'
 function PaymentPage() {
+
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
       <div className="mx-auto max-w-[1280px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.05)]">
-        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white">Create Payment</div>
+        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white">Create Payment<div className="ml-auto">
+          <div className="ml-auto">
+            <button
+              type="button"
+              className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
+              onClick={() => {
+                window.history.pushState({}, "", path);
+                window.dispatchEvent(new PopStateEvent("popstate"));
+              }}
+            >
+              View status
+
+            </button>
+          </div>
+        </div></div>
 
         <div className="bg-[#f5f7f4] p-5">
           <div className="grid gap-3 md:grid-cols-2">
@@ -28,7 +44,7 @@ function PaymentPage() {
               <span>Date</span>
               <div className="relative">
                 <input type="date" defaultValue="2026-08-27" className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" />
-                
+
               </div>
             </label>
 

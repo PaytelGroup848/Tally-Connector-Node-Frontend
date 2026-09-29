@@ -1,12 +1,35 @@
 import { useState } from 'react'
-
+import { Eye } from 'lucide-react'
 function JournalPage() {
   const [rows, setRows] = useState([{ id: 1 }])
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
       <div className="mx-auto max-w-[1280px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.05)]">
-        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white">Create Journal</div>
+        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white">Create Journal<div className="ml-auto">
+            <div className="ml-auto">
+            <button
+
+                type="button"
+
+                className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
+
+                onClick={() => {
+
+                 window.history.pushState({}, "", path);
+                window.dispatchEvent(new PopStateEvent("popstate"));
+
+                }}
+
+              >
+
+                View status
+
+
+
+              </button>
+          </div>
+          </div></div>
 
         <div className="bg-[#f5f7f4] p-5">
           <div className="grid gap-3 md:grid-cols-3">

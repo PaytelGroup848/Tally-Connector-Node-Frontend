@@ -53,6 +53,7 @@ export function getRouteFlags(path = '') {
     '/my-debit-note', '/my-stock-journal', '/my-physical-stock',
     '/my-receipt-note', '/my-delivery-note', '/my-parties', '/my-stock-items',
   ]
+  
 
   return {
     normalizedPath,
@@ -95,5 +96,6 @@ export function getRouteFlags(path = '') {
     showCreatePartyPage: normalizedPath === '/parties/create',
     showMobileVersionPage: normalizedPath === '/mobile-version',
     showCompanyDetailsPage: normalizedPath.startsWith('/company-details/'),
+    
   }
 }

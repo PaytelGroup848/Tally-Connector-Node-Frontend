@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import useAuthStore from '../store/authStore'
+import { Eye } from 'lucide-react'
 import {
   extractLedgers,
   extractVoucherTypes,
@@ -31,12 +32,12 @@ function getVoucherTypeName(value) {
 
   return String(
     value?.voucherType ||
-      value?.voucher_type ||
-      value?.type ||
-      value?.name ||
-      value?.value ||
-      value?.displayName ||
-      '',
+    value?.voucher_type ||
+    value?.type ||
+    value?.name ||
+    value?.value ||
+    value?.displayName ||
+    '',
   ).trim()
 }
 
@@ -285,9 +286,9 @@ function ReceiptPage({
 
       setSubmitError(
         error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          error?.message ||
-          `Unable to create ${documentType.toLowerCase()}.`,
+        error?.response?.data?.error ||
+        error?.message ||
+        `Unable to create ${documentType.toLowerCase()}.`,
       )
     } finally {
       setIsSubmitting(false)
@@ -337,7 +338,7 @@ function ReceiptPage({
 
         setVoucherTypesError(
           error?.message ||
-            'Unable to load voucher types.',
+          'Unable to load voucher types.',
         )
       })
       .finally(() => {
@@ -441,7 +442,7 @@ function ReceiptPage({
         if (failures.length > 0) {
           setOptionsError(
             failures[0].reason?.message ||
-              'Unable to load party or ledger options.',
+            'Unable to load party or ledger options.',
           )
         }
       })
@@ -463,28 +464,27 @@ function ReceiptPage({
       {(optionsLoading ||
         isSubmitting ||
         showSuccessAnimation) && (
-        <div className="absolute inset-x-0 bottom-0 top-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
-          <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
+          <div className="absolute inset-x-0 bottom-0 top-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
+            <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
 
-            <div
-              className={`h-10 w-10 animate-spin rounded-full border-4 border-slate-200 ${
-                showSuccessAnimation
+              <div
+                className={`h-10 w-10 animate-spin rounded-full border-4 border-slate-200 ${showSuccessAnimation
                   ? 'border-t-green-600'
                   : 'border-t-[#1a1f24]'
-              }`}
-              aria-hidden="true"
-            />
+                  }`}
+                aria-hidden="true"
+              />
 
-            <span className="mt-3 text-sm font-semibold text-slate-700">
-              {isSubmitting
-                ? 'Creating voucher...'
-                : showSuccessAnimation
-                  ? 'Voucher created successfully!'
-                  : 'Loading ...'}
-            </span>
+              <span className="mt-3 text-sm font-semibold text-slate-700">
+                {isSubmitting
+                  ? 'Creating voucher...'
+                  : showSuccessAnimation
+                    ? 'Voucher created successfully!'
+                    : 'Loading ...'}
+              </span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <form
         onSubmit={handleSubmit}
@@ -492,8 +492,29 @@ function ReceiptPage({
       >
 
         {/* Header */}
-        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white">
+        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white flex justify-center">
           Create {documentType}
+          <div className="ml-auto">
+            <div className="ml-auto">
+              <button
+                type="button"
+                className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
+                onClick={() => {
+                  let path = "/";
+
+                  if (documentType === "Receipt") {
+                    path = "/my-receipts";
+                  } else if (documentType === "Payment") {
+                    path = "/my-payments";
+                  }
+                   window.history.pushState({}, "", path);
+                window.dispatchEvent(new PopStateEvent("popstate"));
+                }}
+              >
+                View status
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="bg-[#f5f7f4] p-5">
@@ -555,7 +576,7 @@ function ReceiptPage({
                 onClear={() => updateField('partyName', '')}
                 disabled={optionsLoading}
               />
-              </label>
+            </label>
 
             {/* Date */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
@@ -616,8 +637,8 @@ function ReceiptPage({
                 onSelect={(value) => updateField('ledger', value)}
                 onClear={() => updateField('ledger', '')}
                 disabled={optionsLoading}
-                  />
-                </label>
+              />
+            </label>
 
             {/* Closing Balance */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
@@ -628,12 +649,12 @@ function ReceiptPage({
                   optionsLoading
                     ? 'Loading...'
                     : closingBalance.toLocaleString(
-                        'en-IN',
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        },
-                      )
+                      'en-IN',
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      },
+                    )
                 }
                 readOnly
                 disabled
@@ -715,11 +736,10 @@ function ReceiptPage({
           {/* Error / Success */}
           {(submitMessage || submitError) && (
             <p
-              className={`mt-3 text-sm ${
-                submitError
-                  ? 'text-red-600'
-                  : 'text-emerald-600'
-              }`}
+              className={`mt-3 text-sm ${submitError
+                ? 'text-red-600'
+                : 'text-emerald-600'
+                }`}
             >
               {submitError || submitMessage}
             </p>

@@ -24,9 +24,13 @@ function getPageMeta(path = '') {
       subtitle: 'Create a new stock item',
       fields: [
         { key: 'itemName', label: 'Item Name', placeholder: 'Enter item name' },
+        { key: 'Quantity', label: 'Quantity', placeholder: 'Enter quantity' },
+        { key: 'Rate', label: 'Rate', placeholder: 'Enter rate' },
+        { key: 'Value', label: 'Value', placeholder: 'Enter value' },
         { key: 'hsnCode', label: 'HSN Code', placeholder: 'Enter HSN code' },
         { key: 'unit', label: 'Unit', placeholder: 'e.g. Nos, Kg' },
-        { key: 'openingStock', label: 'Opening Stock', placeholder: 'Enter stock quantity' },
+        { key: 'Batch', label: 'Batch', placeholder: 'Enter batch number' },
+        { key: 'Godown', label: 'Godown', placeholder: 'Enter godown name' },
       ],
     }
   }

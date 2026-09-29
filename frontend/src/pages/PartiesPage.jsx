@@ -201,14 +201,14 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
         ? [1, 2, 3, 4, 5, "...", totalPages]
         : page >= totalPages - 3
           ? [
-              1,
-              "...",
-              totalPages - 4,
-              totalPages - 3,
-              totalPages - 2,
-              totalPages - 1,
-              totalPages,
-            ]
+            1,
+            "...",
+            totalPages - 4,
+            totalPages - 3,
+            totalPages - 2,
+            totalPages - 1,
+            totalPages,
+          ]
           : [1, "...", page - 1, page, page + 1, "...", totalPages];
 
   function handleSearchChange(event) {
@@ -416,6 +416,17 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
           >
             <Plus size={14} />
             Add New Party
+          </button>
+          <button
+            type="button"
+            className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
+            onClick={() => {
+              window.history.pushState({}, "", "/my-parties");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+          >
+            View status
+
           </button>
         </div>
       </div>
@@ -769,11 +780,10 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
                     type="button"
                     disabled={totalPages <= 1 || loading}
                     onClick={() => setPage(item)}
-                    className={`flex h-8 min-w-9 items-center justify-center rounded-md border px-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                      page === item
-                        ? "border-emerald-600 bg-emerald-600 text-white"
-                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                    }`}
+                    className={`flex h-8 min-w-9 items-center justify-center rounded-md border px-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${page === item
+                      ? "border-emerald-600 bg-emerald-600 text-white"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      }`}
                   >
                     {item}
                   </button>
@@ -913,13 +923,12 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
                 <span>GST Number</span>
 
                 <div
-                  className={`relative flex h-10 items-center rounded-md border transition ${
-                    gstLookup.status === "valid"
-                      ? "border-emerald-400 bg-emerald-50/50"
-                      : gstLookup.status === "invalid"
-                        ? "border-red-400 bg-red-50/50"
-                        : "border-slate-300"
-                  }`}
+                  className={`relative flex h-10 items-center rounded-md border transition ${gstLookup.status === "valid"
+                    ? "border-emerald-400 bg-emerald-50/50"
+                    : gstLookup.status === "invalid"
+                      ? "border-red-400 bg-red-50/50"
+                      : "border-slate-300"
+                    }`}
                 >
                   <input
                     type="text"

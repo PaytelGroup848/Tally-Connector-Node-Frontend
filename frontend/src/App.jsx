@@ -5,8 +5,9 @@ import LandingPage from './pages/LandingPage'
 import PlansPage from './pages/PlansPage'
 import useAuthStore from './store/authStore'
 import { useCurrentUser } from './hooks/useCurrentUser'
-
+import SuperAdminPage from './pages/SuperAdminPage'
 function App() {
+
   const [currentPath, setCurrentPath] = useState(
     () => window.location.pathname,
   )
@@ -18,6 +19,10 @@ function App() {
   const user = useAuthStore(
     (state) => state.user,
   )
+  const isSuperAdmin =
+    String(user?.role || '').toUpperCase() === 'SUPER_ADMIN' ||
+    user?.isSuperAdmin === true ||
+    window.localStorage.getItem('isSuperAdmin') === 'true'
 
   const { isLoading } =
     useCurrentUser()
@@ -58,24 +63,26 @@ function App() {
   const hasActiveSubscription =
     Boolean(
       user?.paymentVerified === true ||
-        user?.activeSubscription === true ||
-        user?.subscriptionActive === true ||
-        user?.isActiveSubscription === true ||
-        user?.isSubscribed === true ||
-        user?.subscription?.active === true ||
-        user?.plan?.active === true ||
-        String(subscriptionStatus).toLowerCase() ===
-          'active' ||
-        String(subscriptionStatus).toLowerCase() ===
-          'paid' ||
-        String(subscriptionStatus).toLowerCase() ===
-          'success',
+      user?.activeSubscription === true ||
+      user?.subscriptionActive === true ||
+      user?.isActiveSubscription === true ||
+      user?.isSubscribed === true ||
+      user?.subscription?.active === true ||
+      user?.plan?.active === true ||
+      String(subscriptionStatus).toLowerCase() ===
+      'active' ||
+      String(subscriptionStatus).toLowerCase() ===
+      'paid' ||
+      String(subscriptionStatus).toLowerCase() ===
+      'success',
     )
 
   useEffect(() => {
     if (!isAuthenticated) return
 
     if (isLoading) return
+
+    if (isSuperAdmin) return
 
     /*
      * Root redirect
@@ -143,11 +150,17 @@ function App() {
    * Not authenticated
    */
   if (!isAuthenticated) {
-    if (currentPath === '/login') {
+    if (currentPath === '/login' || currentPath === '/login/super-admin') {
       return <LoginPage />
     }
 
     return <LandingPage />
+  }
+
+  if (isSuperAdmin) {
+    if (currentPath === '/super-admin') {
+      return <SuperAdminPage />
+    }
   }
 
   if (!hasActiveSubscription) {
