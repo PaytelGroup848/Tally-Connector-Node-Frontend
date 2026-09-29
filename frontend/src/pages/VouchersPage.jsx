@@ -402,13 +402,10 @@ function VouchersPage({ companyId }) {
     const responseColumns = useMemo(() => {
         const preferredColumns = [
             'voucherNumber',
-            'voucher_number',
             'voucherType',
-            'voucher_type',
             'partyLedger',
-            'party_ledger',
             'amount',
-            'date',
+            'narration',
         ]
 
         const columns = getUniqueVoucherColumns(
@@ -668,6 +665,9 @@ function VouchersPage({ companyId }) {
 
                                                 {responseColumns.map(
                                                     (column) => {
+                                                        
+
+                                                        
                                                         const cellValue =
                                                             formatCellValue(
                                                                 voucher?.[
