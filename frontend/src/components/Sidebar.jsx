@@ -219,13 +219,13 @@ function Sidebar({
         overflow-hidden
 
         border-r
-        border-[#17233F]
+        border-slate-200
 
-        bg-[#0A1128]
+        bg-white
 
-        text-white
+        text-slate-900
 
-        shadow-[8px_0_35px_rgba(0,0,0,0.30)]
+        
 
         transition-all
         duration-200
@@ -262,7 +262,7 @@ function Sidebar({
           className="
             absolute
             inset-0
-            bg-[#0A1128]
+            bg-white
           "
         />
 
@@ -417,11 +417,7 @@ function Sidebar({
 
             rotate-[14deg]
 
-            bg-gradient-to-r
-            from-white/[0.025]
-            via-white/[0.008]
-            to-transparent
-
+           
             blur-[10px]
           "
         />
@@ -433,7 +429,7 @@ function Sidebar({
             absolute
             inset-0
 
-            bg-[radial-gradient(circle_at_45%_18%,transparent_0%,rgba(0,0,0,0.015)_52%,rgba(0,0,0,0.16)_100%)]
+           
           "
         />
 
@@ -448,10 +444,7 @@ function Sidebar({
 
             h-px
 
-            bg-gradient-to-r
-            from-transparent
-            via-white/[0.14]
-            to-transparent
+          
           "
         />
 
@@ -466,10 +459,7 @@ function Sidebar({
 
             w-px
 
-            bg-gradient-to-b
-            from-white/[0.12]
-            via-white/[0.035]
-            to-transparent
+          
           "
         />
       </div>
@@ -491,7 +481,7 @@ function Sidebar({
               items-center
               justify-end
 
-              bg-[#0A1128]
+              bg-white
 
               px-3
             "
@@ -514,17 +504,17 @@ function Sidebar({
                 rounded-lg
 
                 border
-                border-[#1B2948]
+                border-slate-200
 
-                bg-[#0A1128]
+                bg-white
 
                 text-slate-400
 
                 transition
 
-                hover:border-[#26385E]
-                hover:bg-[#111B35]
-                hover:text-white
+                hover:border-slate-300
+                hover:bg-slate-50
+                hover:text-slate-900
               "
             >
               <X className="h-4 w-4" />
@@ -549,9 +539,9 @@ function Sidebar({
           items-center
 
           border-b
-          border-[#17233F]
+          border-slate-200
 
-          bg-[#0A1128]
+          bg-white
 
           ${collapsed
             ? "justify-center"
@@ -736,7 +726,7 @@ function Sidebar({
                     px-3
 
                     text-left
-                    text-[13px]
+                    text-[14px]
                     font-medium
 
                     no-underline
@@ -746,25 +736,23 @@ function Sidebar({
 
                     ${active
                       ? `
-                          border-[#26385E]
+                          border-0
 
-                          bg-[#111B35]
+                          bg-white
 
-                          text-white
-                          border-green-500
+                          text-emerald-600
 
-                          shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
+                     
                         `
                       : `
-                          border-transparent
+                          border-0
 
                           bg-transparent
 
-                          text-slate-300
+                          text-slate-700
 
-                          hover:border-green-500
-                          hover:bg-[#101932]
-                          hover:text-white
+                          hover:bg-white
+                          hover:text-emerald-600
                           
                         `
                     }
@@ -778,10 +766,7 @@ function Sidebar({
                         pointer-events-none
                         absolute
                         inset-0
-                        bg-gradient-to-r
-                        from-white/[0.035]
-                        via-transparent
-                        to-blue-200/[0.015]
+                        
                         
                       "
                     />
@@ -839,7 +824,7 @@ function Sidebar({
                       {/* Label */}
 
                       <span
-                        className="
+                        className={`
                           relative
                           z-10
 
@@ -847,9 +832,11 @@ function Sidebar({
                           flex-1
                           truncate
 
-                          text-slate-200
-                          group-hover:text-white
-                        "
+                          ${active
+                            ? "text-emerald-600"
+                            : "text-slate-700 group-hover:text-emerald-600"
+                          }
+                        `}
                       >
                         {label}
                       </span>
@@ -865,9 +852,9 @@ function Sidebar({
                             rounded-full
 
                             border
-                            border-[#26385E]
+                            border-slate-200
 
-                            bg-[#111B35]
+                            bg-white
 
                             px-1.5
                             py-0.5
@@ -875,7 +862,7 @@ function Sidebar({
                             text-[9px]
                             font-semibold
                             not-italic
-                            text-slate-300
+                            text-slate-700
                           "
                         >
                           {badge}
@@ -908,7 +895,7 @@ function Sidebar({
     relative
     z-10
     ml-4
-    border-l
+    
     border-[#1B2948]
     py-1
     pl-3
@@ -950,8 +937,8 @@ function Sidebar({
 
             px-3
             py-2
-
-            text-[12px]
+            font-medium
+            text-[13px]
 
             no-underline
 
@@ -960,17 +947,16 @@ function Sidebar({
 
             ${isSubmenuActive(itemPath)
                                   ? `
-                  border-[#009966]
-                  bg-[#111B35]
+                  border-0
+                  bg-white
                   font-semibold
-                  text-white
+                  text-emerald-600
                 `
                                   : `
-                  border-transparent
-                  text-slate-400
-                  hover:border-[#009966]
-                  hover:bg-[#101932]
-                  hover:text-white
+                  border-0
+                  text-slate-800
+                  hover:bg-white
+                  hover:text-emerald-600
                 `
                                 }
           `}
@@ -1009,9 +995,9 @@ function Sidebar({
             rounded-xl
 
             border
-            border-[#1B2948]
+            border-slate-200
 
-            bg-[#0A1128]
+            bg-white
 
             px-3
             py-2.5
@@ -1030,7 +1016,7 @@ function Sidebar({
 
               rounded-lg
 
-              text-emerald-400
+               text-slate-900
             "
           >
             <Phone
@@ -1053,7 +1039,7 @@ function Sidebar({
                 text-[11px]
                 font-medium
                 leading-4
-                text-slate-400
+                text-slate-900
               "
             >
               Need help?
@@ -1066,7 +1052,7 @@ function Sidebar({
     text-[12px]
     font-bold
     leading-4
-    text-emerald-400
+      text-slate-900
     no-underline
     transition
     hover:text-[#43E198]

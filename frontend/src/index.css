@@ -202,7 +202,7 @@
 .app-sidebar .sidebar-nav {
   /* Firefox */
   scrollbar-width: thin;
-  scrollbar-color: rgba(10,17,40) transparent;
+  scrollbar-color: rgb(250, 250, 252) transparent;
 }
 
 /* Chrome / Edge / Safari */
@@ -215,13 +215,13 @@
 }
 
 .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(10,17,40);
+  background: rgb(240, 242, 246);
   border-radius: 999px;
   border: none;
 }
 
 .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(10,17,40);
+  background: rgb(240, 241, 244);
 }
 
 /* =========================================================
@@ -272,12 +272,12 @@
   background:
     radial-gradient(
       circle at 25% 30%,
-      rgba(255, 255, 255, 0.12),
+      rgba(244, 243, 243, 0.974),
       transparent 25%
     ),
     radial-gradient(
       circle at 75% 70%,
-      rgba(255, 255, 255, 0.10),
+      rgb(255, 249, 249),
       transparent 30%
     );
 
@@ -326,7 +326,7 @@
 
 .glass-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(254, 254, 254, 0.995) transparent;
+  scrollbar-color: rgb(242, 250, 247) transparent;
 }
 
 /* Chrome / Edge / Safari */
@@ -343,29 +343,29 @@
 .glass-scrollbar::-webkit-scrollbar-thumb {
   background: linear-gradient(
     to bottom,
-    rgba(110, 231, 183, 0.34),
-    rgba(52, 211, 153, 0.18)
+    rgb(243, 238, 238),
+    rgb(251, 255, 254)
   );
 
   border-radius: 999px;
 
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(247, 239, 239, 0.989);
 
-  box-shadow:
+  /* box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 8px rgba(52, 211, 153, 0.08);
+    0 0 8px rgba(52, 211, 153, 0.08); */
 }
 
 .glass-scrollbar::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     to bottom,
-    rgba(110, 231, 183, 0.48),
-    rgba(52, 211, 153, 0.28)
+    rgb(252, 253, 253),
+    rgb(250, 252, 251)
   );
 
-  box-shadow:
+  /* box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    0 0 10px rgba(52, 211, 153, 0.15);
+    0 0 10px rgba(52, 211, 153, 0.15); */
 }
 
 .glass-scrollbar::-webkit-scrollbar-corner {

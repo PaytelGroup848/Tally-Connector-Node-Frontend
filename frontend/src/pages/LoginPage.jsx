@@ -577,7 +577,7 @@ const LoginPage = () => {
             flex-col
 
             items-center
-            justify-start
+            justify-center
 
             overflow-hidden
 
@@ -680,7 +680,7 @@ const LoginPage = () => {
               alt="CtrlBooks logo"
               className="
                 h-auto
-                w-[60px]
+                w-50
                 max-w-full
                 object-contain
               "
