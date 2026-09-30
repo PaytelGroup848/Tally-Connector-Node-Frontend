@@ -13,7 +13,7 @@ function Arrow() {
         ml-auto
         text-base
         leading-none
-        text-slate-500
+        text-slate-700
       "
       aria-hidden="true"
     >
@@ -221,7 +221,7 @@ function Sidebar({
         border-r
         border-slate-200
 
-        bg-white
+        bg-[#0A1128]
 
         text-slate-900
 
@@ -262,7 +262,7 @@ function Sidebar({
           className="
             absolute
             inset-0
-            bg-white
+            bg-[#0A1128]
           "
         />
 
@@ -279,7 +279,7 @@ function Sidebar({
 
             rounded-full
 
-            bg-white/[0.035]
+            bg-[#0A1128]
 
             blur-[72px]
           "
@@ -336,7 +336,7 @@ function Sidebar({
 
             rounded-full
 
-            bg-white/[0.025]
+            bg-[#0A1128]
 
             blur-[80px]
           "
@@ -481,7 +481,7 @@ function Sidebar({
               items-center
               justify-end
 
-              bg-white
+              bg-[#0A1128]
 
               px-3
             "
@@ -506,9 +506,9 @@ function Sidebar({
                 border
                 border-slate-200
 
-                bg-white
+                bg-[#0A1128]
 
-                text-slate-400
+                text-slate-700
 
                 transition
 
@@ -541,7 +541,7 @@ function Sidebar({
           border-b
           border-slate-200
 
-          bg-white
+          bg-[#0A1128]
 
           ${collapsed
             ? "justify-center"
@@ -596,7 +596,7 @@ function Sidebar({
           sidebar-nav
           relative
           z-10
-
+          
           min-h-0
           flex-1
 
@@ -605,7 +605,7 @@ function Sidebar({
 
           px-3
           py-5
-
+          
           [scrollbar-width:thin]
           [scrollbar-color:#26385E_transparent]
         "
@@ -710,7 +710,7 @@ function Sidebar({
                     sidebar-link
                     group
                     relative
-
+                    
                     flex
                     h-[42px]
                     w-full
@@ -728,7 +728,7 @@ function Sidebar({
                     text-left
                     text-[14px]
                     font-medium
-
+                   
                     no-underline
 
                     transition-all
@@ -738,9 +738,9 @@ function Sidebar({
                       ? `
                           border-0
 
-                          bg-white
+                          bg-[#0A1128]
 
-                          text-emerald-600
+                          text-emerald-400
 
                      
                         `
@@ -751,8 +751,8 @@ function Sidebar({
 
                           text-slate-700
 
-                          hover:bg-white
-                          hover:text-emerald-600
+                          hover:bg-[#0A1128]
+                          hover:text-emerald-400
                           
                         `
                     }
@@ -827,14 +827,14 @@ function Sidebar({
                         className={`
                           relative
                           z-10
-
+                          text-white
                           min-w-0
                           flex-1
                           truncate
 
                           ${active
-                            ? "text-emerald-600"
-                            : "text-slate-700 group-hover:text-emerald-600"
+                            ? "text-emerald-400"
+                            : "text-slate-700 group-hover:text-emerald-400"
                           }
                         `}
                       >
@@ -854,7 +854,7 @@ function Sidebar({
                             border
                             border-slate-200
 
-                            bg-white
+                            bg-[#0A1128]
 
                             px-1.5
                             py-0.5
@@ -863,6 +863,7 @@ function Sidebar({
                             font-semibold
                             not-italic
                             text-slate-700
+                            
                           "
                         >
                           {badge}
@@ -930,36 +931,35 @@ function Sidebar({
                                 );
                               }}
                               className={`
-            block
-            rounded-md
+  block
+  rounded-md
 
-            border
+  border
 
-            px-3
-            py-2
-            font-medium
-            text-[13px]
+  px-3
+  py-2
+  font-medium
+  text-[14px]
 
-            no-underline
+  no-underline
+  transition-all
+  duration-200
 
-            transition-all
-            duration-200
-
-            ${isSubmenuActive(itemPath)
+  ${isSubmenuActive(itemPath)
                                   ? `
-                  border-0
-                  bg-white
-                  font-semibold
-                  text-emerald-600
-                `
+        border-0
+        bg-[#0A1128]
+        font-semibold
+        text-emerald-400
+      `
                                   : `
-                  border-0
-                  text-slate-800
-                  hover:bg-white
-                  hover:text-emerald-600
-                `
+        border-0
+        text-white
+        hover:bg-[#0A1128]
+        hover:text-emerald-400
+      `
                                 }
-          `}
+`}
                             >
                               {item}
                             </a>
@@ -997,7 +997,7 @@ function Sidebar({
             border
             border-slate-200
 
-            bg-white
+            bg-[#0A1128]
 
             px-3
             py-2.5

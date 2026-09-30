@@ -863,14 +863,14 @@ function App() {
         )}
 
         {!showQuickCreate && (
-  <button
-    type="button"
-    aria-label="Quick create"
-    aria-expanded={showQuickCreate}
-    onClick={() =>
-      setShowQuickCreate((current) => !current)
-    }
-    className="
+          <button
+            type="button"
+            aria-label="Quick create"
+            aria-expanded={showQuickCreate}
+            onClick={() =>
+              setShowQuickCreate((current) => !current)
+            }
+            className="
       flex
       h-14
       w-14
@@ -885,9 +885,9 @@ function App() {
       backdrop-blur-[20px]
       backdrop-saturate-[150%]
     "
-  >
-    <span
-      className="
+          >
+            <span
+              className="
         flex
         h-9
         w-9
@@ -898,11 +898,11 @@ function App() {
         font-light
         leading-none
       "
-    >
-      +
-    </span>
-  </button>
-)}
+            >
+              +
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );
