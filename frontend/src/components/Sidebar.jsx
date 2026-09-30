@@ -538,7 +538,7 @@ function Sidebar({
           shrink-0
           items-center
 
-          border-b
+         
           border-slate-200
 
           bg-[#0A1128]
@@ -852,7 +852,7 @@ function Sidebar({
                             rounded-full
 
                             border
-                            border-slate-200
+                            border-emerald-400
 
                             bg-[#0A1128]
 
@@ -862,7 +862,7 @@ function Sidebar({
                             text-[9px]
                             font-semibold
                             not-italic
-                            text-slate-700
+                            text-emerald-400
                             
                           "
                         >
@@ -1016,7 +1016,7 @@ function Sidebar({
 
               rounded-lg
 
-               text-slate-900
+               text-white
             "
           >
             <Phone
@@ -1039,7 +1039,7 @@ function Sidebar({
                 text-[11px]
                 font-medium
                 leading-4
-                text-slate-900
+                  text-white
               "
             >
               Need help?
@@ -1052,10 +1052,10 @@ function Sidebar({
     text-[12px]
     font-bold
     leading-4
-      text-slate-900
+       text-white
     no-underline
     transition
-    hover:text-[#43E198]
+    hover:text-white
   "
             >
               +91 9311472357
