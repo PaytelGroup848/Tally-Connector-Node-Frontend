@@ -158,7 +158,7 @@ function App() {
   }
 
   if (isSuperAdmin) {
-    if (currentPath === '/super-admin') {
+    if (currentPath === '/super-admin' || currentPath.startsWith('/super-admin/')) {
       return <SuperAdminPage />
     }
   }

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
-// import logoFull from ''./assets/logoFull'
+import { useLocation, useNavigate } from 'react-router-dom'
+import SuperAdminUsersPage from './SuperAdminUsersPage'
 import {
     LayoutDashboard,
     Users,
@@ -7,13 +8,11 @@ import {
     CreditCard,
     Settings,
     Search,
+    User,
     Bell,
     ChevronDown,
     MoreVertical,
     Plus,
-    ShieldCheck,
-    UserCheck,
-    UserX,
     Activity,
     LogOut,
     Menu,
@@ -21,7 +20,9 @@ import {
 } from 'lucide-react'
 
 const SuperAdminPage = () => {
-    const [activeNav, setActiveNav] = useState('Users')
+    const navigate = useNavigate()
+    const location = useLocation()
+    const activeNav = location.pathname === '/super-admin/users' ? 'Users' : 'Dashboard'
     const [search, setSearch] = useState('')
     const [statusFilter, setStatusFilter] = useState('All')
     const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -87,26 +88,32 @@ const SuperAdminPage = () => {
         {
             label: 'Dashboard',
             icon: LayoutDashboard,
+            path: '/super-admin',
         },
         {
             label: 'Users',
             icon: Users,
+            path: '/super-admin/users',
         },
         {
             label: 'Companies',
             icon: Building2,
+            path: '/companies',
         },
         {
             label: 'Plans & Billing',
             icon: CreditCard,
+            path: '/plans-billing',
         },
         {
             label: 'Activity Logs',
             icon: Activity,
+            path: '/activity-logs',
         },
         {
             label: 'Settings',
             icon: Settings,
+            path: '/settings',
         },
     ]
 
@@ -139,12 +146,15 @@ const SuperAdminPage = () => {
         return 'border border-slate-200 bg-slate-100 text-slate-600'
     }
 
+    const handleNavClick = (item) => {
+        setSidebarOpen(false)
+
+        navigate(item.path)
+    }
+
     return (
         <div className="min-h-screen bg-[#f7f9fc] text-[#17355f]">
-            {/* =====================================================
-                MOBILE OVERLAY
-            ===================================================== */}
-
+            {/* MOBILE OVERLAY */}
             {sidebarOpen && (
                 <button
                     type="button"
@@ -154,10 +164,7 @@ const SuperAdminPage = () => {
                 />
             )}
 
-            {/* =====================================================
-                SIDEBAR
-            ===================================================== */}
-
+            {/* SIDEBAR */}
             <aside
                 className={`
                     fixed
@@ -181,7 +188,6 @@ const SuperAdminPage = () => {
                 <div className="flex h-[70px] items-center border-b border-[#e5ebf2] px-5">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#059669]">
-                            {/* <img src={logoFull}/> */}
                         </div>
 
                         <div>
@@ -213,17 +219,13 @@ const SuperAdminPage = () => {
                     <nav className="space-y-1">
                         {navItems.map((item) => {
                             const Icon = item.icon
-                            const isActive =
-                                activeNav === item.label
+                            const isActive = activeNav === item.label
 
                             return (
                                 <button
                                     key={item.label}
                                     type="button"
-                                    onClick={() => {
-                                        setActiveNav(item.label)
-                                        setSidebarOpen(false)
-                                    }}
+                                    onClick={() => handleNavClick(item)}
                                     className={`
                                         flex
                                         w-full
@@ -245,43 +247,20 @@ const SuperAdminPage = () => {
                                 >
                                     <Icon
                                         size={17}
-                                        strokeWidth={
-                                            isActive ? 2.2 : 1.8
-                                        }
+                                        strokeWidth={isActive ? 2.2 : 1.8}
                                     />
 
                                     <span>{item.label}</span>
 
-                                    {item.label === 'Users' &&
-                                        isActive && (
-                                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#059669]" />
-                                        )}
+                                    {item.label === 'Users' && isActive && (
+                                        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#059669]" />
+                                    )}
                                 </button>
                             )
                         })}
                     </nav>
 
-                    {/* SYSTEM SECTION */}
-                    {/* <div className="mt-8">
-                        <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
-                            System
-                        </p>
-
-                        <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
-                            <div className="flex items-center gap-2">
-                                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-
-                                <p className="text-[11px] font-semibold text-emerald-700">
-                                    System Online
-                                </p>
-                            </div>
-
-                            <p className="mt-2 text-[10px] leading-4 text-emerald-600/80">
-                                All services are running normally.
-                            </p>
-                        </div>
-                    </div> */}
-
+                    {/* LOGOUT */}
                     <div className="mt-auto">
                         <div className="mb-3 border-t border-slate-100" />
 
@@ -296,23 +275,14 @@ const SuperAdminPage = () => {
                 </div>
             </aside>
 
-            {/* =====================================================
-                MAIN AREA
-            ===================================================== */}
-
+            {/* MAIN AREA */}
             <div className="min-h-screen lg:pl-[250px]">
-                {/* =================================================
-                    TOP NAVBAR
-                ================================================= */}
-
+                {/* TOP NAVBAR */}
                 <header className="sticky top-0 z-50 flex h-[70px] items-center justify-between border-b border-[#dfe7f0] bg-white px-4 sm:px-6 lg:px-7">
-                    {/* LEFT */}
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            onClick={() =>
-                                setSidebarOpen(true)
-                            }
+                            onClick={() => setSidebarOpen(true)}
                             className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 lg:hidden"
                         >
                             <Menu size={18} />
@@ -329,7 +299,6 @@ const SuperAdminPage = () => {
                         </div>
                     </div>
 
-                    {/* RIGHT */}
                     <div className="flex items-center gap-2 sm:gap-4">
                         {/* SEARCH */}
                         <div className="relative hidden md:block">
@@ -343,6 +312,7 @@ const SuperAdminPage = () => {
                                 placeholder="Search..."
                                 className="h-9 w-[200px] rounded-lg border border-slate-200 bg-[#f9fafb] pl-9 pr-3 text-[11px] text-slate-700 outline-none transition focus:border-[#059669] focus:ring-1 focus:ring-[#059669]/20"
                             />
+                            
                         </div>
 
                         {/* NOTIFICATION */}
@@ -351,7 +321,6 @@ const SuperAdminPage = () => {
                             className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
                         >
                             <Bell size={17} />
-
                             <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500" />
                         </button>
 
@@ -384,12 +353,12 @@ const SuperAdminPage = () => {
                     </div>
                 </header>
 
-                {/* =================================================
-                    PAGE CONTENT
-                ================================================= */}
-
+                {/* PAGE CONTENT */}
                 <main className="px-4 py-5 sm:px-6 lg:px-7 lg:py-7">
-                    <div className="mx-auto max-w-[1450px]">
+                    {location.pathname === '/super-admin/users' ? (
+                        <SuperAdminUsersPage />
+                    ) : (
+                        <div className="mx-auto max-w-[1450px]">
                         {/* PAGE HEADING */}
                         <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                             <div>
@@ -402,8 +371,8 @@ const SuperAdminPage = () => {
                                 </h2>
 
                                 <p className="mt-1 text-sm text-slate-500">
-                                    Manage platform users, roles,
-                                    access and account status.
+                                    Manage platform users, roles, access and
+                                    account status.
                                 </p>
                             </div>
 
@@ -416,16 +385,7 @@ const SuperAdminPage = () => {
                             </button>
                         </div>
 
-                        {/* =================================================
-                            STATS
-                        ================================================= */}
-
-                        
-
-                        {/* =================================================
-                            USERS TABLE
-                        ================================================= */}
-
+                        {/* USERS TABLE */}
                         <section className="overflow-hidden rounded-xl border border-[#dfe7f0] bg-white shadow-sm">
                             {/* TABLE TOOLBAR */}
                             <div className="flex flex-col gap-3 border-b border-[#e5ebf2] px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
@@ -435,13 +395,11 @@ const SuperAdminPage = () => {
                                     </h3>
 
                                     <p className="mt-1 text-[10px] text-slate-400">
-                                        {filteredUsers.length} users
-                                        found
+                                        {filteredUsers.length} users found
                                     </p>
                                 </div>
 
                                 <div className="flex flex-col gap-2 sm:flex-row">
-                                    {/* SEARCH */}
                                     <div className="relative">
                                         <Search
                                             size={15}
@@ -452,40 +410,26 @@ const SuperAdminPage = () => {
                                             type="text"
                                             value={search}
                                             onChange={(event) =>
-                                                setSearch(
-                                                    event.target.value,
-                                                )
+                                                setSearch(event.target.value)
                                             }
                                             placeholder="Search users..."
                                             className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-[11px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#059669] focus:ring-1 focus:ring-[#059669]/20 sm:w-[230px]"
                                         />
                                     </div>
 
-                                    {/* FILTER */}
                                     <select
                                         value={statusFilter}
                                         onChange={(event) =>
-                                            setStatusFilter(
-                                                event.target.value,
-                                            )
+                                            setStatusFilter(event.target.value)
                                         }
                                         className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-[11px] text-slate-600 outline-none focus:border-[#059669]"
                                     >
-                                        <option value="All">
-                                            All Status
-                                        </option>
-
-                                        <option value="Active">
-                                            Active
-                                        </option>
-
+                                        <option value="All">All Status</option>
+                                        <option value="Active">Active</option>
                                         <option value="Inactive">
                                             Inactive
                                         </option>
-
-                                        <option value="Pending">
-                                            Pending
-                                        </option>
+                                        <option value="Pending">Pending</option>
                                     </select>
                                 </div>
                             </div>
@@ -523,120 +467,92 @@ const SuperAdminPage = () => {
 
                                     <tbody>
                                         {filteredUsers.length > 0 ? (
-                                            filteredUsers.map(
-                                                (user) => (
-                                                    <tr
-                                                        key={user.id}
-                                                        className="border-b border-[#edf1f5] last:border-b-0 hover:bg-[#fbfefd]"
-                                                    >
-                                                        {/* USER */}
-                                                        <td className="px-5 py-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-bold text-[#059669]">
-                                                                    {user.name
-                                                                        .split(
-                                                                            ' ',
-                                                                        )
-                                                                        .map(
-                                                                            (
-                                                                                part,
-                                                                            ) =>
-                                                                                part.charAt(
-                                                                                    0,
-                                                                                ),
-                                                                        )
-                                                                        .slice(
-                                                                            0,
-                                                                            2,
-                                                                        )
-                                                                        .join(
-                                                                            '',
-                                                                        )}
-                                                                </div>
-
-                                                                <div className="min-w-0">
-                                                                    <p className="truncate text-[12px] font-semibold text-[#17355f]">
-                                                                        {
-                                                                            user.name
-                                                                        }
-                                                                    </p>
-
-                                                                    <p className="truncate text-[10px] text-slate-400">
-                                                                        {
-                                                                            user.email
-                                                                        }
-                                                                    </p>
-                                                                </div>
+                                            filteredUsers.map((user) => (
+                                                <tr
+                                                    key={user.id}
+                                                    className="border-b border-[#edf1f5] last:border-b-0 hover:bg-[#fbfefd]"
+                                                >
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-bold text-[#059669]">
+                                                                {user.name
+                                                                    .split(' ')
+                                                                    .map(
+                                                                        (
+                                                                            part,
+                                                                        ) =>
+                                                                            part.charAt(
+                                                                                0,
+                                                                            ),
+                                                                    )
+                                                                    .slice(
+                                                                        0,
+                                                                        2,
+                                                                    )
+                                                                    .join('')}
                                                             </div>
-                                                        </td>
 
-                                                        {/* COMPANY */}
-                                                        <td className="px-4 py-4">
-                                                            <div className="flex items-center gap-2">
-                                                                <Building2
-                                                                    size={
-                                                                        14
-                                                                    }
-                                                                    className="text-slate-400"
-                                                                />
+                                                            <div className="min-w-0">
+                                                                <p className="truncate text-[12px] font-semibold text-[#17355f]">
+                                                                    {user.name}
+                                                                </p>
 
-                                                                <span className="text-[11px] font-medium text-slate-600">
-                                                                    {
-                                                                        user.company
-                                                                    }
-                                                                </span>
+                                                                <p className="truncate text-[10px] text-slate-400">
+                                                                    {user.email}
+                                                                </p>
                                                             </div>
-                                                        </td>
+                                                        </div>
+                                                    </td>
 
-                                                        {/* ROLE */}
-                                                        <td className="px-4 py-4">
-                                                            <span className="rounded-md bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">
-                                                                {
-                                                                    user.role
-                                                                }
+                                                    <td className="px-4 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <Building2
+                                                                size={14}
+                                                                className="text-slate-400"
+                                                            />
+
+                                                            <span className="text-[11px] font-medium text-slate-600">
+                                                                {user.company}
                                                             </span>
-                                                        </td>
+                                                        </div>
+                                                    </td>
 
-                                                        {/* STATUS */}
-                                                        <td className="px-4 py-4">
-                                                            <span
-                                                                className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold ${getStatusClasses(
-                                                                    user.status,
-                                                                )}`}
+                                                    <td className="px-4 py-4">
+                                                        <span className="rounded-md bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">
+                                                            {user.role}
+                                                        </span>
+                                                    </td>
+
+                                                    <td className="px-4 py-4">
+                                                        <span
+                                                            className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold ${getStatusClasses(
+                                                                user.status,
+                                                            )}`}
+                                                        >
+                                                            {user.status}
+                                                        </span>
+                                                    </td>
+
+                                                    <td className="px-4 py-4">
+                                                        <span className="text-[10px] text-slate-500">
+                                                            {user.lastLogin}
+                                                        </span>
+                                                    </td>
+
+                                                    <td className="px-4 py-4">
+                                                        <div className="flex justify-center">
+                                                            <button
+                                                                type="button"
+                                                                className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-[#059669]"
                                                             >
-                                                                {
-                                                                    user.status
-                                                                }
-                                                            </span>
-                                                        </td>
-
-                                                        {/* LOGIN */}
-                                                        <td className="px-4 py-4">
-                                                            <span className="text-[10px] text-slate-500">
-                                                                {
-                                                                    user.lastLogin
-                                                                }
-                                                            </span>
-                                                        </td>
-
-                                                        {/* ACTION */}
-                                                        <td className="px-4 py-4">
-                                                            <div className="flex justify-center">
-                                                                <button
-                                                                    type="button"
-                                                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-[#059669]"
-                                                                >
-                                                                    <MoreVertical
-                                                                        size={
-                                                                            16
-                                                                        }
-                                                                    />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ),
-                                            )
+                                                                <MoreVertical
+                                                                    size={16}
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
                                         ) : (
                                             <tr>
                                                 <td
@@ -645,24 +561,22 @@ const SuperAdminPage = () => {
                                                 >
                                                     <div className="flex flex-col items-center">
                                                         <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                                                            <Users
-                                                                size={
-                                                                    20
-                                                                }
-                                                                className="text-slate-400"
-                                                            />
+                                                            <button onClick={() => navigate('/users')}>
+                                                                <Users
+                                                                    size={20}
+                                                                    className="text-slate-400"
+                                                                />
+                                                            </button>
                                                         </div>
 
                                                         <p className="text-sm font-semibold text-slate-600">
-                                                            No users
-                                                            found
+                                                            No users found
                                                         </p>
 
                                                         <p className="mt-1 text-xs text-slate-400">
-                                                            Try a
-                                                            different
-                                                            search or
-                                                            status filter.
+                                                            Try a different
+                                                            search or status
+                                                            filter.
                                                         </p>
                                                     </div>
                                                 </td>
@@ -717,7 +631,8 @@ const SuperAdminPage = () => {
                                 </div>
                             </div>
                         </section>
-                    </div>
+                        </div>
+                    )}
                 </main>
             </div>
         </div>
@@ -725,3 +640,4 @@ const SuperAdminPage = () => {
 }
 
 export default SuperAdminPage
+
