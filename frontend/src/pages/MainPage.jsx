@@ -811,10 +811,10 @@ function App() {
         {renderPage()}
       </main>
 
-      <div className="fixed bottom-5 right-5 z-40">
+      <div className="fixed bottom-25 right-6 z-40">
         {showQuickCreate && (
           <div className="mb-3 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-app-border bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
-            <div className="flex items-center justify-between bg-app-navy px-3 py-2 text-white">
+            <div className="flex items-center justify-between bg-emerald-700 px-3 py-2 text-white">
               <span className="text-xs font-semibold">Quick Create</span>
 
               <button
@@ -879,7 +879,7 @@ function App() {
       rounded-full
       border
       border-emerald-300/[0.18]
-      bg-[#0A1128]
+      bg-emerald-700
       text-white
       shadow-[0_12px_32px_rgba(0,0,0,0.28)]
       backdrop-blur-[20px]
@@ -889,12 +889,12 @@ function App() {
             <span
               className="
         flex
-        h-9
-        w-9
+        h-10
+        w-10
         items-center
         justify-center
         rounded-full
-        text-2xl
+        text-3xl
         font-light
         leading-none
       "
