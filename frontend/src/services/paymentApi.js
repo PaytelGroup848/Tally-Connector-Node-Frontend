@@ -9,6 +9,67 @@ function buildUrl(path) {
   return `${API_BASE_URL}${cleanPath}`
 }
 
+export async function createSeatOrder({ accessToken, seats }) {
+  const response = await fetch(
+    buildUrl('/payments/seats/create-order'),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ seats: Number(seats) }),
+    },
+  )
+
+  const data = await response
+    .json()
+    .catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message || 'Unable to create seat order',
+    )
+  }
+
+  return data
+}
+
+export async function verifySeatPayment({
+  accessToken,
+  razorpay_order_id,
+  razorpay_payment_id,
+  razorpay_signature,
+}) {
+  const response = await fetch(
+    buildUrl('/payments/seats/verify'),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+      }),
+    },
+  )
+
+  const data = await response
+    .json()
+    .catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message || 'Unable to verify seat payment',
+    )
+  }
+
+  return data
+}
+
 export async function createPaymentOrder({
   accessToken,
   planId,
