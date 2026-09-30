@@ -1,19 +1,23 @@
+
 import { X, Phone } from "lucide-react";
 import logo from "../assets/Control-Books-Dashboard.png";
 import smallLogo from "../assets/logo.png";
-import {
-  navItems,
-  submenuItems,
-} from "../routes/navigation";
+import { navItems, submenuItems } from "../routes/navigation";
 
 function Arrow() {
   return (
     <span
       className="
         ml-auto
+        flex
+        h-5
+        w-4
+        shrink-0
+        items-center
+        justify-center
         text-base
         leading-none
-        text-slate-700
+        text-slate-400
       "
       aria-hidden="true"
     >
@@ -35,142 +39,85 @@ function Sidebar({
   onNavigate,
   allowedModules,
 }) {
-  const entryPath =
-    currentPath.toLowerCase();
+  const entryPath = currentPath.toLowerCase();
 
   // ============================================================
   // MODULE ACCESS
   // ============================================================
 
-  const isSubItemAllowed = (
-    parentPath,
-    itemPath,
-  ) => {
+  const isSubItemAllowed = (parentPath, itemPath) => {
     if (!Array.isArray(allowedModules)) {
       return true;
     }
 
-    if (
-      allowedModules.includes(
-        parentPath,
-      )
-    ) {
+    if (allowedModules.includes(parentPath)) {
       return true;
     }
 
-    return allowedModules.includes(
-      itemPath,
-    );
+    return allowedModules.includes(itemPath);
   };
 
   // ============================================================
   // VISIBLE NAV ITEMS
   // ============================================================
 
-  const visibleNavItems =
-    navItems.filter(
-      ([
-        ,
-        label,
-        ,
-        ,
-        path,
-      ]) => {
-        if (
-          !Array.isArray(
-            allowedModules,
-          )
-        ) {
-          return true;
-        }
+  const visibleNavItems = navItems.filter(
+    ([, label, , , path]) => {
+      if (!Array.isArray(allowedModules)) {
+        return true;
+      }
 
-        const subItems =
-          submenuItems[label];
+      const subItems = submenuItems[label];
 
-        if (!subItems) {
-          return allowedModules.includes(
-            path,
-          );
-        }
+      if (!subItems) {
+        return allowedModules.includes(path);
+      }
 
-        return (
-          allowedModules.includes(
-            path,
-          ) ||
-          subItems.some(
-            ([
-              ,
-              itemPath,
-            ]) =>
-              isSubItemAllowed(
-                path,
-                itemPath,
-              ),
-          )
-        );
-      },
-    );
+      return (
+        allowedModules.includes(path) ||
+        subItems.some(([, itemPath]) =>
+          isSubItemAllowed(path, itemPath)
+        )
+      );
+    }
+  );
 
   // ============================================================
   // ACTIVE SUBMENU
   // ============================================================
 
-  const isSubmenuActive = (
-    itemPath,
-  ) =>
-    entryPath ===
-    itemPath.toLowerCase();
+  const isSubmenuActive = (itemPath) =>
+    entryPath === itemPath.toLowerCase();
 
   // ============================================================
   // SPECIAL ROUTES
   // ============================================================
 
-  const isCollectPaymentsRoute = (
-    label,
-  ) =>
-    label ===
-    "Collect Payments" &&
-    [
-      "/receivables",
-      "/receivablesnew",
-    ].includes(entryPath);
+  const isCollectPaymentsRoute = (label) =>
+    label === "Collect Payments" &&
+    ["/receivables", "/receivablesnew"].includes(entryPath);
 
-  const isCashBankRoute = (
-    label,
-  ) =>
+  const isCashBankRoute = (label) =>
     label === "Cash & Bank" &&
-    (entryPath.startsWith(
-      "/cash/",
-    ) ||
-      entryPath.startsWith(
-        "/bank/",
-      ) ||
-      entryPath ===
-      "/cash-bank/cash" ||
-      entryPath ===
-      "/cash-bank/bank");
+    (
+      entryPath.startsWith("/cash/") ||
+      entryPath.startsWith("/bank/") ||
+      entryPath === "/cash-bank/cash" ||
+      entryPath === "/cash-bank/bank"
+    );
 
   // ============================================================
   // NAV EXPANDED
   // ============================================================
 
-  const isNavExpanded = (
-    label,
-    path,
-  ) =>
+  const isNavExpanded = (label, path) =>
     expandedNav[label] ??
-    (currentPath.startsWith(
-      `/${path}`,
-    ) ||
+    (
+      currentPath.startsWith(`/${path}`) ||
       submenuItems[label]?.some(
-        ([
-          ,
-          itemPath,
-        ]) =>
-          isSubmenuActive(
-            itemPath,
-          ),
-      ));
+        ([, itemPath]) => isSubmenuActive(itemPath)
+      )
+    );
 
   // ============================================================
   // MOBILE
@@ -186,10 +133,7 @@ function Sidebar({
   // NAVIGATION
   // ============================================================
 
-  const handleNavClick = (
-    event,
-    targetPath,
-  ) => {
+  const handleNavClick = (event, targetPath) => {
     if (!targetPath) {
       return;
     }
@@ -197,8 +141,36 @@ function Sidebar({
     event.preventDefault();
 
     onNavigate(targetPath);
-
     closeOnMobile();
+  };
+
+  // ============================================================
+  // SINGLE SUBMENU OPEN
+  // ============================================================
+
+  const handleExpandableClick = (
+    event,
+    label,
+    path
+  ) => {
+    event.preventDefault();
+
+    setExpandedNav((current) => {
+      const isCurrentlyOpen =
+        current[label] ??
+        isNavExpanded(label, path);
+
+      // Close the clicked submenu
+      if (isCurrentlyOpen) {
+        return {};
+      }
+
+      // Close every other submenu
+      // and open only the clicked submenu
+      return {
+        [label]: true,
+      };
+    });
   };
 
   return (
@@ -222,30 +194,28 @@ function Sidebar({
         border-slate-200
 
         bg-[#0A1128]
-
         text-slate-900
 
-        
+        ${
+          isCompact
+            ? `
+                ${
+                  collapsed
+                    ? "-translate-x-full"
+                    : "translate-x-0"
+                }
 
-        transition-all
-        duration-200
-
-        ${isCompact
-          ? `${collapsed
-            ? "-translate-x-full"
-            : "translate-x-0"
-          } w-[228px]`
-          : collapsed
-            ? "w-[68px]"
-            : "w-[228px]"
+                w-[228px]
+              `
+            : collapsed
+              ? "w-[68px]"
+              : "w-[228px]"
         }
       `}
-      data-collapsed={
-        collapsed
-      }
+      data-collapsed={collapsed}
     >
       {/* =====================================================
-          STATIC LIQUID GLASS BACKGROUND
+          BACKGROUND
       ====================================================== */}
 
       <div
@@ -256,7 +226,7 @@ function Sidebar({
           overflow-hidden
         "
       >
-        {/* Main solid background */}
+        {/* Main background */}
 
         <div
           className="
@@ -266,7 +236,7 @@ function Sidebar({
           "
         />
 
-        {/* Top left subtle glow */}
+        {/* Top left */}
 
         <div
           className="
@@ -285,7 +255,7 @@ function Sidebar({
           "
         />
 
-        {/* Top right subtle glow */}
+        {/* Top right */}
 
         <div
           className="
@@ -304,7 +274,7 @@ function Sidebar({
           "
         />
 
-        {/* Bottom left glow */}
+        {/* Bottom left */}
 
         <div
           className="
@@ -323,7 +293,7 @@ function Sidebar({
           "
         />
 
-        {/* Bottom right glow */}
+        {/* Bottom right */}
 
         <div
           className="
@@ -342,73 +312,11 @@ function Sidebar({
           "
         />
 
-        {/* =================================================
-            CURVED LIQUID LINES
-        ================================================= */}
-
-        {/* <div
-          className="
-            absolute
-
-            -bottom-[115px]
-            -left-[125px]
-
-            h-[225px]
-            w-[455px]
-
-            rotate-[-14deg]
-
-            rounded-[50%]
-
-            border-t
-            border-white/[0.10]
-          "
-        />
+        {/* Diagonal reflection */}
 
         <div
           className="
             absolute
-
-            -bottom-[155px]
-            -left-[110px]
-
-            h-[245px]
-            w-[475px]
-
-            rotate-[-14deg]
-
-            rounded-[50%]
-
-            border-t
-            border-blue-200/[0.045]
-          "
-        />
-
-        <div
-          className="
-            absolute
-
-            -bottom-[195px]
-            -left-[90px]
-
-            h-[270px]
-            w-[500px]
-
-            rotate-[-14deg]
-
-            rounded-[50%]
-
-            border-t
-            border-white/[0.055]
-          "
-        /> */}
-
-        {/* Diagonal glass reflection */}
-
-        <div
-          className="
-            absolute
-
             -left-[32%]
             top-0
 
@@ -417,49 +325,7 @@ function Sidebar({
 
             rotate-[14deg]
 
-           
             blur-[10px]
-          "
-        />
-
-        {/* Dark vignette */}
-
-        <div
-          className="
-            absolute
-            inset-0
-
-           
-          "
-        />
-
-        {/* Top edge */}
-
-        <div
-          className="
-            absolute
-            left-0
-            right-0
-            top-0
-
-            h-px
-
-          
-          "
-        />
-
-        {/* Right edge */}
-
-        <div
-          className="
-            absolute
-            bottom-0
-            right-0
-            top-0
-
-            w-px
-
-          
           "
         />
       </div>
@@ -468,63 +334,59 @@ function Sidebar({
           MOBILE CLOSE BUTTON
       ====================================================== */}
 
-      {isCompact &&
-        !collapsed && (
-          <div
-            className="
-              relative
-              z-10
+      {isCompact && !collapsed && (
+        <div
+          className="
+            relative
+            z-10
 
+            flex
+            h-10
+            min-h-10
+            shrink-0
+            items-center
+            justify-end
+
+            bg-[#0A1128]
+
+            px-3
+          "
+        >
+          <button
+            type="button"
+            aria-label="Close sidebar"
+            onClick={() => setSidebarCollapsed(true)}
+            className="
               flex
-              h-10
+              h-8
+              w-8
               shrink-0
               items-center
-              justify-end
+              justify-center
+
+              rounded-lg
+
+              border
+              border-slate-200
 
               bg-[#0A1128]
 
-              px-3
+              text-slate-300
+
+              outline-none
+
+              hover:border-slate-300
+              hover:bg-[#101A36]
+              hover:text-white
             "
           >
-            <button
-              type="button"
-              aria-label="Close sidebar"
-              onClick={() =>
-                setSidebarCollapsed(
-                  true,
-                )
-              }
-              className="
-                flex
-                h-8
-                w-8
-                items-center
-                justify-center
-
-                rounded-lg
-
-                border
-                border-slate-200
-
-                bg-[#0A1128]
-
-                text-slate-700
-
-                transition
-
-                hover:border-slate-300
-                hover:bg-slate-50
-                hover:text-slate-900
-              "
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
+            <X className="h-4 w-4 shrink-0" />
+          </button>
+        </div>
+      )}
 
       {/* =====================================================
           LOGO
-          SOLID #0A1128 BACKGROUND
       ====================================================== */}
 
       <div
@@ -534,19 +396,16 @@ function Sidebar({
 
           flex
           h-[68px]
+          min-h-[68px]
           w-full
           shrink-0
-          items-center
 
-         
-          border-slate-200
+          items-center
+          justify-center
 
           bg-[#0A1128]
 
-          ${collapsed
-            ? "justify-center"
-            : "justify-center px-4"
-          }
+          ${collapsed ? "" : "px-4"}
         `}
       >
         <button
@@ -558,29 +417,30 @@ function Sidebar({
           aria-label="Go to dashboard"
           className="
             flex
+            h-full
+            shrink-0
             items-center
             justify-center
 
             border-0
             bg-transparent
             p-0
+
             outline-none
           "
         >
           <img
-            src={
-              collapsed
-                ? smallLogo
-                : logo
-            }
+            src={collapsed ? smallLogo : logo}
             alt="CtrlBooks logo"
             className={`
               block
-              
+              shrink-0
+              object-contain
 
-              ${collapsed
-                ? "h-10 w-10"
-                : "h-15 w-500 ml-4"
+              ${
+                collapsed
+                  ? "h-10 w-10"
+                  : "ml-4 h-auto w-[150px]"
               }
             `}
           />
@@ -593,10 +453,9 @@ function Sidebar({
 
       <nav
         className="
-          sidebar-nav
           relative
           z-10
-          
+
           min-h-0
           flex-1
 
@@ -605,9 +464,10 @@ function Sidebar({
 
           px-3
           py-5
-          
+
           [scrollbar-width:thin]
           [scrollbar-color:#26385E_transparent]
+          [scrollbar-gutter:stable]
         "
       >
         {visibleNavItems.map(
@@ -619,40 +479,37 @@ function Sidebar({
             path,
           ]) => {
             const targetPath =
-              label ===
-                "Dashboard"
+              label === "Dashboard"
                 ? "/dashboard"
                 : `/${path}`;
 
+            const hasSubmenu =
+              Array.isArray(submenuItems[label]) &&
+              submenuItems[label].length > 0;
+
             const active =
-              (label ===
-                "Dashboard" &&
+              (label === "Dashboard" &&
                 showDashboard) ||
-              isCollectPaymentsRoute(
-                label,
-              ) ||
-              isCashBankRoute(
-                label,
-              ) ||
-              currentPath.startsWith(
-                `/${path}`,
-              ) ||
-              submenuItems[
-                label
-              ]?.some(
-                ([
-                  ,
-                  itemPath,
-                ]) =>
-                  isSubmenuActive(
-                    itemPath,
-                  ),
+              isCollectPaymentsRoute(label) ||
+              isCashBankRoute(label) ||
+              currentPath.startsWith(`/${path}`) ||
+              submenuItems[label]?.some(
+                ([, itemPath]) =>
+                  isSubmenuActive(itemPath)
               );
+
+            const submenuOpen =
+              hasSubmenu &&
+              isNavExpanded(label, path);
 
             return (
               <div
-                className="mb-1"
                 key={label}
+                className="
+                  mb-1
+                  w-full
+                  shrink-0
+                "
               >
                 {/* =================================================
                     MAIN NAV ITEM
@@ -664,137 +521,82 @@ function Sidebar({
                       ? undefined
                       : targetPath
                   }
-                  onClick={(
-                    event,
-                  ) => {
-                    if (
-                      expandable
-                    ) {
-                      event.preventDefault();
-
-                      setExpandedNav(
-                        (
-                          current,
-                        ) => ({
-                          ...current,
-                          [label]:
-                            !isNavExpanded(
-                              label,
-                              path,
-                            ),
-                        }),
+                  onClick={(event) => {
+                    if (expandable) {
+                      handleExpandableClick(
+                        event,
+                        label,
+                        path
                       );
 
                       return;
                     }
 
-                    if (
-                      label ===
-                      "Dashboard"
-                    ) {
-                      onDashboard(
-                        event,
-                      );
-
+                    if (label === "Dashboard") {
+                      onDashboard(event);
                       closeOnMobile();
-
                       return;
                     }
 
                     handleNavClick(
                       event,
-                      targetPath,
+                      targetPath
                     );
+                  }}
+                  style={{
+                    boxSizing: "border-box",
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    height: "42px",
+                    minHeight: "42px",
+                    maxHeight: "42px",
+                    margin: 0,
+                    paddingLeft: "12px",
+                    paddingRight: "12px",
+                    gap: "12px",
+                    border: "0",
+                    borderWidth: "0",
+                    borderStyle: "none",
+                    borderRadius: "8px",
+                    lineHeight: "normal",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    textDecoration: "none",
+                    transform: "none",
+                    flexShrink: 0,
                   }}
                   className={`
                     sidebar-link
                     group
-                    relative
-                    
-                    flex
-                    h-[42px]
-                    w-full
-                    items-center
-                    gap-3
-
                     overflow-hidden
-
-                    rounded-lg
-
-                    border
-
-                    px-3
-
-                    text-left
-                    text-[14px]
-                    font-medium
-                   
+                    outline-none
                     no-underline
+                    transition-none
 
-                    transition-all
-                    duration-200
-
-                    ${active
-                      ? `
-                          border-0
-
-                          bg-[#0A1128]
-
-                          text-emerald-400
-
-                     
-                        `
-                      : `
-                          border-0
-
-                          bg-transparent
-
-                          text-slate-700
-
-                          hover:bg-[#0A1128]
-                          hover:text-emerald-400
-                          
-                        `
+                    ${
+                      active
+                        ? "text-emerald-400"
+                        : "text-white hover:text-emerald-400"
                     }
                   `}
                 >
-                  {/* Active shine */}
+                  {/* ===========================================
+                      ACTIVE BACKGROUND
+                  ============================================ */}
 
-                  {active && (
-                    <span
-                      className="
-                        pointer-events-none
-                        absolute
-                        inset-0
-                        
-                        
-                      "
-                    />
-                  )}
+                
 
-                  {/* Active indicator */}
+                  {/* ===========================================
+                      ACTIVE INDICATOR
+                  ============================================ */}
 
-                  {active && (
-                    <span
-                      className="
-                        absolute
-                        left-0
-                        top-1/2
+                 
 
-                        h-5
-                        w-[2px]
-
-                        -translate-y-1/2
-
-                        rounded-r-full
-
-                        bg-emerald-400
-                        
-                      "
-                    />
-                  )}
-
-                  {/* Icon */}
+                  {/* ===========================================
+                      ICON
+                  ============================================ */}
 
                   <span
                     className={`
@@ -802,52 +604,78 @@ function Sidebar({
                       z-10
 
                       flex
+                      h-5
                       w-5
                       shrink-0
+
                       items-center
                       justify-center
 
-                      transition-colors
-                      duration-200
-
-                      ${active
-                        ? "text-emerald-400"
-                        : "text-slate-400 group-hover:text-emerald-400"
+                      ${
+                        active
+                          ? "text-emerald-400"
+                          : "text-slate-400 group-hover:text-emerald-400"
                       }
                     `}
                   >
-                    <IconComponent className="h-4 w-4" />
+                    <IconComponent
+                      className="
+                        h-4
+                        w-4
+                        shrink-0
+                      "
+                      strokeWidth={2}
+                    />
                   </span>
+
+                  {/* ===========================================
+                      LABEL
+                  ============================================ */}
 
                   {!collapsed && (
                     <>
-                      {/* Label */}
-
                       <span
                         className={`
                           relative
                           z-10
-                          text-white
+
                           min-w-0
                           flex-1
+
+                          overflow-hidden
                           truncate
 
-                          ${active
-                            ? "text-emerald-400"
-                            : "text-slate-700 group-hover:text-emerald-400"
+                          text-[14px]
+                          font-medium
+                          leading-5
+
+                          ${
+                            active
+                              ? "text-emerald-400"
+                              : "text-white group-hover:text-emerald-400"
                           }
                         `}
                       >
                         {label}
                       </span>
 
-                      {/* Badge */}
+                      {/* ========================================
+                          BADGE
+                      ========================================= */}
 
                       {badge && (
-                        <em
+                        <span
                           className="
                             relative
                             z-10
+
+                            flex
+                            h-[20px]
+                            min-w-[20px]
+                            shrink-0
+
+                            items-center
+                            justify-center
 
                             rounded-full
 
@@ -857,23 +685,43 @@ function Sidebar({
                             bg-[#0A1128]
 
                             px-1.5
-                            py-0.5
 
                             text-[9px]
                             font-semibold
-                            not-italic
+                            leading-none
+
                             text-emerald-400
-                            
                           "
                         >
                           {badge}
-                        </em>
+                        </span>
                       )}
 
-                      {/* Arrow */}
+                      {/* ========================================
+                          ARROW
+                      ========================================= */}
 
                       {expandable && (
-                        <span className="relative z-10">
+                        <span
+                          className={`
+                            relative
+                            z-10
+
+                            flex
+                            h-5
+                            w-4
+                            shrink-0
+
+                            items-center
+                            justify-center
+
+                            ${
+                              submenuOpen
+                                ? "rotate-90"
+                                : "rotate-0"
+                            }
+                          `}
+                        >
                           <Arrow />
                         </span>
                       )}
@@ -886,96 +734,152 @@ function Sidebar({
                 ================================================== */}
 
                 {!collapsed &&
-                  submenuItems[label] &&
-                  isNavExpanded(
-                    label,
-                    path,
-                  ) && (
+                  hasSubmenu &&
+                  submenuOpen && (
                     <div
                       className="
-    relative
-    z-10
-    ml-4
-    
-    border-[#1B2948]
-    py-1
-    pl-3
-  "
+                        relative
+                        z-10
+
+                        ml-[21%]
+                        pl-3
+                        py-1
+
+                        w-auto
+
+                        box-border
+                      "
                     >
                       {submenuItems[label]
                         .filter(
                           ([, itemPath]) =>
                             isSubItemAllowed(
                               path,
-                              itemPath,
-                            ),
+                              itemPath
+                            )
                         )
                         .map(
-                          ([item, itemPath]) => (
-                            <a
-                              key={item}
-                              href={itemPath}
-                              onClick={(event) => {
-                                if (
-                                  itemPath ===
-                                  "/create-voucher/Quotation"
-                                ) {
-                                  onQuotation(event);
-                                  closeOnMobile();
-                                  return;
-                                }
+                          ([item, itemPath]) => {
+                            const subActive =
+                              isSubmenuActive(
+                                itemPath
+                              );
 
-                                handleNavClick(
-                                  event,
-                                  itemPath,
-                                );
-                              }}
-                              className={`
-  block
-  rounded-md
+                            return (
+                              <a
+                                key={item}
+                                href={itemPath}
+                                onClick={(event) => {
+                                  if (
+                                    itemPath ===
+                                    "/create-voucher/Quotation"
+                                  ) {
+                                    onQuotation(event);
+                                    closeOnMobile();
+                                    return;
+                                  }
 
-  border
+                                  handleNavClick(
+                                    event,
+                                    itemPath
+                                  );
+                                }}
+                                style={{
+                                  boxSizing:
+                                    "border-box",
+                                  display: "block",
+                                  position:
+                                    "relative",
+                                  width: "100%",
+                                  height: "38px",
+                                  minHeight: "38px",
+                                  maxHeight: "38px",
+                                  margin: 0,
+                                  paddingTop:
+                                    "8px",
+                                  paddingBottom:
+                                    "8px",
+                                  paddingLeft:
+                                    "12px",
+                                  paddingRight:
+                                    "12px",
+                                  border: "0",
+                                  borderWidth: "0",
+                                  borderStyle:
+                                    "none",
+                                  borderRadius:
+                                    "6px",
+                                  lineHeight:
+                                    "22px",
+                                  fontSize:
+                                    "14px",
+                                  fontWeight: 500,
+                                  textDecoration:
+                                    "none",
+                                  transform:
+                                    "none",
+                                }}
+                                className={`
+                                  overflow-hidden
 
-  px-3
-  py-2
-  font-medium
-  text-[14px]
+                                  outline-none
+                                  no-underline
+                                  transition-none
 
-  no-underline
-  transition-all
-  duration-200
+                                  ${
+                                    subActive
+                                      ? "text-emerald-400"
+                                      : "text-white hover:text-emerald-400"
+                                  }
+                                `}
+                              >
+                                {/* Submenu active background */}
 
-  ${isSubmenuActive(itemPath)
-                                  ? `
-        border-0
-        bg-[#0A1128]
-        font-semibold
-        text-emerald-400
-      `
-                                  : `
-        border-0
-        text-white
-        hover:bg-[#0A1128]
-        hover:text-emerald-400
-      `
-                                }
-`}
-                            >
-                              {item}
-                            </a>
-                          ),
+                                {subActive && (
+                                  <span
+                                    className="
+                                      pointer-events-none
+
+                                      absolute
+                                      inset-0
+                                      z-0
+
+                                      rounded-md
+
+                                      bg-[#101A36]
+                                    "
+                                  />
+                                )}
+
+                                {/* Submenu text */}
+
+                                <span
+                                  className="
+                                    relative
+                                    z-10
+
+                                    block
+                                    truncate
+
+                                    font-medium
+                                  "
+                                >
+                                  {item}
+                                </span>
+                              </a>
+                            );
+                          }
                         )}
                     </div>
                   )}
               </div>
             );
-          },
+          }
         )}
       </nav>
 
       {/* =====================================================
           NEED HELP
-          MATCHING YOUR SCREENSHOT
       ====================================================== */}
 
       {!collapsed && (
@@ -988,6 +892,7 @@ function Sidebar({
             mb-4
 
             flex
+            min-h-[52px]
             shrink-0
             items-center
             gap-3
@@ -1003,7 +908,7 @@ function Sidebar({
             py-2.5
           "
         >
-          {/* Phone icon */}
+          {/* Phone */}
 
           <div
             className="
@@ -1011,12 +916,13 @@ function Sidebar({
               h-8
               w-8
               shrink-0
+
               items-center
               justify-center
 
               rounded-lg
 
-               text-white
+              text-white
             "
           >
             <Phone
@@ -1031,15 +937,19 @@ function Sidebar({
             className="
               flex
               min-w-0
+              flex-1
               flex-col
             "
           >
             <p
               className="
+                m-0
+
                 text-[11px]
                 font-medium
                 leading-4
-                  text-white
+
+                text-white
               "
             >
               Need help?
@@ -1048,15 +958,20 @@ function Sidebar({
             <a
               href="tel:+919311472357"
               className="
-    mt-0.5
-    text-[12px]
-    font-bold
-    leading-4
-       text-white
-    no-underline
-    transition
-    hover:text-white
-  "
+                mt-0.5
+
+                block
+                truncate
+
+                text-[12px]
+                font-bold
+                leading-4
+
+                text-white
+                no-underline
+
+                hover:text-white
+              "
             >
               +91 9311472357
             </a>
