@@ -117,8 +117,11 @@ function isCreatedAtInRange(item, startDate, endDate) {
   return createdDate >= rangeStart && createdDate <= rangeEnd;
 }
 
-function ItemsPage({ companyId }) {
+function ItemsPage({ companyId, myStockItems = false }) {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const visibleColumns = myStockItems
+    ? columns.filter((column) => column.key !== 'action')
+    : columns;
 
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -173,8 +176,8 @@ function ItemsPage({ companyId }) {
         page: currentPage,
         limit: pageSize,
         q: query,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        startDate: myStockItems ? undefined : startDate || undefined,
+        endDate: myStockItems ? undefined : endDate || undefined,
       }),
       fetchCompanyCommands(accessToken, companyId, {
         type: 'UPDATE_STOCK_ITEM',
@@ -213,7 +216,7 @@ function ItemsPage({ companyId }) {
           }) === index;
         });
 
-        const filteredItems = (startDate && endDate)
+        const filteredItems = (!myStockItems && startDate && endDate)
           ? mergedItems.filter((item) => isCreatedAtInRange(item, startDate, endDate))
           : mergedItems;
 
@@ -278,6 +281,7 @@ function ItemsPage({ companyId }) {
     currentPage,
     pageSize,
     query,
+    myStockItems,
     startDate,
     endDate,
   ]);
@@ -439,17 +443,19 @@ function ItemsPage({ companyId }) {
       <div className="page-toolbar">
 
 
-        <DateRangePicker
-          className="ml-auto"
-          startDate={startDate}
-          endDate={endDate}
-          onChange={(nextStart, nextEnd) => {
-            setStartDate(nextStart || startDate);
-            setEndDate(nextEnd || endDate);
-            setCurrentPage(1);
-          }}
-          compact
-        />
+        {!myStockItems && (
+          <DateRangePicker
+            className="ml-auto"
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(nextStart, nextEnd) => {
+              setStartDate(nextStart || startDate);
+              setEndDate(nextEnd || endDate);
+              setCurrentPage(1);
+            }}
+            compact
+          />
+        )}
       </div>
 
       {/* Screenshot-style navigation bar */}
@@ -517,7 +523,8 @@ function ItemsPage({ companyId }) {
             <span>records</span>
           </label>
 
-          <button
+          {!myStockItems && (
+            <button
             className="
               ml-auto
               inline-flex
@@ -538,8 +545,10 @@ function ItemsPage({ companyId }) {
           >
             <span className="text-sm">+</span>
             Add New Item
-          </button>
-          <button
+            </button>
+          )}
+          {!myStockItems && (
+            <button
             type="button"
             className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
             onClick={() => {
@@ -549,7 +558,8 @@ function ItemsPage({ companyId }) {
           >
             View status
 
-          </button>
+            </button>
+          )}
           {/* <button
             className="
               inline-flex
@@ -597,7 +607,7 @@ function ItemsPage({ companyId }) {
           <table className="min-w-[760px] w-full text-left text-sm">
             <thead className="bg-slate-100 text-xs font-semibold text-slate-700">
               <tr>
-                {columns.map((column) => (
+                {visibleColumns.map((column) => (
                   <th
                     key={column.key}
                     className="whitespace-nowrap px-4 py-3"
@@ -612,7 +622,7 @@ function ItemsPage({ companyId }) {
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={columns.length}
+                    colSpan={visibleColumns.length}
                     className="
                       px-4
                       py-8
@@ -639,7 +649,7 @@ function ItemsPage({ companyId }) {
                       hover:bg-slate-50
                     "
                   >
-                    {columns.map((column) => {
+                    {visibleColumns.map((column) => {
                       if (column.key === 'action') {
                         return (
                           <td key={column.key} className="px-4 py-3">
@@ -683,7 +693,7 @@ function ItemsPage({ companyId }) {
               ) : (
                 <tr>
                   <td
-                    colSpan={columns.length}
+                    colSpan={visibleColumns.length}
                     className="
                       px-4
                       py-12

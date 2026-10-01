@@ -594,6 +594,13 @@ function App() {
         />
       );
     }
+    if (currentPath === "/my-stock-items")
+      return (
+        <ItemsPage
+          companyId={getCompanyId(selectedCompany)}
+          myStockItems
+        />
+      );
     if (flags.showMyVouchersPage)
       return (
         <MyVouchersPage
