@@ -10,6 +10,7 @@ import {
   Sparkles,
   Receipt,
   Lock,
+  LogOut,
   ChevronLeft,
   BadgeCheck,
   Building2,
@@ -319,20 +320,42 @@ const CheckoutPage = ({
     <div className="min-h-screen bg-[#F8FAFC] px-3 py-4 sm:px-4 sm:py-6 lg:px-6">
       <div className="mx-auto w-full max-w-6xl">
         {/* =================================================
-            BACK BUTTON
+            TOP ACTIONS
         ================================================= */}
 
-        <button
-          type="button"
-          onClick={onBack}
-          className="group mb-4 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:text-xs"
-        >
-          <ChevronLeft
-            size={13}
-            className="transition-transform group-hover:-translate-x-0.5"
-          />
-          Back
-        </button>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="group inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:text-xs"
+          >
+            <ChevronLeft
+              size={13}
+              className="transition-transform group-hover:-translate-x-0.5"
+            />
+            Back
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              const authStore = useAuthStore.getState();
+
+              if (typeof authStore?.logout === "function") {
+                authStore.logout();
+              } else if (typeof authStore?.clearAuth === "function") {
+                authStore.clearAuth();
+              }
+
+              window.history.replaceState({}, "", "/login");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-red-600 shadow-sm transition hover:border-red-300 hover:bg-red-50 active:scale-[0.98] sm:text-xs"
+          >
+            <LogOut size={13} />
+            Logout
+          </button>
+        </div>
 
         {/* =================================================
             MAIN CARD
@@ -377,7 +400,7 @@ const CheckoutPage = ({
                   {/* USERS */}
 
                   <div className="rounded-xl border border-slate-200 bg-white p-3.5">
-                    <div className="flex items-center gap-2 text-blue-600">
+                    <div className="flex items-center gap-2 text-green-600">
                       <Users size={15} />
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                         Users
@@ -405,7 +428,7 @@ const CheckoutPage = ({
                   {/* BASE SEATS */}
 
                   <div className="rounded-xl border border-slate-200 bg-white p-3.5">
-                    <div className="flex items-center gap-2 text-blue-600">
+                    <div className="flex items-center gap-2 text-green-600">
                       <ShieldCheck size={15} />
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                         Admin + 1 User (Default)

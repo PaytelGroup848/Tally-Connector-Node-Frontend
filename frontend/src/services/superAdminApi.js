@@ -41,6 +41,58 @@ export async function fetchSuperAdminUsers({
   return data;
 }
 
+export async function fetchSuperAdminPlans({ accessToken, signal }) {
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/super-admin/plans`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    signal,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data?.success === false) {
+    throw new Error(data?.message || "Failed to fetch super admin plans");
+  }
+
+  return data;
+}
+
+export async function updateSuperAdminPlan({
+  accessToken,
+  planId,
+  updates,
+}) {
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/super-admin/plans/${encodeURIComponent(planId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(updates),
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data?.success === false) {
+    throw new Error(data?.message || "Failed to update plan");
+  }
+
+  return data;
+}
+
 export async function fetchSuperAdminUserCompanies({
   accessToken,
   userId,

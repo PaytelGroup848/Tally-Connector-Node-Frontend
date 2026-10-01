@@ -20,7 +20,7 @@ import useAuthStore from "../store/authStore";
 import { getOtpResendState, OTP_RESEND_SECONDS } from "../utils/otpUtils";
 
 const LoginPage = () => {
-  const isSuperAdminLogin = window.location.pathname === "/login/super-admin";
+  const isSuperAdminLogin = window.location.pathname === "/login/admin";
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);

@@ -751,8 +751,8 @@ export function SearchableDropdown({
 
   const filteredOptions = options.filter((option) =>
     option
-      .toLowerCase()
-      .includes(query.toLowerCase()),
+      // .toLowerCase()
+      // .includes(query.toLowerCase()),
   )
 
   const visibleOptions = showAll

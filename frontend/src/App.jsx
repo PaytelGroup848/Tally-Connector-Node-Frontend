@@ -150,7 +150,7 @@ function App() {
    * Not authenticated
    */
   if (!isAuthenticated) {
-    if (currentPath === '/login' || currentPath === '/login/super-admin') {
+    if (currentPath === '/login' || currentPath === '/login/admin') {
       return <LoginPage />
     }
 

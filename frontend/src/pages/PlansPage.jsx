@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import {
   Check,
   Crown,
@@ -7,12 +8,14 @@ import {
   Zap,
   ShieldCheck,
   ArrowRight,
+  LogOut,
 } from "lucide-react";
 
 import useAuthStore from "../store/authStore";
 import usePlansStore from "../store/plansStore";
 import { fetchPlans } from "../services/plansApi";
 import CheckoutPage from "./CheckoutPage";
+
 
 /* =========================================================
    FALLBACK PLANS
@@ -423,7 +426,11 @@ const normalizePlans = (input) => {
 ========================================================= */
 
 function PlansPage() {
+  const navigate = useNavigate();
+
   const accessToken = useAuthStore((state) => state.accessToken);
+
+  const logout = useAuthStore((state) => state.logout);
 
   const plansFromStore = usePlansStore((state) => state.plans);
 
@@ -587,6 +594,19 @@ function PlansPage() {
     setIsCheckoutOpen(true);
   };
 
+  const handleLogout = () => {
+    if (typeof logout === "function") {
+      logout();
+    } else {
+      useAuthStore.setState({
+        accessToken: null,
+        user: null,
+      });
+    }
+
+    navigate("/login", { replace: true });
+  };
+
   if (isCheckoutOpen) {
     return (
       <CheckoutPage
@@ -611,6 +631,23 @@ function PlansPage() {
   return (
     <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-[#F0FDF4] via-[#F7FAF8] to-white px-3 py-2 sm:px-4 sm:py-3 lg:px-6">
       <div className="mx-auto flex h-full max-w-7xl flex-col">
+
+        {/* =================================================
+            TOP BAR
+        ================================================== */}
+
+        <div className="flex shrink-0 items-center justify-end pb-2 sm:pb-3">
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Logout"
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 text-[10px] font-semibold text-red-600 transition hover:border-red-300 hover:bg-red-100 hover:text-red-700 sm:h-10 sm:px-4 sm:text-xs"
+          >
+            <LogOut size={14} />
+            <span>Logout</span>
+          </button>
+        </div>
+        
         <div className="shrink-0 text-center">
           <div className="mb-1 inline-flex items-center rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[8px] font-bold uppercase tracking-[0.18em] text-green-700 sm:text-[9px]">
             Flexible Plan
