@@ -166,9 +166,9 @@ const normalizeDashboardData = (response, fallbackRange) => {
   const rawBuckets = Array.isArray(receivables.buckets)
     ? receivables.buckets
     : Object.entries(receivables.buckets || {}).map(([label, value]) => ({
-        label,
-        ...(typeof value === 'object' ? value : { amount: value }),
-      }))
+      label,
+      ...(typeof value === 'object' ? value : { amount: value }),
+    }))
   const rawCustomers = readArray(root, [
     'topCustomers',
     'customers',
@@ -288,7 +288,7 @@ function MetricCard({ icon: Icon, label, value, change, onClick }) {
             {value}
           </p>
 
-          
+
         </div>
       </div>
     </button>
@@ -444,11 +444,10 @@ function DashboardPage({
   const accessToken = useAuthStore((state) => state.accessToken)
   const [dashboardData, setDashboardData] = useState(null)
   const [dashboardRange, setDashboardRange] = useState(null)
-  const defaultDashboardRange = getDefaultDashboardRange()
-  const [fromDate, setFromDate] = useState(defaultDashboardRange.fromDate)
-  const [toDate, setToDate] = useState(defaultDashboardRange.toDate)
-  const [draftFromDate, setDraftFromDate] = useState(defaultDashboardRange.fromDate)
-  const [draftToDate, setDraftToDate] = useState(defaultDashboardRange.toDate)
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [draftFromDate, setDraftFromDate] = useState('')
+  const [draftToDate, setDraftToDate] = useState('')
   const [isDateFilterOpen, setIsDateFilterOpen] = useState(false)
   const dashboardRequestRef = useRef(0)
   const chartScrollRef = useRef(null)
@@ -554,54 +553,76 @@ function DashboardPage({
     return () => cancelAnimationFrame(animationFrame)
   }, [])
 
-  useEffect(() => {
-    if (!accessToken || !companyId || !fromDate || !toDate) {
+useEffect(() => {
+  if (!accessToken || !companyId) {
+    setDashboardData(null)
+    setDashboardRange(null)
+    return undefined
+  }
+
+  let isMounted = true
+  const requestId = ++dashboardRequestRef.current
+
+  // First request:
+  // /dashboard
+  //
+  // After user selects dates:
+  // /dashboard?from=YYYY-MM-DD&to=YYYY-MM-DD
+
+  const requestOptions =
+    fromDate && toDate
+      ? {
+          from: fromDate,
+          to: toDate,
+        }
+      : {}
+
+  fetchCompanyDashboard(
+    accessToken,
+    companyId,
+    requestOptions,
+  )
+    .then((response) => {
+      if (!isMounted || requestId !== dashboardRequestRef.current) return
+
+      const responseData = response?.data || response
+
+      // Keep API response range only for display.
+      // DO NOT copy it into fromDate/toDate,
+      // otherwise the first API call would be followed
+      // by another call with date parameters.
+      const responseRange = responseData?.range
+
+      const responseFrom = toInputDate(responseRange?.from)
+      const responseTo = toInputDate(responseRange?.to)
+
+      setDashboardData(responseData)
+
+      setDashboardRange(
+        responseFrom && responseTo
+          ? {
+              from: responseFrom,
+              to: responseTo,
+            }
+          : null,
+      )
+    })
+    .catch((error) => {
+      if (!isMounted || requestId !== dashboardRequestRef.current) return
+
       setDashboardData(null)
       setDashboardRange(null)
-      return undefined
-    }
 
-    let isMounted = true
-    const requestId = ++dashboardRequestRef.current
-
-    fetchCompanyDashboard(accessToken, companyId, {
-      from: fromDate,
-      to: toDate,
+      console.warn(
+        'Dashboard API failed, using dashboard defaults:',
+        error,
+      )
     })
-      .then((response) => {
-        if (isMounted && requestId === dashboardRequestRef.current) {
-          const responseData = response?.data || response
-          const responseRange = responseData?.range
-          const responseFrom = toInputDate(responseRange?.from)
-          const responseTo = toInputDate(responseRange?.to)
 
-          setDashboardData(responseData)
-          setDashboardRange(
-            responseFrom && responseTo
-              ? { from: responseFrom, to: responseTo }
-              : null,
-          )
-
-          if (responseFrom && responseTo) {
-            if (responseFrom !== fromDate) setFromDate(responseFrom)
-            if (responseTo !== toDate) setToDate(responseTo)
-            setDraftFromDate(responseFrom)
-            setDraftToDate(responseTo)
-          }
-        }
-      })
-      .catch((error) => {
-        if (isMounted && requestId === dashboardRequestRef.current) {
-          setDashboardData(null)
-          setDashboardRange(null)
-          console.warn('Dashboard API failed, using dashboard defaults:', error)
-        }
-      })
-
-    return () => {
-      isMounted = false
-    }
-  }, [accessToken, companyId, fromDate, toDate])
+  return () => {
+    isMounted = false
+  }
+}, [accessToken, companyId, fromDate, toDate])
 
   const applyDateFilter = (event) => {
     event.preventDefault()
@@ -612,11 +633,13 @@ function DashboardPage({
     setDashboardRange(null)
     setIsDateFilterOpen(false)
   }
-
-  const dashboardValues = normalizeDashboardData(dashboardData, {
+const dashboardValues = normalizeDashboardData(
+  dashboardData,
+  dashboardRange || {
     from: fromDate,
     to: toDate,
-  })
+  },
+)
   const {
     totalSales,
     totalReceipts,
@@ -679,7 +702,7 @@ function DashboardPage({
               "
             >
               <CalendarDays className="h-4 w-4" />
-              {dashboardValues.rangeLabel}
+              {}
               <ChevronDown className="h-4 w-4 text-slate-400" />
             </button>
 
@@ -755,27 +778,27 @@ function DashboardPage({
         <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
           <Panel
             title="Sales & Receipts"
-            // action={
-              // <div className="ml-auto flex items-center gap-1 rounded-lg bg-slate-50 p-1">
-              //   {['7D', '30D', '3M', '1Y'].map((item) => (
-              //     <button
-              //       key={item}
-              //       type="button"
-              //       className={`
-              //         rounded-md px-3 py-1.5
-              //         text-[10px] font-semibold transition
-              //         ${
-              //           item === '30D'
-              //             ? 'bg-app-primary text-white'
-              //             : 'text-slate-500 hover:bg-white'
-              //         }
-              //       `}
-              //     >
-              //       {item}
-                  // </button>
-                // ))}
-              // </div>
-            // }
+          // action={
+          // <div className="ml-auto flex items-center gap-1 rounded-lg bg-slate-50 p-1">
+          //   {['7D', '30D', '3M', '1Y'].map((item) => (
+          //     <button
+          //       key={item}
+          //       type="button"
+          //       className={`
+          //         rounded-md px-3 py-1.5
+          //         text-[10px] font-semibold transition
+          //         ${
+          //           item === '30D'
+          //             ? 'bg-app-primary text-white'
+          //             : 'text-slate-500 hover:bg-white'
+          //         }
+          //       `}
+          //     >
+          //       {item}
+          // </button>
+          // ))}
+          // </div>
+          // }
           >
             <div className="p-4 sm:p-5">
               <div className="mb-4 flex flex-wrap items-center gap-4">
@@ -885,7 +908,7 @@ function DashboardPage({
                   <p className="mt-1 text-base font-bold text-app-text">
                     {totalSales}
                   </p>
-                  
+
                 </div>
 
                 <div className="p-3">
@@ -895,7 +918,7 @@ function DashboardPage({
                   <p className="mt-1 text-base font-bold text-app-text">
                     {totalReceipts}
                   </p>
-                 
+
                 </div>
               </div>
             </div>
@@ -960,7 +983,7 @@ function DashboardPage({
                         {amount}
                       </span>
 
-                     
+
                     </div>
                   ))}
                 </div>
@@ -970,19 +993,17 @@ function DashboardPage({
                 {displayedCustomerCounts.map(([label, value], index) => (
                   <div
                     key={label}
-                    className={`px-2 ${
-                      index > 0 ? 'border-l border-app-border-light' : ''
-                    }`}
+                    className={`px-2 ${index > 0 ? 'border-l border-app-border-light' : ''
+                      }`}
                   >
                     <p className="text-[10px] font-semibold text-app-text-secondary">
                       {label}
                     </p>
                     <p
-                      className={`mt-1 text-lg font-bold ${
-                        label === 'Overdue Customers'
+                      className={`mt-1 text-lg font-bold ${label === 'Overdue Customers'
                           ? 'text-red-500'
                           : 'text-app-text'
-                      }`}
+                        }`}
                     >
                       {value}
                     </p>

@@ -162,21 +162,24 @@ export function extractConnectorsStatusRows(response) {
 export function fetchCompanyById(accessToken, companyId) {
   return request(`/companies/${encodeURIComponent(companyId)}`, accessToken)
 }
-
 export function fetchCompanyDashboard(
   accessToken,
   companyId,
   { from = '', to = '' } = {},
 ) {
-  const params = new URLSearchParams({
-    from: String(from),
-    to: String(to),
-  })
+  let path = `/companies/${encodeURIComponent(companyId)}/dashboard`
 
-  return request(
-    `/companies/${encodeURIComponent(companyId)}/dashboard?${params}`,
-    accessToken,
-  )
+  // Only add query parameters when both dates are actually selected
+  if (from && to) {
+    const params = new URLSearchParams({
+      from: String(from),
+      to: String(to),
+    })
+
+    path += `?${params.toString()}`
+  }
+
+  return request(path, accessToken)
 }
 
 export function fetchCompanyCash(
