@@ -749,11 +749,20 @@ export function SearchableDropdown({
     }
   }, [open])
 
-  const filteredOptions = options.filter((option) =>
-    option
-      // .toLowerCase()
-      // .includes(query.toLowerCase()),
-  )
+const filteredOptions = options.filter((option) => {
+  const optionText =
+    typeof option === "string"
+      ? option
+      : option?.name ||
+        option?.label ||
+        option?.partyName ||
+        option?.ledgerName ||
+        "";
+
+  return String(optionText)
+    .toLowerCase()
+    .includes(String(query).toLowerCase());
+});
 
   const visibleOptions = showAll
     ? filteredOptions
