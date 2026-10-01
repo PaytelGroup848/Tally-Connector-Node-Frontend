@@ -86,35 +86,10 @@ const SuperAdminPage = () => {
 
     const navItems = [
         {
-            label: 'Dashboard',
-            icon: LayoutDashboard,
-            path: '/super-admin',
-        },
-        {
             label: 'Users',
             icon: Users,
             path: '/super-admin/users',
-        },
-        {
-            label: 'Companies',
-            icon: Building2,
-            path: '/companies',
-        },
-        {
-            label: 'Plans & Billing',
-            icon: CreditCard,
-            path: '/plans-billing',
-        },
-        {
-            label: 'Activity Logs',
-            icon: Activity,
-            path: '/activity-logs',
-        },
-        {
-            label: 'Settings',
-            icon: Settings,
-            path: '/settings',
-        },
+        }
     ]
 
     const filteredUsers = useMemo(() => {
@@ -187,8 +162,7 @@ const SuperAdminPage = () => {
                 {/* LOGO */}
                 <div className="flex h-[70px] items-center border-b border-[#e5ebf2] px-5">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#059669]">
-                        </div>
+                        
 
                         <div>
                             <p className="text-[15px] font-bold text-[#17355f]">
@@ -260,18 +234,6 @@ const SuperAdminPage = () => {
                         })}
                     </nav>
 
-                    {/* LOGOUT */}
-                    <div className="mt-auto">
-                        <div className="mb-3 border-t border-slate-100" />
-
-                        <button
-                            type="button"
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[12px] font-semibold text-slate-500 transition hover:bg-red-50 hover:text-red-600"
-                        >
-                            <LogOut size={17} />
-                            Logout
-                        </button>
-                    </div>
                 </div>
             </aside>
 
@@ -300,29 +262,9 @@ const SuperAdminPage = () => {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-4">
-                        {/* SEARCH */}
-                        <div className="relative hidden md:block">
-                            <Search
-                                size={15}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                            />
+                       
 
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="h-9 w-[200px] rounded-lg border border-slate-200 bg-[#f9fafb] pl-9 pr-3 text-[11px] text-slate-700 outline-none transition focus:border-[#059669] focus:ring-1 focus:ring-[#059669]/20"
-                            />
-                            
-                        </div>
-
-                        {/* NOTIFICATION */}
-                        <button
-                            type="button"
-                            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                        >
-                            <Bell size={17} />
-                            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-red-500" />
-                        </button>
+                        
 
                         <div className="hidden h-7 w-px bg-slate-200 sm:block" />
 
@@ -345,10 +287,6 @@ const SuperAdminPage = () => {
                                 </p>
                             </div>
 
-                            <ChevronDown
-                                size={14}
-                                className="hidden text-slate-400 sm:block"
-                            />
                         </button>
                     </div>
                 </header>

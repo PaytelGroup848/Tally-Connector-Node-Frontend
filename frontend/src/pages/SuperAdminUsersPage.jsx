@@ -1,10 +1,11 @@
-
-import { useEffect, useState } from 'react'
-import { Search, X, Eye, Plus } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Search, X, Eye, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 import {
   createSuperAdminUser,
+  fetchSuperAdminUserCompanies,
   fetchSuperAdminUsers,
+  updateSuperAdminUserCompanyAccess,
   updateSuperAdminUserSuspension,
 } from '../services/superAdminApi'
 
@@ -25,6 +26,79 @@ function extractUsers(response) {
   ]
 
   return candidates.find(Array.isArray) || []
+}
+
+function extractCompanies(response) {
+  const candidates = [
+    response?.data?.companies,
+    response?.data?.items,
+    response?.data?.results,
+    response?.companies,
+    response?.items,
+    response?.results,
+    response?.data,
+  ]
+
+  return candidates.find(Array.isArray) || []
+}
+
+function getUserId(user) {
+  return user?.id ?? user?._id ?? user?.userId ?? user?.user_id
+}
+
+function getCompanyId(company) {
+  return (
+    company?.id ??
+    company?._id ??
+    company?.companyId ??
+    company?.company_id
+  )
+}
+
+function isCompanyAllowed(company) {
+  const allowed =
+    company?.allowed ?? company?.isAllowed ?? company?.is_allowed
+
+  return (
+    allowed === true ||
+    ['true', 'yes', '1'].includes(String(allowed).toLowerCase())
+  )
+}
+
+function setCompanyAllowed(company, allowed) {
+  const field =
+    ['allowed', 'isAllowed', 'is_allowed'].find((key) => key in company) ||
+    'allowed'
+
+  return { ...company, [field]: allowed }
+}
+
+function getOrganizationId(user) {
+  const organizationValues = [
+    user?.organization,
+    user?.organisation,
+    ...(Array.isArray(user?.organizations)
+      ? user.organizations
+      : [user?.organizations]),
+    ...(Array.isArray(user?.organisations)
+      ? user.organisations
+      : [user?.organisations]),
+  ]
+
+  const candidates = [
+    user?.organizationId,
+    user?.organisationId,
+    ...organizationValues.flatMap((organization) => [
+      organization?.id,
+      organization?._id,
+      organization?.organizationId,
+      organization?.organisationId,
+    ]),
+  ]
+
+  return candidates.find(
+    (value) => value !== undefined && value !== null && value !== '',
+  ) ?? null
 }
 
 /* =========================================================
@@ -278,11 +352,6 @@ function formatCellValue(value, column = '') {
 
   /*
    * Created At -> date only
-   *
-   * Examples:
-   * createdAt
-   * user.createdAt
-   * organisation.createdAt
    */
   const lastKey = column
     .split('.')
@@ -311,6 +380,10 @@ function formatColumnName(column) {
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase())
 }
+
+/* =========================================================
+   CREATE USER MODAL
+   ========================================================= */
 
 function CreateSuperAdminUserModal({
   accessToken,
@@ -348,11 +421,15 @@ function CreateSuperAdminUserModal({
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-800">Create User</h2>
+            <h2 className="text-lg font-bold text-slate-800">
+              Create User
+            </h2>
+
             <p className="mt-1 text-sm text-slate-500">
               Add a user and their organization.
             </p>
           </div>
+
           <button
             type="button"
             onClick={onClose}
@@ -367,6 +444,7 @@ function CreateSuperAdminUserModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block text-sm font-semibold text-slate-700">
             Email
+
             <input
               type="email"
               value={email}
@@ -381,10 +459,13 @@ function CreateSuperAdminUserModal({
 
           <label className="block text-sm font-semibold text-slate-700">
             Organization Name
+
             <input
               type="text"
               value={organizationName}
-              onChange={(event) => setOrganizationName(event.target.value)}
+              onChange={(event) =>
+                setOrganizationName(event.target.value)
+              }
               required
               disabled={submitting}
               placeholder="Organization name"
@@ -393,7 +474,10 @@ function CreateSuperAdminUserModal({
           </label>
 
           {error && (
-            <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div
+              role="alert"
+              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            >
               {error}
             </div>
           )}
@@ -407,6 +491,7 @@ function CreateSuperAdminUserModal({
             >
               Cancel
             </button>
+
             <button
               type="submit"
               disabled={submitting}
@@ -429,6 +514,9 @@ const SuperAdminUsersPage = () => {
   const accessToken = useAuthStore(
     (state) => state.accessToken,
   )
+  const authenticatedUser = useAuthStore(
+    (state) => state.user,
+  )
 
   const [query, setQuery] = useState('')
   const [appliedQuery, setAppliedQuery] = useState('')
@@ -440,9 +528,22 @@ const SuperAdminUsersPage = () => {
   const [actionError, setActionError] = useState('')
   const [suspendingUserId, setSuspendingUserId] = useState(null)
 
+  /* =========================================================
+     PAGINATION STATE
+     ========================================================= */
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+
   /* Selected user for organisation popup */
-  const [selectedUser, setSelectedUser] =
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedCompaniesUser, setSelectedCompaniesUser] =
     useState(null)
+  const [userCompanies, setUserCompanies] = useState([])
+  const [companiesLoading, setCompaniesLoading] = useState(false)
+  const [companiesError, setCompaniesError] = useState('')
+  const [companyActionError, setCompanyActionError] = useState('')
+  const [updatingCompanyId, setUpdatingCompanyId] = useState(null)
 
   /* =========================================================
      FETCH USERS
@@ -464,17 +565,17 @@ const SuperAdminUsersPage = () => {
       setError('')
 
       try {
-        const response =
-          await fetchSuperAdminUsers({
-            accessToken,
-            page: 1,
-            limit: 500,
-            q: appliedQuery,
-            signal: controller.signal,
-          })
+        const response = await fetchSuperAdminUsers({
+          accessToken,
+          page: 1,
+          limit: 500,
+          q: appliedQuery,
+          signal: controller.signal,
+        })
 
         if (active) {
           setUsers(extractUsers(response))
+          setCurrentPage(1)
         }
       } catch (loadError) {
         if (
@@ -485,6 +586,7 @@ const SuperAdminUsersPage = () => {
             loadError.message ||
               'Failed to fetch users',
           )
+
           setUsers([])
         }
       } finally {
@@ -502,24 +604,129 @@ const SuperAdminUsersPage = () => {
     }
   }, [accessToken, appliedQuery, refreshKey])
 
+  useEffect(() => {
+    if (!selectedCompaniesUser) return undefined
+
+    const controller = new AbortController()
+    const userId = getUserId(selectedCompaniesUser)
+    const organizationId =
+      getOrganizationId(selectedCompaniesUser) ??
+      getOrganizationId(authenticatedUser)
+
+    if (userId === undefined || userId === null || userId === '') {
+      return () => controller.abort()
+    }
+
+    if (
+      organizationId === undefined ||
+      organizationId === null ||
+      organizationId === ''
+    ) {
+      return () => controller.abort()
+    }
+
+    const loadCompanies = async () => {
+      setCompaniesLoading(true)
+
+      try {
+        const response = await fetchSuperAdminUserCompanies({
+          accessToken,
+          userId,
+          organizationId,
+          signal: controller.signal,
+        })
+
+        setUserCompanies(extractCompanies(response))
+      } catch (loadError) {
+        if (loadError.name !== 'AbortError') {
+          setCompaniesError(
+            loadError.message || 'Failed to fetch user companies.',
+          )
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setCompaniesLoading(false)
+        }
+      }
+    }
+
+    loadCompanies()
+
+    return () => controller.abort()
+  }, [accessToken, authenticatedUser, selectedCompaniesUser])
+
   /* =========================================================
      SEARCH
      ========================================================= */
 
   const handleSearch = (event) => {
     event.preventDefault()
+
+    setCurrentPage(1)
     setAppliedQuery(query.trim())
   }
 
-  const handleToggleSuspension = async (user) => {
-    const userId = user.id ?? user._id ?? user.userId ?? user.user_id
+  const handleOpenUserCompanies = (user) => {
+    const userId = getUserId(user)
+    const organizationId =
+      getOrganizationId(user) ?? getOrganizationId(authenticatedUser)
+
+    setUserCompanies([])
+    setCompaniesLoading(false)
+    setCompaniesError('')
+    setCompanyActionError('')
 
     if (userId === undefined || userId === null || userId === '') {
-      setActionError('This user has no ID and cannot be updated.')
+      setCompaniesError('This user has no ID.')
+    } else if (
+      organizationId === undefined ||
+      organizationId === null ||
+      organizationId === ''
+    ) {
+      setCompaniesError('Organization ID is not available for this user.')
+    }
+
+    setSelectedCompaniesUser(user)
+  }
+
+  /* =========================================================
+     PAGE SIZE
+     ========================================================= */
+
+  const handlePageSizeChange = (event) => {
+    const newPageSize = Number(event.target.value)
+
+    setPageSize(newPageSize)
+    setCurrentPage(1)
+  }
+
+  /* =========================================================
+     SUSPEND / REACTIVATE
+     ========================================================= */
+
+  const handleToggleSuspension = async (user) => {
+    const userId =
+      user.id ??
+      user._id ??
+      user.userId ??
+      user.user_id
+
+    if (
+      userId === undefined ||
+      userId === null ||
+      userId === ''
+    ) {
+      setActionError(
+        'This user has no ID and cannot be updated.',
+      )
+
       return
     }
 
-    const isSuspended = user.isSuspended === true || user.isSuspended === 'true'
+    const isSuspended =
+      user.isSuspended === true ||
+      user.isSuspended === 'true'
+
     const nextSuspendedState = !isSuspended
 
     try {
@@ -535,16 +742,25 @@ const SuperAdminUsersPage = () => {
       setUsers((currentUsers) =>
         currentUsers.map((currentUser) => {
           const currentUserId =
-            currentUser.id ?? currentUser._id ?? currentUser.userId ?? currentUser.user_id
+            currentUser.id ??
+            currentUser._id ??
+            currentUser.userId ??
+            currentUser.user_id
 
-          return String(currentUserId) === String(userId)
-            ? { ...currentUser, isSuspended: nextSuspendedState }
+          return String(currentUserId) ===
+            String(userId)
+            ? {
+                ...currentUser,
+                isSuspended:
+                  nextSuspendedState,
+              }
             : currentUser
         }),
       )
     } catch (suspensionError) {
       setActionError(
-        suspensionError.message || 'Failed to update user suspension.',
+        suspensionError.message ||
+          'Failed to update user suspension.',
       )
     } finally {
       setSuspendingUserId(null)
@@ -552,20 +768,196 @@ const SuperAdminUsersPage = () => {
   }
 
   /* =========================================================
-     MAIN TABLE DATA
+     FLATTEN USERS
      ========================================================= */
 
-  const flattenedUsers = users.map((user) =>
-    flattenUser(user),
+  const flattenedUsers = useMemo(
+    () =>
+      users.map((user) =>
+        flattenUser(user),
+      ),
+    [users],
   )
 
-  const columns = [
-    ...new Set(
-      flattenedUsers.flatMap((user) =>
-        Object.keys(user),
+  /* =========================================================
+     TABLE COLUMNS
+     ========================================================= */
+
+  const columns = useMemo(
+    () => [
+      ...new Set(
+        flattenedUsers.flatMap((user) =>
+          Object.keys(user),
+        ),
       ),
-    ),
-  ]
+    ],
+    [flattenedUsers],
+  )
+
+  /* =========================================================
+     PAGINATION CALCULATIONS
+     ========================================================= */
+
+  const totalUsers = users.length
+
+  const totalPages = Math.max(
+    Math.ceil(totalUsers / pageSize),
+    1,
+  )
+
+  const safeCurrentPage = Math.min(
+    currentPage,
+    totalPages,
+  )
+
+  const startIndex =
+    (safeCurrentPage - 1) * pageSize
+
+  const endIndex = Math.min(
+    startIndex + pageSize,
+    totalUsers,
+  )
+
+  const paginatedUsers = users.slice(
+    startIndex,
+    endIndex,
+  )
+
+  const paginatedFlattenedUsers =
+    flattenedUsers.slice(
+      startIndex,
+      endIndex,
+    )
+
+  /* =========================================================
+     KEEP PAGE VALID
+     ========================================================= */
+
+  useEffect(() => {
+    if (
+      currentPage > totalPages &&
+      totalPages > 0
+    ) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
+
+  /* =========================================================
+     PAGINATION NAVIGATION
+     ========================================================= */
+
+  const goToPreviousPage = () => {
+    setCurrentPage((page) =>
+      Math.max(page - 1, 1),
+    )
+  }
+
+  const goToNextPage = () => {
+    setCurrentPage((page) =>
+      Math.min(page + 1, totalPages),
+    )
+  }
+
+  const goToPage = (page) => {
+    setCurrentPage(
+      Math.min(
+        Math.max(page, 1),
+        totalPages,
+      ),
+    )
+  }
+
+  const handleToggleCompanyAccess = async (company) => {
+    const userId = getUserId(selectedCompaniesUser)
+    const companyId = getCompanyId(company)
+    const organizationId =
+      getOrganizationId(selectedCompaniesUser) ??
+      getOrganizationId(authenticatedUser)
+
+    if (companyId === undefined || companyId === null || companyId === '') {
+      setCompanyActionError('This company has no ID and cannot be updated.')
+      return
+    }
+
+    if (!organizationId) {
+      setCompanyActionError('Organization ID is not available for this user.')
+      return
+    }
+
+    const allowed = !isCompanyAllowed(company)
+    const allowedCompanies = userCompanies
+      .filter((userCompany) => {
+        if (String(getCompanyId(userCompany)) === String(companyId)) {
+          return allowed
+        }
+
+        return isCompanyAllowed(userCompany)
+      })
+      .map(getCompanyId)
+      .filter((id) => id !== undefined && id !== null && id !== '')
+      .map(String)
+
+    try {
+      setUpdatingCompanyId(String(companyId))
+      setCompanyActionError('')
+
+      await updateSuperAdminUserCompanyAccess({
+        accessToken,
+        userId,
+        organizationId,
+        allowedCompanies,
+      })
+
+      setUserCompanies((currentCompanies) =>
+        currentCompanies.map((currentCompany) =>
+          String(getCompanyId(currentCompany)) === String(companyId)
+            ? setCompanyAllowed(currentCompany, allowed)
+            : currentCompany,
+        ),
+      )
+    } catch (updateError) {
+      setCompanyActionError(
+        updateError.message || 'Failed to update company access.',
+      )
+    } finally {
+      setUpdatingCompanyId(null)
+    }
+  }
+
+  /* =========================================================
+     PAGE NUMBERS
+     ========================================================= */
+
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from(
+        { length: totalPages },
+        (_, index) => index + 1,
+      )
+    }
+
+    if (safeCurrentPage <= 3) {
+      return [1, 2, 3, 4, 5]
+    }
+
+    if (safeCurrentPage >= totalPages - 2) {
+      return [
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ]
+    }
+
+    return [
+      safeCurrentPage - 2,
+      safeCurrentPage - 1,
+      safeCurrentPage,
+      safeCurrentPage + 1,
+      safeCurrentPage + 2,
+    ]
+  }, [safeCurrentPage, totalPages])
 
   /* =========================================================
      SELECTED ORGANISATION DATA
@@ -586,6 +978,22 @@ const SuperAdminUsersPage = () => {
     organisationTable,
   )
 
+  const flattenedCompanies = useMemo(
+    () => userCompanies.map((company) => flattenUser(company)),
+    [userCompanies],
+  )
+
+  const companyColumns = useMemo(
+    () => [
+      ...new Set(
+        flattenedCompanies.flatMap((company) =>
+          Object.keys(company),
+        ),
+      ),
+    ],
+    [flattenedCompanies],
+  )
+
   /* =========================================================
      RENDER
      ========================================================= */
@@ -601,17 +1009,53 @@ const SuperAdminUsersPage = () => {
             </p>
 
             <h2 className="text-2xl font-bold text-slate-800">
-              Super Admin Users
+            Users
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
               {loading
                 ? 'Loading users...'
-                : `${users.length} users found`}
+                : `${totalUsers} users found`}
             </p>
           </div>
+          
+           {/* PAGE SIZE */}
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="pageSize"
+                  className="text-sm text-slate-500"
+                >
+                  Show
+                </label>
 
-          {/* SEARCH */}
+                <select
+                  id="pageSize"
+                  value={pageSize}
+                  onChange={
+                    handlePageSizeChange
+                  }
+                  className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                >
+                  <option value={10}>
+                    10
+                  </option>
+                  <option value={20}>
+                    20
+                  </option>
+                  <option value={30}>
+                    30
+                  </option>
+                  <option value={50}>
+                    50
+                  </option>
+                </select>
+
+                <span className="text-sm text-slate-500">
+                  users
+                </span>
+              </div>
+              
+          {/* SEARCH + CREATE */}
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <form
               onSubmit={handleSearch}
@@ -646,7 +1090,9 @@ const SuperAdminUsersPage = () => {
 
             <button
               type="button"
-              onClick={() => setShowCreateUser(true)}
+              onClick={() =>
+                setShowCreateUser(true)
+              }
               className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700"
             >
               <Plus className="h-4 w-4" />
@@ -696,6 +1142,12 @@ const SuperAdminUsersPage = () => {
                 <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
                   Organisation
                 </th>
+
+                <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
+                  User companies
+                </th>
+
+                {/* ACTION COLUMN */}
                 <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
                   Action
                 </th>
@@ -708,7 +1160,7 @@ const SuperAdminUsersPage = () => {
                 <tr>
                   <td
                     colSpan={Math.max(
-                      columns.length + 1,
+                      columns.length + 3,
                       2,
                     )}
                     className="px-5 py-10 text-center text-slate-500"
@@ -716,73 +1168,120 @@ const SuperAdminUsersPage = () => {
                     Loading users...
                   </td>
                 </tr>
-              ) : users.length > 0 ? (
-                users.map((user, index) => (
-                  <tr
-                    key={
-                      user.id ||
-                      user._id ||
-                      index
-                    }
-                    className="transition hover:bg-slate-50"
-                  >
-                    {/* NORMAL USER COLUMNS */}
-                    {columns.map((column) => (
-                      <td
-                        key={column}
-                        className="max-w-[320px] break-words px-5 py-4 align-top"
-                      >
-                        {formatCellValue(
-                          flattenedUsers[index]?.[
-                            column
-                          ],
-                          column,
-                        )}
-                      </td>
-                    ))}
+              ) : paginatedUsers.length > 0 ? (
+                paginatedUsers.map(
+                  (user, index) => {
+                    const actualIndex =
+                      startIndex + index
 
-                    {/* ORGANISATION COLUMN */}
-                    <td className="px-5 py-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedUser(user)
+                    return (
+                      <tr
+                        key={
+                          user.id ||
+                          user._id ||
+                          index
                         }
-                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100"
+                        className="transition hover:bg-slate-50"
                       >
-                        <Eye
-                          size={14}
-                          strokeWidth={2}
-                        />
+                        {/* NORMAL USER COLUMNS */}
+                        {columns.map(
+                          (column) => (
+                            <td
+                              key={column}
+                              className="max-w-[320px] break-words px-5 py-4 align-top"
+                            >
+                              {formatCellValue(
+                                paginatedFlattenedUsers[
+                                  index
+                                ]?.[column],
+                                column,
+                              )}
+                            </td>
+                          ),
+                        )}
 
-                        View
-                      </button>
-                    </td>
+                        {/* ORGANISATION COLUMN */}
+                        <td className="px-5 py-4 text-center">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedUser(
+                                users[
+                                  actualIndex
+                                ],
+                              )
+                            }
+                            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100"
+                          >
+                            <Eye
+                              size={14}
+                              strokeWidth={2}
+                            />
 
-                    <td className="px-5 py-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleSuspension(user)}
-                        disabled={suspendingUserId !== null}
-                        className={`rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${user.isSuspended === true || user.isSuspended === 'true'
-                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                          : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
-                          }`}
-                      >
-                        {suspendingUserId === String(user.id ?? user._id ?? user.userId ?? user.user_id)
-                          ? 'Updating...'
-                          : user.isSuspended === true || user.isSuspended === 'true'
-                            ? 'Reactivate'
-                            : 'Suspend'}
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                            View
+                          </button>
+                        </td>
+
+                        <td className="px-5 py-4 text-center">
+                          <button
+                            type="button"
+                            onClick={() =>
+                                handleOpenUserCompanies(user)
+                            }
+                            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100"
+                          >
+                            <Eye size={14} strokeWidth={2} />
+                            View
+                          </button>
+                        </td>
+
+                        {/* ACTION COLUMN */}
+                        <td className="px-5 py-4 text-center">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleToggleSuspension(
+                                user,
+                              )
+                            }
+                            disabled={
+                              suspendingUserId !==
+                              null
+                            }
+                            className={`rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                              user.isSuspended ===
+                                true ||
+                              user.isSuspended ===
+                                'true'
+                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                            }`}
+                          >
+                            {suspendingUserId ===
+                            String(
+                              user.id ??
+                                user._id ??
+                                user.userId ??
+                                user.user_id,
+                            )
+                              ? 'Updating...'
+                              : user.isSuspended ===
+                                    true ||
+                                  user.isSuspended ===
+                                    'true'
+                                ? 'Reactivate'
+                                : 'Suspend'}
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  },
+                )
               ) : (
                 <tr>
                   <td
                     colSpan={Math.max(
-                      columns.length + 1,
+                      columns.length + 3,
                       2,
                     )}
                     className="px-5 py-10 text-center text-slate-500"
@@ -794,15 +1293,101 @@ const SuperAdminUsersPage = () => {
             </tbody>
           </table>
         </div>
+
+        {/* =====================================================
+            PAGINATION FOOTER
+            ===================================================== */}
+
+        {!loading && totalUsers > 0 && (
+          <div className="mt-4 flex flex-col gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            {/* LEFT SIDE */}
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-slate-500">
+                Showing{' '}
+                <span className="font-semibold text-slate-700">
+                  {startIndex + 1}
+                </span>{' '}
+                to{' '}
+                <span className="font-semibold text-slate-700">
+                  {endIndex}
+                </span>{' '}
+                of{' '}
+                <span className="font-semibold text-slate-700">
+                  {totalUsers}
+                </span>{' '}
+                users
+              </p>
+
+             
+            </div>
+
+            {/* RIGHT SIDE */}
+            <div className="flex items-center justify-between gap-2 sm:justify-end">
+              {/* PREVIOUS */}
+              <button
+                type="button"
+                onClick={goToPreviousPage}
+                disabled={safeCurrentPage === 1}
+                className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </button>
+
+              {/* PAGE NUMBERS */}
+              <div className="flex items-center gap-1">
+                {pageNumbers.map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() =>
+                      goToPage(page)
+                    }
+                    className={`flex h-9 min-w-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition ${
+                      safeCurrentPage === page
+                        ? 'bg-emerald-600 text-white'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              {/* NEXT */}
+              <button
+                type="button"
+                onClick={goToNextPage}
+                disabled={
+                  safeCurrentPage ===
+                  totalPages
+                }
+                className="inline-flex h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </section>
+
+      {/* =======================================================
+          CREATE USER MODAL
+          ======================================================= */}
 
       {showCreateUser && (
         <CreateSuperAdminUserModal
           accessToken={accessToken}
-          onClose={() => setShowCreateUser(false)}
+          onClose={() =>
+            setShowCreateUser(false)
+          }
           onCreated={() => {
             setShowCreateUser(false)
-            setRefreshKey((current) => current + 1)
+            setCurrentPage(1)
+            setRefreshKey(
+              (current) => current + 1,
+            )
           }}
         />
       )}
@@ -902,13 +1487,11 @@ const SuperAdminUsersPage = () => {
               ) : (
                 <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
                   <p className="text-sm font-semibold text-slate-600">
-                    No organisation data
-                    available
+                    No organisation data available
                   </p>
 
                   <p className="mt-1 text-xs text-slate-400">
-                    No organisation information
-                    was found for this user.
+                    No organisation information was found for this user.
                   </p>
                 </div>
               )}
@@ -929,9 +1512,141 @@ const SuperAdminUsersPage = () => {
           </div>
         </div>
       )}
+
+      {selectedCompaniesUser && (
+        <div
+          className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-950/40 p-4"
+          onClick={() => setSelectedCompaniesUser(null)}
+        >
+          <div
+            className="w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-600">
+                  User companies
+                </p>
+                <h3 className="mt-1 text-lg font-bold text-slate-800">
+                  {selectedCompaniesUser.name ||
+                    selectedCompaniesUser.fullName ||
+                    selectedCompaniesUser.email ||
+                    'User'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedCompaniesUser(null)}
+                aria-label="Close user companies dialog"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X size={19} />
+              </button>
+            </div>
+
+            <div className="max-h-[65vh] overflow-auto p-5">
+              {companiesLoading ? (
+                <p className="py-10 text-center text-sm text-slate-500">
+                  Loading companies...
+                </p>
+              ) : companiesError ? (
+                <div
+                  role="alert"
+                  className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                >
+                  {companiesError}
+                </div>
+              ) : companyColumns.length > 0 ? (
+                <div className="overflow-x-auto rounded-xl border border-slate-200">
+                  <table className="w-full min-w-max border-collapse text-left">
+                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                      <tr>
+                        {companyColumns.map((column) => (
+                          <th
+                            key={column}
+                            className="whitespace-nowrap border-b border-slate-200 px-4 py-3 font-semibold"
+                          >
+                            {formatColumnName(column)}
+                          </th>
+                        ))}
+                        <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-center font-semibold">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                      {flattenedCompanies.map((company, index) => (
+                        <tr
+                          key={
+                            userCompanies[index]?.id ??
+                            userCompanies[index]?._id ??
+                            userCompanies[index]?.companyId ??
+                            index
+                          }
+                        >
+                          {companyColumns.map((column) => (
+                            <td
+                              key={column}
+                              className="max-w-[320px] break-words px-4 py-3"
+                            >
+                              {formatCellValue(company[column], column)}
+                            </td>
+                          ))}
+                          <td className="whitespace-nowrap px-4 py-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleToggleCompanyAccess(userCompanies[index])
+                              }
+                              disabled={updatingCompanyId !== null}
+                              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                isCompanyAllowed(userCompanies[index])
+                                  ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                                  : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                              }`}
+                            >
+                              {updatingCompanyId ===
+                              String(getCompanyId(userCompanies[index]))
+                                ? 'Updating...'
+                                : isCompanyAllowed(userCompanies[index])
+                                  ? 'Revoke'
+                                  : 'Allow'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center text-sm text-slate-500">
+                  No companies found for this user.
+                </p>
+              )}
+              {companyActionError && (
+                <div
+                  role="alert"
+                  className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                >
+                  {companyActionError}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end border-t border-slate-200 px-5 py-3">
+              <button
+                type="button"
+                onClick={() => setSelectedCompaniesUser(null)}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
 
 export default SuperAdminUsersPage
-

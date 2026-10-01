@@ -41,6 +41,71 @@ export async function fetchSuperAdminUsers({
   return data;
 }
 
+export async function fetchSuperAdminUserCompanies({
+  accessToken,
+  userId,
+  organizationId,
+  signal,
+}) {
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
+
+  const params = new URLSearchParams({
+    organizationId: String(organizationId),
+  });
+
+  const response = await fetch(
+    `${API_BASE_URL}/super-admin/users/${encodeURIComponent(userId)}/companies?${params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      signal,
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data?.success === false) {
+    throw new Error(data?.message || "Failed to fetch user companies");
+  }
+
+  return data;
+}
+
+export async function updateSuperAdminUserCompanyAccess({
+  accessToken,
+  userId,
+  organizationId,
+  allowedCompanies,
+}) {
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/super-admin/users/${encodeURIComponent(userId)}/companies`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ organizationId, allowedCompanies }),
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data?.success === false) {
+    throw new Error(data?.message || "Failed to update company access");
+  }
+
+  return data;
+}
+
 export async function updateSuperAdminUserSuspension({
   accessToken,
   id,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import logoFull from "../assets/logoFull.png";
+import logoFull from "../assets/Control-Books-Dashboard.png";
 import {
   ArrowRight,
   Download,
@@ -223,7 +223,7 @@ function App() {
             <img
               src={logoFull}
               alt="CtrlBooks Logo"
-              className="h-12 w-auto object-contain"
+              className="h-18 sm:h-14 w-auto object-contain"
             />
           </button>
 
@@ -275,6 +275,17 @@ function App() {
 
           {/* Desktop Actions */}
           <div className="hidden items-center gap-3 lg:flex">
+            <button
+              onClick={goToLogin}
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-6 py-3 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-8"
+            >
+              Start using CtrlBooks
+
+              <ArrowRight
+                size={18}
+                className="transition group-hover:translate-x-1"
+              />
+            </button>
             <div className="rounded-xl bg-[#61c928] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-[#4fb31d]">
               <a
                 href="http://191.44.87.205:8000/downloads/CtrlBooks_Setup_v1.0.2.exe"
@@ -306,49 +317,17 @@ function App() {
           {/* ================= MOBILE NAV ACTIONS ================= */}
           <div className="flex items-center gap-2 lg:hidden">
 
-            {/* Download Connector */}
-            <a
-              href="http://191.44.87.205:8000/downloads/CtrlBooks_Setup_v1.0.2.exe"
-              download
-              title="Download CtrlBooks Connector"
-              aria-label="Download CtrlBooks Connector"
-              className="
-      flex
-      h-10
-      w-full
-      items-center
-      justify-center
-      gap-2
-      rounded-lg
+            <div className=" flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button
+                onClick={goToLogin}
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-1 py-1 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-1"
+              >
+                Start using CtrlBooks
+              </button>
 
-      border
-      border-[#61c928]
 
-      bg-[#61c928]
+            </div>
 
-      text-white
-
-      shadow-sm
-
-      transition
-
-      hover:bg-[#4fb31d]
-    "
-            >
-          
-              <span className="text-sm font-bold">Download Connector</span><Download
-                size={17}
-                strokeWidth={2.3}
-              />
-            </a>
-
-            {/* Login */}
-            {/* <button
-              onClick={goToLogin}
-              className="rounded-xl bg-black/50 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-black/70"
-            >
-              Login
-            </button> */}
 
             {/* Menu */}
             <button
@@ -712,7 +691,7 @@ function App() {
                 MOBILE BUSINESS
               </p>
 
-              
+
 
               <p className="mt-5 max-w-xl text-base leading-8 text-slate-600">
                 Keep track of transactions, customer activity, business
@@ -1217,29 +1196,26 @@ function FeatureCard({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`group w-full rounded-2xl border p-6 text-left transition duration-300 focus:outline-none focus:ring-2 focus:ring-[#61c928]/30 ${
-        active
+      className={`group w-full rounded-2xl border p-6 text-left transition duration-300 focus:outline-none focus:ring-2 focus:ring-[#61c928]/30 ${active
           ? "border-[#61c928] bg-[#f7fff3] shadow-xl shadow-green-100/70"
           : "border-slate-200 bg-white hover:-translate-y-1 hover:border-green-200 hover:shadow-xl hover:shadow-slate-200/40"
-      }`}
+        }`}
     >
       <div className="flex items-start justify-between gap-4">
         <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition ${
-            active
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition ${active
               ? "bg-[#61c928] text-white"
               : "bg-green-50 text-[#61c928] group-hover:bg-[#61c928] group-hover:text-white"
-          }`}
+            }`}
         >
           <Icon size={22} />
         </div>
 
         <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition ${
-            active
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition ${active
               ? "bg-[#61c928] text-white rotate-90"
               : "bg-slate-50 text-slate-400 group-hover:bg-green-50 group-hover:text-[#61c928]"
-          }`}
+            }`}
           aria-hidden="true"
         >
           <ArrowRight size={16} />
@@ -1255,9 +1231,8 @@ function FeatureCard({
       </p>
 
       <div
-        className={`mt-5 text-xs font-black uppercase tracking-[0.14em] transition ${
-          active ? "text-[#61c928]" : "text-slate-400 group-hover:text-[#61c928]"
-        }`}
+        className={`mt-5 text-xs font-black uppercase tracking-[0.14em] transition ${active ? "text-[#61c928]" : "text-slate-400 group-hover:text-[#61c928]"
+          }`}
       >
         {active ? "Selected feature" : "View feature"}
       </div>
@@ -1723,7 +1698,7 @@ function DashboardPreview() {
           <aside className="w-[112px] shrink-0 bg-[#082f3f] p-2 text-white sm:w-[190px] sm:p-3">
             <div className="mb-5 flex items-center justify-center px-1 pt-1 sm:mb-6 sm:justify-start sm:px-2">
               <img
-                src="./src/assets/logo.png"
+                src="./src/assets/Control-Books-Dashboard.png"
                 alt="CtrlBooks"
                 className="h-auto w-[92px] object-contain sm:w-[148px]"
               />
