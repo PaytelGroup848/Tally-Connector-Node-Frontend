@@ -66,94 +66,340 @@ const selectedCompanyStorageKey = "selectedCompanyId";
 
 function getCompanyId(company) {
   return (
-    company?.id || company?._id || company?.companyId || company?.company_id
+    company?.id ||
+    company?._id ||
+    company?.companyId ||
+    company?.company_id
   );
 }
 
 function App() {
   const [activeTab, setActiveTab] = useState("Customers");
+
   const [selectedPeriod, setSelectedPeriod] = useState(
     "This Year (1st Apr ’26 - 31st Mar ’27)",
   );
+
   const [dayBookDate, setDayBookDate] = useState("");
+
   const customDateInput = useRef(null);
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  const [currentPath, setCurrentPath] = useState(
+    window.location.pathname,
+  );
+
   const [showEway, setShowEway] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showCompanyMenu, setShowCompanyMenu] = useState(false);
+
   const [selectedCompany, setSelectedCompany] = useState(() => {
     const storedCompanyId =
       typeof window !== "undefined"
-        ? window.localStorage.getItem(selectedCompanyStorageKey)
+        ? window.localStorage.getItem(
+            selectedCompanyStorageKey,
+          )
         : null;
+
     return storedCompanyId
       ? { id: storedCompanyId }
       : {
-        name: "",
-        meta: "",
-        isCurrent: true,
-      };
+          name: "",
+          meta: "",
+          isCurrent: true,
+        };
   });
+
   const selectedCompanyRef = useRef(selectedCompany);
+
   const [connectorStatusRows, setConnectorStatusRows] = useState([]);
   const [lastSyncMeta, setLastSyncMeta] = useState(null);
-  const [connectorStatusError, setConnectorStatusError] = useState("");
-  const [isConnectorStatusLoading, setIsConnectorStatusLoading] =
-    useState(false);
+  const [connectorStatusError, setConnectorStatusError] =
+    useState("");
+  const [
+    isConnectorStatusLoading,
+    setIsConnectorStatusLoading,
+  ] = useState(false);
+
   const [companyOptions, setCompanyOptions] = useState([
-    { name: "", meta: "", isCurrent: true },
-    { name: "", meta: "", isCurrent: false },
+    {
+      name: "",
+      meta: "",
+      isCurrent: true,
+    },
+    {
+      name: "",
+      meta: "",
+      isCurrent: false,
+    },
   ]);
+
   const [expandedNav, setExpandedNav] = useState({});
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] =
+    useState(false);
+
   const [isCompact, setIsCompact] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth < 1024 : false,
+    typeof window !== "undefined"
+      ? window.innerWidth < 1024
+      : false,
   );
 
-  const [allowedModules, setAllowedModules] = useState(null);
-  const [showQuickCreate, setShowQuickCreate] = useState(false);
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const logout = useAuthStore((state) => state.logout);
+  const [allowedModules, setAllowedModules] =
+    useState(null);
+
+  const [showQuickCreate, setShowQuickCreate] =
+    useState(false);
+
+  const accessToken = useAuthStore(
+    (state) => state.accessToken,
+  );
+
+  const logout = useAuthStore(
+    (state) => state.logout,
+  );
+
+  /* =========================================================
+     QUICK CREATE - MOVABLE BUTTON
+     ========================================================= */
+
+  const quickCreateRef = useRef(null);
+
+  const [quickCreatePosition, setQuickCreatePosition] =
+    useState(() => {
+      if (typeof window === "undefined") {
+        return {
+          x: 0,
+          y: 0,
+        };
+      }
+
+      return {
+        x: Math.max(8, window.innerWidth - 78),
+        y: Math.max(8, window.innerHeight - 78),
+      };
+    });
+
+  const quickCreateDrag = useRef({
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    startLeft: 0,
+    startTop: 0,
+    hasMoved: false,
+  });
+
+  const handleQuickCreatePointerDown = (event) => {
+    const button = quickCreateRef.current;
+
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+
+    quickCreateDrag.current = {
+      dragging: true,
+      startX: event.clientX,
+      startY: event.clientY,
+      startLeft: rect.left,
+      startTop: rect.top,
+      hasMoved: false,
+    };
+
+    try {
+      button.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore pointer capture errors
+    }
+
+    event.preventDefault();
+  };
+
+  const handleQuickCreatePointerMove = (event) => {
+    const drag = quickCreateDrag.current;
+
+    if (!drag.dragging) return;
+
+    const button = quickCreateRef.current;
+
+    if (!button) return;
+
+    const deltaX =
+      event.clientX - drag.startX;
+
+    const deltaY =
+      event.clientY - drag.startY;
+
+    if (
+      Math.abs(deltaX) > 3 ||
+      Math.abs(deltaY) > 3
+    ) {
+      drag.hasMoved = true;
+    }
+
+    const buttonWidth = button.offsetWidth;
+    const buttonHeight = button.offsetHeight;
+
+    const maxX = Math.max(
+      8,
+      window.innerWidth - buttonWidth - 8,
+    );
+
+    const maxY = Math.max(
+      8,
+      window.innerHeight - buttonHeight - 8,
+    );
+
+    const newX = Math.min(
+      Math.max(8, drag.startLeft + deltaX),
+      maxX,
+    );
+
+    const newY = Math.min(
+      Math.max(8, drag.startTop + deltaY),
+      maxY,
+    );
+
+    setQuickCreatePosition({
+      x: newX,
+      y: newY,
+    });
+  };
+
+  const handleQuickCreatePointerUp = () => {
+    quickCreateDrag.current.dragging = false;
+  };
+
+  /* =========================================================
+     KEEP QUICK CREATE INSIDE SCREEN AFTER RESIZE
+     ========================================================= */
+
+  useEffect(() => {
+    const handleQuickCreateResize = () => {
+      const button = quickCreateRef.current;
+
+      if (!button) return;
+
+      const buttonWidth = button.offsetWidth;
+      const buttonHeight = button.offsetHeight;
+
+      const maxX = Math.max(
+        8,
+        window.innerWidth - buttonWidth - 8,
+      );
+
+      const maxY = Math.max(
+        8,
+        window.innerHeight - buttonHeight - 8,
+      );
+
+      setQuickCreatePosition((current) => ({
+        x: Math.min(
+          Math.max(8, current.x),
+          maxX,
+        ),
+        y: Math.min(
+          Math.max(8, current.y),
+          maxY,
+        ),
+      }));
+    };
+
+    window.addEventListener(
+      "resize",
+      handleQuickCreateResize,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        handleQuickCreateResize,
+      );
+    };
+  }, []);
+
+  /* =========================================================
+     QUICK CREATE MENU
+     ========================================================= */
 
   const quickCreateGroups = [
     {
       title: "Sales",
       items: [
-        ["Sales Invoice", "/create-voucher/SalesInvoice"],
-        ["Sales Order", "/create-voucher/SalesOrder"],
-        ["Credit Note", "/create-voucher/CreditNote"],
-        ["Quotation", "/create-voucher/Quotation"],
-        ["Receipt", "/create-voucher/Receipt"],
-        ["Delivery Note", "/create-voucher/DeliveryNote"],
+        [
+          "Sales Invoice",
+          "/create-voucher/SalesInvoice",
+        ],
+        [
+          "Sales Order",
+          "/create-voucher/SalesOrder",
+        ],
+        [
+          "Credit Note",
+          "/create-voucher/CreditNote",
+        ],
+        [
+          "Quotation",
+          "/create-voucher/Quotation",
+        ],
+        [
+          "Receipt",
+          "/create-voucher/Receipt",
+        ],
+        [
+          "Delivery Note",
+          "/create-voucher/DeliveryNote",
+        ],
       ],
     },
     {
       title: "Purchase",
       items: [
-        ["Purchase Invoice", "/create-voucher/PurchaseInvoice"],
-        ["Purchase Order", "/create-voucher/PurchaseOrder"],
-        ["Debit Note", "/create-voucher/DebitNote"],
-        ["Payment", "/create-voucher/Payment"],
-        ["Journal", "/create-voucher/Journal"],
-        ["Contra", "/create-voucher/Contra"],
-        ["Receipt Note", "/create-voucher/ReceiptNote"],
+        [
+          "Purchase Invoice",
+          "/create-voucher/PurchaseInvoice",
+        ],
+        [
+          "Purchase Order",
+          "/create-voucher/PurchaseOrder",
+        ],
+        [
+          "Debit Note",
+          "/create-voucher/DebitNote",
+        ],
+        [
+          "Payment",
+          "/create-voucher/Payment",
+        ],
+        [
+          "Journal",
+          "/create-voucher/Journal",
+        ],
+        [
+          "Contra",
+          "/create-voucher/Contra",
+        ],
+        [
+          "Receipt Note",
+          "/create-voucher/ReceiptNote",
+        ],
       ],
     },
-    // {
-    //   title: 'Items & Parties',
-    //   items: [
-    //     ['Create Items', '/items/create'],
-    //     ['Create Parties', '/parties/create'],
-    //   ],
-    // },
     {
       title: "Inventory",
       items: [
-        ["Physical Stock", "/create-voucher/PhysicalStock"],
-        ["Stock Journal", "/create-voucher/StockJournal"],
+        [
+          "Physical Stock",
+          "/create-voucher/PhysicalStock",
+        ],
+        [
+          "Stock Journal",
+          "/create-voucher/StockJournal",
+        ],
       ],
     },
   ];
+
+  /* =========================================================
+     PROFILE / MODULE ACCESS
+     ========================================================= */
 
   useEffect(() => {
     if (!accessToken) {
@@ -166,9 +412,17 @@ function App() {
     fetchProfile(accessToken)
       .then((response) => {
         if (!isMounted) return;
-        const ctx = extractOrganizationContext(response);
-        // Owner (or no member restriction found) => full sidebar
-        setAllowedModules(ctx.role === "OWNER" ? null : ctx.allowedModules);
+
+        const ctx =
+          extractOrganizationContext(response);
+
+        // Owner (or no member restriction found)
+        // => full sidebar
+        setAllowedModules(
+          ctx.role === "OWNER"
+            ? null
+            : ctx.allowedModules,
+        );
       })
       .catch((error) => {
         console.warn(
@@ -182,68 +436,135 @@ function App() {
     };
   }, [accessToken]);
 
+  /* =========================================================
+     RESPONSIVE SIDEBAR
+     ========================================================= */
+
   useEffect(() => {
     const handleResize = () => {
-      const compact = window.innerWidth < 1024;
+      const compact =
+        window.innerWidth < 1024;
+
       setIsCompact(compact);
-      if (compact) setSidebarCollapsed(true);
+
+      if (compact) {
+        setSidebarCollapsed(true);
+      }
     };
 
     handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    window.addEventListener(
+      "resize",
+      handleResize,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        handleResize,
+      );
+    };
   }, []);
+
+  /* =========================================================
+     CUSTOM DATE PICKER
+     ========================================================= */
 
   const openCustomDatePicker = () => {
     const input = customDateInput.current;
+
     if (!input) return;
+
     try {
-      if (input.showPicker) input.showPicker();
-      else input.click();
+      if (input.showPicker) {
+        input.showPicker();
+      } else {
+        input.click();
+      }
     } catch {
       input.click();
     }
   };
 
+  /* =========================================================
+     ROUTE LISTENER
+     ========================================================= */
+
   useEffect(() => {
-    const refreshRoute = () => setCurrentPath(window.location.pathname);
-    window.addEventListener("popstate", refreshRoute);
-    return () => window.removeEventListener("popstate", refreshRoute);
+    const refreshRoute = () =>
+      setCurrentPath(
+        window.location.pathname,
+      );
+
+    window.addEventListener(
+      "popstate",
+      refreshRoute,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "popstate",
+        refreshRoute,
+      );
+    };
   }, []);
+
+  /* =========================================================
+     CONNECTOR STATUS
+     ========================================================= */
 
   useEffect(() => {
     if (!accessToken) {
       setConnectorStatusRows([]);
       setLastSyncMeta(null);
       setConnectorStatusError("");
+
       return undefined;
     }
 
     let isMounted = true;
+
     setIsConnectorStatusLoading(true);
     setConnectorStatusError("");
 
     fetchConnectorsStatus(accessToken)
       .then((response) => {
         if (!isMounted) return;
-        const rows = extractConnectorsStatusRows(response);
+
+        const rows =
+          extractConnectorsStatusRows(
+            response,
+          );
+
         setConnectorStatusRows(rows);
-        setLastSyncMeta(extractLastSyncMeta(response));
+
+        setLastSyncMeta(
+          extractLastSyncMeta(response),
+        );
       })
       .catch((error) => {
         if (!isMounted) return;
+
         setConnectorStatusError(
-          error?.message || "Unable to load connector status.",
+          error?.message ||
+            "Unable to load connector status.",
         );
       })
       .finally(() => {
-        if (isMounted) setIsConnectorStatusLoading(false);
+        if (isMounted) {
+          setIsConnectorStatusLoading(false);
+        }
       });
 
     return () => {
       isMounted = false;
     };
   }, [accessToken]);
+
+  /* =========================================================
+     COMPANIES
+     ========================================================= */
 
   useEffect(() => {
     if (!accessToken) return undefined;
@@ -254,49 +575,102 @@ function App() {
       .then((response) => {
         if (!isMounted) return;
 
-        const companies = extractCompanies(response).map(normalizeCompany);
+        const companies =
+          extractCompanies(response).map(
+            normalizeCompany,
+          );
+
         if (companies.length === 0) return;
 
         const storedCompanyId =
           typeof window !== "undefined"
-            ? window.localStorage.getItem(selectedCompanyStorageKey)
+            ? window.localStorage.getItem(
+                selectedCompanyStorageKey,
+              )
             : null;
-        const selectedCompanyState = selectedCompanyRef.current;
-        const selectedCompanyId = getCompanyId(selectedCompanyState);
-        const selectedCompanyName = String(
-          selectedCompanyState?.name || selectedCompanyState?.companyName || "",
-        )
-          .trim()
-          .toLowerCase();
+
+        const selectedCompanyState =
+          selectedCompanyRef.current;
+
+        const selectedCompanyId =
+          getCompanyId(
+            selectedCompanyState,
+          );
+
+        const selectedCompanyName =
+          String(
+            selectedCompanyState?.name ||
+              selectedCompanyState?.companyName ||
+              "",
+          )
+            .trim()
+            .toLowerCase();
+
         const currentCompany =
           companies.find((company) => {
-            const companyId = getCompanyId(company);
-            const companyName = String(company?.name || "")
-              .trim()
-              .toLowerCase();
+            const companyId =
+              getCompanyId(company);
+
+            const companyName =
+              String(company?.name || "")
+                .trim()
+                .toLowerCase();
+
             return (
               (companyId &&
                 String(companyId) ===
-                String(storedCompanyId || selectedCompanyId)) ||
-              (selectedCompanyName && companyName === selectedCompanyName)
+                  String(
+                    storedCompanyId ||
+                      selectedCompanyId,
+                  )) ||
+              (selectedCompanyName &&
+                companyName ===
+                  selectedCompanyName)
             );
           }) || companies[0];
-        const remainingCompanies = companies.filter(
-          (company) => company !== currentCompany,
+
+        const remainingCompanies =
+          companies.filter(
+            (company) =>
+              company !== currentCompany,
+          );
+
+        const normalizedCurrentCompany = {
+          ...currentCompany,
+          isCurrent: true,
+        };
+
+        selectedCompanyRef.current =
+          normalizedCurrentCompany;
+
+        setSelectedCompany(
+          normalizedCurrentCompany,
         );
-        setSelectedCompany({ ...currentCompany, isCurrent: true });
+
         setCompanyOptions([
-          { ...currentCompany, isCurrent: true },
-          ...remainingCompanies.map((company) => ({
-            ...company,
-            isCurrent: false,
-          })),
+          {
+            ...currentCompany,
+            isCurrent: true,
+          },
+          ...remainingCompanies.map(
+            (company) => ({
+              ...company,
+              isCurrent: false,
+            }),
+          ),
         ]);
-        if (typeof window !== "undefined" && getCompanyId(currentCompany))
+
+        if (
+          typeof window !== "undefined" &&
+          getCompanyId(currentCompany)
+        ) {
           window.localStorage.setItem(
             selectedCompanyStorageKey,
-            String(getCompanyId(currentCompany)),
+            String(
+              getCompanyId(currentCompany),
+            ),
           );
+        }
       })
       .catch((error) => {
         console.warn(
@@ -310,23 +684,52 @@ function App() {
     };
   }, [accessToken]);
 
+  /* =========================================================
+     NAVIGATION
+     ========================================================= */
+
   const navigateTo = (path) => {
     if (!path) return;
-    const isEwayPath = path === "/eway" || path === "/e-way";
+
+    const isEwayPath =
+      path === "/eway" ||
+      path === "/e-way";
+
     setShowEway(isEwayPath);
-    if (window.location.pathname === path) return;
-    window.history.pushState({}, "", path);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+
+    if (
+      window.location.pathname === path
+    ) {
+      return;
+    }
+
+    window.history.pushState(
+      {},
+      "",
+      path,
+    );
+
+    window.dispatchEvent(
+      new PopStateEvent("popstate"),
+    );
   };
 
-  const handleNavigate = (event, path) => {
+  const handleNavigate = (
+    event,
+    path,
+  ) => {
     if (!path) return;
+
     event.preventDefault();
+
     navigateTo(path);
   };
 
   const openQuotation = (event) => {
-    handleNavigate(event, "/create-voucher/Quotation");
+    handleNavigate(
+      event,
+      "/create-voucher/Quotation",
+    );
   };
 
   const openMobileVersion = () => {
@@ -338,106 +741,249 @@ function App() {
   };
 
   const openDashboard = (event) => {
-    handleNavigate(event, "/dashboard");
+    handleNavigate(
+      event,
+      "/dashboard",
+    );
+
     setShowEway(false);
   };
 
-  const flags = getRouteFlags(currentPath);
-  const entryPath = flags.normalizedPath;
+  const flags = getRouteFlags(
+    currentPath,
+  );
+
+  const entryPath =
+    flags.normalizedPath;
+
+  /* =========================================================
+     COMPANY HANDLERS
+     ========================================================= */
 
   const handleCompanyAdd = () => {
-    const candidate = { name: "", meta: "", isCurrent: true };
+    const candidate = {
+      name: "",
+      meta: "",
+      isCurrent: true,
+    };
+
     setCompanyOptions((current) => {
-      const next = current.map((company) => ({ ...company, isCurrent: false }));
-      const alreadyExists = next.some(
-        (company) => company.name === candidate.name,
+      const next = current.map(
+        (company) => ({
+          ...company,
+          isCurrent: false,
+        }),
       );
-      if (alreadyExists) return next;
-      return [candidate, ...next];
+
+      const alreadyExists =
+        next.some(
+          (company) =>
+            company.name ===
+            candidate.name,
+        );
+
+      if (alreadyExists) {
+        return next;
+      }
+
+      return [
+        candidate,
+        ...next,
+      ];
     });
+
+    selectedCompanyRef.current =
+      candidate;
+
     setSelectedCompany(candidate);
-    if (typeof window !== "undefined" && getCompanyId(candidate))
+
+    if (
+      typeof window !== "undefined" &&
+      getCompanyId(candidate)
+    ) {
       window.localStorage.setItem(
         selectedCompanyStorageKey,
-        String(getCompanyId(candidate)),
+        String(
+          getCompanyId(candidate),
+        ),
       );
+    }
+
     setShowCompanyMenu(false);
   };
 
-  const selectCompany = (company) => {
+  const selectCompany = (
+    company,
+  ) => {
     if (!company) return;
 
-    const companyId = getCompanyId(company);
-    const nextCompany = { ...company, isCurrent: true };
-    selectedCompanyRef.current = nextCompany;
-    setSelectedCompany(nextCompany);
-    setCompanyOptions((current) =>
-      current.map((option) => ({
-        ...option,
-        isCurrent:
-          option === company ||
-          (companyId &&
-            getCompanyId(option) &&
-            String(getCompanyId(option)) === String(companyId)),
-      })),
+    const companyId =
+      getCompanyId(company);
+
+    const nextCompany = {
+      ...company,
+      isCurrent: true,
+    };
+
+    selectedCompanyRef.current =
+      nextCompany;
+
+    setSelectedCompany(
+      nextCompany,
     );
-    if (typeof window !== "undefined" && companyId) {
-      window.localStorage.setItem(selectedCompanyStorageKey, String(companyId));
+
+    setCompanyOptions((current) =>
+      current.map(
+        (option) => ({
+          ...option,
+          isCurrent:
+            option === company ||
+            (companyId &&
+              getCompanyId(option) &&
+              String(
+                getCompanyId(option),
+              ) ===
+                String(companyId)),
+        }),
+      ),
+    );
+
+    if (
+      typeof window !== "undefined" &&
+      companyId
+    ) {
+      window.localStorage.setItem(
+        selectedCompanyStorageKey,
+        String(companyId),
+      );
     }
+
     setShowCompanyMenu(false);
   };
 
+  /* =========================================================
+     RENDER PAGE
+     ========================================================= */
+
   const renderPage = () => {
-    if (flags.showCompanyDetailsPage) return <MyCompanyDetailsPage />;
+    if (flags.showCompanyDetailsPage) {
+      return <MyCompanyDetailsPage />;
+    }
+
     if (entryPath === "/my-ledgers") {
       return (
         <MyCompanyDetailsPage
           companyId={
-            getCompanyId(selectedCompany) || "6aa0f659f858467a84d08d57"
+            getCompanyId(
+              selectedCompany,
+            ) ||
+            "6aa0f659f858467a84d08d57"
           }
         />
       );
     }
-    if (currentPath === "/profile") return <ProfilePage />;
-    if (flags.showPlansPage) return <PlansPage />;
-    if (flags.showDashboard)
+
+    if (currentPath === "/profile") {
+      return <ProfilePage />;
+    }
+
+    if (flags.showPlansPage) {
+      return <PlansPage />;
+    }
+
+    if (flags.showDashboard) {
       return (
         <DashboardPage
-          companyId={getCompanyId(selectedCompany)}
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           selectedPeriod={selectedPeriod}
-          setSelectedPeriod={setSelectedPeriod}
+          setSelectedPeriod={
+            setSelectedPeriod
+          }
           dayBookDate={dayBookDate}
-          setDayBookDate={setDayBookDate}
-          openCustomDatePicker={openCustomDatePicker}
-          customDateInput={customDateInput}
+          setDayBookDate={
+            setDayBookDate
+          }
+          openCustomDatePicker={
+            openCustomDatePicker
+          }
+          customDateInput={
+            customDateInput
+          }
           onMetricClick={(label) => {
             const routes = {
               CASH: "/cash-bank/cash",
               BANK: "/cash-bank/bank",
             };
-            const target = routes[label];
-            if (target) navigateTo(target);
+
+            const target =
+              routes[label];
+
+            if (target) {
+              navigateTo(target);
+            }
           }}
         />
       );
-    if (flags.showAddNewPage)
+    }
+
+    if (flags.showAddNewPage) {
       return (
         <AddNewPage
           path={currentPath}
-          companyId={getCompanyId(selectedCompany)}
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
         />
       );
-    if (flags.showEwayPage || showEway) return <EwayPage />;
-    if (flags.showReportsPage) return <ReportsPage />;
-    if (flags.showCreateItemPage) return <CreateItemPage />;
-    if (flags.showCreatePartyPage) return <CreatePartyPage />;
-    if (flags.showItemsPage)
-      return <ItemsPage companyId={selectedCompany?.id} />;
-    if (flags.showPartiesPage)
-      return <PartiesPage selectedCompany={selectedCompany} />;
-    if (currentPath === "/my-eway-bill") {
+    }
+
+    if (
+      flags.showEwayPage ||
+      showEway
+    ) {
+      return <EwayPage />;
+    }
+
+    if (flags.showReportsPage) {
+      return <ReportsPage />;
+    }
+
+    if (flags.showCreateItemPage) {
+      return <CreateItemPage />;
+    }
+
+    if (flags.showCreatePartyPage) {
+      return <CreatePartyPage />;
+    }
+
+    if (flags.showItemsPage) {
+      return (
+        <ItemsPage
+          companyId={
+            selectedCompany?.id
+          }
+        />
+      );
+    }
+
+    if (flags.showPartiesPage) {
+      return (
+        <PartiesPage
+          selectedCompany={
+            selectedCompany
+          }
+        />
+      );
+    }
+
+    if (
+      currentPath ===
+      "/my-eway-bill"
+    ) {
       return (
         <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 font-sans box-border">
           <div className="mb-3 flex min-h-[58px] items-center rounded-md border border-slate-200 bg-white px-4 shadow-sm">
@@ -455,8 +1001,13 @@ function App() {
                     strokeWidth={1.7}
                     className="text-white"
                   />
+
                   <div className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#10a66f] shadow-md">
-                    <Clock3 size={18} strokeWidth={2} className="text-white" />
+                    <Clock3
+                      size={18}
+                      strokeWidth={2}
+                      className="text-white"
+                    />
                   </div>
                 </div>
               </div>
@@ -466,13 +1017,18 @@ function App() {
               </h2>
 
               <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
-                Our My Eway Bill feature is currently under development. We are
-                preparing a faster, cleaner, and more reliable way to manage
-                your eWay bill records from the dashboard.
+                Our My Eway Bill feature
+                is currently under
+                development. We are
+                preparing a faster, cleaner,
+                and more reliable way to
+                manage your eWay bill
+                records from the dashboard.
               </p>
 
               <div className="mx-auto mt-7 flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2">
                 <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#10a66f]" />
+
                 <span className="text-xs font-semibold text-slate-700">
                   Feature under development
                 </span>
@@ -487,11 +1043,14 @@ function App() {
                     className="mx-auto mb-2 text-[#092f52]"
                     strokeWidth={1.8}
                   />
+
                   <p className="text-xs font-semibold text-slate-800">
                     Track Records
                   </p>
+
                   <p className="mt-1 text-[11px] text-slate-500">
-                    Access and monitor eWay bill entries.
+                    Access and monitor eWay
+                    bill entries.
                   </p>
                 </div>
 
@@ -501,11 +1060,14 @@ function App() {
                     className="mx-auto mb-2 text-[#10a66f]"
                     strokeWidth={1.8}
                   />
+
                   <p className="text-xs font-semibold text-slate-800">
                     Fast Access
                   </p>
+
                   <p className="mt-1 text-[11px] text-slate-500">
-                    Smooth workflow for daily operations.
+                    Smooth workflow for daily
+                    operations.
                   </p>
                 </div>
 
@@ -515,319 +1077,696 @@ function App() {
                     className="mx-auto mb-2 text-[#1478ff]"
                     strokeWidth={1.8}
                   />
+
                   <p className="text-xs font-semibold text-slate-800">
                     Coming Soon
                   </p>
+
                   <p className="mt-1 text-[11px] text-slate-500">
-                    This feature will be available shortly.
+                    This feature will be
+                    available shortly.
                   </p>
                 </div>
               </div>
 
               <p className="mt-9 text-xs text-slate-400">
-                Thank you for your patience while we build this feature.
+                Thank you for your
+                patience while we build
+                this feature.
               </p>
             </div>
           </div>
         </div>
       );
     }
-    if (currentPath === "/my-receipts") {
+
+    if (
+      currentPath ===
+      "/my-receipts"
+    ) {
       return (
         <MyVouchersPage
-          companyId={getCompanyId(selectedCompany)}
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
           title="My Receipts"
           voucherType="Receipt"
           commandType="CREATE_VOUCHER"
         />
       );
     }
-    if (currentPath === "/my-payments") {
+
+    if (
+      currentPath ===
+      "/my-payments"
+    ) {
       return (
         <MyVouchersPage
-          companyId={getCompanyId(selectedCompany)}
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
           title="My Payments"
           voucherType="Payment"
           commandType="CREATE_VOUCHER"
         />
       );
     }
-    if (currentPath === "/my-sales-order") {
+
+    if (
+      currentPath ===
+      "/my-sales-order"
+    ) {
       return (
         <MyVouchersPage
-          companyId={getCompanyId(selectedCompany)}
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
           title="My Sales Order"
           voucherType="Sales Order"
           commandType="CREATE_VOUCHER"
         />
       );
     }
-    if (currentPath === "/my-purchase") {
+
+    if (
+      currentPath ===
+      "/my-purchase"
+    ) {
       return (
         <MyVouchersPage
-          companyId={getCompanyId(selectedCompany)}
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
           title="My Purchase"
           voucherType="Purchase"
           commandType="CREATE_VOUCHER"
         />
       );
     }
+
     const additionalMyVoucherTypes = {
-      "/my-journal": ["My Journal", "Journal"],
-      "/my-contra": ["My Contra", "Contra"],
-      "/my-purchase-order": ["My Purchase Order", "Purchase Order"],
-      "/my-credit-note": ["My Credit Note", "Credit Note"],
-      "/my-debit-note": ["My Debit Note", "Debit Note"],
-      "/my-stock-journal": ["My Stock Journal", "Stock Journal"],
-      "/my-physical-stock": ["My Physical Stock", "Physical Stock"],
-      "/my-receipt-note": ["My Receipt Note", "Receipt Note"],
-      "/my-delivery-note": ["My Delivery Note", "Delivery Note"],
+      "/my-journal": [
+        "My Journal",
+        "Journal",
+      ],
+      "/my-contra": [
+        "My Contra",
+        "Contra",
+      ],
+      "/my-purchase-order": [
+        "My Purchase Order",
+        "Purchase Order",
+      ],
+      "/my-credit-note": [
+        "My Credit Note",
+        "Credit Note",
+      ],
+      "/my-debit-note": [
+        "My Debit Note",
+        "Debit Note",
+      ],
+      "/my-stock-journal": [
+        "My Stock Journal",
+        "Stock Journal",
+      ],
+      "/my-physical-stock": [
+        "My Physical Stock",
+        "Physical Stock",
+      ],
+      "/my-receipt-note": [
+        "My Receipt Note",
+        "Receipt Note",
+      ],
+      "/my-delivery-note": [
+        "My Delivery Note",
+        "Delivery Note",
+      ],
     };
-    const additionalMyVoucher = additionalMyVoucherTypes[currentPath];
+
+    const additionalMyVoucher =
+      additionalMyVoucherTypes[
+        currentPath
+      ];
+
     if (additionalMyVoucher) {
       return (
         <MyVouchersPage
-          companyId={getCompanyId(selectedCompany)}
-          title={additionalMyVoucher[0]}
-          voucherType={additionalMyVoucher[1]}
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
+          title={
+            additionalMyVoucher[0]
+          }
+          voucherType={
+            additionalMyVoucher[1]
+          }
           commandType="CREATE_VOUCHER"
         />
       );
     }
-    if (currentPath === "/my-stock-items")
+
+    if (
+      currentPath ===
+      "/my-stock-items"
+    ) {
       return (
         <ItemsPage
-          companyId={getCompanyId(selectedCompany)}
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
           myStockItems
         />
       );
-    if (flags.showMyVouchersPage)
+    }
+
+    if (flags.showMyVouchersPage) {
       return (
         <MyVouchersPage
-          companyId={getCompanyId(selectedCompany)}
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
           title={
-            currentPath === "/my-quotations"
+            currentPath ===
+            "/my-quotations"
               ? "My Quotations"
-              : currentPath === "/my-invoices"
+              : currentPath ===
+                  "/my-invoices"
                 ? "My Invoices"
-                : currentPath === "/my-parties"
+                : currentPath ===
+                    "/my-parties"
                   ? "My Parties"
-                  : currentPath === "/my-stock-items"
+                  : currentPath ===
+                      "/my-stock-items"
                     ? "My Stock Items"
                     : "My Vouchers"
           }
           voucherType={
-            currentPath === "/my-quotations"
+            currentPath ===
+            "/my-quotations"
               ? "Quotation"
-              : currentPath === "/my-invoices"
+              : currentPath ===
+                  "/my-invoices"
                 ? "Sales"
-                : currentPath === "/my-vouchers"
+                : currentPath ===
+                    "/my-vouchers"
                   ? "Sales"
                   : ""
           }
           commandType={
-            currentPath === "/my-parties"
+            currentPath ===
+            "/my-parties"
               ? "CREATE_PARTY"
-              : currentPath === "/my-stock-items"
+              : currentPath ===
+                  "/my-stock-items"
                 ? "UPDATE_STOCK_ITEM"
                 : "CREATE_VOUCHER"
           }
         />
       );
-    if (flags.showManageReminderPage) return <ManageReminderPage />;
-    if (flags.showEntryList) return <MyEntryListPage path={entryPath} />;
-    if (flags.showGstPage) return <GstSearchPage />;
-    if (flags.showVouchersPage)
-      return <VouchersPage companyId={getCompanyId(selectedCompany)} />;
-    if (flags.showConfigurationsPage) return <ConfigurationsPage />;
-    if (flags.showAllUsersPage) return <AllUsersPage />;
-    if (flags.showAddUserPage) return <AddUserPage />;
-    if (flags.showInactiveCustomersPage) return <InactiveCustomersPage />;
-    if (flags.showInactiveStocksPage) return <InactiveStocksPage />;
-    if (flags.showDownloadInvoicePage) return <DownloadInvoicePage />;
-    if (entryPath === "/trial-balance")
-      return <TrialBalancePage companyId={selectedCompany?.id} />;
-    if (entryPath === "/day-book")
-      return <DayBookPage companyId={selectedCompany?.id} />;
-    if (entryPath === "/profit-loss")
-      return <ProfitLossPage companyId={selectedCompany?.id} />;
-    if (entryPath === "/balance-sheet")
-      return <BalanceSheetPage companyId={selectedCompany?.id} />;
-    if (entryPath === "/voucher-lines")
+    }
+
+    if (
+      flags.showManageReminderPage
+    ) {
+      return <ManageReminderPage />;
+    }
+
+    if (flags.showEntryList) {
       return (
-        <VoucherLinesPage
-          companyId={selectedCompany?.id}
-          companyName={selectedCompany?.name}
+        <MyEntryListPage
+          path={entryPath}
         />
       );
-    if (flags.showPayment)
+    }
+
+    if (flags.showGstPage) {
+      return <GstSearchPage />;
+    }
+
+    if (flags.showVouchersPage) {
+      return (
+        <VouchersPage
+          companyId={getCompanyId(
+            selectedCompany,
+          )}
+        />
+      );
+    }
+
+    if (
+      flags.showConfigurationsPage
+    ) {
+      return <ConfigurationsPage />;
+    }
+
+    if (flags.showAllUsersPage) {
+      return <AllUsersPage />;
+    }
+
+    if (flags.showAddUserPage) {
+      return <AddUserPage />;
+    }
+
+    if (
+      flags.showInactiveCustomersPage
+    ) {
+      return <InactiveCustomersPage />;
+    }
+
+    if (
+      flags.showInactiveStocksPage
+    ) {
+      return <InactiveStocksPage />;
+    }
+
+    if (
+      flags.showDownloadInvoicePage
+    ) {
+      return <DownloadInvoicePage />;
+    }
+
+    if (
+      entryPath ===
+      "/trial-balance"
+    ) {
+      return (
+        <TrialBalancePage
+          companyId={
+            selectedCompany?.id
+          }
+        />
+      );
+    }
+
+    if (
+      entryPath ===
+      "/day-book"
+    ) {
+      return (
+        <DayBookPage
+          companyId={
+            selectedCompany?.id
+          }
+        />
+      );
+    }
+
+    if (
+      entryPath ===
+      "/profit-loss"
+    ) {
+      return (
+        <ProfitLossPage
+          companyId={
+            selectedCompany?.id
+          }
+        />
+      );
+    }
+
+    if (
+      entryPath ===
+      "/balance-sheet"
+    ) {
+      return (
+        <BalanceSheetPage
+          companyId={
+            selectedCompany?.id
+          }
+        />
+      );
+    }
+
+    if (
+      entryPath ===
+      "/voucher-lines"
+    ) {
+      return (
+        <VoucherLinesPage
+          companyId={
+            selectedCompany?.id
+          }
+          companyName={
+            selectedCompany?.name
+          }
+        />
+      );
+    }
+
+    if (flags.showPayment) {
       return (
         <ReceiptPage
-          companyId={selectedCompany?.id}
-          selectedCompany={selectedCompany}
+          companyId={
+            selectedCompany?.id
+          }
+          selectedCompany={
+            selectedCompany
+          }
           documentType="Payment"
         />
       );
-    if (flags.showReceiptNote)
+    }
+
+    if (flags.showReceiptNote) {
       return (
         <DocumentVoucherPage
           title="Receipt Note"
-          companyId={selectedCompany?.id}
+          companyId={
+            selectedCompany?.id
+          }
         />
       );
-    if (flags.showReceipt)
+    }
+
+    if (flags.showReceipt) {
       return (
         <ReceiptPage
-          companyId={selectedCompany?.id}
-          selectedCompany={selectedCompany}
+          companyId={
+            selectedCompany?.id
+          }
+          selectedCompany={
+            selectedCompany
+          }
         />
       );
-    if (flags.showPurchaseOrder)
+    }
+
+    if (flags.showPurchaseOrder) {
       return (
         <DocumentVoucherPage
           title="Purchase Order"
-          companyId={selectedCompany?.id}
+          companyId={
+            selectedCompany?.id
+          }
         />
       );
+    }
+
     if (flags.showPurchase) {
-      return currentPath.toLowerCase() === "/create-voucher/purchaseinvoice" ? (
-        <DocumentVoucherPage title="Purchase" companyId={selectedCompany?.id} />
+      return currentPath.toLowerCase() ===
+        "/create-voucher/purchaseinvoice" ? (
+        <DocumentVoucherPage
+          title="Purchase"
+          companyId={
+            selectedCompany?.id
+          }
+        />
       ) : (
-        <PurchasePage companyId={selectedCompany?.id} />
+        <PurchasePage
+          companyId={
+            selectedCompany?.id
+          }
+        />
       );
     }
-    if (flags.showReport)
+
+    if (flags.showReport) {
       return (
-        <ReportListPage path={entryPath} companyId={selectedCompany?.id} />
+        <ReportListPage
+          path={entryPath}
+          companyId={
+            selectedCompany?.id
+          }
+        />
       );
-    if (flags.showStockJournal)
+    }
+
+    if (flags.showStockJournal) {
       return (
         <DocumentVoucherPage
           title="Stock Journal"
-          companyId={selectedCompany?.id}
+          companyId={
+            selectedCompany?.id
+          }
         />
       );
-    if (flags.showDataBackupPage) return <DataBackupPage />;
-    if (flags.showJournal)
+    }
+
+    if (flags.showDataBackupPage) {
+      return <DataBackupPage />;
+    }
+
+    if (flags.showJournal) {
       return (
-        <DocumentVoucherPage title="Journal" companyId={selectedCompany?.id} />
+        <DocumentVoucherPage
+          title="Journal"
+          companyId={
+            selectedCompany?.id
+          }
+        />
       );
-    if (flags.showContra)
+    }
+
+    if (flags.showContra) {
       return (
-        <DocumentVoucherPage title="Contra" companyId={selectedCompany?.id} />
+        <DocumentVoucherPage
+          title="Journal"
+          companyId={
+            selectedCompany?.id
+          }
+        />
       );
-    if (flags.showDeliveryNote)
+    }
+
+    if (flags.showDeliveryNote) {
       return (
         <DocumentVoucherPage
           title="Delivery Note"
-          companyId={selectedCompany?.id}
+          companyId={
+            selectedCompany?.id
+          }
         />
       );
-    if (flags.showPhysicalStock)
-      return <PhysicalStockPage companyId={selectedCompany?.id} />;
-    if (flags.showDebitNote)
+    }
+
+    if (flags.showPhysicalStock) {
+      return (
+        <PhysicalStockPage
+          companyId={
+            selectedCompany?.id
+          }
+        />
+      );
+    }
+
+    if (flags.showDebitNote) {
       return (
         <DocumentVoucherPage
           title="Debit Note"
-          companyId={selectedCompany?.id}
+          companyId={
+            selectedCompany?.id
+          }
         />
       );
-    if (flags.showCreditNote)
+    }
+
+    if (flags.showCreditNote) {
       return (
         <DocumentVoucherPage
           title="Credit Note"
-          companyId={selectedCompany?.id}
+          companyId={
+            selectedCompany?.id
+          }
         />
       );
-    if (flags.showSalesOrder)
+    }
+
+    if (flags.showSalesOrder) {
       return (
         <DocumentVoucherPage
           title="Sales Order"
-          companyId={selectedCompany?.id}
+          companyId={
+            selectedCompany?.id
+          }
         />
       );
-    if (flags.showQuotation)
+    }
+
+    if (flags.showQuotation) {
       return (
         <DocumentVoucherPage
           title="Quotation"
-          companyId={selectedCompany?.id}
+          companyId={
+            selectedCompany?.id
+          }
         />
       );
-    if (flags.showSalesVoucher)
+    }
+
+    if (flags.showSalesVoucher) {
       return (
-        <DocumentVoucherPage title="Sales" companyId={selectedCompany?.id} />
+        <DocumentVoucherPage
+          title="Sales"
+          companyId={
+            selectedCompany?.id
+          }
+        />
       );
-    return <NotFoundPage path={currentPath} />;
+    }
+
+    return (
+      <NotFoundPage
+        path={currentPath}
+      />
+    );
   };
+
+  /* =========================================================
+     MAIN RETURN
+     ========================================================= */
 
   return (
     <div className="app-shell relative min-h-screen bg-app-bg text-app-text">
+
+      {/* =====================================================
+          SIDEBAR
+          ===================================================== */}
+
       <Sidebar
         collapsed={sidebarCollapsed}
         isCompact={isCompact}
-        setSidebarCollapsed={setSidebarCollapsed}
+        setSidebarCollapsed={
+          setSidebarCollapsed
+        }
         currentPath={currentPath}
-        showDashboard={flags.showDashboard}
+        showDashboard={
+          flags.showDashboard
+        }
         expandedNav={expandedNav}
-        setExpandedNav={setExpandedNav}
+        setExpandedNav={
+          setExpandedNav
+        }
         onDashboard={openDashboard}
         onQuotation={openQuotation}
-        onNavigate={(path) => navigateTo(path)}
-        allowedModules={allowedModules}
+        onNavigate={(path) =>
+          navigateTo(path)
+        }
+        allowedModules={
+          allowedModules
+        }
       />
+
+      {/* =====================================================
+          MAIN
+          ===================================================== */}
 
       <main
         className={`
           app-main relative min-h-screen min-w-0
           transition-[margin-left,width] duration-200
-          ${isCompact
-            ? "ml-0 w-full"
-            : sidebarCollapsed
-              ? "ml-[68px] sidebar-collapsed w-[calc(100%-68px)]"
-              : "ml-[228px] w-[calc(100%-228px)]"
+          ${
+            isCompact
+              ? "ml-0 w-full"
+              : sidebarCollapsed
+                ? "ml-[68px] sidebar-collapsed w-[calc(100%-68px)]"
+                : "ml-[228px] w-[calc(100%-228px)]"
           }
         `}
       >
         <AppHeader
-          sidebarCollapsed={sidebarCollapsed}
-          setSidebarCollapsed={setSidebarCollapsed}
+          sidebarCollapsed={
+            sidebarCollapsed
+          }
+          setSidebarCollapsed={
+            setSidebarCollapsed
+          }
           setShowEway={setShowEway}
-          onOpenEway={() => navigateTo("/eway")}
-          showProfileMenu={showProfileMenu}
-          setShowProfileMenu={setShowProfileMenu}
-          showCompanyMenu={showCompanyMenu}
-          setShowCompanyMenu={setShowCompanyMenu}
+          onOpenEway={() =>
+            navigateTo("/eway")
+          }
+          showProfileMenu={
+            showProfileMenu
+          }
+          setShowProfileMenu={
+            setShowProfileMenu
+          }
+          showCompanyMenu={
+            showCompanyMenu
+          }
+          setShowCompanyMenu={
+            setShowCompanyMenu
+          }
           onNavigate={navigateTo}
-          onProfileClick={() => navigateTo("/profile")}
-          onAllUsersClick={() => navigateTo("/all-users")}
-          onMobileVersionClick={openMobileVersion}
-          selectedCompany={selectedCompany}
-          companyOptions={companyOptions}
-          onAddCompany={handleCompanyAdd}
-          onSelectCompany={selectCompany}
+          onProfileClick={() =>
+            navigateTo("/profile")
+          }
+          onAllUsersClick={() =>
+            navigateTo("/all-users")
+          }
+          onMobileVersionClick={
+            openMobileVersion
+          }
+          selectedCompany={
+            selectedCompany
+          }
+          companyOptions={
+            companyOptions
+          }
+          onAddCompany={
+            handleCompanyAdd
+          }
+          onSelectCompany={
+            selectCompany
+          }
           onLogout={async () => {
             await logout();
-            window.location.replace("/");
+            window.location.replace(
+              "/",
+            );
           }}
-          connectorStatusRows={connectorStatusRows}
-          lastSyncMeta={lastSyncMeta}
-          connectorStatusError={connectorStatusError}
-          isConnectorStatusLoading={isConnectorStatusLoading}
+          connectorStatusRows={
+            connectorStatusRows
+          }
+          lastSyncMeta={
+            lastSyncMeta
+          }
+          connectorStatusError={
+            connectorStatusError
+          }
+          isConnectorStatusLoading={
+            isConnectorStatusLoading
+          }
         />
 
         {renderPage()}
       </main>
 
-      <div className="fixed bottom-25 right-6 z-40">
+      {/* =====================================================
+          MOVABLE QUICK CREATE
+          ===================================================== */}
+
+      <div
+        className="
+          fixed
+          z-[9999]
+          flex
+          flex-col
+          items-end
+        "
+        style={{
+          left: `${quickCreatePosition.x}px`,
+          top: `${quickCreatePosition.y}px`,
+        }}
+      >
+        {/* ===================================================
+            QUICK CREATE MENU
+            =================================================== */}
+
         {showQuickCreate && (
           <div className="mb-3 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-app-border bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
             <div className="flex items-center justify-between bg-emerald-700 px-3 py-2 text-white">
-              <span className="text-xs font-semibold">Quick Create</span>
+              <span className="text-xs font-semibold">
+                Quick Create
+              </span>
 
               <button
                 type="button"
                 aria-label="Close quick create"
-                onClick={() => setShowQuickCreate(false)}
+                onClick={() =>
+                  setShowQuickCreate(
+                    false,
+                  )
+                }
                 className="ml-auto text-lg leading-none text-white/80 hover:text-white"
               >
                 ×
@@ -835,81 +1774,143 @@ function App() {
             </div>
 
             <div className="max-h-[360px] overflow-y-auto bg-slate-50 p-2">
-              {quickCreateGroups.map((group) => (
-                <div
-                  key={group.title}
-                  className="mb-2 overflow-hidden rounded-lg border border-app-border bg-white last:mb-0"
-                >
-                  <div className="bg-slate-50 px-3 py-2 text-xs font-semibold text-app-text">
-                    {group.title}
-                  </div>
+              {quickCreateGroups.map(
+                (group) => (
+                  <div
+                    key={group.title}
+                    className="mb-2 overflow-hidden rounded-lg border border-app-border bg-white last:mb-0"
+                  >
+                    <div className="bg-slate-50 px-3 py-2 text-xs font-semibold text-app-text">
+                      {group.title}
+                    </div>
 
-                  <div className="p-1.5">
-                    {group.items.map(([label, targetPath]) => (
-                      <button
-                        key={`${group.title}-${label}`}
-                        type="button"
-                        onClick={() => {
-                          setShowQuickCreate(false);
-                          navigateTo(targetPath);
-                        }}
-                        className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-xs text-app-text-secondary transition hover:bg-slate-50 hover:text-app-text"
-                      >
-                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-bold text-app-primary">
-                          •
-                        </span>
+                    <div className="p-1.5">
+                      {group.items.map(
+                        ([
+                          label,
+                          targetPath,
+                        ]) => (
+                          <button
+                            key={`${group.title}-${label}`}
+                            type="button"
+                            onClick={() => {
+                              setShowQuickCreate(
+                                false,
+                              );
 
-                        <span className="flex-1">{label}</span>
-                      </button>
-                    ))}
+                              navigateTo(
+                                targetPath,
+                              );
+                            }}
+                            className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-xs text-app-text-secondary transition hover:bg-slate-50 hover:text-app-text"
+                          >
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-bold text-app-primary">
+                              •
+                            </span>
+
+                            <span className="flex-1">
+                              {label}
+                            </span>
+                          </button>
+                        ),
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ),
+              )}
             </div>
           </div>
         )}
 
-        {!showQuickCreate && (
-          <button
-            type="button"
-            aria-label="Quick create"
-            aria-expanded={showQuickCreate}
-            onClick={() =>
-              setShowQuickCreate((current) => !current)
+        {/* ===================================================
+            MOVABLE QUICK CREATE BUTTON
+            =================================================== */}
+
+        <button
+          ref={quickCreateRef}
+          type="button"
+          aria-label="Quick create"
+          aria-expanded={
+            showQuickCreate
+          }
+          onPointerDown={
+            handleQuickCreatePointerDown
+          }
+          onPointerMove={
+            handleQuickCreatePointerMove
+          }
+          onPointerUp={
+            handleQuickCreatePointerUp
+          }
+          onPointerCancel={
+            handleQuickCreatePointerUp
+          }
+          onClick={() => {
+            /*
+              If the pointer moved, this was a drag.
+              Don't open the menu after dragging.
+            */
+            if (
+              quickCreateDrag.current
+                .hasMoved
+            ) {
+              quickCreateDrag.current.hasMoved =
+                false;
+
+              return;
             }
+
+            setShowQuickCreate(
+              (current) =>
+                !current,
+            );
+          }}
+          style={{
+            touchAction: "none",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            cursor:
+              quickCreateDrag.current
+                .dragging
+                ? "grabbing"
+                : "grab",
+          }}
+          className="
+            flex
+            h-14
+            w-14
+            shrink-0
+            items-center
+            justify-center
+            rounded-full
+            border
+            border-emerald-300/[0.18]
+            bg-emerald-700
+            text-white
+            shadow-[0_12px_32px_rgba(0,0,0,0.28)]
+            backdrop-blur-[20px]
+            backdrop-saturate-[150%]
+            transition-shadow
+            hover:shadow-[0_16px_36px_rgba(0,0,0,0.32)]
+          "
+        >
+          <span
             className="
-      flex
-      h-14
-      w-14
-      items-center
-      justify-center
-      rounded-full
-      border
-      border-emerald-300/[0.18]
-      bg-emerald-700
-      text-white
-      shadow-[0_12px_32px_rgba(0,0,0,0.28)]
-      backdrop-blur-[20px]
-      backdrop-saturate-[150%]
-    "
+              flex
+              h-10
+              w-10
+              items-center
+              justify-center
+              rounded-full
+              pb-1.5
+              text-4xl
+              font-light
+              leading-none
+            "
           >
-            <span
-              className="
-        flex
-        h-10
-        w-10
-        items-center
-        justify-center
-        rounded-full
-        text-3xl
-        font-light
-        leading-none
-      "
-            >
-              +
-            </span>
-          </button>
-        )}
+            +
+          </span>
+        </button>
       </div>
     </div>
   );

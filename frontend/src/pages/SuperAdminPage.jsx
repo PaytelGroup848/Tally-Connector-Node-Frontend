@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import SuperAdminUsersPage from './SuperAdminUsersPage'
 import SuperAdminPlansPage from './SuperAdminPlansPage'
+import AllOrganisationsPage from './AllOrganisationsPage'
 import {
     Users,
     CreditCard,
+    Building2,
     Menu,
     X,
 } from 'lucide-react'
@@ -49,6 +51,11 @@ const SuperAdminPage = () => {
             label: 'Plans',
             icon: CreditCard,
             path: '/super-admin/plans',
+        },
+         {
+            label: 'All Organisations',
+                icon: Building2,
+            path: '/super-admin/organisations',
         },
     ]
 
@@ -245,7 +252,9 @@ const SuperAdminPage = () => {
                             <h1 className="text-[15px] font-bold text-[#17355f]">
                                 {location.pathname === '/super-admin/plans'
                                     ? 'Plans'
-                                    : 'Users'}
+                                    : location.pathname === '/super-admin/organisations'
+                                        ? 'All Organisations'
+                                        : 'Users'}
                             </h1>
 
                         </div>
@@ -299,6 +308,8 @@ const SuperAdminPage = () => {
                         <SuperAdminUsersPage />
                     ) : location.pathname === '/super-admin/plans' ? (
                         <SuperAdminPlansPage />
+                    ) : location.pathname === '/super-admin/organisations' ? (
+                        <AllOrganisationsPage />
                     ) : (
                         <Navigate
                             to="/super-admin/users"

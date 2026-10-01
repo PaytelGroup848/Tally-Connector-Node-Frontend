@@ -68,6 +68,7 @@ const features = [
   },
 ];
 
+
 const transactions = [
   {
     label: "Sales",
@@ -320,7 +321,7 @@ function App() {
             <div className=" flex flex-col gap-3 sm:flex-row sm:justify-center">
               <button
                 onClick={goToLogin}
-                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-1 py-1 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-1"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-1 py-1 text-xs font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-1"
               >
                 Start using CtrlBooks
               </button>

@@ -250,7 +250,7 @@ function ConnectorStatusButton({
           active:bg-white/[0.10]
         "
       >
-        <span
+        {/* <span
           className={`
             h-2.5
             w-2.5
@@ -258,7 +258,7 @@ function ConnectorStatusButton({
             rounded-full
             ${getStatusDotClass(overallStatusType)}
           `}
-        />
+        /> */}
 
         <span
           className="
@@ -1557,7 +1557,7 @@ function AppHeader({
 
                 bg-black/[0.02]
 
-                px-2
+                px-5
 
                 lg:flex
               "

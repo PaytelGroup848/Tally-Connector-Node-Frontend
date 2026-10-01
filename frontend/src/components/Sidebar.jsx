@@ -415,7 +415,7 @@ function Sidebar({
               shrink-0
               object-contain
 
-              ${collapsed ? "h-10 w-10" : "ml-4 h-auto w-[150px]"}
+              ${collapsed ? "h-10 w-10" : "ml-4 h-[85%] w-[85%]"}
             `}
           />
         </button>
@@ -812,10 +812,9 @@ function Sidebar({
 
             rounded-xl
 
-            border
-            border-slate-200
+         
 
-            bg-[#0A1128]
+            bg-[#10a66f]
 
             px-3
             py-2.5
@@ -838,7 +837,7 @@ function Sidebar({
               text-white
             "
           >
-            <Phone size={18} strokeWidth={2} />
+            <Phone size={17} strokeWidth={2} />
           </div>
 
           {/* Help text */}
@@ -855,7 +854,7 @@ function Sidebar({
               className="
                 m-0
 
-                text-[11px]
+                text-[13px]
                 font-medium
                 leading-4
 
@@ -873,7 +872,7 @@ function Sidebar({
                 block
                 truncate
 
-                text-[12px]
+                text-[13px]
                 font-bold
                 leading-4
 
