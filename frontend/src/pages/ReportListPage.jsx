@@ -54,11 +54,14 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  FileDown,
   FileText,
   Loader2,
   MessageCircle,
   Search,
 } from "lucide-react";
+
+import { jsPDF } from "jspdf";
 import { FaWhatsapp } from "react-icons/fa";
 
 // ============================================================
@@ -546,32 +549,32 @@ function ReportTable({
   const pageItems =
     totalPages <= 7
       ? Array.from(
-          {
-            length: totalPages,
-          },
-          (_, index) => index + 1,
-        )
+        {
+          length: totalPages,
+        },
+        (_, index) => index + 1,
+      )
       : currentPage <= 4
         ? [1, 2, 3, 4, 5, "...", totalPages]
         : currentPage >= totalPages - 3
           ? [
-              1,
-              "...",
-              totalPages - 4,
-              totalPages - 3,
-              totalPages - 2,
-              totalPages - 1,
-              totalPages,
-            ]
+            1,
+            "...",
+            totalPages - 4,
+            totalPages - 3,
+            totalPages - 2,
+            totalPages - 1,
+            totalPages,
+          ]
           : [
-              1,
-              "...",
-              currentPage - 1,
-              currentPage,
-              currentPage + 1,
-              "...",
-              totalPages,
-            ];
+            1,
+            "...",
+            currentPage - 1,
+            currentPage,
+            currentPage + 1,
+            "...",
+            totalPages,
+          ];
 
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
 
@@ -833,11 +836,10 @@ function ReportTable({
                     transition
                     disabled:cursor-not-allowed
                     disabled:opacity-40
-                    ${
-                      currentPage === page
-                        ? "border-[#168acb] bg-[#168acb] text-white"
-                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                    }
+                    ${currentPage === page
+                    ? "border-[#168acb] bg-[#168acb] text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  }
                   `}
               >
                 {page}
@@ -1033,9 +1035,9 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 
         const responseTotal = Number(
           pagination.total ??
-            pagination.totalItems ??
-            pagination.count ??
-            pagination.totalRecords,
+          pagination.totalItems ??
+          pagination.count ??
+          pagination.totalRecords,
         );
 
         const responsePages = Number(
@@ -1223,40 +1225,40 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
       ? "-"
       : typeof displayedOutstanding === "number"
         ? displayedOutstanding.toLocaleString("en-IN", {
-            style: "currency",
-            currency: "INR",
-          })
+          style: "currency",
+          currency: "INR",
+        })
         : displayedOutstanding;
 
   const pageItems =
     totalPages <= 7
       ? Array.from(
-          {
-            length: totalPages,
-          },
-          (_, index) => index + 1,
-        )
+        {
+          length: totalPages,
+        },
+        (_, index) => index + 1,
+      )
       : currentPage <= 4
         ? [1, 2, 3, 4, 5, "...", totalPages]
         : currentPage >= totalPages - 3
           ? [
-              1,
-              "...",
-              totalPages - 4,
-              totalPages - 3,
-              totalPages - 2,
-              totalPages - 1,
-              totalPages,
-            ]
+            1,
+            "...",
+            totalPages - 4,
+            totalPages - 3,
+            totalPages - 2,
+            totalPages - 1,
+            totalPages,
+          ]
           : [
-              1,
-              "...",
-              currentPage - 1,
-              currentPage,
-              currentPage + 1,
-              "...",
-              totalPages,
-            ];
+            1,
+            "...",
+            currentPage - 1,
+            currentPage,
+            currentPage + 1,
+            "...",
+            totalPages,
+          ];
 
   const paginationDisabled = isLoading || totalPages <= 1;
 
@@ -1579,11 +1581,10 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
                 type="button"
                 disabled={paginationDisabled}
                 onClick={() => setCurrentPage(page)}
-                className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
-                  currentPage === page
-                    ? "border-emerald-600 bg-emerald-600 text-white"
-                    : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
-                } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${currentPage === page
+                  ? "border-emerald-600 bg-emerald-600 text-white"
+                  : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 {page}
               </button>
@@ -1781,9 +1782,9 @@ function SalesReport({ companyId }) {
 
         const responseTotal = Number(
           pagination.total ??
-            pagination.totalItems ??
-            pagination.totalRecords ??
-            pagination.count,
+          pagination.totalItems ??
+          pagination.totalRecords ??
+          pagination.count,
         );
 
         setRows(sales);
@@ -1882,32 +1883,32 @@ function SalesReport({ companyId }) {
   const salesPageItems =
     salesTotalPages <= 7
       ? Array.from(
-          {
-            length: salesTotalPages,
-          },
-          (_, index) => index + 1,
-        )
+        {
+          length: salesTotalPages,
+        },
+        (_, index) => index + 1,
+      )
       : currentPage <= 4
         ? [1, 2, 3, 4, 5, "...", salesTotalPages]
         : currentPage >= salesTotalPages - 3
           ? [
-              1,
-              "...",
-              salesTotalPages - 4,
-              salesTotalPages - 3,
-              salesTotalPages - 2,
-              salesTotalPages - 1,
-              salesTotalPages,
-            ]
+            1,
+            "...",
+            salesTotalPages - 4,
+            salesTotalPages - 3,
+            salesTotalPages - 2,
+            salesTotalPages - 1,
+            salesTotalPages,
+          ]
           : [
-              1,
-              "...",
-              currentPage - 1,
-              currentPage,
-              currentPage + 1,
-              "...",
-              salesTotalPages,
-            ];
+            1,
+            "...",
+            currentPage - 1,
+            currentPage,
+            currentPage + 1,
+            "...",
+            salesTotalPages,
+          ];
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8]">
@@ -2022,6 +2023,10 @@ function SalesReport({ companyId }) {
                       {columnLabel(column)}
                     </th>
                   ))}
+
+                  <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
+                    Action
+                  </th>
                 </tr>
               </thead>
 
@@ -2045,6 +2050,36 @@ function SalesReport({ companyId }) {
                           </td>
                         );
                       })}
+
+                      <td className="whitespace-nowrap px-5 py-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleGenerateSalePdf(row, rowIndex)}
+                          className="
+      inline-flex
+      h-8
+      items-center
+      justify-center
+      gap-1.5
+      rounded-md
+      border
+      border-red-200
+      bg-white
+      px-3
+      text-xs
+      font-medium
+      text-red-600
+      transition
+      hover:border-red-300
+      hover:bg-red-50
+    "
+                          title="Generate PDF"
+                          aria-label="Generate PDF"
+                        >
+                          <FileDown size={14} strokeWidth={2} />
+                          <span>PDF</span>
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
@@ -2109,11 +2144,10 @@ function SalesReport({ companyId }) {
                 type="button"
                 disabled={isLoading}
                 onClick={() => setCurrentPage(page)}
-                className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
-                  currentPage === page
-                    ? "border-emerald-600 bg-emerald-600 text-white"
-                    : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
-                } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${currentPage === page
+                  ? "border-emerald-600 bg-emerald-600 text-white"
+                  : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 {page}
               </button>
@@ -2154,7 +2188,297 @@ function SalesReport({ companyId }) {
     </div>
   );
 }
+const handleGenerateSalePdf = (sale, rowIndex) => {
+  try {
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
 
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    const marginLeft = 20;
+    const valueX = 70;
+
+    // =========================================================
+    // HELPER - GET VALUE FROM POSSIBLE API FIELD NAMES
+    // =========================================================
+
+    const getFieldValue = (...keys) => {
+      for (const key of keys) {
+        if (
+          sale?.[key] !== undefined &&
+          sale?.[key] !== null &&
+          sale?.[key] !== ""
+        ) {
+          return sale[key];
+        }
+      }
+
+      return "-";
+    };
+
+    const safeText = (value) => {
+      if (value === null || value === undefined || value === "") {
+        return "-";
+      }
+
+      if (typeof value === "object") {
+        try {
+          return JSON.stringify(value);
+        } catch {
+          return "-";
+        }
+      }
+
+      return String(value);
+    };
+
+    // =========================================================
+    // GET ONLY REQUIRED DATA
+    // =========================================================
+
+    const amount = getFieldValue(
+      "amount",
+      "Amount",
+      "totalAmount",
+      "total_amount",
+      "grossAmount",
+      "gross_amount"
+    );
+
+    const date = getFieldValue(
+      "date",
+      "Date",
+      "voucherDate",
+      "voucher_date",
+      "invoiceDate",
+      "invoice_date"
+    );
+
+    const partyLedger = getFieldValue(
+      "partyLedger",
+      "party_ledger",
+      "partyName",
+      "party_name",
+      "ledgerName",
+      "ledger_name"
+    );
+
+    const voucherNumber = getFieldValue(
+      "voucherNumber",
+      "voucher_number",
+      "voucherNo",
+      "voucher_no",
+      "invoiceNumber",
+      "invoice_number"
+    );
+
+    const voucherType = getFieldValue(
+      "voucherType",
+      "voucher_type",
+      "type",
+      "Type"
+    );
+
+    const narration = getFieldValue(
+      "narration",
+      "Narration",
+      "description",
+      "Description"
+    );
+
+    // =========================================================
+    // FORMAT DATE
+    // =========================================================
+
+    let formattedDate = safeText(date);
+
+    if (
+      date !== "-" &&
+      date !== null &&
+      date !== undefined &&
+      date !== ""
+    ) {
+      formattedDate = formatDateTimeIST(date);
+    }
+
+    // =========================================================
+    // FORMAT AMOUNT
+    // =========================================================
+
+    let formattedAmount = safeText(amount);
+
+    const numericAmount = Number(
+      String(amount).replace(/[^\d.-]/g, "")
+    );
+
+    if (Number.isFinite(numericAmount)) {
+      formattedAmount = `₹ ${numericAmount.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    }
+
+    // =========================================================
+    // PDF HEADER
+    // =========================================================
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("CtrlBooks", marginLeft, 20);
+
+    doc.setFontSize(15);
+    doc.text("Sales Voucher", marginLeft, 30);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+
+    doc.text(
+      `Voucher No: ${safeText(voucherNumber)}`,
+      marginLeft,
+      38
+    );
+
+    doc.line(
+      marginLeft,
+      44,
+      pageWidth - marginLeft,
+      44
+    );
+
+    // =========================================================
+    // ONLY THESE 6 FIELDS
+    // =========================================================
+
+    const fields = [
+      {
+        label: "Amount",
+        value: formattedAmount,
+      },
+      {
+        label: "Date",
+        value: formattedDate,
+      },
+      {
+        label: "Party Ledger",
+        value: safeText(partyLedger),
+      },
+      {
+        label: "Voucher Number",
+        value: safeText(voucherNumber),
+      },
+      {
+        label: "Voucher Type",
+        value: safeText(voucherType),
+      },
+      {
+        label: "Narration",
+        value: safeText(narration),
+      },
+    ];
+
+    let y = 58;
+
+    fields.forEach(({ label, value }) => {
+      // Replace ₹ in case default PDF font has encoding issues
+      const printableValue = value.replace(/₹/g, "INR");
+
+      const valueLines = doc.splitTextToSize(
+        printableValue,
+        pageWidth - valueX - marginLeft
+      );
+
+      const rowHeight = Math.max(
+        10,
+        valueLines.length * 5 + 5
+      );
+
+      // New page if needed
+      if (y + rowHeight > pageHeight - 20) {
+        doc.addPage();
+        y = 20;
+      }
+
+      // Field label
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+
+      doc.text(
+        label,
+        marginLeft,
+        y
+      );
+
+      // Field value
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+
+      doc.text(
+        valueLines,
+        valueX,
+        y
+      );
+
+      y += rowHeight;
+
+      // Separator
+      doc.setDrawColor(225, 225, 225);
+
+      doc.line(
+        marginLeft,
+        y - 3,
+        pageWidth - marginLeft,
+        y - 3
+      );
+    });
+
+    // =========================================================
+    // FOOTER
+    // =========================================================
+
+    const totalPages = doc.getNumberOfPages();
+
+    for (let page = 1; page <= totalPages; page++) {
+      doc.setPage(page);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+
+      doc.text(
+        "Generated by CtrlBooks",
+        marginLeft,
+        pageHeight - 10
+      );
+
+      doc.text(
+        `Page ${page} of ${totalPages}`,
+        pageWidth - 45,
+        pageHeight - 10
+      );
+    }
+
+    // =========================================================
+    // FILE NAME
+    // =========================================================
+
+    const safeFileName = safeText(voucherNumber)
+      .replace(/[<>:"/\\|?*]/g, "_")
+      .replace(/\s+/g, "_");
+
+    doc.save(`Sale_${safeFileName}.pdf`);
+
+  } catch (error) {
+    console.error("PDF GENERATION ERROR:", error);
+
+    alert(
+      `Unable to generate PDF.\n\n${error?.message || "Unknown error"
+      }`
+    );
+  }
+};
 function CashReport({ companyId }) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const [query, setQuery] = useState("");
@@ -2193,9 +2517,9 @@ function CashReport({ companyId }) {
         const pagination = extractCashPagination(response);
         const responseTotal = Number(
           pagination.total ??
-            pagination.totalItems ??
-            pagination.totalRecords ??
-            pagination.count,
+          pagination.totalItems ??
+          pagination.totalRecords ??
+          pagination.count,
         );
 
         setRows(cashRows);
@@ -2393,11 +2717,10 @@ function CashReport({ companyId }) {
               type="button"
               disabled={isLoading}
               onClick={() => setCurrentPage(page)}
-              className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
-                currentPage === page
-                  ? "border-emerald-600 bg-emerald-600 text-white"
-                  : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
-              } disabled:cursor-not-allowed disabled:opacity-50`}
+              className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${currentPage === page
+                ? "border-emerald-600 bg-emerald-600 text-white"
+                : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
+                } disabled:cursor-not-allowed disabled:opacity-50`}
             >
               {page}
             </button>
@@ -2459,9 +2782,9 @@ function BankReport({ companyId }) {
         const pagination = extractBankPagination(response);
         const responseTotal = Number(
           pagination.total ??
-            pagination.totalItems ??
-            pagination.totalRecords ??
-            pagination.count,
+          pagination.totalItems ??
+          pagination.totalRecords ??
+          pagination.count,
         );
 
         setRows(bankRows);
@@ -2657,11 +2980,10 @@ function BankReport({ companyId }) {
               type="button"
               disabled={isLoading}
               onClick={() => setCurrentPage(page)}
-              className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
-                currentPage === page
-                  ? "border-emerald-600 bg-emerald-600 text-white"
-                  : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
-              } disabled:cursor-not-allowed disabled:opacity-50`}
+              className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${currentPage === page
+                ? "border-emerald-600 bg-emerald-600 text-white"
+                : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
+                } disabled:cursor-not-allowed disabled:opacity-50`}
             >
               {page}
             </button>
@@ -2786,9 +3108,9 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
         const pagination = extractPagination(response);
         const responseTotal = Number(
           pagination.total ??
-            pagination.totalItems ??
-            pagination.totalRecords ??
-            pagination.count,
+          pagination.totalItems ??
+          pagination.totalRecords ??
+          pagination.count,
         );
         setRows(creditNotes);
         setTotalItems(
@@ -2801,7 +3123,7 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
         setTotalItems(0);
         setErrorMessage(
           error?.message ||
-            `Unable to load ${isReceiptReport ? "receipt" : isReceiptNoteReport ? "receipt note" : isSalesOrderReport ? "sales order" : isDeliveryNoteReport ? "delivery note" : isDebitNoteReport ? "debit note" : isPaymentReport ? "payment" : isPurchaseOrderReport ? "purchase order" : "credit note"} data.`,
+          `Unable to load ${isReceiptReport ? "receipt" : isReceiptNoteReport ? "receipt note" : isSalesOrderReport ? "sales order" : isDeliveryNoteReport ? "delivery note" : isDebitNoteReport ? "debit note" : isPaymentReport ? "payment" : isPurchaseOrderReport ? "purchase order" : "credit note"} data.`,
         );
       })
       .finally(() => {
