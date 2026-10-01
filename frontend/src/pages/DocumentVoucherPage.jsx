@@ -165,10 +165,10 @@ function JournalVoucherContent({
           <span>Voucher No</span>
           <input
             name="voucherNumber"
-            type="number"
+            type="text"
             min="0"
             step="1"
-            defaultValue="1"
+            defaultValue=""
             className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
           />
         </label>
@@ -2887,7 +2887,7 @@ export function DocumentVoucherPage({
                       resetToken={
                         clearToken
                       }
-                      disabled
+                      
                     />
                   ) : (
                     <input
@@ -3683,7 +3683,7 @@ function StockJournalVoucherContent({
     <>
       <div className="grid gap-3 md:grid-cols-3">
         <label className="flex flex-col gap-1 text-xs font-medium text-slate-700"><span>Voucher Type</span><input name="voucherType" value="Stock Journal" readOnly className="min-h-9 rounded border border-slate-300 bg-white px-2 text-xs" /></label>
-        <label className="flex flex-col gap-1 text-xs font-medium text-slate-700"><span>Voucher No</span><input name="voucherNumber" defaultValue="1" className="min-h-9 rounded border border-slate-300 bg-white px-2 text-xs" /></label>
+        <label className="flex flex-col gap-1 text-xs font-medium text-slate-700"><span>Voucher No</span><input name="voucherNumber" defaultValue="" className="min-h-9 rounded border border-slate-300 bg-white px-2 text-xs" /></label>
         <label className="flex flex-col gap-1 text-xs font-medium text-slate-700"><span>Date</span><input name="date" type="date" defaultValue={new Date().toLocaleDateString('en-CA')} className="min-h-9 rounded border border-slate-300 bg-white px-2 text-xs" /></label>
       </div>
 

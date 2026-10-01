@@ -539,7 +539,7 @@ function ReceiptPage({
 
               <input
                 value={form.voucherNumber}
-                type="number"
+                type="text"
                 min="0"
                 step="1"
                 required
