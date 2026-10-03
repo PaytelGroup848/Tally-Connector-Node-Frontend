@@ -1,3 +1,5 @@
+
+import { useEffect, useRef } from "react";
 import { X, Phone } from "lucide-react";
 import logo from "../assets/Control-Books-Dashboard.png";
 import smallLogo from "../assets/logo.png";
@@ -41,6 +43,12 @@ function Sidebar({
   const entryPath = currentPath.toLowerCase();
 
   // ============================================================
+  // REFS FOR AUTO SCROLLING OPENED NAVIGATION
+  // ============================================================
+
+  const navItemRefs = useRef({});
+
+  // ============================================================
   // MODULE ACCESS
   // ============================================================
 
@@ -60,28 +68,33 @@ function Sidebar({
   // VISIBLE NAV ITEMS
   // ============================================================
 
-  const visibleNavItems = navItems.filter(([, label, , , path]) => {
-    if (!Array.isArray(allowedModules)) {
-      return true;
-    }
+  const visibleNavItems = navItems.filter(
+    ([, label, , , path]) => {
+      if (!Array.isArray(allowedModules)) {
+        return true;
+      }
 
-    const subItems = submenuItems[label];
+      const subItems = submenuItems[label];
 
-    if (!subItems) {
-      return allowedModules.includes(path);
-    }
+      if (!subItems) {
+        return allowedModules.includes(path);
+      }
 
-    return (
-      allowedModules.includes(path) ||
-      subItems.some(([, itemPath]) => isSubItemAllowed(path, itemPath))
-    );
-  });
+      return (
+        allowedModules.includes(path) ||
+        subItems.some(([, itemPath]) =>
+          isSubItemAllowed(path, itemPath),
+        )
+      );
+    },
+  );
 
   // ============================================================
   // ACTIVE SUBMENU
   // ============================================================
 
-  const isSubmenuActive = (itemPath) => entryPath === itemPath.toLowerCase();
+  const isSubmenuActive = (itemPath) =>
+    entryPath === itemPath.toLowerCase();
 
   // ============================================================
   // SPECIAL ROUTES
@@ -89,7 +102,9 @@ function Sidebar({
 
   const isCollectPaymentsRoute = (label) =>
     label === "Collect Payments" &&
-    ["/receivables", "/receivablesnew"].includes(entryPath);
+    ["/receivables", "/receivablesnew"].includes(
+      entryPath,
+    );
 
   const isCashBankRoute = (label) =>
     label === "Cash & Bank" &&
@@ -105,7 +120,47 @@ function Sidebar({
   const isNavExpanded = (label, path) =>
     expandedNav[label] ??
     (currentPath.startsWith(`/${path}`) ||
-      submenuItems[label]?.some(([, itemPath]) => isSubmenuActive(itemPath)));
+      submenuItems[label]?.some(([, itemPath]) =>
+        isSubmenuActive(itemPath),
+      ));
+
+  // ============================================================
+  // AUTO SCROLL TO OPENED DROPDOWN
+  // ============================================================
+
+  useEffect(() => {
+    const openedLabel = Object.keys(expandedNav).find(
+      (label) => expandedNav[label],
+    );
+
+    if (!openedLabel || collapsed) {
+      return;
+    }
+
+    const element = navItemRefs.current[openedLabel];
+
+    if (!element) {
+      return;
+    }
+
+    // Wait until submenu is rendered
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+    });
+  }, [expandedNav, collapsed]);
+
+  // ============================================================
+  // CLOSE ALL DROPDOWNS
+  // ============================================================
+
+  const closeAllDropdowns = () => {
+    setExpandedNav({});
+  };
 
   // ============================================================
   // MOBILE
@@ -128,7 +183,24 @@ function Sidebar({
 
     event.preventDefault();
 
+    // Close every open dropdown
+    closeAllDropdowns();
+
     onNavigate(targetPath);
+    closeOnMobile();
+  };
+
+  // ============================================================
+  // DASHBOARD
+  // ============================================================
+
+  const handleDashboardClick = (event) => {
+    event.preventDefault();
+
+    // Close all dropdowns
+    closeAllDropdowns();
+
+    onDashboard(event);
     closeOnMobile();
   };
 
@@ -136,24 +208,33 @@ function Sidebar({
   // SINGLE SUBMENU OPEN
   // ============================================================
 
-  const handleExpandableClick = (event, label, path) => {
+  const handleExpandableClick = (
+    event,
+    label,
+    path,
+  ) => {
     event.preventDefault();
 
     setExpandedNav((current) => {
-      const isCurrentlyOpen = current[label] ?? isNavExpanded(label, path);
+      const isCurrentlyOpen =
+        current[label] ??
+        isNavExpanded(label, path);
 
-      // Close the clicked submenu
+      // Clicking the already-open dropdown closes it
       if (isCurrentlyOpen) {
         return {};
       }
 
-      // Close every other submenu
-      // and open only the clicked submenu
+      // Close all other dropdowns and open only this one
       return {
         [label]: true,
       };
     });
   };
+
+  // ============================================================
+  // RENDER
+  // ============================================================
 
   return (
     <aside
@@ -181,7 +262,11 @@ function Sidebar({
         ${
           isCompact
             ? `
-                ${collapsed ? "-translate-x-full" : "translate-x-0"}
+                ${
+                  collapsed
+                    ? "-translate-x-full"
+                    : "translate-x-0"
+                }
 
                 w-[228px]
               `
@@ -221,14 +306,10 @@ function Sidebar({
             absolute
             -left-24
             -top-24
-
             h-64
             w-64
-
             rounded-full
-
             bg-[#0A1128]
-
             blur-[72px]
           "
         />
@@ -240,14 +321,10 @@ function Sidebar({
             absolute
             -right-24
             top-20
-
             h-56
             w-56
-
             rounded-full
-
             bg-blue-400/[0.025]
-
             blur-[80px]
           "
         />
@@ -259,14 +336,10 @@ function Sidebar({
             absolute
             -bottom-24
             -left-20
-
             h-72
             w-72
-
             rounded-full
-
             bg-blue-300/[0.035]
-
             blur-[80px]
           "
         />
@@ -278,14 +351,10 @@ function Sidebar({
             absolute
             -bottom-20
             -right-28
-
             h-64
             w-64
-
             rounded-full
-
             bg-[#0A1128]
-
             blur-[80px]
           "
         />
@@ -297,12 +366,9 @@ function Sidebar({
             absolute
             -left-[32%]
             top-0
-
             h-full
             w-[52%]
-
             rotate-[14deg]
-
             blur-[10px]
           "
         />
@@ -333,7 +399,9 @@ function Sidebar({
           <button
             type="button"
             aria-label="Close sidebar"
-            onClick={() => setSidebarCollapsed(true)}
+            onClick={() =>
+              setSidebarCollapsed(true)
+            }
             className="
               flex
               h-8
@@ -389,6 +457,8 @@ function Sidebar({
         <button
           type="button"
           onClick={(event) => {
+            closeAllDropdowns();
+
             onDashboard(event);
             closeOnMobile();
           }}
@@ -415,7 +485,11 @@ function Sidebar({
               shrink-0
               object-contain
 
-              ${collapsed ? "h-10 w-10" : "ml-4 h-[85%] w-[85%]"}
+              ${
+                collapsed
+                  ? "h-10 w-10"
+                  : "ml-4 h-[85%] w-[85%]"
+              }
             `}
           />
         </button>
@@ -436,36 +510,56 @@ function Sidebar({
           overflow-y-auto
           overflow-x-hidden
 
-     
-
           [scrollbar-width:thin]
           [scrollbar-color:#26385E_transparent]
           [scrollbar-gutter:stable]
         "
       >
         {visibleNavItems.map(
-          ([IconComponent, label, expandable, badge, path]) => {
+          ([
+            IconComponent,
+            label,
+            expandable,
+            badge,
+            path,
+          ]) => {
             const targetPath =
-              label === "Dashboard" ? "/dashboard" : `/${path}`;
+              label === "Dashboard"
+                ? "/dashboard"
+                : `/${path}`;
 
             const hasSubmenu =
-              Array.isArray(submenuItems[label]) &&
+              Array.isArray(
+                submenuItems[label],
+              ) &&
               submenuItems[label].length > 0;
 
             const active =
-              (label === "Dashboard" && showDashboard) ||
-              isCollectPaymentsRoute(label) ||
+              (label === "Dashboard" &&
+                showDashboard) ||
+              isCollectPaymentsRoute(
+                label,
+              ) ||
               isCashBankRoute(label) ||
-              currentPath.startsWith(`/${path}`) ||
-              submenuItems[label]?.some(([, itemPath]) =>
-                isSubmenuActive(itemPath),
+              currentPath.startsWith(
+                `/${path}`,
+              ) ||
+              submenuItems[label]?.some(
+                ([, itemPath]) =>
+                  isSubmenuActive(itemPath),
               );
 
-            const submenuOpen = hasSubmenu && isNavExpanded(label, path);
+            const submenuOpen =
+              hasSubmenu &&
+              isNavExpanded(label, path);
 
             return (
               <div
                 key={label}
+                ref={(element) => {
+                  navItemRefs.current[label] =
+                    element;
+                }}
                 className="
                   mb-1
                   w-full
@@ -477,21 +571,34 @@ function Sidebar({
                 ================================================== */}
 
                 <a
-                  href={expandable ? undefined : targetPath}
+                  href={
+                    expandable
+                      ? undefined
+                      : targetPath
+                  }
                   onClick={(event) => {
+                    // Expandable menu
                     if (expandable) {
-                      handleExpandableClick(event, label, path);
+                      handleExpandableClick(
+                        event,
+                        label,
+                        path,
+                      );
 
                       return;
                     }
 
+                    // Dashboard
                     if (label === "Dashboard") {
-                      onDashboard(event);
-                      closeOnMobile();
+                      handleDashboardClick(event);
                       return;
                     }
 
-                    handleNavClick(event, targetPath);
+                    // Every other normal menu
+                    handleNavClick(
+                      event,
+                      targetPath,
+                    );
                   }}
                   style={{
                     boxSizing: "border-box",
@@ -532,14 +639,6 @@ function Sidebar({
                     }
                   `}
                 >
-                  {/* ===========================================
-                      ACTIVE BACKGROUND
-                  ============================================ */}
-
-                  {/* ===========================================
-                      ACTIVE INDICATOR
-                  ============================================ */}
-
                   {/* ===========================================
                       ICON
                   ============================================ */}
@@ -607,7 +706,7 @@ function Sidebar({
 
                       {/* ========================================
                           BADGE
-                      ========================================= */}
+                      ======================================== */}
 
                       {badge && (
                         <span
@@ -645,7 +744,7 @@ function Sidebar({
 
                       {/* ========================================
                           ARROW
-                      ========================================= */}
+                      ======================================== */}
 
                       {expandable && (
                         <span
@@ -661,7 +760,11 @@ function Sidebar({
                             items-center
                             justify-center
 
-                            ${submenuOpen ? "rotate-90" : "rotate-0"}
+                            ${
+                              submenuOpen
+                                ? "rotate-90"
+                                : "rotate-0"
+                            }
                           `}
                         >
                           <Arrow />
@@ -675,9 +778,11 @@ function Sidebar({
                     SUBMENU
                 ================================================== */}
 
-                {!collapsed && hasSubmenu && submenuOpen && (
-                  <div
-                    className="
+                {!collapsed &&
+                  hasSubmenu &&
+                  submenuOpen && (
+                    <div
+                      className="
                         relative
                         z-10
 
@@ -689,51 +794,94 @@ function Sidebar({
 
                         box-border
                       "
-                  >
-                    {submenuItems[label]
-                      .filter(([, itemPath]) =>
-                        isSubItemAllowed(path, itemPath),
-                      )
-                      .map(([item, itemPath]) => {
-                        const subActive = isSubmenuActive(itemPath);
+                    >
+                      {submenuItems[label]
+                        .filter(
+                          ([, itemPath]) =>
+                            isSubItemAllowed(
+                              path,
+                              itemPath,
+                            ),
+                        )
+                        .map(
+                          ([item, itemPath]) => {
+                            const subActive =
+                              isSubmenuActive(
+                                itemPath,
+                              );
 
-                        return (
-                          <a
-                            key={item}
-                            href={itemPath}
-                            onClick={(event) => {
-                              if (itemPath === "/create-voucher/Quotation") {
-                                onQuotation(event);
-                                closeOnMobile();
-                                return;
-                              }
+                            return (
+                              <a
+                                key={item}
+                                href={itemPath}
+                                onClick={(
+                                  event,
+                                ) => {
+                                  event.preventDefault();
 
-                              handleNavClick(event, itemPath);
-                            }}
-                            style={{
-                              boxSizing: "border-box",
-                              display: "block",
-                              position: "relative",
-                              width: "100%",
-                              height: "38px",
-                              minHeight: "38px",
-                              maxHeight: "38px",
-                              margin: 0,
-                              paddingTop: "8px",
-                              paddingBottom: "8px",
-                              paddingLeft: "12px",
-                              paddingRight: "12px",
-                              border: "0",
-                              borderWidth: "0",
-                              borderStyle: "none",
-                              borderRadius: "6px",
-                              lineHeight: "22px",
-                              fontSize: "14px",
-                              fontWeight: 500,
-                              textDecoration: "none",
-                              transform: "none",
-                            }}
-                            className={`
+                                  // Close all dropdowns
+                                  closeAllDropdowns();
+
+                                  if (
+                                    itemPath ===
+                                    "/create-voucher/Quotation"
+                                  ) {
+                                    onQuotation(
+                                      event,
+                                    );
+                                    closeOnMobile();
+                                    return;
+                                  }
+
+                                  onNavigate(
+                                    itemPath,
+                                  );
+
+                                  closeOnMobile();
+                                }}
+                                style={{
+                                  boxSizing:
+                                    "border-box",
+                                  display:
+                                    "block",
+                                  position:
+                                    "relative",
+                                  width: "100%",
+                                  height:
+                                    "38px",
+                                  minHeight:
+                                    "38px",
+                                  maxHeight:
+                                    "38px",
+                                  margin: 0,
+                                  paddingTop:
+                                    "8px",
+                                  paddingBottom:
+                                    "8px",
+                                  paddingLeft:
+                                    "12px",
+                                  paddingRight:
+                                    "12px",
+                                  border:
+                                    "0",
+                                  borderWidth:
+                                    "0",
+                                  borderStyle:
+                                    "none",
+                                  borderRadius:
+                                    "6px",
+                                  lineHeight:
+                                    "22px",
+                                  fontSize:
+                                    "14px",
+                                  fontWeight:
+                                    500,
+                                  textDecoration:
+                                    "none",
+                                  transform:
+                                    "none",
+                                }}
+                                className={`
                                   overflow-hidden
 
                                   outline-none
@@ -746,12 +894,14 @@ function Sidebar({
                                       : "text-white hover:text-emerald-400"
                                   }
                                 `}
-                          >
-                            {/* Submenu active background */}
+                              >
+                                {/* =================================
+                                    SUBMENU ACTIVE BACKGROUND
+                                ================================== */}
 
-                            {subActive && (
-                              <span
-                                className="
+                                {subActive && (
+                                  <span
+                                    className="
                                       pointer-events-none
 
                                       absolute
@@ -762,13 +912,15 @@ function Sidebar({
 
                                       bg-[#101A36]
                                     "
-                              />
-                            )}
+                                  />
+                                )}
 
-                            {/* Submenu text */}
+                                {/* =================================
+                                    SUBMENU TEXT
+                                ================================== */}
 
-                            <span
-                              className="
+                                <span
+                                  className="
                                     relative
                                     z-10
 
@@ -777,14 +929,15 @@ function Sidebar({
 
                                     font-medium
                                   "
-                            >
-                              {item}
-                            </span>
-                          </a>
-                        );
-                      })}
-                  </div>
-                )}
+                                >
+                                  {item}
+                                </span>
+                              </a>
+                            );
+                          },
+                        )}
+                    </div>
+                  )}
               </div>
             );
           },
@@ -812,9 +965,7 @@ function Sidebar({
 
             rounded-xl
 
-         
-
-            bg-[#10a66f]
+            bg-emerald-700
 
             px-3
             py-2.5
@@ -837,7 +988,10 @@ function Sidebar({
               text-white
             "
           >
-            <Phone size={17} strokeWidth={2} />
+            <Phone
+              size={17}
+              strokeWidth={2}
+            />
           </div>
 
           {/* Help text */}

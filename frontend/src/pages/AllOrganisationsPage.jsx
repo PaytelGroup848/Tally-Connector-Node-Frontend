@@ -55,7 +55,7 @@ function flattenOrganization(organization, prefix = '', result = {}) {
 
 function formatColumnName(column) {
 	return column
-		.replaceAll('.', ' / ')
+		.replaceAll('.', ' ')
 		.replace(/([a-z])([A-Z])/g, '$1 $2')
 		.replace(/_/g, ' ')
 		.replace(/\b\w/g, (character) => character.toUpperCase())
@@ -228,16 +228,15 @@ const AllOrganisationsPage = () => {
 	)
 
 	const columns = useMemo(
-		() => [
-			...new Set(
-				flattenedOrganizations.flatMap(
-					organization =>
-						Object.keys(organization)
-				)
-			),
-		],
-		[flattenedOrganizations]
-	)
+	() => [
+		...new Set(
+			flattenedOrganizations.flatMap(
+				(organization) => Object.keys(organization)
+			)
+		),
+	].filter((column) => column.toLowerCase() !== 'subscription'),
+	[flattenedOrganizations]
+)
 
 	const hasNextPage =
 		pagination.totalPages !== null

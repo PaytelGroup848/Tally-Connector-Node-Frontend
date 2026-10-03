@@ -249,7 +249,7 @@ function PhysicalStockPage({ companyId }) {
         {/* HEADER */}
         {/* ================================================== */}
 
-        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white flex justify-center">
+        <div className="bg-emerald-700 px-5 py-4 text-[17px] font-bold text-white flex justify-center">
           <h1 className="leading-none">
             Create Physical Stock Voucher
           </h1>
@@ -262,7 +262,7 @@ function PhysicalStockPage({ companyId }) {
                 className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
 
                 onClick={() => {
-
+                   let path="/my-physical-stock"
                   window.history.pushState({}, "", path);
                 window.dispatchEvent(new PopStateEvent("popstate"));
 
@@ -375,14 +375,14 @@ function PhysicalStockPage({ companyId }) {
                   gap-1
                   justify-self-end
                   rounded-md
-                  bg-green-600
+                  bg-emerald-700
                   px-3
                   py-2
                   text-xs
                   font-semibold
                   text-white
                   transition
-                  hover:bg-green-700
+                  hover:bg-emerald-800
                 "
               >
                 <span className="text-sm leading-none">+</span>

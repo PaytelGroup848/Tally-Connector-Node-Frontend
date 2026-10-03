@@ -1,5 +1,22 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import logoFull from "../assets/Control-Books-Dashboard.png";
+import mobileScreen from "../assets/Control-Books-Mobile-Screen-Website-Image-1.png";
+import invoiceFeatureImage from "../assets/Control-Books-Website-Image-2 (7).png";
+import inactiveFeatureImage from "../assets/Control-Books-Website-Image-3 (2).png";
+import reminderFeatureImage from "../assets/Control-Books-Website-Image-4 (2).png";
+import backupFeatureImage from "../assets/Control-Books-Website-Image-5 (1).png";
+import gstFeatureImage from "../assets/Control-Books-Website-Image-6 (3).png";
+import reportsFeatureImage from "../assets/Control-Books-Website-Image-7 (2).png";
+import Dashboard from "../assets/DashboardImage.png";
+import DashboardInlaptop from "../assets/Control-Books-Laptop-Screen-Image-2 (1).png";
+import test2 from "../assets/New-Testimonial-Review-Card-2.png";
+import test3 from "../assets/New-Testimonial-Review-Card-3.png";
+import test4 from "../assets/New-Testimonial-Review-Card-4.png";
+import test5 from "../assets/New-Testimonial-Review-Card-5.png";
+import test6 from "../assets/New-Testimonial-Review-Card-6.png";
+import test7 from "../assets/New-Testimonial-Review-Card-7.png";
+import test8 from "../assets/New-Testimonial-Review-Card-8.png";
+import test9 from "../assets/New-Testimonial-Review-Card-9.png";
 import {
   ArrowRight,
   Download,
@@ -9,12 +26,10 @@ import {
   ChevronDown,
   Cloud,
   CreditCard,
-  FileText,
   Globe2,
   Landmark,
   LayoutDashboard,
   Menu,
-  MessageCircle,
   Monitor,
   Receipt,
   ShieldCheck,
@@ -87,25 +102,16 @@ const transactions = [
   },
 ];
 
-const testimonials = [
-  {
-    name: "Riya Shah",
-    role: "Owner, Bloom & Co.",
-    quote:
-      "CtrlBooks gave us instant visibility into sales, vendors, and cash flow. We made faster decisions without juggling multiple tools.",
-  },
-  {
-    name: "Aman Verma",
-    role: "Finance Manager, Northline Retail",
-    quote:
-      "The mobile access is a game changer. Our team can review transactions and account health from anywhere without waiting for the office desktop.",
-  },
-  {
-    name: "Pooja Menon",
-    role: "Founder, Cedar Studio",
-    quote:
-      "The workflow is clean, simple, and built for real business use. It feels like the dashboard was designed around how small teams actually work.",
-  },
+const testimonialImages = [
+
+  test2,
+  test3,
+  test4,
+  test5,
+  test6,
+  test7,
+  test8,
+  test9,
 ];
 
 const planData = [
@@ -181,8 +187,22 @@ const formatPrice = (value) =>
 function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState(null);
-  const [activeFeature, setActiveFeature] = useState(showcaseFeatures[0]?.id || "feature-invoices");
 
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTestimonial((prev) => {
+        return (prev + 1) % testimonialImages.length;
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const [activeFeature, setActiveFeature] = useState(
+    showcaseFeatures[0]?.id || "feature-invoices"
+  );
   const scrollTo = (id) => {
     setMobileOpen(false);
 
@@ -233,42 +253,42 @@ function App() {
             <div className="flex items-center gap-1">
               <Phone size={16} strokeWidth={2} />
 
-              <div className="text-sm font-semibold text-slate-700 transition hover:text-[#54ba23]">
+              <div className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700">
                 +91 9311472357
               </div>
             </div>
 
             <button
               onClick={() => scrollTo("home")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-[#54ba23]"
+              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               Home
             </button>
 
             <button
               onClick={() => scrollTo("features")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-[#54ba23]"
+              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               Features
             </button>
 
             {/* <button
               onClick={() => scrollTo("pricing")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-[#54ba23]"
+              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               Pricing
             </button> */}
 
             <button
               onClick={() => scrollTo("testimonials")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-[#54ba23]"
+              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               Testimonials
             </button>
 
             <button
               onClick={() => scrollTo("faq")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-[#54ba23]"
+              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               FAQ
             </button>
@@ -278,7 +298,7 @@ function App() {
           <div className="hidden items-center gap-3 lg:flex">
             <button
               onClick={goToLogin}
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-6 py-3 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-8"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-8"
             >
               Start using CtrlBooks
 
@@ -287,7 +307,7 @@ function App() {
                 className="transition group-hover:translate-x-1"
               />
             </button>
-            <div className="rounded-xl bg-[#61c928] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-[#4fb31d]">
+            <div className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-[#4fb31d]">
               <a
                 href="http://191.44.87.205:8000/downloads/CtrlBooks_Setup_v1.0.2.exe"
                 download
@@ -307,7 +327,7 @@ function App() {
 
             {/* <button
               onClick={() => scrollTo("footer")}
-              className="rounded-xl bg-[#61c928] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-[#4fb31d]"
+              className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-[#4fb31d]"
             >
               Get Started
             </button> */}
@@ -321,7 +341,7 @@ function App() {
             <div className=" flex flex-col gap-3 sm:flex-row sm:justify-center">
               <button
                 onClick={goToLogin}
-                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-1 py-1 text-xs font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-1"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-1 py-1 text-xs font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-1"
               >
                 Start using CtrlBooks
               </button>
@@ -393,7 +413,7 @@ function App() {
               ))}
 
               {/* <div className="ml-4 border-l border-green-100 pl-3">
-                <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#61c928]">
+                <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">
                   Feature workflows
                 </p>
 
@@ -401,7 +421,7 @@ function App() {
                   <button
                     key={feature.id}
                     onClick={() => scrollTo(feature.id)}
-                    className="block w-full rounded-lg px-4 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-green-50 hover:text-[#54ba23]"
+                    className="block w-full rounded-lg px-4 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-green-50 hover:text-emerald-700"
                   >
                     {feature.title}
                   </button>
@@ -420,7 +440,7 @@ function App() {
 
                 <button
                   onClick={() => scrollTo("footer")}
-                  className="rounded-xl bg-[#61c928] py-3 text-sm font-bold text-white"
+                  className="rounded-xl bg-emerald-700 py-3 text-sm font-bold text-white"
                 >
                   Get Started
                 </button>
@@ -440,18 +460,18 @@ function App() {
 
           <div className="absolute right-[-100px] top-0 h-96 w-96 rounded-full bg-lime-100/50 blur-3xl" />
 
-          <div className="relative mx-auto grid max-w-7xl items-start gap-10 px-4 py-8 sm:px-6 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-10">
+          <div className="relative mx-auto flex max-w-7xl items-start gap-2 px-4 py-8 sm:px-6 lg:gap-14 lg:px-8 lg:py-10">
             {/* Left */}
             <div className="max-w-xl text-left w-93">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-bold text-green-700">
-                <span className="h-2 w-2 rounded-full bg-[#61c928]" />
+                <span className="h-2 w-2 rounded-full bg-emerald-700" />
                 Business data on mobile & web
               </div>
 
               <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
                 <span className="block">Your business,</span>
 
-                <span className="block text-[#58be22]">
+                <span className="block text-emerald-700">
                   Live on your fingertips.
                 </span>
               </h1>
@@ -464,7 +484,7 @@ function App() {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-start">
                 <button
                   onClick={goToLogin}
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#61c928] px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-8"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-8"
                 >
                   Start using CtrlBooks
 
@@ -578,117 +598,16 @@ function App() {
           <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-2">
             {/* product mobile UI */}
             <div className="relative order-2 lg:order-1">
-              <div className="absolute inset-0 rounded-full bg-green-100/70 blur-3xl" />
-
-              <div className="relative mx-auto max-w-md rounded-[38px] border-[8px] border-slate-900 bg-white p-3 shadow-2xl">
-                <div className="mx-auto mb-3 h-1.5 w-20 rounded-full bg-slate-800" />
-
-                <div className="rounded-[28px] bg-[#f8faf7] p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#61c928] text-white">
-                        C
-                      </div>
-
-                      <div>
-                        <p className="text-[10px] text-slate-500">
-                          Company
-                        </p>
-
-                        <p className="text-sm font-black text-slate-800">
-                          ABC Pvt Ltd
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
-                      <Bell
-                        size={15}
-                        className="text-slate-600"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-3 gap-2">
-                    {[
-                      ["Sales", "₹ 1,15,900"],
-                      ["Receivable", "₹ 2,10,500"],
-                      ["Purchase", "₹ 1,59,000"],
-                    ].map(([label, value]) => (
-                      <div
-                        key={label}
-                        className="rounded-xl bg-white p-3 shadow-sm"
-                      >
-                        <p className="text-[9px] text-slate-500">
-                          {label}
-                        </p>
-
-                        <p className="mt-1 text-[11px] font-black text-slate-800">
-                          {value}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-extrabold text-slate-800">
-                        Create Transaction
-                      </p>
-
-                      <ArrowUpRight
-                        size={16}
-                        className="text-green-500"
-                      />
-                    </div>
-
-                    <div className="mt-3 space-y-2">
-                      {[
-                        "Quotation",
-                        "Sales",
-                        "Receipt",
-                        "Payment",
-                        "Sales Order",
-                        "Purchase",
-                      ].map((item) => (
-                        <div
-                          key={item}
-                          className="flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-3"
-                        >
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50 text-green-600">
-                            <FileText size={15} />
-                          </div>
-
-                          <span className="text-xs font-bold text-slate-700">
-                            {item}
-                          </span>
-
-                          <ChevronDown
-                            size={14}
-                            className="ml-auto text-slate-500"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2.5">
-                    <MessageCircle
-                      size={15}
-                      className="text-green-600"
-                    />
-
-                    <span className="text-[10px] font-bold text-green-700">
-                      Share business updates with your team
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <img
+                src={mobileScreen}
+                alt="CtrlBooks mobile screen showing business balances and transaction options"
+                className="relative mx-auto h-auto w-full max-w-md object-contain"
+              />
             </div>
 
             {/* content */}
             <div className="order-1 lg:order-2">
-              <p className="text-xl font-extrabold tracking-[0.18em] text-[#61c928]">
+              <p className="text-xl font-extrabold tracking-[0.18em] text-emerald-700">
                 MOBILE BUSINESS
               </p>
 
@@ -722,7 +641,7 @@ function App() {
 
               <button
                 onClick={() => scrollTo("contact")}
-                className="mt-9 inline-flex items-center gap-2 rounded-xl bg-[#61c928] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#4eaf1c]"
+                className="mt-9 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#4eaf1c]"
               >
                 Explore CtrlBooks
                 <ArrowRight size={17} />
@@ -730,54 +649,94 @@ function App() {
             </div>
           </div>
         </section>
+        
 
         {/* ================= TESTIMONIALS ================= */}
         <section
-          id="testimonials"
-          className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
-        >
-          <div className="mx-auto max-w-7xl">
-            <SectionHeading
-              eyebrow="TESTIMONIALS"
-              title=""
-              description="Teams choose CtrlBooks to simplify daily operations, stay organized, and keep financial visibility in one place."
-            />
+  id="testimonials"
+  className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+>
+  <div className="mx-auto max-w-7xl">
+    <SectionHeading
+      eyebrow="TESTIMONIALS"
+      title=""
+      description="Teams choose CtrlBooks to simplify daily operations, stay organized, and keep financial visibility in one place."
+    />
 
-            <div className="mt-14 grid gap-6 lg:grid-cols-3">
-              {testimonials.map((testimonial) => (
-                <div
-                  key={testimonial.name}
-                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60"
-                >
-                  <div className="mb-5">
-                    <p className="text-sm font-extrabold text-slate-800">
-                      {testimonial.name}
-                    </p>
-
-                    <p className="text-xs text-slate-500">
-                      {testimonial.role}
-                    </p>
-                  </div>
-
-                  <div className="mb-4 flex text-[#61c928]">
-                    {Array.from({ length: 5 }).map(
-                      (_, index) => (
-                        <span key={index}>★</span>
-                      )
-                    )}
-                  </div>
-
-                  <p className="text-sm leading-7 text-slate-600">
-                    “{testimonial.quote}”
-                  </p>
-                </div>
-              ))}
+    <div className="relative mx-auto mt-10 w-full max-w-5xl overflow-hidden rounded-2xl">
+      {/* Slider */}
+      <div
+        className="flex transition-transform duration-700 ease-in-out"
+        style={{
+          transform: `translateX(-${currentTestimonial * 100}%)`,
+        }}
+      >
+        {testimonialImages.map((image, index) => (
+          <div
+            key={index}
+            className="min-w-full shrink-0 px-2 sm:px-4"
+          >
+            <div className="flex h-[280px] w-full items-center justify-center overflow-hidden rounded-2xl shadow-sm sm:h-[380px] lg:h-[700px]">
+              <img
+                src={image}
+                alt={`Testimonial ${index + 1}`}
+                className="h-full w-full object-contain"
+              />
             </div>
           </div>
-        </section>
+        ))}
+      </div>
+
+      {/* Previous Button */}
+      <button
+        type="button"
+        onClick={() =>
+          setCurrentTestimonial((prev) =>
+            prev === 0 ? testimonialImages.length - 1 : prev - 1
+          )
+        }
+        className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md transition hover:bg-white sm:left-5"
+        aria-label="Previous testimonial"
+      >
+        ‹
+      </button>
+
+      {/* Next Button */}
+      <button
+        type="button"
+        onClick={() =>
+          setCurrentTestimonial((prev) =>
+            prev === testimonialImages.length - 1 ? 0 : prev + 1
+          )
+        }
+        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md transition hover:bg-white sm:right-5"
+        aria-label="Next testimonial"
+      >
+        ›
+      </button>
+
+      {/* Dots */}
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-sm">
+        {testimonialImages.map((_, index) => (
+          <button
+            key={index}
+            type="button"
+            onClick={() => setCurrentTestimonial(index)}
+            className={`h-2.5 rounded-full transition-all duration-300 ${
+              index === currentTestimonial
+                ? "w-6 bg-emerald-700"
+                : "w-2.5 bg-slate-300"
+            }`}
+            aria-label={`Show testimonial ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
 
         {/* ================= STATS ================= */}
-        <section className="bg-[#172d18] px-4 py-16 text-white sm:px-6 lg:px-8">
+        <section className="bg-emerald-800 px-4 py-16 text-white sm:px-6 lg:px-8">
           <div className="mx-auto grid max-w-7xl gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <DarkStat
               value="24/7"
@@ -909,7 +868,7 @@ function App() {
           id="contact"
           className="scroll-mt-24 px-4 py-20 sm:px-6 lg:px-8 lg:py-24"
         >
-          <div className="mx-auto max-w-7xl overflow-hidden rounded-[30px] bg-[#61c928] px-7 py-14 text-white shadow-2xl shadow-green-100 sm:px-12 lg:px-16">
+          <div className="mx-auto max-w-7xl overflow-hidden rounded-[30px] bg-emerald-700 px-7 py-14 text-white shadow-2xl shadow-green-100 sm:px-12 lg:px-16">
             <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
               <div>
                 <p className="text-sm font-extrabold tracking-[0.18em] text-green-50">
@@ -949,7 +908,7 @@ function App() {
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:px-8 lg:grid-cols-3 lg:gap-16 lg:px-8">
           {/* Grow Your Business */}
           <div>
-            <h3 className="text-[22px] font-extrabold text-[#4fc52a]">
+            <h3 className="text-[22px] font-extrabold text-emerald-700">
               Grow Your Business
             </h3>
 
@@ -967,21 +926,21 @@ function App() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-[22px] font-extrabold text-[#4fc52a]">
+            <h3 className="text-[22px] font-extrabold text-emerald-700">
               Quick Links
             </h3>
 
             <div className="mt-6 space-y-2">
               <button
                 onClick={() => scrollTo("home")}
-                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+                className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
               >
                 Home
               </button>
 
               <button
                 onClick={() => scrollTo("features")}
-                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+                className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
               >
                 Features
               </button>
@@ -989,35 +948,35 @@ function App() {
 
               <button
                 onClick={() => scrollTo("product")}
-                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+                className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
               >
                 Product
               </button>
 
               {/* <button
                 onClick={() => scrollTo("pricing")}
-                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+                className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
               >
                 Pricing
               </button> */}
 
               <button
                 onClick={() => scrollTo("testimonials")}
-                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+                className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
               >
                 Testimonials
               </button>
 
               <button
                 onClick={() => scrollTo("faq")}
-                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+                className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
               >
                 FAQ
               </button>
 
               <button
                 onClick={() => scrollTo("footer")}
-                className="block text-sm font-semibold text-slate-900 transition hover:text-[#4fc52a]"
+                className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
               >
                 Contact Us
               </button>
@@ -1026,7 +985,7 @@ function App() {
 
           {/* Contact Us */}
           <div>
-            <h3 className="text-[22px] font-extrabold text-[#4fc52a]">
+            <h3 className="text-[22px] font-extrabold text-emerald-700">
               Contact Us
             </h3>
 
@@ -1045,7 +1004,7 @@ function App() {
                 Support Email:{" "}
                 <a
                   href="mailto:info@clouddata.com"
-                  className="hover:text-[#4fc52a]"
+                  className="hover:text-emerald-700"
                 >
                   info@cloudedata.com
                 </a>
@@ -1055,7 +1014,7 @@ function App() {
                 Support Mobile:{" "}
                 <a
                   href="tel:+91 9311472355"
-                  className="hover:text-[#4fc52a]"
+                  className="hover:text-emerald-700"
                 >
                   +91 9311472357
                 </a>{" "}
@@ -1085,22 +1044,22 @@ function App() {
             {/* Legal Links */}
             <div className="flex flex-wrap justify-center gap-x-7 gap-y-2 text-xs font-semibold">
               <a
-                href="#"
-                className="text-slate-700 transition hover:text-[#4fc52a]"
+                href="/privacy-policy"
+                className="text-slate-700 transition hover:text-emerald-700"
               >
                 Privacy Policy
               </a>
 
               <a
-                href="#"
-                className="text-slate-700 transition hover:text-[#4fc52a]"
+                href="/terms-of-service"
+                className="text-slate-700 transition hover:text-emerald-700"
               >
                 Terms & Conditions
               </a>
 
               <a
-                href="#"
-                className="text-slate-700 transition hover:text-[#4fc52a]"
+                href="/refund-policy"
+                className="text-slate-700 transition hover:text-emerald-700"
               >
                 Refund Policy
               </a>
@@ -1170,7 +1129,7 @@ function SectionHeading({
 }) {
   return (
     <div className="mx-auto max-w-3xl text-center">
-      <p className="text-xl font-extrabold tracking-[0.2em] text-[#61c928]">
+      <p className="text-xl font-extrabold tracking-[0.2em] text-emerald-700">
         {eyebrow}
       </p>
 
@@ -1198,15 +1157,15 @@ function FeatureCard({
       onClick={onClick}
       aria-pressed={active}
       className={`group w-full rounded-2xl border p-6 text-left transition duration-300 focus:outline-none focus:ring-2 focus:ring-[#61c928]/30 ${active
-          ? "border-[#61c928] bg-[#f7fff3] shadow-xl shadow-green-100/70"
-          : "border-slate-200 bg-white hover:-translate-y-1 hover:border-green-200 hover:shadow-xl hover:shadow-slate-200/40"
+        ? "border-[#61c928] bg-[#f7fff3] shadow-xl shadow-green-100/70"
+        : "border-slate-200 bg-white hover:-translate-y-1 hover:border-green-200 hover:shadow-xl hover:shadow-slate-200/40"
         }`}
     >
       <div className="flex items-start justify-between gap-4">
         <div
           className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition ${active
-              ? "bg-[#61c928] text-white"
-              : "bg-green-50 text-[#61c928] group-hover:bg-[#61c928] group-hover:text-white"
+            ? "bg-emerald-700 text-white"
+            : "bg-green-50 text-emerald-700 group-hover:bg-emerald-700 group-hover:text-white"
             }`}
         >
           <Icon size={22} />
@@ -1214,8 +1173,8 @@ function FeatureCard({
 
         <div
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition ${active
-              ? "bg-[#61c928] text-white rotate-90"
-              : "bg-slate-50 text-slate-400 group-hover:bg-green-50 group-hover:text-[#61c928]"
+            ? "bg-emerald-700 text-white rotate-90"
+            : "bg-slate-50 text-slate-400 group-hover:bg-green-50 group-hover:text-emerald-700"
             }`}
           aria-hidden="true"
         >
@@ -1232,7 +1191,7 @@ function FeatureCard({
       </p>
 
       <div
-        className={`mt-5 text-xs font-black uppercase tracking-[0.14em] transition ${active ? "text-[#61c928]" : "text-slate-400 group-hover:text-[#61c928]"
+        className={`mt-5 text-xs font-black uppercase tracking-[0.14em] transition ${active ? "text-emerald-700" : "text-slate-400 group-hover:text-emerald-700"
           }`}
       >
         {active ? "Selected feature" : "View feature"}
@@ -1248,7 +1207,7 @@ function ProductPoint({
 }) {
   return (
     <div className="flex gap-4">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-50 text-[#61c928]">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-50 text-emerald-700">
         <Icon size={20} />
       </div>
 
@@ -1343,7 +1302,7 @@ function FeatureShowcase({ activeFeature, setActiveFeature }) {
               </div>
 
               <div className="min-w-0 max-w-xl lg:justify-self-stretch">
-                <span className="inline-flex rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-[#54ba23]">
+                <span className="inline-flex rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700">
                   CtrlBooks feature
                 </span>
 
@@ -1376,6 +1335,33 @@ function LeadCapture() {
 }
 
 function ShowcaseIllustration({ kind }) {
+  const featureImages = {
+    invoice: invoiceFeatureImage,
+    inactive: inactiveFeatureImage,
+    reminder: reminderFeatureImage,
+    backup: backupFeatureImage,
+    gst: gstFeatureImage,
+    reports: reportsFeatureImage,
+  };
+  const imageDescriptions = {
+    invoice: "Generate e-way bills and e-invoices",
+    inactive: "Inactive customer and item reports",
+    reminder: "Payment reminders to recover dues",
+    backup: "Business data backup and restore",
+    gst: "Create GST bills and share on WhatsApp",
+    reports: "Daily books, expense tracking and balance sheet",
+  };
+
+  if (featureImages[kind]) {
+    return (
+      <img
+        src={featureImages[kind]}
+        alt={imageDescriptions[kind]}
+        className="mx-auto h-auto w-full max-w-[480px] rounded-2xl object-contain"
+      />
+    );
+  }
+
   const common =
     "relative mx-auto flex h-[250px] w-full max-w-[390px] items-center justify-center overflow-hidden rounded-[42%] bg-[#eaffd8] sm:h-[310px]";
 
@@ -1531,7 +1517,7 @@ function ShowcaseIllustration({ kind }) {
               (height, index) => (
                 <span
                   key={index}
-                  className="w-3 rounded-t bg-[#61c928]"
+                  className="w-3 rounded-t bg-emerald-700"
                   style={{ height: `${height}%` }}
                 />
               )
@@ -1569,7 +1555,7 @@ function ShowcaseIllustration({ kind }) {
 function ShowcasePaper({ title }) {
   return (
     <div className="h-36 w-28 rounded-lg border border-slate-200 bg-white p-2 shadow-xl">
-      <div className="text-[10px] font-black text-[#61c928]">
+      <div className="text-[10px] font-black text-emerald-700">
         {title}
       </div>
 
@@ -1601,7 +1587,7 @@ function DarkStat({
 }) {
   return (
     <div>
-      <p className="text-3xl font-black text-[#8bea63]">
+      <p className="text-3xl font-black text-white">
         {value}
       </p>
 
@@ -1632,7 +1618,7 @@ function PriceCard({
         }`}
     >
       {highlighted && (
-        <div className="absolute right-5 top-5 inline-flex items-center justify-center rounded-full bg-[#61c928] px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-white shadow-lg shadow-green-100">
+        <div className="absolute right-5 top-5 inline-flex items-center justify-center rounded-full bg-emerald-700 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-white shadow-lg shadow-green-100">
           Popular
         </div>
       )}
@@ -1669,7 +1655,7 @@ function PriceCard({
           >
             <Check
               size={16}
-              className="mt-0.5 shrink-0 text-[#61c928]"
+              className="mt-0.5 shrink-0 text-emerald-700"
             />
 
             <span className="text-xs font-medium leading-6 text-slate-600">
@@ -1681,7 +1667,7 @@ function PriceCard({
 
       <button
         className={`mt-auto w-full rounded-xl py-3 text-sm font-bold transition ${highlighted
-          ? "bg-[#61c928] text-white hover:bg-[#4eaf1c]"
+          ? "bg-emerald-700 text-white hover:bg-[#4eaf1c]"
           : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
           }`}
       >
@@ -1693,219 +1679,8 @@ function PriceCard({
 
 function DashboardPreview() {
   return (
-    <div className="w-full max-w-[640px] rounded-[30px] border border-[#dfeae3] bg-[#eef6ee] p-2 shadow-[0_20px_55px_rgba(13,58,77,0.12)] sm:p-3">
-      <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
-        <div className="flex min-h-[320px] sm:min-h-[410px]">
-          <aside className="w-[112px] shrink-0 bg-[#082f3f] p-2 text-white sm:w-[190px] sm:p-3">
-            <div className="mb-5 flex items-center justify-center px-1 pt-1 sm:mb-6 sm:justify-start sm:px-2">
-              <img
-                src="./src/assets/Control-Books-Dashboard.png"
-                alt="CtrlBooks"
-                className="h-auto w-[92px] object-contain sm:w-[148px]"
-              />
-            </div>
-
-            <div className="space-y-1 sm:space-y-2">
-              {[
-                "Dashboard",
-                "Create Vouchers",
-                "Sales",
-                "Purchase",
-                "Cash & Bank",
-                "Collect Payments",
-                "Parties",
-                "Items",
-                "Reports",
-              ].map((item, index) => (
-                <div
-                  key={item}
-                  className={`flex items-center justify-between rounded-lg px-2 py-2 text-[9px] font-medium leading-tight sm:rounded-xl sm:px-3 sm:py-2.5 sm:text-xs ${index === 0
-                    ? "bg-[#1db88b] text-white shadow-inner"
-                    : "text-slate-200 hover:bg-white/5"
-                    }`}
-                >
-                  <span>{item}</span>
-
-                  {index > 1 && index < 8 && (
-                    <span className="text-xs text-slate-300">
-                      ›
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </aside>
-
-          <main className="min-w-0 flex-1 bg-[#f4f6f5] p-2 sm:p-4">
-            {/* <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2 sm:pb-3">
-              <div className="min-w-0 text-[9px] text-slate-500 sm:text-xs">
-                <span className="block truncate font-semibold text-slate-700">
-                  Annual Agency - 2022-2023
-                </span>
-              </div>
-
-              <div className="hidden shrink-0 items-center gap-2 md:flex">
-                <button className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600">
-                  Link invoice
-                </button>
-
-                <button className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600">
-                  Mobile version
-                </button>
-
-                <button className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600">
-                  Connector status
-                </button>
-              </div>
-            </div> */}
-
-            <div className="mt-3 flex items-center justify-between gap-3 sm:mt-5">
-              <h3 className="text-xl font-black tracking-tight text-slate-900 sm:text-3xl">
-                Dashboard
-              </h3>
-
-              <button className="inline-flex min-w-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[9px] font-medium text-slate-700 shadow-sm sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-xs">
-                <span className="text-xs sm:text-base">
-                  Date
-                </span>
-
-                <span className="truncate">
-                  22-08-26 - 22-09-26
-                </span>
-              </button>
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 2xl:grid-cols-4">
-              {[
-                ["Total Sales", "", ArrowUpRight],
-                ["Total Receipts", "", Receipt],
-                ["Total Payments", "", CreditCard],
-                [
-                  "Cash & Bank Balance",
-                  "",
-                  Landmark,
-                ],
-              ].map(([label, value, Icon]) => (
-                <div
-                  key={label}
-                  className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm sm:rounded-2xl sm:p-3.5"
-                >
-                  <div className="mb-2 flex items-center justify-between">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-green-50 text-green-600 sm:h-8 sm:w-8">
-                      <Icon
-                        size={15}
-                        strokeWidth={1.75}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-[9px] font-medium leading-tight text-slate-500 sm:text-xs">
-                    {label}
-                  </div>
-
-                  <div className="mt-1 whitespace-nowrap text-[clamp(0.75rem,1.8vw,1.5rem)] font-black tracking-tight text-slate-900 sm:mt-2">
-                    {value}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-3 grid gap-2 sm:mt-5 sm:grid-cols-[1.5fr_1fr] sm:gap-3">
-              <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-4">
-                <div className="mb-3 text-sm font-extrabold text-slate-900 sm:mb-4 sm:text-xl">
-                  Sales &amp; Receipts
-                </div>
-
-                <div className="flex items-center gap-3 text-[9px] text-slate-500 sm:text-xs">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#1db88b]" />
-                    Sales
-                  </span>
-
-                  <span className="inline-flex items-center gap-1">
-                    <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
-                    Receipts
-                  </span>
-                </div>
-
-                <div className="mt-3 flex h-24 items-end gap-2 sm:mt-4 sm:h-40 sm:gap-3">
-                  {[45, 62, 38, 56, 72, 51, 66].map(
-                    (height, index) => (
-                      <div
-                        key={index}
-                        className="flex w-full flex-col items-center gap-2"
-                      >
-                        <div
-                          className="w-full rounded-t-xl bg-[#1db88b]"
-                          style={{
-                            height: `${height}%`,
-                          }}
-                        />
-
-                        <div className="text-[7px] text-slate-400 sm:text-[10px]">
-                          {
-                            [
-                              "27-08-26",
-                              "01-09-26",
-                              "09-09-26",
-                              "10-09-26",
-                              "11-09-26",
-                              "12-09-26",
-                              "15-09-26",
-                            ][index]
-                          }
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-4">
-                <div className="mb-3 text-sm font-extrabold text-slate-900 sm:mb-4 sm:text-xl">
-                  Receivables
-                </div>
-
-                <div className="mx-auto mt-3 flex h-24 w-24 items-center justify-center rounded-full border-[8px] border-[#1db88b] bg-[#f2f9f6] text-center text-xs font-black text-slate-900 sm:mt-4 sm:h-36 sm:w-36 sm:border-[12px] sm:text-sm">
-                  <div>
-                    <div className="text-sm sm:text-xl">
-                      ₹ 2.47L
-                    </div>
-
-                    <div className="text-[8px] text-slate-500 sm:text-[10px]">
-                      Total Outstanding
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3 space-y-1 text-[9px] text-slate-600 sm:mt-5 sm:space-y-2 sm:text-xs">
-                  {[
-                    ["0-30", "₹ 2.47L"],
-                    ["31-60", "₹ 0"],
-                    ["61-90", "₹ 0"],
-                    ["91-120", "₹ 0"],
-                    ["> 120", "₹ 0"],
-                  ].map(([label, value]) => (
-                    <div
-                      key={label}
-                      className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 sm:py-1.5"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-[#1db88b]" />
-                        {label}
-                      </span>
-
-                      <span className="font-semibold text-slate-700">
-                        {value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
+    <div className="rounded-[30px] border border-[#dfeae3] bg-[#eef6ee] shadow-[0_20px_55px_rgba(13,58,77,0.12)] sm:p-3">
+      <img className="lg:w-full h-[700px]" src={DashboardInlaptop} alt="Dashboard Preview" />
     </div>
   );
 }

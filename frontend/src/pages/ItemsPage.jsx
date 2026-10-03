@@ -138,8 +138,8 @@ function ItemsPage({ companyId, myStockItems = false }) {
   });
 
   const [query, setQuery] = useState('');
-  const [startDate, setStartDate] = useState('2026-04-01');
-  const [endDate, setEndDate] = useState('2027-03-31');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const [stockItems, setStockItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -440,12 +440,12 @@ function ItemsPage({ companyId, myStockItems = false }) {
   return (
     <div className="page-surface">
       {/* Top Header */}
-      <div className="page-toolbar">
+      <div className="">
 
 
         {!myStockItems && (
           <DateRangePicker
-            className="ml-auto"
+            className="flex justify-end border-0"
             startDate={startDate}
             endDate={endDate}
             onChange={(nextStart, nextEnd) => {
@@ -457,16 +457,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
           />
         )}
       </div>
-
-      {/* Screenshot-style navigation bar */}
-      <div className="w-full border-b border-slate-200 bg-white">
-
-      </div>
-
-      {/* Main Content */}
-      <section className="page-card p-5">
-        {/* Filters / Actions */}
-        <div className="mb-4 flex flex-wrap items-center gap-4">
+<div className="p-10 mb-4 flex flex-wrap items-center gap-4 bg-white">
           <div className="relative">
             <input
               className="
@@ -582,6 +573,12 @@ function ItemsPage({ companyId, myStockItems = false }) {
             View PDF
           </button> */}
         </div>
+    
+
+      {/* Main Content */}
+      <section className="page-card border border-slate-200 bg-white p-4">
+        {/* Filters / Actions */}
+        
 
         {/* Error */}
         {errorMessage && (

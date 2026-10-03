@@ -96,17 +96,17 @@ function App() {
     const storedCompanyId =
       typeof window !== "undefined"
         ? window.localStorage.getItem(
-            selectedCompanyStorageKey,
-          )
+          selectedCompanyStorageKey,
+        )
         : null;
 
     return storedCompanyId
       ? { id: storedCompanyId }
       : {
-          name: "",
-          meta: "",
-          isCurrent: true,
-        };
+        name: "",
+        meta: "",
+        isCurrent: true,
+      };
   });
 
   const selectedCompanyRef = useRef(selectedCompany);
@@ -548,7 +548,7 @@ function App() {
 
         setConnectorStatusError(
           error?.message ||
-            "Unable to load connector status.",
+          "Unable to load connector status.",
         );
       })
       .finally(() => {
@@ -585,8 +585,8 @@ function App() {
         const storedCompanyId =
           typeof window !== "undefined"
             ? window.localStorage.getItem(
-                selectedCompanyStorageKey,
-              )
+              selectedCompanyStorageKey,
+            )
             : null;
 
         const selectedCompanyState =
@@ -600,8 +600,8 @@ function App() {
         const selectedCompanyName =
           String(
             selectedCompanyState?.name ||
-              selectedCompanyState?.companyName ||
-              "",
+            selectedCompanyState?.companyName ||
+            "",
           )
             .trim()
             .toLowerCase();
@@ -619,13 +619,13 @@ function App() {
             return (
               (companyId &&
                 String(companyId) ===
-                  String(
-                    storedCompanyId ||
-                      selectedCompanyId,
-                  )) ||
+                String(
+                  storedCompanyId ||
+                  selectedCompanyId,
+                )) ||
               (selectedCompanyName &&
                 companyName ===
-                  selectedCompanyName)
+                selectedCompanyName)
             );
           }) || companies[0];
 
@@ -843,7 +843,7 @@ function App() {
               String(
                 getCompanyId(option),
               ) ===
-                String(companyId)),
+              String(companyId)),
         }),
       ),
     );
@@ -1205,7 +1205,7 @@ function App() {
 
     const additionalMyVoucher =
       additionalMyVoucherTypes[
-        currentPath
+      currentPath
       ];
 
     if (additionalMyVoucher) {
@@ -1247,37 +1247,37 @@ function App() {
           )}
           title={
             currentPath ===
-            "/my-quotations"
+              "/my-quotations"
               ? "My Quotations"
               : currentPath ===
-                  "/my-invoices"
+                "/my-invoices"
                 ? "My Invoices"
                 : currentPath ===
-                    "/my-parties"
+                  "/my-parties"
                   ? "My Parties"
                   : currentPath ===
-                      "/my-stock-items"
+                    "/my-stock-items"
                     ? "My Stock Items"
                     : "My Vouchers"
           }
           voucherType={
             currentPath ===
-            "/my-quotations"
+              "/my-quotations"
               ? "Quotation"
               : currentPath ===
-                  "/my-invoices"
+                "/my-invoices"
                 ? "Sales"
                 : currentPath ===
-                    "/my-vouchers"
+                  "/my-vouchers"
                   ? "Sales"
                   : ""
           }
           commandType={
             currentPath ===
-            "/my-parties"
+              "/my-parties"
               ? "CREATE_PARTY"
               : currentPath ===
-                  "/my-stock-items"
+                "/my-stock-items"
                 ? "UPDATE_STOCK_ITEM"
                 : "CREATE_VOUCHER"
           }
@@ -1520,7 +1520,7 @@ function App() {
     if (flags.showContra) {
       return (
         <DocumentVoucherPage
-          title="Journal"
+          title="Contra"
           companyId={
             selectedCompany?.id
           }
@@ -1654,12 +1654,11 @@ function App() {
         className={`
           app-main relative min-h-screen min-w-0
           transition-[margin-left,width] duration-200
-          ${
-            isCompact
-              ? "ml-0 w-full"
-              : sidebarCollapsed
-                ? "ml-[68px] sidebar-collapsed w-[calc(100%-68px)]"
-                : "ml-[228px] w-[calc(100%-228px)]"
+          ${isCompact
+            ? "ml-0 w-full"
+            : sidebarCollapsed
+              ? "ml-[68px] sidebar-collapsed w-[calc(100%-68px)]"
+              : "ml-[228px] w-[calc(100%-228px)]"
           }
         `}
       >
@@ -1752,75 +1751,89 @@ function App() {
             QUICK CREATE MENU
             =================================================== */}
 
-        {showQuickCreate && (
-          <div className="mb-3 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-app-border bg-white shadow-[0_18px_42px_rgba(15,23,42,0.18)]">
-            <div className="flex items-center justify-between bg-emerald-700 px-3 py-2 text-white">
-              <span className="text-xs font-semibold">
-                Quick Create
-              </span>
+          { showQuickCreate && (
+            <div
+              className="
+      fixed
+      bottom-24
+      right-5
+      z-[10000]
+      w-[min(280px,calc(100vw-2rem))]
+      overflow-hidden
+      rounded-xl
+      border
+      border-app-border
+      bg-white
+      shadow-[0_18px_42px_rgba(15,23,42,0.18)]
+    "
+            >
+              <div className="flex items-center justify-between bg-emerald-700 px-3 py-2 text-white">
+                <span className="text-xs font-semibold">
+                  Quick Create
+                </span>
 
-              <button
-                type="button"
-                aria-label="Close quick create"
-                onClick={() =>
-                  setShowQuickCreate(
-                    false,
-                  )
-                }
-                className="ml-auto text-lg leading-none text-white/80 hover:text-white"
-              >
-                ×
-              </button>
-            </div>
+                <button
+                  type="button"
+                  aria-label="Close quick create"
+                  onClick={() =>
+                    setShowQuickCreate(
+                      false,
+                    )
+                  }
+                  className="ml-auto text-lg leading-none text-white/80 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
 
-            <div className="max-h-[360px] overflow-y-auto bg-slate-50 p-2">
-              {quickCreateGroups.map(
-                (group) => (
-                  <div
-                    key={group.title}
-                    className="mb-2 overflow-hidden rounded-lg border border-app-border bg-white last:mb-0"
-                  >
-                    <div className="bg-slate-50 px-3 py-2 text-xs font-semibold text-app-text">
-                      {group.title}
+              <div className="max-h-[360px] overflow-y-auto bg-slate-50 p-2">
+                {quickCreateGroups.map(
+                  (group) => (
+                    <div
+                      key={group.title}
+                      className="mb-2 overflow-hidden rounded-lg border border-app-border bg-white last:mb-0"
+                    >
+                      <div className="bg-slate-50 px-3 py-2 text-xs font-semibold text-app-text">
+                        {group.title}
+                      </div>
+
+                      <div className="p-1.5">
+                        {group.items.map(
+                          ([
+                            label,
+                            targetPath,
+                          ]) => (
+                            <button
+                              key={`${group.title}-${label}`}
+                              type="button"
+                              onClick={() => {
+                                setShowQuickCreate(
+                                  false,
+                                );
+
+                                navigateTo(
+                                  targetPath,
+                                );
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-xs text-app-text-secondary transition hover:bg-slate-50 hover:text-app-text"
+                            >
+                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-bold text-app-primary">
+                                •
+                              </span>
+
+                              <span className="flex-1">
+                                {label}
+                              </span>
+                            </button>
+                          ),
+                        )}
+                      </div>
                     </div>
-
-                    <div className="p-1.5">
-                      {group.items.map(
-                        ([
-                          label,
-                          targetPath,
-                        ]) => (
-                          <button
-                            key={`${group.title}-${label}`}
-                            type="button"
-                            onClick={() => {
-                              setShowQuickCreate(
-                                false,
-                              );
-
-                              navigateTo(
-                                targetPath,
-                              );
-                            }}
-                            className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-xs text-app-text-secondary transition hover:bg-slate-50 hover:text-app-text"
-                          >
-                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-bold text-app-primary">
-                              •
-                            </span>
-
-                            <span className="flex-1">
-                              {label}
-                            </span>
-                          </button>
-                        ),
-                      )}
-                    </div>
-                  </div>
-                ),
-              )}
+                  ),
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* ===================================================
             MOVABLE QUICK CREATE BUTTON

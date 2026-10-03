@@ -5,8 +5,8 @@ const ManageReminderPage = () => {
   const [search, setSearch] = useState('')
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const [startDate, setStartDate] = useState('2026-04-01')
-  const [endDate, setEndDate] = useState('2027-03-31')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8] text-slate-900">

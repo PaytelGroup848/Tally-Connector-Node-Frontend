@@ -412,7 +412,7 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
               setCreateMessage("");
               setIsCreateOpen(true);
             }}
-            className="add-party-btn flex h-9 items-center gap-1.5 rounded-md bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="add-party-btn flex h-9 items-center gap-1.5 rounded-md bg-emerald-700 px-3 text-xs font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus size={14} />
             Add New Party

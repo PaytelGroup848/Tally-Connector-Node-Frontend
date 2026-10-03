@@ -214,7 +214,7 @@ const DataBackupPage = () => {
               />
 
               {/* Small status icon */}
-              <div className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#10a66f] shadow-md">
+              <div className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-700 shadow-md">
                 <Clock3
                   size={18}
                   strokeWidth={2}

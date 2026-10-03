@@ -14,7 +14,7 @@ function StockSide({ title, rows, onAddRow, onRemoveRow, onRowChange }) {
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-[#f5f7f4]">
       <div className="flex items-center justify-between border-b border-slate-200 bg-[#f5f7f4] px-4 py-3 text-sm font-semibold text-slate-800">
         <span>{title}</span>
-        <button type="button" onClick={onAddRow} className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300">
+        <button type="button" onClick={onAddRow} className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-300">
           <span className="text-sm leading-none">+</span>
           Add Item
         </button>

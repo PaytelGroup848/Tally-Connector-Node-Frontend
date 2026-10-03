@@ -394,7 +394,7 @@ export function GstLedgerPanel({ subtotal = 0, ledgerOptions = [] }) {
 
   return (
     <div className="rounded-md bg-white p-3">
-      <button type="button" onClick={() => setOpen((currentOpen) => !currentOpen)} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-green-600 transition hover:text-green-700">
+      <button type="button" onClick={() => setOpen((currentOpen) => !currentOpen)} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 transition hover:text-emerald-800">
         <span className="text-base leading-none">{open ? '−' : '+'}</span>
         {open ? 'Hide GST And Other Ledgers' : 'Add GST And Other Ledger'}
       </button>
@@ -406,7 +406,7 @@ export function GstLedgerPanel({ subtotal = 0, ledgerOptions = [] }) {
               <p className="text-xs font-bold text-slate-800">GST &amp; Other Ledgers</p>
               <p className="text-[11px] text-slate-500">Add GST/tax ledgers or other accounting adjustments.</p>
             </div>
-            <button type="button" onClick={() => setRows((currentRows) => [...currentRows, createEmptyLedgerRow()])} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-green-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-green-700"><span className="text-sm leading-none">+</span>Add Ledger</button>
+            <button type="button" onClick={() => setRows((currentRows) => [...currentRows, createEmptyLedgerRow()])} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-700 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-emerald-800"><span className="text-sm leading-none">+</span>Add Ledger</button>
           </div>
 
           {rows.length === 0 ? (
@@ -494,7 +494,7 @@ function VoucherBottomSection({
         <button
           type="button"
           onClick={onToggleLedgerPanel}
-          className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-green-600 transition hover:text-green-700"
+          className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
         >
           <span className="text-base leading-none">{showLedgerPanel ? '−' : '+'}</span>
           {showLedgerPanel ? 'Hide GST And Other Ledgers' : 'Add GST And Other Ledger'}
@@ -513,7 +513,7 @@ function VoucherBottomSection({
               <button
                 type="button"
                 onClick={onAddLedger}
-                className="inline-flex shrink-0 items-center gap-1 rounded-md bg-green-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-green-700"
+                className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-700 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-emerald-800"
               >
                 <span className="text-sm leading-none">+</span>
                 Add Ledger
@@ -2660,7 +2660,7 @@ export function DocumentVoucherPage({
         className="relative z-0 mx-auto max-w-[1440px] overflow-visible rounded-lg border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.06)]"
       >
         {/* Header */}
-        <div className="flex min-h-14 items-center bg-[#63c45d] px-4 py-3 text-[17px] font-bold text-white sm:px-5 sm:py-4">
+        <div className="flex min-h-14 items-center bg-emerald-700 px-4 py-3 text-[17px] font-bold text-white sm:px-5 sm:py-4">
           {isJournalStyleVoucher ? `Create ${title}` : `Create ${title} Voucher`}
           <div className="ml-auto">
             <button
@@ -3037,7 +3037,7 @@ export function DocumentVoucherPage({
                         onClick={
                           addItemRow
                         }
-                        className="flex min-h-full items-center justify-center bg-slate-700 px-2 py-3 text-base font-bold text-white transition hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+                        className="flex min-h-full items-center justify-center bg-[#1a1f24] px-2 py-3 text-base font-bold text-white transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-green-300"
                       >
                         +
                       </button>
@@ -3506,7 +3506,7 @@ export function DocumentVoucherPage({
                   <button
                     type="button"
                     onClick={addItemRow}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-300"
                   >
                     <span className="text-sm leading-none">
                       +
@@ -3629,7 +3629,7 @@ function StockJournalSide({
     <div className="flex min-h-[360px] flex-col overflow-hidden border border-slate-200 bg-[#f5f7f4]">
       <div className="flex h-9 shrink-0 items-center justify-between border-b border-slate-200 px-3 text-xs font-semibold text-slate-800">
         <span>{title}</span>
-        <button type="button" onClick={onAddRow} className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300">
+        <button type="button" onClick={onAddRow} className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-300">
           <span className="text-sm leading-none">+</span>
           Add Item
         </button>

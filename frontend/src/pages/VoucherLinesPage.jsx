@@ -18,7 +18,7 @@ const hiddenFields = new Set([
   '_id',
   '_v',
   'V',
-  'v',
+  '__v',
 
   'companyId',
   'organizationId',

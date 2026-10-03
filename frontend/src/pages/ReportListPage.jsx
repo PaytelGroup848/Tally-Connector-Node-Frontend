@@ -485,8 +485,8 @@ const isDateTimeColumn = (column) => {
 // ============================================================
 
 function DateRangeDisplay({
-  startDate = "2026-04-01",
-  endDate = "2027-03-31",
+  startDate = "",
+  endDate = "",
   onChange,
 }) {
   return (
@@ -1601,9 +1601,9 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 // ============================================================
 
 function AccountsReport({ config }) {
-  const [startDate, setStartDate] = useState("2026-04-01");
+  const [startDate, setStartDate] = useState("");
 
-  const [endDate, setEndDate] = useState("2027-03-31");
+  const [endDate, setEndDate] = useState("");
 
   const [query, setQuery] = useState("");
 
@@ -1675,9 +1675,9 @@ function SalesReport({ companyId }) {
 
   const [query, setQuery] = useState("");
 
-  const [startDate, setStartDate] = useState("2010-04-01");
+  const [startDate, setStartDate] = useState("");
 
-  const [endDate, setEndDate] = useState("2027-03-31");
+  const [endDate, setEndDate] = useState("");
 
   const [rows, setRows] = useState([]);
 
@@ -3024,8 +3024,8 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
         ? ""
         : "6aa38f546cd43af3d64fbc0d");
   const [query, setQuery] = useState("");
-  const [startDate, setStartDate] = useState("2010-04-01");
-  const [endDate, setEndDate] = useState("2027-03-31");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [rows, setRows] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -3371,9 +3371,9 @@ function ReportListPage({ path, companyId }) {
 
   const [query, setQuery] = useState("");
 
-  const [startDate, setStartDate] = useState("2026-04-01");
+  const [startDate, setStartDate] = useState("");
 
-  const [endDate, setEndDate] = useState("2027-03-31");
+  const [endDate, setEndDate] = useState("");
 
   // ==========================================================
   // SALES

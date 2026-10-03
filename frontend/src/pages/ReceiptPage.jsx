@@ -488,11 +488,11 @@ function ReceiptPage({
 
       <form
         onSubmit={handleSubmit}
-        className="mx-auto max-w-[1280px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.05)]"
+        className="mx-auto max-w-[1280px] overflow-hidden border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.05)]"
       >
 
         {/* Header */}
-        <div className="bg-[#63c45d] px-5 py-4 text-[17px] font-bold text-white flex justify-center">
+        <div className="bg-emerald-700 px-5 py-4 text-[17px] font-bold text-white flex justify-center">
           Create {documentType}
           <div className="ml-auto">
             <div className="ml-auto">
@@ -757,7 +757,7 @@ function ReceiptPage({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-lg bg-[#1a1f24] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(24,33,43,0.2)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-[#1a1f24] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(24,33,43,0.2)] disabled:cursor-not-allowed disabled:opacity-60 hover:bg-slate-700"
           >
             {isSubmitting
               ? 'Creating...'

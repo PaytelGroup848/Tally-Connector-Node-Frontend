@@ -22,6 +22,10 @@ const hiddenFields = new Set([
   'organizationId',
   'raw',
   'source',
+  'partyLedger',
+  'voucherNumber',
+  '__v',
+  'voucherType',
 
   // Tally External ID
   'tallyExternalId',
@@ -59,6 +63,8 @@ const hiddenFields = new Set([
 const popupFields = new Set([
   'inventory entries',
   'ledger entries',
+  'bill allocations',
+  'lines'
 ])
 
 /*
@@ -479,8 +485,7 @@ function DayBookPage({ companyId }) {
    * =======================================================
    * GRID TEMPLATE
    *
-   * Every column gets the same width.
-   * min-width prevents the columns from collapsing.
+   * Kept unchanged.
    * =======================================================
    */
   const gridTemplateColumns = useMemo(() => {
@@ -859,79 +864,112 @@ function DayBookPage({ companyId }) {
         {/* =================================================
             TABLE
             ================================================= */}
-        <div className="mx-5 my-3 overflow-x-auto rounded-lg border border-slate-200 bg-white">
 
-          {/* Force consistent width across all columns */}
-          <div className="min-w-[1100px]">
+        <div className="mx-5 my-3 overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <table
+            className="w-full min-w-[1100px] border-collapse table-fixed"
+          >
+            {/* =================================================
+                FORCE SAME WIDTH FOR EVERY COLUMN
+                ================================================= */}
+
+            {fields.length > 0 && (
+              <colgroup>
+                {fields.map((field) => (
+                  <col
+                    key={field}
+                    style={{
+                      width: '180px',
+                    }}
+                  />
+                ))}
+              </colgroup>
+            )}
 
             {/* =================================================
                 TABLE HEADER
                 ================================================= */}
+
             {fields.length > 0 && (
-              <div
-                className="grid items-center border-b border-slate-200 bg-slate-100 px-4"
-                style={{
-                  gridTemplateColumns,
-                  minHeight: '52px',
-                }}
-              >
-                {fields.map(
-                  (field) => (
-                    <div
+              <thead>
+                <tr className="h-[52px] border-b border-slate-200 bg-slate-100">
+                  {fields.map((field) => (
+                    <th
                       key={field}
-                      className="flex h-[52px] min-w-0 items-center border-r border-slate-200 px-3 last:border-r-0"
-                      title={formatLabel(
-                        field,
-                      )}
+                      className="
+                        h-[52px]
+                        border-r
+                        border-slate-200
+                        px-3
+                        text-left
+                        align-middle
+                        last:border-r-0
+                      "
+                      title={formatLabel(field)}
                     >
-                      <span className="w-full truncate text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                        {formatLabel(
-                          field,
-                        )}
+                      <span className="block w-full truncate text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        {formatLabel(field)}
                       </span>
-                    </div>
-                  ),
-                )}
-              </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
             )}
 
             {/* =================================================
                 LOADING
                 ================================================= */}
-            {isLoading && (
-              <div className="flex min-h-[220px] items-center justify-center">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-600" />
 
-                  <span>
-                    Loading day book...
-                  </span>
-                </div>
-              </div>
+            {isLoading && (
+              <tbody>
+                <tr>
+                  <td
+                    colSpan={
+                      fields.length || 1
+                    }
+                    className="h-[220px] align-middle"
+                  >
+                    <div className="flex items-center justify-center">
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-emerald-600" />
+
+                        <span>
+                          Loading day book...
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
             )}
 
             {/* =================================================
                 DATA
                 ================================================= */}
+
             {!isLoading &&
               rows.length > 0 && (
-                <div>
+                <tbody>
                   {rows.map(
                     (
                       row,
                       index,
                     ) => (
-                      <div
+                      <tr
                         key={
                           row?._id ||
                           row?.id ||
                           `day-book-row-${index}`
                         }
-                        className="grid items-center border-b border-slate-100 px-4 last:border-b-0 odd:bg-white even:bg-slate-50 hover:bg-slate-50"
-                        style={{
-                          gridTemplateColumns,
-                          minHeight: '52px',
-                        }}
+                        className="
+                          h-[52px]
+                          border-b
+                          border-slate-100
+                          last:border-b-0
+                          odd:bg-white
+                          even:bg-slate-50
+                          hover:bg-slate-50
+                        "
                       >
                         {fields.map(
                           (
@@ -954,17 +992,24 @@ function DayBookPage({ companyId }) {
                              * ONLY SHOW VIEW BUTTON
                              * =================================================
                              */
+
                             if (
                               clickable
                             ) {
                               return (
-                                <div
+                                <td
                                   key={
                                     field
                                   }
-                                  className={
-                                    tableCellClass
-                                  }
+                                  className="
+                                    h-[52px]
+                                    overflow-hidden
+                                    border-r
+                                    border-slate-100
+                                    px-3
+                                    align-middle
+                                    last:border-r-0
+                                  "
                                 >
                                   <button
                                     type="button"
@@ -978,7 +1023,7 @@ function DayBookPage({ companyId }) {
                                   >
                                     View
                                   </button>
-                                </div>
+                                </td>
                               )
                             }
 
@@ -987,19 +1032,33 @@ function DayBookPage({ companyId }) {
                              * NORMAL COLUMNS
                              * =================================================
                              */
+
                             return (
-                              <div
+                              <td
                                 key={
                                   field
                                 }
-                                className={
-                                  tableCellClass
-                                }
+                                className="
+                                  h-[52px]
+                                  overflow-hidden
+                                  border-r
+                                  border-slate-100
+                                  px-3
+                                  align-middle
+                                  last:border-r-0
+                                "
                               >
                                 <div
-                                  className={
-                                    tableTextClass
-                                  }
+                                  className="
+                                    w-full
+                                    overflow-hidden
+                                    truncate
+                                    whitespace-nowrap
+                                    text-left
+                                    text-xs
+                                    leading-5
+                                    text-slate-700
+                                  "
                                   title={
                                     typeof value ===
                                     'object'
@@ -1018,36 +1077,50 @@ function DayBookPage({ companyId }) {
                                     field,
                                   )}
                                 </div>
-                              </div>
+                              </td>
                             )
                           },
                         )}
-                      </div>
+                      </tr>
                     ),
                   )}
-                </div>
+                </tbody>
               )}
 
             {/* =================================================
                 EMPTY
                 ================================================= */}
+
             {!isLoading &&
               rows.length === 0 && (
-                <div className="flex min-h-[220px] flex-col items-center justify-center text-center">
-                  <div className="text-sm font-medium text-slate-500">
-                    NA
-                  </div>
-                </div>
+                <tbody>
+                  <tr>
+                    <td
+                      colSpan={
+                        fields.length || 1
+                      }
+                      className="h-[220px] align-middle"
+                    >
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <div className="text-sm font-medium text-slate-500">
+                          NA
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
               )}
-          </div>
+          </table>
         </div>
 
         {/* =================================================
             PAGINATION FOOTER
             ================================================= */}
+
         <footer className="flex flex-wrap items-center justify-center gap-6 border-t border-slate-100 px-6 py-4">
 
           {/* RECORD COUNT */}
+
           <span className="text-xs text-slate-600">
             {totalItems > 0
               ? `${recordStart}-${recordEnd} of ${totalItems}`
@@ -1055,9 +1128,11 @@ function DayBookPage({ companyId }) {
           </span>
 
           {/* PAGINATION BUTTONS */}
+
           <div className="flex items-center gap-2">
 
             {/* PREVIOUS */}
+
             <button
               type="button"
               disabled={
@@ -1079,6 +1154,7 @@ function DayBookPage({ companyId }) {
             </button>
 
             {/* PAGE NUMBERS */}
+
             {pageItems.map(
               (
                 pageNumber,
@@ -1121,6 +1197,7 @@ function DayBookPage({ companyId }) {
             )}
 
             {/* NEXT */}
+
             <button
               type="button"
               disabled={
@@ -1148,6 +1225,7 @@ function DayBookPage({ companyId }) {
       {/* ==================================================
           INTERNAL DATA MODAL
           ================================================== */}
+
       {selectedPopup && (
         <div
           className="fixed inset-x-0 bottom-0 top-16 z-[200] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-[2px]"
@@ -1168,11 +1246,13 @@ function DayBookPage({ companyId }) {
           }}
         >
           {/* MODAL */}
+
           <div className="flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
 
             {/* =================================================
                 MODAL HEADER
                 ================================================= */}
+
             <div className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
@@ -1183,6 +1263,7 @@ function DayBookPage({ companyId }) {
               </div>
 
               {/* X BUTTON */}
+
               <button
                 type="button"
                 onClick={() =>
@@ -1201,6 +1282,7 @@ function DayBookPage({ companyId }) {
             {/* =================================================
                 MODAL BODY
                 ================================================= */}
+
             <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-5">
               {renderPopupValue(
                 selectedPopup.value,
@@ -1210,6 +1292,7 @@ function DayBookPage({ companyId }) {
             {/* =================================================
                 MODAL FOOTER
                 ================================================= */}
+
             <div className="flex items-center justify-end border-t border-slate-200 bg-white px-5 py-3">
               <button
                 type="button"
