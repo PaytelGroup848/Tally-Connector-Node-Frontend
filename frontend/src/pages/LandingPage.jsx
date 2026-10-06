@@ -9,14 +9,16 @@ import gstFeatureImage from "../assets/Control-Books-Website-Image-6 (3).png";
 import reportsFeatureImage from "../assets/Control-Books-Website-Image-7 (2).png";
 import Dashboard from "../assets/DashboardImage.png";
 import DashboardInlaptop from "../assets/Control-Books-Laptop-Screen-Image-2 (1).png";
-import test2 from "../assets/New-Testimonial-Review-Card-2.png";
-import test3 from "../assets/New-Testimonial-Review-Card-3.png";
-import test4 from "../assets/New-Testimonial-Review-Card-4.png";
-import test5 from "../assets/New-Testimonial-Review-Card-5.png";
-import test6 from "../assets/New-Testimonial-Review-Card-6.png";
-import test7 from "../assets/New-Testimonial-Review-Card-7.png";
-import test8 from "../assets/New-Testimonial-Review-Card-8.png";
-import test9 from "../assets/New-Testimonial-Review-Card-9.png";
+import test2 from "../assets/New Testimonial-Review-Card-1.png";
+import test3 from "../assets/New-Testimonial-Review-Card-2 (2).png";
+import test4 from "../assets/New-Testimonial-Review-Card-3 (2).png";
+import test5 from "../assets/New-Testimonial-Review-Card-8 (2).png";
+import test6 from "../assets/New-Testimonial-Review-Card-5 (2).png";
+import test7 from "../assets/New-Testimonial-Review-Card-10.png";
+import test8 from "../assets/New-Testimonial-Review-Card-4 (2).png";
+import test9 from "../assets/New-Testimonial-Review-Card-6 (2).png";
+import test10 from "../assets/New-Testimonial-Review-Card-7 (2).png";
+import test11 from "../assets/New-Testimonial-Review-Card-9 (2).png";
 import {
   ArrowRight,
   Download,
@@ -42,6 +44,7 @@ import {
   Play,
   ArrowUpRight,
   IndianRupee,
+  Zap,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 const features = [
@@ -112,27 +115,12 @@ const testimonialImages = [
   test7,
   test8,
   test9,
+  test10,
+  test11,
 ];
 
 const planData = [
-  {
-    id: "6aa0ea17710906eea178f546",
-    name: "Growth",
-    description: "Read-Only Access",
-    features: [
-      "COMPANY_READ",
-      "LEDGER_READ",
-      "CUSTOMER_READ",
-      "SUPPLIER_READ",
-      "STOCK_READ",
-      "VOUCHER_READ",
-      "REPORTS_READ",
-      "CONNECTOR_STATUS",
-    ],
-    seatLimit: 1,
-    price: 3000,
-    billingText: "/ year",
-  },
+
   {
     id: "6aa0ea43710906eea178f548",
     name: "Pro",
@@ -152,32 +140,9 @@ const planData = [
       "SYNC_STOCK",
     ],
     seatLimit: 2,
-    price: 5000,
+    price: 3000,
     billingText: "/ year",
     highlighted: true,
-  },
-  {
-    id: "6aa0ea55710906eea178f54a",
-    name: "Pro Plus",
-    description: "E-Way & E-Invoices",
-    features: [
-      "COMPANY_READ",
-      "LEDGER_READ",
-      "CUSTOMER_READ",
-      "SUPPLIER_READ",
-      "STOCK_READ",
-      "VOUCHER_READ",
-      "REPORTS_READ",
-      "CONNECTOR_STATUS",
-      "COMMAND_CREATE",
-      "SYNC_LEDGER",
-      "SYNC_VOUCHER",
-      "SYNC_STOCK",
-      "SYNC_MASTER",
-    ],
-    seatLimit: 2,
-    price: 7000,
-    billingText: "/ year",
   },
 ];
 
@@ -275,7 +240,12 @@ function App() {
             >
               Features
             </button>
-
+            <button
+              onClick={() => scrollTo("pricing")}
+              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
+            >
+              Pricing
+            </button>
             {/* <button
               onClick={() => scrollTo("pricing")}
               className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
@@ -302,7 +272,7 @@ function App() {
           <div className="hidden items-center gap-3 lg:flex">
             <button
               onClick={goToLogin}
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-8"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-emerald-800 mr-8"
             >
               Start using CtrlBooks
 
@@ -311,7 +281,7 @@ function App() {
                 className="transition group-hover:translate-x-1"
               />
             </button>
-            <div className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-[#4fb31d]">
+            <div className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-emerald-800">
               <a
                 href="http://191.44.87.205:8000/downloads/CtrlBooks_Setup_v1.0.2.exe"
                 download
@@ -345,7 +315,7 @@ function App() {
             <div className=" flex flex-col gap-3 sm:flex-row sm:justify-center">
               <button
                 onClick={goToLogin}
-                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-1 py-1 text-xs font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-1"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-1 py-1 text-xs font-bold text-white shadow-xl shadow-green-100 transition hover:bg-emerald-800 mr-1"
               >
                 Start using CtrlBooks
               </button>
@@ -403,8 +373,8 @@ function App() {
               {[
                 ["Home", "home"],
                 ["Features", "features"],
-                ["Product", "product"],
-                // ["Pricing", "pricing"],
+                 ["Pricing", "pricing"],
+                ["Testimonials", "testimonials"],
                 ["FAQ", "faq"],
               ].map(([label, id]) => (
                 <button
@@ -464,9 +434,9 @@ function App() {
 
           <div className="absolute right-[-100px] top-0 h-96 w-96 rounded-full bg-lime-100/50 blur-3xl" />
 
-          <div className="relative mx-auto flex max-w-7xl items-start gap-2 px-4 py-8 sm:px-6 lg:gap-14 lg:px-8 lg:py-10">
+          <div className="relative mx-auto flex max-w-7xl items-start gap-2 px-4 py-8 sm:px-6 lg:gap-10 lg:px-8 lg:py-10">
             {/* Left */}
-            <div className="max-w-xl text-left w-93">
+            <div className="w-full max-w-lg shrink-0 text-left lg:w-[42%]">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-bold text-green-700">
                 <span className="h-2 w-2 rounded-full bg-emerald-700" />
                 Business data on mobile & web
@@ -488,7 +458,7 @@ function App() {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-start">
                 <button
                   onClick={goToLogin}
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-[#4eaf1c] mr-8"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-emerald-800 mr-8"
                 >
                   Start using CtrlBooks
 
@@ -497,8 +467,6 @@ function App() {
                     className="transition group-hover:translate-x-1"
                   />
                 </button>
-
-
               </div>
 
               <div className="mt-8 grid max-w-lg grid-cols-2 gap-4 sm:grid-cols-3">
@@ -508,8 +476,11 @@ function App() {
               </div>
             </div>
 
-            <div className="flex items-start justify-center lg:justify-end">
-              <DashboardPreview />
+            {/* Right - More Width */}
+            <div className="flex min-w-0 flex-1 items-start justify-center lg:justify-end">
+              <div className="w-full lg:max-w-3xl">
+                <DashboardPreview />
+              </div>
             </div>
           </div>
         </section>
@@ -586,7 +557,38 @@ function App() {
                 );
               })}
             </div>
+            {/* ================= PRICING ================= */}
+            <section
+              id="pricing"
+              className="bg-[#f7fbf7] px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+            >
+              <div className="mx-auto max-w-7xl">
+                <SectionHeading
+                  eyebrow="PRICING"
+                  title="Choose the right plan for your business"
+                  description="Simple and transparent pricing with powerful business and Tally management features."
+                />
 
+                <div className="mx-auto mt-14 flex max-w-7xl gap-6 justify-center">
+                  {planData.map((plan) => (
+                    <PriceCard
+                      key={plan.id}
+                      title={plan.name}
+                      price={`₹${formatPrice(plan.price)}`}
+                      description={
+                        plan.name === "Pro"
+                          ? "Complete Tally Sync & Management"
+                          : plan.description
+                      }
+                      features={plan.features}
+                      highlighted={plan.highlighted}
+                      seatLimit={plan.seatLimit}
+                      additionalUserPrice={3000}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
             <FeatureShowcase
               activeFeature={activeFeature}
               setActiveFeature={setActiveFeature}
@@ -645,7 +647,7 @@ function App() {
 
               <button
                 onClick={() => scrollTo("contact")}
-                className="mt-9 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#4eaf1c]"
+                className="mt-9 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-emerald-800"
               >
                 Explore CtrlBooks
                 <ArrowRight size={17} />
@@ -678,7 +680,7 @@ function App() {
                 {testimonialImages.map((image, index) => (
                   <div
                     key={index}
-                    className="min-w-full shrink-0 px-2 sm:px-4"
+                    className="min-w-full shrink-0 px-2 lg:px-4"
                   >
                     <div className="flex h-[280px] w-full items-center justify-center overflow-hidden rounded-2xl shadow-sm sm:h-[380px] lg:h-[700px]">
                       <img
@@ -727,8 +729,8 @@ function App() {
                     type="button"
                     onClick={() => setCurrentTestimonial(index)}
                     className={`h-2.5 rounded-full transition-all duration-300 ${index === currentTestimonial
-                        ? "w-6 bg-emerald-700"
-                        : "w-2.5 bg-slate-300"
+                      ? "w-6 bg-emerald-700"
+                      : "w-2.5 bg-slate-300"
                       }`}
                     aria-label={`Show testimonial ${index + 1}`}
                   />
@@ -767,33 +769,6 @@ function App() {
           </div>
         </section>
 
-        {/* ================= PRICING ================= */}
-        {/* <section
-          id="pricing"
-          className="bg-white px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
-        >
-          <div className="mx-auto max-w-7xl">
-            <SectionHeading
-              eyebrow="PLANS"
-              title=""
-              description="Flexible access for businesses that want their data available across web and mobile."
-            />
-
-            <div className="mx-auto mt-14 grid max-w-6xl gap-6 md:grid-cols-3">
-              {planData.map((plan) => (
-                <PriceCard
-                  key={plan.id}
-                  title={plan.name}
-                  price={`₹${formatPrice(plan.price)}`}
-                  description={plan.description}
-                  features={plan.features}
-                  highlighted={plan.highlighted}
-                  billingText={plan.billingText}
-                />
-              ))}
-            </div>
-          </div>
-        </section> */}
 
         {/* ================= FAQ ================= */}
         <section
@@ -1611,84 +1586,156 @@ function DarkStat({
   );
 }
 
+const featureLabels = {
+  COMPANY_READ: "Read Company",
+  LEDGER_READ: "Read Ledger",
+  CUSTOMER_READ: "Read Customers",
+  SUPPLIER_READ: "Read Suppliers",
+  STOCK_READ: "Read Stock",
+  VOUCHER_READ: "Read Vouchers",
+  REPORTS_READ: "Access Reports",
+  CONNECTOR_STATUS: "Connector Status",
+  COMMAND_CREATE: "Create Entries",
+  SYNC_LEDGER: "Sync Ledgers",
+  SYNC_VOUCHER: "Sync Vouchers",
+  SYNC_STOCK: "Sync Stock",
+  SYNC_MASTER: "Sync Masters",
+};
+
 function PriceCard({
   title,
   price,
   description,
   features,
   highlighted = false,
-  billingText = "/ month",
+  seatLimit = 1,
+  additionalUserPrice = 3000,
 }) {
   return (
     <div
-      className={`relative flex h-full flex-col rounded-[26px] border p-6 transition duration-300 ${highlighted
-        ? "border-[#61c928] bg-[#f7fff3] shadow-[0_18px_45px_rgba(97,201,40,0.14)]"
-        : "border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
+      className={`relative flex h-full flex-col rounded-[24px] border-2 p-5 transition duration-300 sm:p-6 ${highlighted
+        ? "border-emerald-700 bg-white shadow-[0_20px_50px_rgba(97,201,40,0.12)]"
+        : "border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]"
         }`}
     >
+      {/* Popular Badge */}
       {highlighted && (
-        <div className="absolute right-5 top-5 inline-flex items-center justify-center rounded-full bg-emerald-700 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-white shadow-lg shadow-green-100">
-          Popular
+        <div className="absolute right-4 top-4 rounded-full bg-emerald-700 px-4 py-1.5 text-[9px] font-black uppercase tracking-wide text-white">
+          MOST POPULAR
         </div>
       )}
 
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <p className="text-lg font-extrabold text-slate-800">
-          {title}
+      {/* Plan Header */}
+      <div className="flex items-center gap-3 pr-28">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#eaffbf] text-[#4d9619]">
+          <Zap size={23} strokeWidth={2.5} />
+        </div>
+
+        <div>
+          <h3 className="text-lg font-extrabold text-slate-900">
+            {title}
+          </h3>
+
+          <p className="mt-0.5 text-[11px] font-medium text-emerald-700">
+            {description}
+          </p>
+        </div>
+      </div>
+
+      {/* Price */}
+      <div className="mt-10">
+        <div className="flex items-end gap-1">
+          <span className="text-4xl font-black tracking-tight text-[#082f3f] sm:text-[40px]">
+            {price}
+          </span>
+
+          <span className="mb-2 text-[10px] font-medium text-slate-500">
+            /1Y
+          </span>
+        </div>
+
+        <p className="mt-0.5 text-[10px] text-slate-400">
+          + 18% GST at checkout
         </p>
       </div>
 
-      <div className="mb-4 flex items-end gap-1">
-        <span className="text-4xl font-black tracking-tight text-slate-900">
-          {price}
-        </span>
+      {/* Choose Plan */}
+      <button
+        type="button"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[#9feebd] bg-[#f3fff6] px-4 py-3 text-xs font-semibold text-emerald-700 transition hover:bg-[#eaffef]"
+      >
+        Choose Plan
+        <ArrowRight size={15} />
+      </button>
 
-        {price !== "Custom" && (
-          <span className="mb-1 text-xs font-semibold text-slate-500">
-            {billingText}
-          </span>
-        )}
+      {/* Divider */}
+      <div className="my-3 h-px bg-slate-200" />
+
+      {/* Included Header */}
+      <div className="flex items-center justify-between gap-3">
+        <h4 className="text-sm font-extrabold text-slate-800">
+          What's included
+        </h4>
+
+        <div className="flex items-center gap-1 text-[10px] font-medium text-slate-400">
+          <Users size={12} />
+          {seatLimit} {seatLimit === 1 ? "User" : "Users"}
+        </div>
       </div>
 
-      <p className="min-h-[48px] text-sm leading-6 text-slate-500">
-        {description}
-      </p>
-
-      <div className="my-6 h-px bg-slate-200" />
-
-      <div className="space-y-3">
+      {/* Features */}
+      <div className="mt-4 grid grid-cols-1 gap-x-5 gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => (
           <div
             key={feature}
-            className="flex items-start gap-2.5"
+            className="flex min-w-0 items-start gap-1.5"
           >
-            <Check
-              size={16}
-              className="mt-0.5 shrink-0 text-emerald-700"
-            />
+            <span className="mt-[1px] flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#ddfae8] text-emerald-600">
+              <Check size={10} strokeWidth={3} />
+            </span>
 
-            <span className="text-xs font-medium leading-6 text-slate-600">
-              {feature}
+            <span className="text-[10px] font-medium leading-4 text-slate-600">
+              {featureLabels[feature] ||
+                feature
+                  .replaceAll("_", " ")
+                  .toLowerCase()
+                  .replace(/\b\w/g, (char) => char.toUpperCase())}
             </span>
           </div>
         ))}
       </div>
 
-      <button
-        className={`mt-auto w-full rounded-xl py-3 text-sm font-bold transition ${highlighted
-          ? "bg-emerald-700 text-white hover:bg-[#4eaf1c]"
-          : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-          }`}
-      >
-        Choose plan
-      </button>
+      {/* Additional User */}
+      <div className="mt-5 rounded-xl border border-[#d5f4de] bg-[#f5fff7] px-3 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-700">
+              Additional User
+            </p>
+
+            <p className="mt-0.5 text-[9px] text-slate-500">
+              Per additional user
+            </p>
+          </div>
+
+          <div className="text-right">
+            <span className="text-sm font-black text-slate-900">
+              ₹{formatPrice(additionalUserPrice)}
+            </span>
+
+            <span className="ml-1 text-[9px] text-slate-500">
+              / User
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 function DashboardPreview() {
   return (
-    <div className="hidden lg:block rounded-[30px] border border-[#dfeae3] bg-[#eef6ee] shadow-[0_20px_55px_rgba(13,58,77,0.12)] sm:p-3">  
+    <div className="hidden lg:block rounded-[30px] border border-[#dfeae3] bg-[#eef6ee] shadow-[0_20px_55px_rgba(13,58,77,0.12)] sm:p-3">
       <img className="lg:w-full h-[700px]" src={DashboardInlaptop} alt="Dashboard Preview" />
     </div>
   );

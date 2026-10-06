@@ -3,6 +3,7 @@ import DateRangePicker from '../components/DateRangePicker';
 import useAuthStore from '../store/authStore';
 import { Pencil, X } from 'lucide-react'
 import {
+  deleteCompanyCommand,
   extractCommands,
   extractLedgerPagination,
   extractStockItems,
@@ -24,6 +25,15 @@ const columns = [
   { key: 'godown', label: 'Godown' },
   { key: 'createdAt', label: 'Created At' },
   { key: 'updatedAt', label: 'Updated At' },
+  { key: 'action', label: 'Action' },
+];
+
+const stockCommandColumns = [
+  { key: 'status', label: 'Status' },
+  { key: 'payload', label: 'Details' },
+  { key: 'result', label: 'Result' },
+  { key: 'errorMessage', label: 'Error Message' },
+  { key: 'createdAt', label: 'Created At' },
   { key: 'action', label: 'Action' },
 ];
 
@@ -100,6 +110,27 @@ function formatItemValue(value, key) {
   return String(value);
 }
 
+function getStockCommandValue(command, key) {
+  const aliases = {
+    status: ['status', 'state', 'commandStatus', 'command_status'],
+    payload: ['payload', 'data'],
+    result: ['result', 'response'],
+    errorMessage: ['errorMessage', 'error_message', 'error', 'message'],
+    createdAt: ['createdAt', 'created_at', 'submittedAt', 'submitted_at'],
+  };
+  const matchingKey = aliases[key]?.find(
+    (alias) => command?.[alias] !== undefined && command?.[alias] !== null,
+  );
+
+  return matchingKey ? command[matchingKey] : null;
+}
+
+function formatStockCommandValue(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
 function isCreatedAtInRange(item, startDate, endDate) {
   const createdAt = getItemValue(item, 'createdAt');
 
@@ -120,7 +151,7 @@ function isCreatedAtInRange(item, startDate, endDate) {
 function ItemsPage({ companyId, myStockItems = false }) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const visibleColumns = myStockItems
-    ? columns.filter((column) => column.key !== 'action')
+    ? stockCommandColumns
     : columns;
 
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -150,6 +181,8 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [detailDialog, setDetailDialog] = useState(null);
+  const [deletingCommandId, setDeletingCommandId] = useState('');
 
   useEffect(() => {
     if (!accessToken || !companyId) {
@@ -171,16 +204,20 @@ function ItemsPage({ companyId, myStockItems = false }) {
     setIsLoading(true);
     setErrorMessage('');
 
-    Promise.allSettled([
-      fetchCompanyStock(accessToken, companyId, {
+    const stockRequest = myStockItems
+      ? Promise.resolve(null)
+      : fetchCompanyStock(accessToken, companyId, {
         page: currentPage,
         limit: pageSize,
         q: query,
-        startDate: myStockItems ? undefined : startDate || undefined,
-        endDate: myStockItems ? undefined : endDate || undefined,
-      }),
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      });
+
+    Promise.allSettled([
+      stockRequest,
       fetchCompanyCommands(accessToken, companyId, {
-        type: 'UPDATE_STOCK_ITEM',
+        type: myStockItems ? 'CREATE_STOCK_ITEM' : '',
         page: currentPage,
         limit: pageSize,
         q: query,
@@ -189,12 +226,25 @@ function ItemsPage({ companyId, myStockItems = false }) {
       .then(([stockResult, commandResult]) => {
         if (!isMounted) return;
 
+        if (
+          (myStockItems && commandResult.status === 'rejected') ||
+          (!myStockItems &&
+            stockResult.status === 'rejected' &&
+            commandResult.status === 'rejected')
+        ) {
+          throw commandResult.status === 'rejected'
+            ? commandResult.reason
+            : stockResult.reason;
+        }
+
         const stockItemsFromApi = stockResult.status === 'fulfilled'
           ? extractStockItems(stockResult.value)
           : [];
 
         const commandItemsFromApi = commandResult.status === 'fulfilled'
           ? extractCommands(commandResult.value).map((command) => {
+            if (myStockItems) return command;
+
             const payload = command?.payload || command?.data?.payload || command?.data || command || {};
 
             if (!payload || typeof payload !== 'object') return null;
@@ -208,13 +258,15 @@ function ItemsPage({ companyId, myStockItems = false }) {
           }).filter(Boolean)
           : [];
 
-        const mergedItems = [...stockItemsFromApi, ...commandItemsFromApi].filter((item, index, arr) => {
+        const mergedItems = myStockItems
+          ? commandItemsFromApi
+          : [...stockItemsFromApi, ...commandItemsFromApi].filter((item, index, arr) => {
           const key = item?._id || item?.id || item?.tallyExternalId || item?.itemTallyExternalId || `${item?.itemName || ''}-${item?.godown || ''}-${item?.quantity || ''}`;
           return key && arr.findIndex((candidate) => {
             const candidateKey = candidate?._id || candidate?.id || candidate?.tallyExternalId || candidate?.itemTallyExternalId || `${candidate?.itemName || ''}-${candidate?.godown || ''}-${candidate?.quantity || ''}`;
             return candidateKey && candidateKey === key;
           }) === index;
-        });
+          });
 
         const filteredItems = (!myStockItems && startDate && endDate)
           ? mergedItems.filter((item) => isCreatedAtInRange(item, startDate, endDate))
@@ -374,6 +426,33 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
     setIsEditOpen(true);
   };
+  const handleDeleteCommand = async (command) => {
+    const commandId =
+      command?._id ||
+      command?.commandId ||
+      command?.command_id ||
+      command?.id;
+
+    if (!commandId || deletingCommandId) return;
+    if (!window.confirm('Delete this pending command?')) return;
+
+    try {
+      setDeletingCommandId(String(commandId));
+      setErrorMessage('');
+      await deleteCompanyCommand(accessToken, companyId, commandId);
+      setStockItems((currentItems) =>
+        currentItems.filter((item) => String(
+          item?._id || item?.commandId || item?.command_id || item?.id,
+        ) !== String(commandId)),
+      );
+      setTotalItems((currentTotal) => Math.max(0, currentTotal - 1));
+    } catch (error) {
+      setErrorMessage(error?.message || 'Unable to delete command.');
+    } finally {
+      setDeletingCommandId('');
+    }
+  };
+
   const handleUpdateStockItem = async () => {
     if (!accessToken || !companyId) {
       setErrorMessage('Please select a company before updating the item.');
@@ -647,6 +726,83 @@ function ItemsPage({ companyId, myStockItems = false }) {
                     "
                   >
                     {visibleColumns.map((column) => {
+                      if (myStockItems && column.key === 'action') {
+                        const status = String(
+                          getStockCommandValue(item, 'status') || '',
+                        ).toLowerCase();
+                        const commandId =
+                          item?._id ||
+                          item?.commandId ||
+                          item?.command_id ||
+                          item?.id;
+
+                        return (
+                          <td key={column.key} className="px-4 py-3">
+                            {status === 'pending' && commandId ? (
+                              <button
+                                type="button"
+                                disabled={deletingCommandId === String(commandId)}
+                                onClick={() => handleDeleteCommand(item)}
+                                className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {deletingCommandId === String(commandId)
+                                  ? 'Deleting...'
+                                  : 'Delete'}
+                              </button>
+                            ) : null}
+                          </td>
+                        );
+                      }
+
+                      if (myStockItems) {
+                        const value = getStockCommandValue(item, column.key);
+                        const isViewable =
+                          value !== null &&
+                          value !== undefined &&
+                          value !== '' &&
+                          (typeof value === 'object' ||
+                            column.key === 'errorMessage');
+
+                        return (
+                          <td key={column.key} className="px-4 py-3">
+                            {column.key === 'status' ? (
+                              <span className={`font-semibold ${
+                                String(value || '').toLowerCase() === 'pending'
+                                  ? 'text-amber-600'
+                                  : String(value || '').toLowerCase() === 'failed'
+                                    ? 'text-red-600'
+                                    : String(value || '').toLowerCase() === 'done'
+                                      ? 'text-emerald-600'
+                                      : 'text-slate-600'
+                              }`}>
+                                {formatStockCommandValue(value)}
+                              </span>
+                            ) : column.key === 'createdAt' ? (
+                              formatItemValue(value, 'createdAt')
+                            ) : isViewable ? (
+                              <button
+                                type="button"
+                                onClick={() => setDetailDialog({
+                                  title: column.label,
+                                  value,
+                                })}
+                                className="rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700"
+                              >
+                                {column.key === 'payload'
+                                  ? 'View details'
+                                  : column.key === 'errorMessage'
+                                    ? 'View error'
+                                    : 'View result'}
+                              </button>
+                            ) : (
+                              <span className="whitespace-pre-wrap break-words">
+                                {formatStockCommandValue(value)}
+                              </span>
+                            )}
+                          </td>
+                        );
+                      }
+
                       if (column.key === 'action') {
                         return (
                           <td key={column.key} className="px-4 py-3">
@@ -699,7 +855,9 @@ function ItemsPage({ companyId, myStockItems = false }) {
                       text-slate-500
                     "
                   >
-                    No stock data available.
+                    {myStockItems
+                      ? 'No stock item commands found.'
+                      : 'No stock data available.'}
                   </td>
                 </tr>
               )}
@@ -778,6 +936,30 @@ function ItemsPage({ companyId, myStockItems = false }) {
             } of ${totalItems}`}
         </div>
       </section>
+      {detailDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <h2 className="text-sm font-semibold text-slate-800">
+                {detailDialog.title}
+              </h2>
+              <button
+                type="button"
+                aria-label="Close details"
+                onClick={() => setDetailDialog(null)}
+                className="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <pre className="overflow-auto whitespace-pre-wrap break-words p-5 text-xs text-slate-700">
+              {typeof detailDialog.value === 'string'
+                ? detailDialog.value
+                : JSON.stringify(detailDialog.value, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )}
       {isEditOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-2xl rounded-xl bg-white shadow-2xl">

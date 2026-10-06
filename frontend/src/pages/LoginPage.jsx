@@ -678,7 +678,7 @@ const LoginPage = () => {
             <img
               src={logo}
               alt="CtrlBooks logo"
-              className="
+              className="sm:ml-[8%]
                 h-auto
                 w-50
                 max-w-full
