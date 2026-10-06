@@ -6,6 +6,9 @@ import PlansPage from './pages/PlansPage'
 import useAuthStore from './store/authStore'
 import { useCurrentUser } from './hooks/useCurrentUser'
 import SuperAdminPage from './pages/SuperAdminPage'
+import PrivacyPage from './pages/PrivacyPage'
+import TermsAndConditions from './pages/TermsAndConditions'
+import RefundPolicy from './pages/RefundPolicy'
 function App() {
 
   const [currentPath, setCurrentPath] = useState(
@@ -24,6 +27,18 @@ function App() {
     user?.isSuperAdmin === true ||
     window.localStorage.getItem('isSuperAdmin') === 'true'
 
+    /*
+ * Public Privacy Policy page
+ */
+if (currentPath === '/privacy-policy') {
+  return <PrivacyPage />
+}
+if (currentPath === '/terms-and-conditions') {
+  return <TermsAndConditions />
+}
+if (currentPath === '/refund-policy') {
+  return <RefundPolicy />
+}
   const { isLoading } =
     useCurrentUser()
 

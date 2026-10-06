@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import logoFull from "../assets/Control-Books-Dashboard.png";
 import mobileScreen from "../assets/Control-Books-Mobile-Screen-Website-Image-1.png";
 import invoiceFeatureImage from "../assets/Control-Books-Website-Image-2 (7).png";
@@ -230,6 +230,10 @@ function App() {
     window.history.pushState({}, "", "/login");
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
+  const goToPrivacy = () => {
+    window.history.pushState({}, "", "/privacy-policy")
+    window.dispatchEvent(new PopStateEvent("popstate"))
+  }
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -649,91 +653,90 @@ function App() {
             </div>
           </div>
         </section>
-        
+
 
         {/* ================= TESTIMONIALS ================= */}
         <section
-  id="testimonials"
-  className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
->
-  <div className="mx-auto max-w-7xl">
-    <SectionHeading
-      eyebrow="TESTIMONIALS"
-      title=""
-      description="Teams choose CtrlBooks to simplify daily operations, stay organized, and keep financial visibility in one place."
-    />
+          id="testimonials"
+          className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+        >
+          <div className="mx-auto max-w-7xl">
+            <SectionHeading
+              eyebrow="TESTIMONIALS"
+              title=""
+              description="Teams choose CtrlBooks to simplify daily operations, stay organized, and keep financial visibility in one place."
+            />
 
-    <div className="relative mx-auto mt-10 w-full max-w-5xl overflow-hidden rounded-2xl">
-      {/* Slider */}
-      <div
-        className="flex transition-transform duration-700 ease-in-out"
-        style={{
-          transform: `translateX(-${currentTestimonial * 100}%)`,
-        }}
-      >
-        {testimonialImages.map((image, index) => (
-          <div
-            key={index}
-            className="min-w-full shrink-0 px-2 sm:px-4"
-          >
-            <div className="flex h-[280px] w-full items-center justify-center overflow-hidden rounded-2xl shadow-sm sm:h-[380px] lg:h-[700px]">
-              <img
-                src={image}
-                alt={`Testimonial ${index + 1}`}
-                className="h-full w-full object-contain"
-              />
+            <div className="relative mx-auto mt-10 w-full max-w-5xl overflow-hidden rounded-2xl">
+              {/* Slider */}
+              <div
+                className="flex transition-transform duration-700 ease-in-out"
+                style={{
+                  transform: `translateX(-${currentTestimonial * 100}%)`,
+                }}
+              >
+                {testimonialImages.map((image, index) => (
+                  <div
+                    key={index}
+                    className="min-w-full shrink-0 px-2 sm:px-4"
+                  >
+                    <div className="flex h-[280px] w-full items-center justify-center overflow-hidden rounded-2xl shadow-sm sm:h-[380px] lg:h-[700px]">
+                      <img
+                        src={image}
+                        alt={`Testimonial ${index + 1}`}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Previous Button */}
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentTestimonial((prev) =>
+                    prev === 0 ? testimonialImages.length - 1 : prev - 1
+                  )
+                }
+                className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md transition hover:bg-white sm:left-5"
+                aria-label="Previous testimonial"
+              >
+                ‹
+              </button>
+
+              {/* Next Button */}
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentTestimonial((prev) =>
+                    prev === testimonialImages.length - 1 ? 0 : prev + 1
+                  )
+                }
+                className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md transition hover:bg-white sm:right-5"
+                aria-label="Next testimonial"
+              >
+                ›
+              </button>
+
+              {/* Dots */}
+              <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-sm">
+                {testimonialImages.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setCurrentTestimonial(index)}
+                    className={`h-2.5 rounded-full transition-all duration-300 ${index === currentTestimonial
+                        ? "w-6 bg-emerald-700"
+                        : "w-2.5 bg-slate-300"
+                      }`}
+                    aria-label={`Show testimonial ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Previous Button */}
-      <button
-        type="button"
-        onClick={() =>
-          setCurrentTestimonial((prev) =>
-            prev === 0 ? testimonialImages.length - 1 : prev - 1
-          )
-        }
-        className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md transition hover:bg-white sm:left-5"
-        aria-label="Previous testimonial"
-      >
-        ‹
-      </button>
-
-      {/* Next Button */}
-      <button
-        type="button"
-        onClick={() =>
-          setCurrentTestimonial((prev) =>
-            prev === testimonialImages.length - 1 ? 0 : prev + 1
-          )
-        }
-        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md transition hover:bg-white sm:right-5"
-        aria-label="Next testimonial"
-      >
-        ›
-      </button>
-
-      {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-sm">
-        {testimonialImages.map((_, index) => (
-          <button
-            key={index}
-            type="button"
-            onClick={() => setCurrentTestimonial(index)}
-            className={`h-2.5 rounded-full transition-all duration-300 ${
-              index === currentTestimonial
-                ? "w-6 bg-emerald-700"
-                : "w-2.5 bg-slate-300"
-            }`}
-            aria-label={`Show testimonial ${index + 1}`}
-          />
-        ))}
-      </div>
-    </div>
-  </div>
-</section>
+        </section>
 
         {/* ================= STATS ================= */}
         <section className="bg-emerald-800 px-4 py-16 text-white sm:px-6 lg:px-8">
@@ -980,6 +983,12 @@ function App() {
               >
                 Contact Us
               </button>
+              <button
+                onClick={goToPrivacy}
+                className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
+              >
+                Privacy Policy
+              </button>
             </div>
           </div>
 
@@ -1044,14 +1053,14 @@ function App() {
             {/* Legal Links */}
             <div className="flex flex-wrap justify-center gap-x-7 gap-y-2 text-xs font-semibold">
               <a
-                href="/privacy-policy"
+                href="privacy-policy"
                 className="text-slate-700 transition hover:text-emerald-700"
               >
                 Privacy Policy
               </a>
 
               <a
-                href="/terms-of-service"
+                href="/terms-and-conditions"
                 className="text-slate-700 transition hover:text-emerald-700"
               >
                 Terms & Conditions
@@ -1679,7 +1688,7 @@ function PriceCard({
 
 function DashboardPreview() {
   return (
-    <div className="rounded-[30px] border border-[#dfeae3] bg-[#eef6ee] shadow-[0_20px_55px_rgba(13,58,77,0.12)] sm:p-3">
+    <div className="hidden lg:block rounded-[30px] border border-[#dfeae3] bg-[#eef6ee] shadow-[0_20px_55px_rgba(13,58,77,0.12)] sm:p-3">  
       <img className="lg:w-full h-[700px]" src={DashboardInlaptop} alt="Dashboard Preview" />
     </div>
   );
@@ -1712,7 +1721,7 @@ function SocialIcon({ type }) {
       rel="noreferrer"
       aria-label={`${type === "x" ? "X" : type} social profile`}
       title={type === "x" ? "X" : type}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-900 text-slate-900 transition hover:border-[#4fc52a] hover:bg-[#4fc52a] hover:text-white"
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-900 text-slate-900 transition hover:border-[#4fc52a] hover:bg-emerald-700 hover:text-white"
     >
       {type === "facebook" && (
         <svg {...commonProps}>
