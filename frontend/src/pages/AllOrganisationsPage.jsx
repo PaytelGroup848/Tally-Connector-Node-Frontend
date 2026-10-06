@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight, RefreshCw, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, RefreshCw, Search, X } from 'lucide-react'
 import useAuthStore from '../store/authStore'
-import { fetchSuperAdminOrganizations } from '../services/superAdminApi'
+import {
+	fetchSuperAdminOrganization,
+	fetchSuperAdminOrganizations,
+} from '../services/superAdminApi'
 
 const PAGE_SIZE = 20
 
@@ -19,6 +22,100 @@ function extractOrganizations(response) {
 	]
 
 	return candidates.find(Array.isArray) || []
+}
+
+function getOrganizationId(organization) {
+	return (
+		organization?.id ??
+		organization?._id ??
+		organization?.organizationId ??
+		organization?.organisationId
+	)
+}
+
+function formatDetailValue(value) {
+	if (value === null || value === undefined || value === '') return '-'
+	if (typeof value === 'object') return JSON.stringify(value)
+	return formatCellValue(value)
+}
+
+function OrganizationResponseTables({ data }) {
+	const sections = data && typeof data === 'object'
+		? Object.entries(data)
+		: [['Organization', data]]
+
+	return (
+		<div className="space-y-5">
+			{sections.map(([sectionName, value]) => {
+				const isArray = Array.isArray(value)
+				const isRecord = value !== null && typeof value === 'object' && !isArray
+				const columns = isArray
+					? [...new Set(value.flatMap((row) =>
+						row && typeof row === 'object' && !Array.isArray(row)
+							? Object.keys(row)
+							: [],
+					))]
+					: []
+
+				return (
+					<section key={sectionName}>
+						<h3 className="mb-2 text-sm font-semibold text-[#17355f]">
+							{formatColumnName(sectionName)}
+						</h3>
+						<div className="overflow-x-auto rounded-md border border-slate-200">
+							<table className="w-full border-collapse text-left text-xs">
+								{isArray && columns.length > 0 ? (
+									<>
+										<thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
+											<tr>
+												{columns.map((column) => (
+													<th key={column} className="border-b border-slate-200 px-3 py-2 font-semibold">
+														{formatColumnName(column)}
+													</th>
+												))}
+											</tr>
+										</thead>
+										<tbody className="divide-y divide-slate-100">
+											{value.map((row, index) => (
+												<tr key={String(row?.id ?? row?._id ?? index)}>
+													{columns.map((column) => (
+														<td key={column} className="max-w-[360px] whitespace-pre-wrap break-words px-3 py-2">
+															{formatDetailValue(row?.[column])}
+														</td>
+													))}
+												</tr>
+											))}
+										</tbody>
+									</>
+								) : isRecord ? (
+									<tbody className="divide-y divide-slate-100">
+										{Object.entries(value).map(([key, fieldValue]) => (
+											<tr key={key}>
+												<th className="w-1/3 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-600">
+													{formatColumnName(key)}
+												</th>
+												<td className="whitespace-pre-wrap break-words px-3 py-2 text-slate-700">
+													{formatDetailValue(fieldValue)}
+												</td>
+											</tr>
+										))}
+									</tbody>
+								) : (
+									<tbody>
+										<tr>
+											<td className="px-3 py-2 text-slate-700">
+												{isArray && value.length === 0 ? 'No records.' : formatDetailValue(value)}
+											</td>
+										</tr>
+									</tbody>
+								)}
+							</table>
+						</div>
+					</section>
+				)
+			})}
+		</div>
+	)
 }
 
 /* =========================================================
@@ -153,6 +250,7 @@ const AllOrganisationsPage = () => {
 	const [refreshKey, setRefreshKey] = useState(0)
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
+	const [organizationDetail, setOrganizationDetail] = useState(null)
 
 	useEffect(() => {
 		const controller = new AbortController()
@@ -228,15 +326,16 @@ const AllOrganisationsPage = () => {
 	)
 
 	const columns = useMemo(
-	() => [
-		...new Set(
-			flattenedOrganizations.flatMap(
-				(organization) => Object.keys(organization)
-			)
-		),
-	].filter((column) => column.toLowerCase() !== 'subscription'),
-	[flattenedOrganizations]
-)
+		() => [
+			...new Set([
+				...flattenedOrganizations.flatMap(
+					(organization) => Object.keys(organization)
+				).filter((column) => column.toLowerCase() !== 'subscription'),
+				'Details',
+			]),
+		],
+		[flattenedOrganizations]
+	)
 
 	const hasNextPage =
 		pagination.totalPages !== null
@@ -250,6 +349,48 @@ const AllOrganisationsPage = () => {
 
 		setCurrentPage(1)
 		setAppliedQuery(query.trim())
+	}
+
+	const handleViewDetails = async (organization) => {
+		const organizationId = getOrganizationId(organization)
+
+		if (!organizationId) {
+			setError('Organization ID not found; unable to load its details.')
+			return
+		}
+
+		const detailId = String(organizationId)
+		setOrganizationDetail({
+			id: detailId,
+			name: organization?.name || organization?.organizationName || 'Organization details',
+			loading: true,
+			error: '',
+			data: null,
+		})
+
+		try {
+			const response = await fetchSuperAdminOrganization({
+				accessToken,
+				organizationId: detailId,
+			})
+			const data = response?.data ?? response
+
+			setOrganizationDetail((current) =>
+				current?.id === detailId
+					? { ...current, loading: false, data }
+					: current
+			)
+		} catch (loadError) {
+			setOrganizationDetail((current) =>
+				current?.id === detailId
+					? {
+						...current,
+						loading: false,
+						error: loadError?.message || 'Failed to fetch organization details',
+					}
+					: current
+			)
+		}
 	}
 
 	return (
@@ -415,18 +556,27 @@ const AllOrganisationsPage = () => {
 											className="hover:bg-slate-50/70"
 										>
 
-											{columns.map(
-												(column) => (
-													<td
-														key={column}
-														className="max-w-[320px] truncate whitespace-nowrap px-4 py-3"
-													>
-														{formatCellValue(
-															organization[column]
-														)}
-													</td>
-												)
-											)}
+											{columns.map((column) => (
+												<td
+													key={column}
+													className="max-w-[320px] truncate whitespace-nowrap px-4 py-3"
+												>
+													{column === 'Details' ? (
+														<button
+															type="button"
+															onClick={() => handleViewDetails(organizations[index])}
+															disabled={organizationDetail?.id === String(getOrganizationId(organizations[index])) && organizationDetail.loading}
+															className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-wait disabled:opacity-60"
+														>
+															{organizationDetail?.id === String(getOrganizationId(organizations[index])) && organizationDetail.loading
+																? 'Loading...'
+																: 'View details'}
+														</button>
+													) : (
+														formatCellValue(organization[column])
+													)}
+												</td>
+											))}
 
 										</tr>
 									)
@@ -503,6 +653,40 @@ const AllOrganisationsPage = () => {
 				</footer>
 
 			</div>
+
+			{organizationDetail && (
+				<div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/50 p-4">
+					<section
+						role="dialog"
+						aria-modal="true"
+						aria-labelledby="organization-detail-title"
+						className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl"
+					>
+						<header className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+							<h2 id="organization-detail-title" className="text-base font-semibold text-[#17355f]">
+								{organizationDetail.name}
+							</h2>
+							<button
+								type="button"
+								aria-label="Close organization details"
+								onClick={() => setOrganizationDetail(null)}
+								className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
+							>
+								<X size={18} />
+							</button>
+						</header>
+						<div className="overflow-auto p-5">
+							{organizationDetail.loading ? (
+								<p className="text-sm text-slate-500">Loading organization details...</p>
+							) : organizationDetail.error ? (
+								<p role="alert" className="text-sm text-red-700">{organizationDetail.error}</p>
+							) : (
+								<OrganizationResponseTables data={organizationDetail.data} />
+							)}
+						</div>
+					</section>
+				</div>
+			)}
 		</section>
 	)
 }

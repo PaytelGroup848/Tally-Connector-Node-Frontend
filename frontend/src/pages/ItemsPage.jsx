@@ -261,11 +261,11 @@ function ItemsPage({ companyId, myStockItems = false }) {
         const mergedItems = myStockItems
           ? commandItemsFromApi
           : [...stockItemsFromApi, ...commandItemsFromApi].filter((item, index, arr) => {
-          const key = item?._id || item?.id || item?.tallyExternalId || item?.itemTallyExternalId || `${item?.itemName || ''}-${item?.godown || ''}-${item?.quantity || ''}`;
-          return key && arr.findIndex((candidate) => {
-            const candidateKey = candidate?._id || candidate?.id || candidate?.tallyExternalId || candidate?.itemTallyExternalId || `${candidate?.itemName || ''}-${candidate?.godown || ''}-${candidate?.quantity || ''}`;
-            return candidateKey && candidateKey === key;
-          }) === index;
+            const key = item?._id || item?.id || item?.tallyExternalId || item?.itemTallyExternalId || `${item?.itemName || ''}-${item?.godown || ''}-${item?.quantity || ''}`;
+            return key && arr.findIndex((candidate) => {
+              const candidateKey = candidate?._id || candidate?.id || candidate?.tallyExternalId || candidate?.itemTallyExternalId || `${candidate?.itemName || ''}-${candidate?.godown || ''}-${candidate?.quantity || ''}`;
+              return candidateKey && candidateKey === key;
+            }) === index;
           });
 
         const filteredItems = (!myStockItems && startDate && endDate)
@@ -536,10 +536,10 @@ function ItemsPage({ companyId, myStockItems = false }) {
           />
         )}
       </div>
-<div className="p-10 mb-4 flex flex-wrap items-center gap-4 bg-white">
-          <div className="relative">
-            <input
-              className="
+      <div className="p-10 mb-4 flex flex-wrap items-center gap-4 bg-white">
+        <div className="relative">
+          <input
+            className="
                 h-9
                 w-[min(100%,240px)]
                 rounded-lg
@@ -553,25 +553,25 @@ function ItemsPage({ companyId, myStockItems = false }) {
                 focus:ring-2
                 focus:ring-green-100
               "
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search item name"
-            />
-          </div>
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search item name"
+          />
+        </div>
 
-          <label className="flex items-center gap-2 text-xs text-slate-600">
-            <span>Show</span>
+        <label className="flex items-center gap-2 text-xs text-slate-600">
+          <span>Show</span>
 
-            <select
-              value={pageSize}
-              onChange={(event) => {
-                setPageSize(Number(event.target.value));
-                setCurrentPage(1);
-              }}
-              className="
+          <select
+            value={pageSize}
+            onChange={(event) => {
+              setPageSize(Number(event.target.value));
+              setCurrentPage(1);
+            }}
+            className="
                 h-9
                 rounded-lg
                 border
@@ -581,20 +581,20 @@ function ItemsPage({ companyId, myStockItems = false }) {
                 outline-none
                 focus:border-green-500
               "
-              aria-label="Rows per page"
-            >
-              {[10, 20, 30, 50].map((limit) => (
-                <option key={limit} value={limit}>
-                  {limit}
-                </option>
-              ))}
-            </select>
+            aria-label="Rows per page"
+          >
+            {[10, 20, 30, 50].map((limit) => (
+              <option key={limit} value={limit}>
+                {limit}
+              </option>
+            ))}
+          </select>
 
-            <span>records</span>
-          </label>
+          <span>records</span>
+        </label>
 
-          {!myStockItems && (
-            <button
+        {!myStockItems && (
+          <button
             className="
               ml-auto
               inline-flex
@@ -615,10 +615,10 @@ function ItemsPage({ companyId, myStockItems = false }) {
           >
             <span className="text-sm">+</span>
             Add New Item
-            </button>
-          )}
-          {!myStockItems && (
-            <button
+          </button>
+        )}
+        {!myStockItems && (
+          <button
             type="button"
             className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
             onClick={() => {
@@ -628,9 +628,9 @@ function ItemsPage({ companyId, myStockItems = false }) {
           >
             View status
 
-            </button>
-          )}
-          {/* <button
+          </button>
+        )}
+        {/* <button
             className="
               inline-flex
               items-center
@@ -651,13 +651,13 @@ function ItemsPage({ companyId, myStockItems = false }) {
            
             View PDF
           </button> */}
-        </div>
-    
+      </div>
+
 
       {/* Main Content */}
       <section className="page-card border border-slate-200 bg-white p-4">
         {/* Filters / Actions */}
-        
+
 
         {/* Error */}
         {errorMessage && (
@@ -766,15 +766,14 @@ function ItemsPage({ companyId, myStockItems = false }) {
                         return (
                           <td key={column.key} className="px-4 py-3">
                             {column.key === 'status' ? (
-                              <span className={`font-semibold ${
-                                String(value || '').toLowerCase() === 'pending'
+                              <span className={`font-semibold ${String(value || '').toLowerCase() === 'pending'
                                   ? 'text-amber-600'
                                   : String(value || '').toLowerCase() === 'failed'
                                     ? 'text-red-600'
                                     : String(value || '').toLowerCase() === 'done'
                                       ? 'text-emerald-600'
                                       : 'text-slate-600'
-                              }`}>
+                                }`}>
                                 {formatStockCommandValue(value)}
                               </span>
                             ) : column.key === 'createdAt' ? (
@@ -952,11 +951,82 @@ function ItemsPage({ companyId, myStockItems = false }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <pre className="overflow-auto whitespace-pre-wrap break-words p-5 text-xs text-slate-700">
-              {typeof detailDialog.value === 'string'
-                ? detailDialog.value
-                : JSON.stringify(detailDialog.value, null, 2)}
-            </pre>
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
+              {detailDialog.value &&
+                typeof detailDialog.value === 'object' &&
+                !Array.isArray(detailDialog.value) ? (
+                <table className="w-full border-collapse text-left text-xs">
+                  <tbody className="divide-y divide-slate-100">
+                    {Object.entries(detailDialog.value).map(([key, value]) => (
+                      <tr key={key} className="hover:bg-slate-50">
+                        <th className="w-1/3 bg-slate-50 px-4 py-3 font-semibold text-slate-600">
+                          {key
+                            .replace(/([a-z])([A-Z])/g, '$1 $2')
+                            .replace(/[_-]+/g, ' ')
+                            .replace(/\b\w/g, (char) => char.toUpperCase())}
+                        </th>
+
+                        <td className="px-4 py-3 text-slate-700">
+                          {value !== null && typeof value === 'object' ? (
+                            <pre className="whitespace-pre-wrap break-words font-mono text-[11px]">
+                              {JSON.stringify(value, null, 2)}
+                            </pre>
+                          ) : (
+                            String(value ?? '—')
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : Array.isArray(detailDialog.value) ? (
+                <table className="w-full border-collapse text-left text-xs">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="border-b border-slate-200 px-4 py-3 font-semibold text-slate-600">
+                        #
+                      </th>
+                      <th className="border-b border-slate-200 px-4 py-3 font-semibold text-slate-600">
+                        Value
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y divide-slate-100">
+                    {detailDialog.value.map((item, index) => (
+                      <tr key={index} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-500">
+                          {index + 1}
+                        </td>
+
+                        <td className="px-4 py-3 text-slate-700">
+                          {typeof item === 'object' ? (
+                            <pre className="whitespace-pre-wrap break-words font-mono text-[11px]">
+                              {JSON.stringify(item, null, 2)}
+                            </pre>
+                          ) : (
+                            String(item ?? '—')
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <table className="w-full border-collapse text-left text-xs">
+                  <tbody>
+                    <tr>
+                      <th className="w-1/3 bg-slate-50 px-4 py-3 font-semibold text-slate-600">
+                        Value
+                      </th>
+                      <td className="px-4 py-3 whitespace-pre-wrap break-words text-slate-700">
+                        {String(detailDialog.value ?? '—')}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         </div>
       )}

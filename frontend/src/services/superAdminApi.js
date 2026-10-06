@@ -78,6 +78,38 @@ export async function fetchSuperAdminOrganizations({
   return data;
 }
 
+export async function fetchSuperAdminOrganization({
+  accessToken,
+  organizationId,
+  signal,
+}) {
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/super-admin/organizations/${encodeURIComponent(organizationId)}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      signal,
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data?.success === false) {
+    throw new Error(data?.message || "Failed to fetch organization details");
+  }
+
+  return data;
+}
+
 export async function fetchSuperAdminPlans({ accessToken, signal }) {
   if (!accessToken) {
     throw new Error("Access token not found");

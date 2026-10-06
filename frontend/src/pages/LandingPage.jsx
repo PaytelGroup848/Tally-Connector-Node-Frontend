@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import logoFull from "../assets/Control-Books-Dashboard.png";
+import PrivacyPage from "./PrivacyPage";
+import TermsAndConditions from "./TermsAndConditions";
+import RefundPolicy from "./RefundPolicy";
 import mobileScreen from "../assets/Control-Books-Mobile-Screen-Website-Image-1.png";
 import invoiceFeatureImage from "../assets/Control-Books-Website-Image-2 (7).png";
 import inactiveFeatureImage from "../assets/Control-Books-Website-Image-3 (2).png";
@@ -150,6 +153,7 @@ const formatPrice = (value) =>
   new Intl.NumberFormat("en-IN").format(value);
 
 function App() {
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState(null);
 
@@ -190,16 +194,74 @@ function App() {
       });
     });
   };
+  const [currentPath, setCurrentPath] = useState(
+    window.location.pathname
+  );
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+      window.scrollTo(0, 0);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  const navigateTo = (path) => {
+    if (window.location.pathname === path) {
+      return;
+    }
+
+    window.history.pushState({}, "", path);
+
+    setCurrentPath(path);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
+    setMobileOpen(false);
+  };
 
   const goToLogin = () => {
-    window.history.pushState({}, "", "/login");
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigateTo("/login");
   };
+
   const goToPrivacy = () => {
-    window.history.pushState({}, "", "/privacy-policy")
-    window.dispatchEvent(new PopStateEvent("popstate"))
+    navigateTo("/privacy-policy");
+  };
+
+  const goToTerms = () => {
+    navigateTo("/terms-and-conditions");
+  };
+
+  const goToRefund = () => {
+    navigateTo("/refund-policy");
+  };
+
+  const goToHome = () => {
+    navigateTo("/");
+  };
+  if (currentPath === "/privacy-policy") {
+    return <PrivacyPage onBack={goToHome} />;
   }
 
+  if (currentPath === "/terms-and-conditions") {
+    return <TermsAndConditions onBack={goToHome} />;
+  }
+
+  if (currentPath === "/refund-policy") {
+    return <RefundPolicy onBack={goToHome} />;
+  }
+
+  if (currentPath === "/login") {
+    return <LoginPage onBack={goToHome} />;
+  }
   return (
     <div className="min-h-screen bg-white text-slate-900">
       {/* ================= HEADER ================= */}
@@ -373,7 +435,7 @@ function App() {
               {[
                 ["Home", "home"],
                 ["Features", "features"],
-                 ["Pricing", "pricing"],
+                ["Pricing", "pricing"],
                 ["Testimonials", "testimonials"],
                 ["FAQ", "faq"],
               ].map(([label, id]) => (
@@ -1027,26 +1089,29 @@ function App() {
 
             {/* Legal Links */}
             <div className="flex flex-wrap justify-center gap-x-7 gap-y-2 text-xs font-semibold">
-              <a
-                href="privacy-policy"
+              <button
+                type="button"
+                onClick={goToPrivacy}
                 className="text-slate-700 transition hover:text-emerald-700"
               >
                 Privacy Policy
-              </a>
+              </button>
 
-              <a
-                href="/terms-and-conditions"
+              <button
+                type="button"
+                onClick={goToTerms}
                 className="text-slate-700 transition hover:text-emerald-700"
               >
                 Terms & Conditions
-              </a>
+              </button>
 
-              <a
-                href="/refund-policy"
+              <button
+                type="button"
+                onClick={goToRefund}
                 className="text-slate-700 transition hover:text-emerald-700"
               >
                 Refund Policy
-              </a>
+              </button>
             </div>
           </div>
         </div>

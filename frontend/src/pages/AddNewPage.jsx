@@ -24,13 +24,13 @@ function getPageMeta(path = '') {
       subtitle: 'Create a new stock item',
       fields: [
         { key: 'itemName', label: 'Item Name', placeholder: 'Enter item name' },
-        { key: 'Quantity', label: 'Quantity', placeholder: 'Enter quantity' },
-        { key: 'Rate', label: 'Rate', placeholder: 'Enter rate' },
-        { key: 'Value', label: 'Value', placeholder: 'Enter value' },
+        { key: 'quantity', label: 'Quantity', placeholder: 'Enter quantity' },
+        { key: 'rate', label: 'Rate', placeholder: 'Enter rate' },
+        { key: 'value', label: 'Value', placeholder: 'Enter value' },
         { key: 'hsnCode', label: 'HSN Code', placeholder: 'Enter HSN code' },
         { key: 'unit', label: 'Unit', placeholder: 'e.g. Nos, Kg' },
-        { key: 'Batch', label: 'Batch', placeholder: 'Enter batch number' },
-        { key: 'Godown', label: 'Godown', placeholder: 'Enter godown name' },
+        { key: 'batch', label: 'Batch', placeholder: 'Enter batch number' },
+        { key: 'godown', label: 'Godown', placeholder: 'Enter godown name' },
       ],
     }
   }
@@ -86,7 +86,8 @@ function getPageMeta(path = '') {
 function AddNewPage({ path, companyId }) {
   const meta = getPageMeta(path)
   const accessToken = useAuthStore((state) => state.accessToken)
-  const isItemPage = path.toLowerCase().includes('/items/add-new')
+  const isItemPage =
+    path.toLowerCase().replace(/\/+$/, '') === '/items/add-new'
   const [formValues, setFormValues] = useState({})
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -125,9 +126,13 @@ function AddNewPage({ path, companyId }) {
         type: 'CREATE_STOCK_ITEM',
         payload: {
           itemName,
+          quantity: Number(formValues.quantity) || 0,
+          rate: Number(formValues.rate) || 0,
+          value: Number(formValues.value) || 0,
           hsnCode: String(formValues.hsnCode || '').trim(),
           unit: String(formValues.unit || '').trim(),
-          openingStock: Number(formValues.openingStock) || 0,
+          batch: String(formValues.batch || '').trim(),
+          godown: String(formValues.godown || '').trim(),
         },
       })
 
@@ -138,6 +143,11 @@ function AddNewPage({ path, companyId }) {
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const handleViewStatus = () => {
+    window.history.pushState({}, '', '/my-stock-items')
+    window.dispatchEvent(new PopStateEvent('popstate'))
   }
 
   return (
@@ -185,13 +195,52 @@ function AddNewPage({ path, companyId }) {
             </button>
           </div>
 
-          {(errorMessage || successMessage) && (
-            <p className={`mt-4 text-right text-sm ${errorMessage ? 'text-red-600' : 'text-emerald-600'}`}>
-              {errorMessage || successMessage}
+          {errorMessage && (
+            <p role="alert" className="mt-4 text-right text-sm text-red-600">
+              {errorMessage}
             </p>
           )}
         </div>
       </div>
+
+      {successMessage && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/50 p-4">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="item-created-title"
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
+          >
+            <div className="text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-2xl font-semibold text-emerald-700">
+                ✓
+              </div>
+              <h2 id="item-created-title" className="mt-4 text-lg font-semibold text-slate-900">
+                Item created successfully
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                You can check the item creation status in My Stock Items.
+              </p>
+            </div>
+            <div className="mt-6 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSuccessMessage('')}
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={handleViewStatus}
+                className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+              >
+                View Status
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   )
 }
