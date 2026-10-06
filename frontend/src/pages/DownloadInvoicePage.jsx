@@ -79,8 +79,8 @@ function DownloadInvoicePage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-100 rounded-lg">
-              <Receipt className="w-6 h-6 text-blue-600" />
+            <div className="p-2.5 bg-emerald-700 rounded-lg">
+              <Receipt className="w-6 h-6 text-emerald-100" />
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
@@ -91,14 +91,14 @@ function DownloadInvoicePage() {
               </p>
             </div>
           </div>
-          <button
+          {/* <button
             onClick={() => loadInvoices(page)}
             disabled={loading}
             className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-60 transition self-start"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
-          </button>
+          </button> */}
         </div>
 
         {/* Error state */}
