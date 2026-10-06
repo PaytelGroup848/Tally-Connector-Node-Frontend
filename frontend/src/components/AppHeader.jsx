@@ -1,18 +1,7 @@
 ﻿import { useEffect, useRef, useState } from "react";
-import {
-  ChevronDown,
-  Menu,
-  Search,
-  Smartphone,
-  User,
-} from "lucide-react";
+import { ChevronDown, Menu, Search, Smartphone, User } from "lucide-react";
 
-const profileItems = [
-  "Profile",
-  "All User",
-  // "Download Invoice",
-  "Logout",
-];
+const profileItems = ["Profile", "All User", "Download Invoice", "Logout"];
 
 /* ============================================================
    CONNECTOR STATUS
@@ -35,10 +24,7 @@ function ConnectorStatusButton({
     const handleOutsideClick = (event) => {
       if (!open) return;
 
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target)
-      ) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpen(false);
       }
     };
@@ -47,21 +33,13 @@ function ConnectorStatusButton({
     document.addEventListener("mousedown", handleOutsideClick);
 
     return () => {
-      window.removeEventListener(
-        "popstate",
-        handleRouteChange,
-      );
+      window.removeEventListener("popstate", handleRouteChange);
 
-      document.removeEventListener(
-        "mousedown",
-        handleOutsideClick,
-      );
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [open]);
 
-  const syncMeta = Array.isArray(lastSyncMeta)
-    ? lastSyncMeta[0]
-    : lastSyncMeta;
+  const syncMeta = Array.isArray(lastSyncMeta) ? lastSyncMeta[0] : lastSyncMeta;
 
   const lastSyncValue =
     syncMeta?.completedAt ||
@@ -102,19 +80,11 @@ function ConnectorStatusButton({
   const getStatusType = (status) => {
     const statusKey = String(status || "").toLowerCase();
 
-    if (
-      ["online", "active", "connected"].includes(
-        statusKey,
-      )
-    ) {
+    if (["online", "active", "connected"].includes(statusKey)) {
       return "online";
     }
 
-    if (
-      ["offline", "inactive", "disconnected"].includes(
-        statusKey,
-      )
-    ) {
+    if (["offline", "inactive", "disconnected"].includes(statusKey)) {
       return "offline";
     }
 
@@ -184,12 +154,12 @@ function ConnectorStatusButton({
   const overallStatusType =
     rows.length > 0
       ? getStatusType(
-        rows.find((row) =>
-          ["online", "active", "connected"].includes(
-            String(row?.status || "").toLowerCase(),
-          ),
-        )?.status || rows[0]?.status,
-      )
+          rows.find((row) =>
+            ["online", "active", "connected"].includes(
+              String(row?.status || "").toLowerCase(),
+            ),
+          )?.status || rows[0]?.status,
+        )
       : "unknown";
 
   return (
@@ -457,9 +427,7 @@ function ConnectorStatusButton({
                   uppercase
                   tracking-wide
 
-                  ${getStatusBadgeClass(
-                  overallStatusType,
-                )}
+                  ${getStatusBadgeClass(overallStatusType)}
                 `}
               >
                 {overallStatusType}
@@ -568,11 +536,7 @@ function ConnectorStatusButton({
                       font-semibold
                       uppercase
 
-                      ${getStatusBadgeClass(
-                      getStatusType(
-                        syncMeta?.status,
-                      ),
-                    )}
+                      ${getStatusBadgeClass(getStatusType(syncMeta?.status))}
                     `}
                   >
                     {syncMeta?.status || "N/A"}
@@ -636,17 +600,13 @@ function ConnectorStatusButton({
                     connector?.connectorName ||
                     `Connector ${index + 1}`;
 
-                  const status =
-                    connector?.status || "UNKNOWN";
+                  const status = connector?.status || "UNKNOWN";
 
-                  const statusType =
-                    getStatusType(status);
+                  const statusType = getStatusType(status);
 
-                  const statusDotClass =
-                    getStatusDotClass(statusType);
+                  const statusDotClass = getStatusDotClass(statusType);
 
-                  const statusBadgeClass =
-                    getStatusBadgeClass(statusType);
+                  const statusBadgeClass = getStatusBadgeClass(statusType);
 
                   const heartbeat =
                     connector?.lastHeartbeatAt ||
@@ -654,10 +614,9 @@ function ConnectorStatusButton({
                     connector?.heartbeatAt ||
                     null;
 
-                  const connectionClass =
-                    getConnectionTextClass(
-                      connector?.tallyConnected,
-                    );
+                  const connectionClass = getConnectionTextClass(
+                    connector?.tallyConnected,
+                  );
 
                   return (
                     <div
@@ -743,11 +702,9 @@ function ConnectorStatusButton({
                               ${connectionClass}
                             `}
                           >
-                            {connector?.tallyConnected ===
-                              true
+                            {connector?.tallyConnected === true
                               ? "Connected"
-                              : connector?.tallyConnected ===
-                                false
+                              : connector?.tallyConnected === false
                                 ? "Disconnected"
                                 : "N/A"}
                           </p>
@@ -824,28 +781,24 @@ function AppHeader({
 
   const companies = Array.isArray(companyOptions)
     ? companyOptions.filter((company) => {
-      const name = String(
-        company?.name ||
-        company?.companyName ||
-        "",
-      )
-        .trim()
-        .toLowerCase();
+        const name = String(company?.name || company?.companyName || "")
+          .trim()
+          .toLowerCase();
 
-      if (!name) return false;
+        if (!name) return false;
 
-      const dummyNames = [
-        "dummy",
-        "dummy company",
-        "unnamed company",
-        "test",
-        "test company",
-        "na",
-        "n/a",
-      ];
+        const dummyNames = [
+          "dummy",
+          "dummy company",
+          "unnamed company",
+          "test",
+          "test company",
+          "na",
+          "n/a",
+        ];
 
-      return !dummyNames.includes(name);
-    })
+        return !dummyNames.includes(name);
+      })
     : [];
 
   /* ============================================================
@@ -867,31 +820,16 @@ function AppHeader({
       setShowProfileMenu(false);
     };
 
-    window.addEventListener(
-      "popstate",
-      handleRouteClose,
-    );
+    window.addEventListener("popstate", handleRouteClose);
 
-    document.addEventListener(
-      "mousedown",
-      handleOutsideClick,
-    );
+    document.addEventListener("mousedown", handleOutsideClick);
 
     return () => {
-      window.removeEventListener(
-        "popstate",
-        handleRouteClose,
-      );
+      window.removeEventListener("popstate", handleRouteClose);
 
-      document.removeEventListener(
-        "mousedown",
-        handleOutsideClick,
-      );
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
-  }, [
-    setShowCompanyMenu,
-    setShowProfileMenu,
-  ]);
+  }, [setShowCompanyMenu, setShowProfileMenu]);
 
   /* ============================================================
      DROPDOWN TOGGLES
@@ -1027,11 +965,7 @@ function AppHeader({
               type="button"
               aria-label="Toggle sidebar"
               aria-expanded={!sidebarCollapsed}
-              onClick={() =>
-                setSidebarCollapsed(
-                  (current) => !current,
-                )
-              }
+              onClick={() => setSidebarCollapsed((current) => !current)}
               className="
                 flex
                 h-10
@@ -1093,15 +1027,9 @@ function AppHeader({
             <button
               type="button"
               aria-label={
-                selectedCompany
-                  ? "Select company"
-                  : "No company selected"
+                selectedCompany ? "Select company" : "No company selected"
               }
-              aria-expanded={
-                selectedCompany
-                  ? showCompanyMenu
-                  : false
-              }
+              aria-expanded={selectedCompany ? showCompanyMenu : false}
               onClick={toggleCompanyMenu}
               disabled={!selectedCompany}
               className={`
@@ -1123,12 +1051,13 @@ function AppHeader({
                 sm:gap-3
                 sm:px-5
 
-                ${selectedCompany
-                  ? `
+                ${
+                  selectedCompany
+                    ? `
                       cursor-pointer
                       hover:bg-black/[0.03]
                     `
-                  : `
+                    : `
                       cursor-not-allowed
                       bg-black/[0.04]
                     `
@@ -1166,9 +1095,7 @@ function AppHeader({
                     text-gray-500
                   "
                 >
-                  {selectedCompany?.meta ||
-                    selectedCompany?.city ||
-                    ""}
+                  {selectedCompany?.meta || selectedCompany?.city || ""}
                 </span>
               </span>
 
@@ -1184,10 +1111,7 @@ function AppHeader({
 
                     transition-transform
 
-                    ${showCompanyMenu
-                      ? "rotate-180"
-                      : ""
-                    }
+                    ${showCompanyMenu ? "rotate-180" : ""}
                   `}
                 />
               )}
@@ -1197,10 +1121,9 @@ function AppHeader({
                 COMPANY DROPDOWN
             =================================================== */}
 
-            {showCompanyMenu &&
-              selectedCompany && (
-                <div
-                  className="
+            {showCompanyMenu && selectedCompany && (
+              <div
+                className="
                     absolute
                     left-2
                     top-[62px]
@@ -1221,11 +1144,11 @@ function AppHeader({
 
                     shadow-lg
                   "
-                >
-                  <div className="relative z-10">
-                    {/* DROPDOWN HEADER */}
-                    <div
-                      className="
+              >
+                <div className="relative z-10">
+                  {/* DROPDOWN HEADER */}
+                  <div
+                    className="
                         border-b
                         border-black/[0.06]
 
@@ -1234,9 +1157,9 @@ function AppHeader({
                         px-4
                         py-3
                       "
-                    >
-                      <p
-                        className="
+                  >
+                    <p
+                      className="
                           m-0
 
                           text-[10px]
@@ -1246,68 +1169,51 @@ function AppHeader({
 
                           text-emerald-700
                         "
-                      >
-                        My Companies
-                      </p>
-                    </div>
+                    >
+                      My Companies
+                    </p>
+                  </div>
 
-                    {/* COMPANY LIST */}
-                    {companies.length > 0 ? (
-                      <div
-                        className="
+                  {/* COMPANY LIST */}
+                  {companies.length > 0 ? (
+                    <div
+                      className="
                         glass-scrollbar
                          max-h-[320px]
                          overflow-y-auto
                         p-1.5"
+                    >
+                      {companies.map((company, index) => {
+                        const companyId = getCompanyId(company);
 
-                      >
-                        {companies.map(
-                          (company, index) => {
-                            const companyId =
-                              getCompanyId(
-                                company,
-                              );
+                        const key =
+                          companyId ||
+                          company?.name ||
+                          company?.companyName ||
+                          `company-${index}`;
 
-                            const key =
-                              companyId ||
-                              company?.name ||
-                              company?.companyName ||
-                              `company-${index}`;
+                        const selectedCompanyId = getCompanyId(selectedCompany);
 
-                            const selectedCompanyId =
-                              getCompanyId(
-                                selectedCompany,
-                              );
+                        const isSelected =
+                          companyId &&
+                          selectedCompanyId &&
+                          String(companyId) === String(selectedCompanyId);
 
-                            const isSelected =
-                              companyId &&
-                              selectedCompanyId &&
-                              String(companyId) ===
-                              String(
-                                selectedCompanyId,
-                              );
+                        const companyName =
+                          company?.name || company?.companyName || "";
 
-                            const companyName =
-                              company?.name ||
-                              company?.companyName ||
-                              "";
+                        const companyMeta =
+                          company?.meta ||
+                          company?.city ||
+                          company?.address ||
+                          "";
 
-                            const companyMeta =
-                              company?.meta ||
-                              company?.city ||
-                              company?.address ||
-                              "";
-
-                            return (
-                              <button
-                                type="button"
-                                key={key}
-                                onClick={() =>
-                                  handleCompanySelect(
-                                    company,
-                                  )
-                                }
-                                className={`
+                        return (
+                          <button
+                            type="button"
+                            key={key}
+                            onClick={() => handleCompanySelect(company)}
+                            className={`
                                   flex
                                   w-full
 
@@ -1323,21 +1229,22 @@ function AppHeader({
 
                                   transition-all
 
-                                  ${isSelected
-                                    ? `
+                                  ${
+                                    isSelected
+                                      ? `
                                         bg-emerald-300/[0.08]
 
                                         shadow-[inset_0_1px_0_rgba(0,0,0,0.04)]
                                       `
-                                    : `
+                                      : `
                                         hover:bg-black/[0.03]
                                       `
                                   }
                                 `}
-                              >
-                                {/* COMPANY ICON */}
-                                <span
-                                  className={`
+                          >
+                            {/* COMPANY ICON */}
+                            <span
+                              className={`
                                     flex
                                     h-9
                                     w-9
@@ -1351,8 +1258,9 @@ function AppHeader({
                                     text-xs
                                     font-bold
 
-                                    ${isSelected
-                                      ? `
+                                    ${
+                                      isSelected
+                                        ? `
                                           border
                                           border-emerald-300/[0.12]
 
@@ -1360,7 +1268,7 @@ function AppHeader({
 
                                           text-emerald-800
                                         `
-                                      : `
+                                        : `
                                           border
                                           border-black/[0.06]
 
@@ -1370,35 +1278,33 @@ function AppHeader({
                                         `
                                     }
                                   `}
-                                >
-                                  {companyName
-                                    .trim()
-                                    .charAt(0)
-                                    .toUpperCase()}
-                                </span>
+                            >
+                              {companyName.trim().charAt(0).toUpperCase()}
+                            </span>
 
-                                {/* COMPANY DETAILS */}
-                                <span className="min-w-0 flex-1">
-                                  <span
-                                    className={`
+                            {/* COMPANY DETAILS */}
+                            <span className="min-w-0 flex-1">
+                              <span
+                                className={`
                                       block
                                       truncate
 
                                       text-xs
                                       font-semibold
 
-                                      ${isSelected
-                                        ? "text-emerald-800"
-                                        : "text-gray-800"
+                                      ${
+                                        isSelected
+                                          ? "text-emerald-800"
+                                          : "text-gray-800"
                                       }
                                     `}
-                                  >
-                                    {companyName}
-                                  </span>
+                              >
+                                {companyName}
+                              </span>
 
-                                  {companyMeta && (
-                                    <span
-                                      className="
+                              {companyMeta && (
+                                <span
+                                  className="
                                         mt-0.5
                                         block
                                         truncate
@@ -1407,16 +1313,16 @@ function AppHeader({
 
                                         text-gray-500
                                       "
-                                    >
-                                      {companyMeta}
-                                    </span>
-                                  )}
+                                >
+                                  {companyMeta}
                                 </span>
+                              )}
+                            </span>
 
-                                {/* SELECTED CHECK */}
-                                {isSelected && (
-                                  <span
-                                    className="
+                            {/* SELECTED CHECK */}
+                            {isSelected && (
+                              <span
+                                className="
                                       flex
                                       h-5
                                       w-5
@@ -1435,30 +1341,28 @@ function AppHeader({
 
                                       shadow-[0_0_12px_rgba(52,211,153,0.25)]
                                     "
-                                  >
-                                    ✓
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          },
-                        )}
-                      </div>
-                    ) : (
-                      <div className="px-4 py-6 text-center">
-                        <p className="text-sm font-medium text-gray-600">
-                          No companies available
-                        </p>
+                              >
+                                ✓
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-6 text-center">
+                      <p className="text-sm font-medium text-gray-600">
+                        No companies available
+                      </p>
 
-                        <p className="mt-1 text-[11px] text-gray-400">
-                          No companies were found for
-                          your account.
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                      <p className="mt-1 text-[11px] text-gray-400">
+                        No companies were found for your account.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+            )}
           </div>
 
           {/* ==================================================
@@ -1565,12 +1469,8 @@ function AppHeader({
               <ConnectorStatusButton
                 rows={connectorStatusRows}
                 lastSyncMeta={lastSyncMeta}
-                connectorStatusError={
-                  connectorStatusError
-                }
-                isConnectorStatusLoading={
-                  isConnectorStatusLoading
-                }
+                connectorStatusError={connectorStatusError}
+                isConnectorStatusLoading={isConnectorStatusLoading}
               />
             </div>
 
@@ -1662,10 +1562,7 @@ function AppHeader({
 
                     sm:block
 
-                    ${showProfileMenu
-                      ? "rotate-180"
-                      : ""
-                    }
+                    ${showProfileMenu ? "rotate-180" : ""}
                   `}
                 />
               </button>
@@ -1707,9 +1604,7 @@ function AppHeader({
                       <button
                         key={label}
                         type="button"
-                        onClick={() =>
-                          handleProfileAction(label)
-                        }
+                        onClick={() => handleProfileAction(label)}
                         className="
                           block
                           w-full
@@ -1788,12 +1683,8 @@ function AppHeader({
             <ConnectorStatusButton
               rows={connectorStatusRows}
               lastSyncMeta={lastSyncMeta}
-              connectorStatusError={
-                connectorStatusError
-              }
-              isConnectorStatusLoading={
-                isConnectorStatusLoading
-              }
+              connectorStatusError={connectorStatusError}
+              isConnectorStatusLoading={isConnectorStatusLoading}
             />
           </div>
         </div>
