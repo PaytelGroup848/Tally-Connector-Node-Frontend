@@ -53,7 +53,7 @@ const SuperAdminPage = () => {
             path: '/super-admin/plans',
         },
          {
-            label: 'All Organisations',
+            label: 'All Organisations / Invoices',
                 icon: Building2,
             path: '/super-admin/organisations',
         },
@@ -253,7 +253,7 @@ const SuperAdminPage = () => {
                                 {location.pathname === '/super-admin/plans'
                                     ? 'Plans'
                                     : location.pathname === '/super-admin/organisations'
-                                        ? 'All Organisations'
+                                        ? 'All Organisations / Invoices'
                                         : 'Users'}
                             </h1>
 

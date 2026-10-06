@@ -39,100 +39,249 @@ function formatDetailValue(value) {
 	return formatCellValue(value)
 }
 
+function isHiddenField(key) {
+  const normalizedKey = String(key).toLowerCase().replace(/[^a-z0-9]/g, '')
+
+  return (
+    String(key).toLowerCase() === '__v' ||
+    ['refreshtokenhash', 'createdat', 'updatedat', 'deviceinfo'].includes(normalizedKey) ||
+    HIDDEN_FIELDS.some(
+      (field) => field.toLowerCase() === String(key).toLowerCase()
+    ) ||
+    /(?:^|[_-])id$/i.test(String(key)) ||
+    /(?:Id|ID)$/.test(String(key))
+  )
+}
+
+function removeHiddenFields(value) {
+  if (Array.isArray(value)) {
+    return value.map(removeHiddenFields)
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([key]) => !isHiddenField(key))
+        .map(([key, child]) => [key, removeHiddenFields(child)])
+    )
+  }
+
+  return value
+}
+
+/* =========================================================
+   RECURSIVE TABLE FOR JSON DATA
+========================================================= */
+
+function JsonValueTable({ value }) {
+  if (value === null || value === undefined || value === '') {
+    return (
+      <span className="text-slate-500">
+        -
+      </span>
+    )
+  }
+
+  /* ---------- ARRAY ---------- */
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return (
+        <span className="text-slate-500">
+          No records.
+        </span>
+      )
+    }
+
+    const objectRows = value.filter(
+      (item) =>
+        item !== null &&
+        typeof item === 'object' &&
+        !Array.isArray(item)
+    )
+
+    /* Array of objects -> table */
+    if (objectRows.length > 0) {
+      const columns = [
+        ...new Set(
+          value.flatMap((item) =>
+            item &&
+            typeof item === 'object' &&
+            !Array.isArray(item)
+              ? Object.keys(item).filter(
+                  (key) => !isHiddenField(key)
+                )
+              : []
+          )
+        ),
+      ]
+
+      return (
+        <div className="overflow-x-auto rounded-md border border-slate-200">
+          <table className="w-full border-collapse text-left text-xs">
+            <thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
+              <tr>
+                {columns.map((column) => (
+                  <th
+                    key={column}
+                    className="whitespace-nowrap border-b border-slate-200 px-3 py-2 font-semibold"
+                  >
+                    {formatColumnName(column)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-slate-100">
+              {value.map((row, rowIndex) => (
+                <tr
+                  key={String(
+                    row?.id ??
+                      row?._id ??
+                      rowIndex
+                  )}
+                  className="hover:bg-slate-50/60"
+                >
+                  {columns.map((column) => (
+                    <td
+                      key={column}
+                      className="max-w-[360px] px-3 py-2 align-top break-words"
+                    >
+                      {typeof row?.[column] === 'object' &&
+                      row?.[column] !== null ? (
+                        <JsonValueTable value={row[column]} />
+                      ) : (
+                        formatCellValue(row?.[column])
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+
+    /* Array of primitive values */
+    return (
+      <div className="flex flex-wrap gap-2">
+        {value.map((item, index) => (
+          <span
+            key={index}
+            className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700"
+          >
+            {formatCellValue(item)}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  /* ---------- OBJECT ---------- */
+
+  if (typeof value === 'object') {
+    const entries = Object.entries(value).filter(
+      ([key]) => !isHiddenField(key)
+    )
+
+    if (entries.length === 0) {
+      return (
+        <span className="text-slate-500">
+          -
+        </span>
+      )
+    }
+
+    return (
+      <div className="overflow-x-auto rounded-md border border-slate-200">
+        <table className="w-full border-collapse text-left text-xs">
+          <tbody className="divide-y divide-slate-100">
+            {entries.map(([key, fieldValue]) => (
+              <tr key={key}>
+                <th className="w-[5.5%] bg-slate-50 px-3 py-2 text-left font-semibold text-slate-600">
+                  {formatColumnName(key)}
+                </th>
+
+                <td className="px-3 py-2 align-top text-slate-700">
+                  {typeof fieldValue === 'object' &&
+                  fieldValue !== null ? (
+                    <JsonValueTable value={fieldValue} />
+                  ) : (
+                    formatCellValue(fieldValue)
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  /* ---------- PRIMITIVE ---------- */
+
+  return (
+    <span className="text-slate-700">
+      {formatCellValue(value)}
+    </span>
+  )
+}
+
+
+/* =========================================================
+   ORGANIZATION RESPONSE TABLE
+========================================================= */
+
 function OrganizationResponseTables({ data }) {
-	const sections = data && typeof data === 'object'
-		? Object.entries(data)
-		: [['Organization', data]]
+  if (!data || typeof data !== 'object') {
+    return (
+      <div className="rounded-md border border-slate-200 px-4 py-3 text-sm text-slate-500">
+        No details available.
+      </div>
+    )
+  }
 
-	return (
-		<div className="space-y-5">
-			{sections.map(([sectionName, value]) => {
-				const isArray = Array.isArray(value)
-				const isRecord = value !== null && typeof value === 'object' && !isArray
-				const columns = isArray
-					? [...new Set(value.flatMap((row) =>
-						row && typeof row === 'object' && !Array.isArray(row)
-							? Object.keys(row)
-							: [],
-					))]
-					: []
+  const sections = Object.entries(data).filter(
+    ([sectionName]) => !isHiddenField(sectionName)
+  )
 
-				return (
-					<section key={sectionName}>
-						<h3 className="mb-2 text-sm font-semibold text-[#17355f]">
-							{formatColumnName(sectionName)}
-						</h3>
-						<div className="overflow-x-auto rounded-md border border-slate-200">
-							<table className="w-full border-collapse text-left text-xs">
-								{isArray && columns.length > 0 ? (
-									<>
-										<thead className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
-											<tr>
-												{columns.map((column) => (
-													<th key={column} className="border-b border-slate-200 px-3 py-2 font-semibold">
-														{formatColumnName(column)}
-													</th>
-												))}
-											</tr>
-										</thead>
-										<tbody className="divide-y divide-slate-100">
-											{value.map((row, index) => (
-												<tr key={String(row?.id ?? row?._id ?? index)}>
-													{columns.map((column) => (
-														<td key={column} className="max-w-[360px] whitespace-pre-wrap break-words px-3 py-2">
-															{formatDetailValue(row?.[column])}
-														</td>
-													))}
-												</tr>
-											))}
-										</tbody>
-									</>
-								) : isRecord ? (
-									<tbody className="divide-y divide-slate-100">
-										{Object.entries(value).map(([key, fieldValue]) => (
-											<tr key={key}>
-												<th className="w-1/3 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-600">
-													{formatColumnName(key)}
-												</th>
-												<td className="whitespace-pre-wrap break-words px-3 py-2 text-slate-700">
-													{formatDetailValue(fieldValue)}
-												</td>
-											</tr>
-										))}
-									</tbody>
-								) : (
-									<tbody>
-										<tr>
-											<td className="px-3 py-2 text-slate-700">
-												{isArray && value.length === 0 ? 'No records.' : formatDetailValue(value)}
-											</td>
-										</tr>
-									</tbody>
-								)}
-							</table>
-						</div>
-					</section>
-				)
-			})}
-		</div>
-	)
+  return (
+    <div className="space-y-5">
+      {sections.map(([sectionName, value]) => (
+        <section key={sectionName}>
+          <h3 className="mb-2 text-sm font-semibold text-[#17355f]">
+            {formatColumnName(sectionName)}
+          </h3>
+
+          <JsonValueTable value={value} />
+        </section>
+      ))}
+    </div>
+  )
 }
 
 /* =========================================================
    FLATTEN ORGANIZATION
    Removes all ID fields from table columns
    ========================================================= */
+const HIDDEN_FIELDS = [
+  'id',
+  'extraSeats',
+  '_id',
+  'organizationId',
+  'organisationId',
+  'ownerId',
+  'userId',
+  'memberId',
+  'subscriptionId',
+  'connectorId',
+  'companyId',
+]
 function flattenOrganization(organization, prefix = '', result = {}) {
 	Object.entries(organization || {}).forEach(([key, value]) => {
-		// Remove all common ID fields
-		const normalizedKey = key.toLowerCase()
-
-		if (
-			normalizedKey === 'id' ||
-			normalizedKey === '_id' ||
-			normalizedKey.endsWith('id') ||
-			normalizedKey.endsWith('_id')
-		) {
+		// Hide selected fields
+		if (isHiddenField(key)) {
 			return
 		}
 
@@ -142,7 +291,7 @@ function flattenOrganization(organization, prefix = '', result = {}) {
 			flattenOrganization(value, column, result)
 		} else {
 			result[column] = Array.isArray(value)
-				? JSON.stringify(value)
+				? JSON.stringify(removeHiddenFields(value))
 				: value
 		}
 	})
@@ -403,7 +552,7 @@ const AllOrganisationsPage = () => {
 
 				<div>
 					<h2 className="text-xl font-bold text-[#17355f]">
-						All Organisations
+						All Organisations / Invoices
 					</h2>
 
 					<p className="mt-1 text-sm text-slate-500">
@@ -660,7 +809,7 @@ const AllOrganisationsPage = () => {
 						role="dialog"
 						aria-modal="true"
 						aria-labelledby="organization-detail-title"
-						className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl"
+						className="flex max-h-[85vh] w-full max-w-8xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl"
 					>
 						<header className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
 							<h2 id="organization-detail-title" className="text-base font-semibold text-[#17355f]">
