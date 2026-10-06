@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import SuperAdminUsersPage from './SuperAdminUsersPage'
 import SuperAdminPlansPage from './SuperAdminPlansPage'
-import AllOrganisationsPage from './AllOrganisationsPage'
+import AllOrganisationsPage from './SuperAdminAllOrganisationsPage'
 import {
     Users,
     CreditCard,
@@ -243,7 +243,7 @@ const SuperAdminPage = () => {
                         </button>
 
                         {/* PAGE TITLE */}
-                        <div>
+                        {/* <div>
 
                             <p className="text-[10px] font-semibold uppercase tracking-wider text-[#059669]">
                                 Admin Console
@@ -257,7 +257,7 @@ const SuperAdminPage = () => {
                                         : 'Users'}
                             </h1>
 
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* RIGHT SIDE */}

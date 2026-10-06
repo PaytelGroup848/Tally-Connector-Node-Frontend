@@ -1088,7 +1088,7 @@ const SuperAdminUsersPage = () => {
               </button>
             </form>
 
-            <button
+            {/* <button
               type="button"
               onClick={() =>
                 setShowCreateUser(true)
@@ -1097,7 +1097,7 @@ const SuperAdminUsersPage = () => {
             >
               <Plus className="h-4 w-4" />
               Create User
-            </button>
+            </button> */}
           </div>
         </div>
 

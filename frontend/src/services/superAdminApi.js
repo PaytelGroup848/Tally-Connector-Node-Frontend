@@ -110,6 +110,68 @@ export async function fetchSuperAdminOrganization({
   return data;
 }
 
+export async function createManualSuperAdminSubscription({
+  accessToken,
+  subscription,
+}) {
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/super-admin/subscriptions/manual`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(subscription),
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data?.success === false) {
+    throw new Error(data?.message || "Failed to create manual subscription");
+  }
+
+  return data;
+}
+
+export async function updateSuperAdminSubscription({
+  accessToken,
+  subscriptionId,
+  updates,
+}) {
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
+  if (!subscriptionId) {
+    throw new Error("Subscription ID not found");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/super-admin/subscriptions/${encodeURIComponent(subscriptionId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(updates),
+    },
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data?.success === false) {
+    throw new Error(data?.message || "Failed to update subscription");
+  }
+
+  return data;
+}
+
 export async function fetchSuperAdminPlans({ accessToken, signal }) {
   if (!accessToken) {
     throw new Error("Access token not found");
