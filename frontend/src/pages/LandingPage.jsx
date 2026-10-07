@@ -586,7 +586,7 @@ function App() {
 
           <div className="absolute right-[-100px] top-0 h-96 w-96 rounded-full bg-lime-100/50 blur-3xl" />
 
-          <div className="relative mx-auto flex max-w-7xl items-start gap-2 px-4 py-8 sm:px-6 lg:gap-10 lg:px-8 lg:py-10">
+          <div className="relative mx-auto flex max-w-7xl items-start gap-2 px-4 pt-10 sm:px-6 lg:gap-10 lg:px-8 lg:pt-10">
             {/* Left */}
             <div className="w-full max-w-lg shrink-0 text-left lg:w-[42%]">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-bold text-green-700">
@@ -810,86 +810,45 @@ function App() {
 
 
         {/* ================= TESTIMONIALS ================= */}
-        <section
-          id="testimonials"
-          className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
-        >
-          <div className="mx-auto max-w-7xl">
+        <section id="testimonials" className="bg-slate-50">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionHeading
               eyebrow="TESTIMONIALS"
               title=""
               description="Teams choose CtrlBooks to simplify daily operations, stay organized, and keep financial visibility in one place."
             />
+          </div>
 
-            <div className="relative mx-auto mt-10 w-full max-w-5xl overflow-hidden rounded-2xl">
-              {/* Slider */}
-              <div
-                className="flex transition-transform duration-700 ease-in-out"
-                style={{
-                  transform: `translateX(-${currentTestimonial * 100}%)`,
-                }}
-              >
-                {testimonialImages.map((image, index) => (
-                  <div
-                    key={index}
-                    className="min-w-full shrink-0 px-2 lg:px-4"
-                  >
-                    <div className="flex h-[280px] w-full items-center justify-center overflow-hidden rounded-2xl shadow-sm sm:h-[380px] lg:h-[700px]">
-                      <img
-                        src={image}
-                        alt={`Testimonial ${index + 1}`}
-                        className="h-full w-full object-contain"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className="relative w-full overflow-hidden">
+            <div className="flex w-max gap-0 animate-[testimonialScroll_70s_linear_infinite]">
+              {testimonialImages.map((image, index) => (
+                <img
+                  key={`first-${index}`}
+                  src={image}
+                  alt={`Testimonial ${index + 1}`}
+                  className="block h-[min(70vh,640px)] w-auto max-w-none shrink-0 -mr-8"
+                  loading="lazy"
+                />
+              ))}
 
-              {/* Previous Button */}
-              <button
-                type="button"
-                onClick={() =>
-                  setCurrentTestimonial((prev) =>
-                    prev === 0 ? testimonialImages.length - 1 : prev - 1
-                  )
-                }
-                className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md transition hover:bg-white sm:left-5"
-                aria-label="Previous testimonial"
-              >
-                ‹
-              </button>
-
-              {/* Next Button */}
-              <button
-                type="button"
-                onClick={() =>
-                  setCurrentTestimonial((prev) =>
-                    prev === testimonialImages.length - 1 ? 0 : prev + 1
-                  )
-                }
-                className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md transition hover:bg-white sm:right-5"
-                aria-label="Next testimonial"
-              >
-                ›
-              </button>
-
-              {/* Dots */}
-              <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-sm">
-                {testimonialImages.map((_, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => setCurrentTestimonial(index)}
-                    className={`h-2.5 rounded-full transition-all duration-300 ${index === currentTestimonial
-                      ? "w-6 bg-emerald-700"
-                      : "w-2.5 bg-slate-300"
-                      }`}
-                    aria-label={`Show testimonial ${index + 1}`}
-                  />
-                ))}
-              </div>
+              {testimonialImages.map((image, index) => (
+                <img
+                  key={`second-${index}`}
+                  src={image}
+                  alt={`Testimonial ${index + 1}`}
+                  className="block h-[min(70vh,640px)] w-auto max-w-none shrink-0 -mr-8"
+                  loading="lazy"
+                />
+              ))}
             </div>
           </div>
+
+          <style>{`
+    @keyframes testimonialScroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+  `}</style>
         </section>
 
         {/* ================= STATS ================= */}
@@ -1001,9 +960,7 @@ function App() {
           <div className="mx-auto max-w-7xl overflow-hidden rounded-[30px] bg-emerald-700 px-7 py-14 text-white shadow-2xl shadow-green-100 sm:px-12 lg:px-16">
             <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
               <div>
-                <p className="text-sm font-extrabold tracking-[0.18em] text-green-50">
-                  Start using CtrlBooks
-                </p>
+
 
                 <h2 className="mt-3 max-w-2xl text-3xl font-black leading-tight sm:text-4xl">
                   Keep your business information closer to you.
@@ -1026,9 +983,9 @@ function App() {
           </div>
 
         </section>
-        <section>
+        {/* <section>
           <EnquiryForm />
-        </section>
+        </section> */}
 
         {/* ================= LOGIN ANCHOR ================= */}
         <div id="login" className="h-0" />
@@ -1042,6 +999,8 @@ function App() {
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:px-8 lg:grid-cols-3 lg:gap-16 lg:px-8">
           {/* Grow Your Business */}
           <div>
+            <img src={logoFull} />
+            <img src={CloudeData} className="h-[70px] w-[55%]" />
             <h3 className="text-[22px] font-extrabold text-emerald-700">
               Grow Your Business
             </h3>
@@ -1054,8 +1013,7 @@ function App() {
               <p className="mt-2 text-sm italic text-slate-600">
                 Business made simpler for Business users.
               </p>
-              <img src={logoFull} />
-              <img src={CloudeData} className="h-[70px] w-[55%]"/>
+
             </div>
           </div>
 

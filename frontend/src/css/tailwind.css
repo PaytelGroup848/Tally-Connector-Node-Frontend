@@ -496,6 +496,26 @@
       text-app-text-secondary;
   }
 
+
+.testimonial-marquee {
+  animation: testimonialScroll 35s linear infinite;
+}
+
+@keyframes testimonialScroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.testimonial-marquee:hover {
+  animation-play-state: paused;
+}
+
+
   .voucher-details input,
   .voucher-details select,
   .journal-form input,
