@@ -1186,7 +1186,7 @@ const LoginPage = () => {
                   "
                 >
                   By continuing, you agree to our{" "}
-                  <button
+                  <span
                     type="button"
                     className="
                       border-0
@@ -1197,28 +1197,27 @@ const LoginPage = () => {
                       font-semibold
                       text-[#10a66f]
 
-                      hover:underline
+                      
                     "
                   >
                     Privacy Policy
-                  </button>{" "}
+                  </span>{" "}
                   &{" "}
-                  <button
+                  <span
                     type="button"
                     className="
                       border-0
                       bg-transparent
 
                       p-0
-
+                      
                       font-semibold
                       text-[#10a66f]
 
-                      hover:underline
                     "
                   >
                     Terms of Use
-                  </button>
+                  </span>
                   .
                 </p>
 
@@ -1256,7 +1255,7 @@ const LoginPage = () => {
                   "
                 >
                   Need help?{" "}
-                  <a
+                  <span
                     className="
                       font-semibold
 
@@ -1264,11 +1263,11 @@ const LoginPage = () => {
 
                       no-underline
 
-                      hover:underline
+                     
                     "
                   >
                     +91 9311472355
-                  </a>
+                  </span>
                 </p>
               </div>
             </div>
