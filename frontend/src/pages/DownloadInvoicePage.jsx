@@ -217,7 +217,7 @@ function DownloadInvoicePage() {
                           <button
                             onClick={() => handleDownload(inv)}
                             disabled={downloadingId === inv._id}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-60 disabled:cursor-wait transition"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-red-500 rounded-md hover:bg-red-600 disabled:opacity-60 disabled:cursor-wait transition"
                             title="Download PDF"
                           >
                             {downloadingId === inv._id ? (

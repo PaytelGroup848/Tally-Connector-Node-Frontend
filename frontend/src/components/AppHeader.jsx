@@ -1,6 +1,6 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Menu, Search, Smartphone, User } from "lucide-react";
-
+import { fetchInvoices } from "../services/billingApi";
 const profileItems = ["Profile", "All User", "Download Invoice", "Logout"];
 
 /* ============================================================
@@ -154,12 +154,12 @@ function ConnectorStatusButton({
   const overallStatusType =
     rows.length > 0
       ? getStatusType(
-          rows.find((row) =>
-            ["online", "active", "connected"].includes(
-              String(row?.status || "").toLowerCase(),
-            ),
-          )?.status || rows[0]?.status,
-        )
+        rows.find((row) =>
+          ["online", "active", "connected"].includes(
+            String(row?.status || "").toLowerCase(),
+          ),
+        )?.status || rows[0]?.status,
+      )
       : "unknown";
 
   return (
@@ -767,7 +767,19 @@ function AppHeader({
   isConnectorStatusLoading = false,
 }) {
   const headerRef = useRef(null);
-
+  const [hasInvoices, setHasInvoices] = useState(false);
+  useEffect(() => {
+    fetchInvoices({ page: 1, limit: 1 })
+      .then((data) => {
+        setHasInvoices(
+          Number(data?.total || 0) > 0 ||
+          data?.items?.length > 0
+        );
+      })
+      .catch(() => {
+        setHasInvoices(false);
+      });
+  }, []);
   const getCompanyId = (company) =>
     company?.id ||
     company?._id ||
@@ -781,24 +793,24 @@ function AppHeader({
 
   const companies = Array.isArray(companyOptions)
     ? companyOptions.filter((company) => {
-        const name = String(company?.name || company?.companyName || "")
-          .trim()
-          .toLowerCase();
+      const name = String(company?.name || company?.companyName || "")
+        .trim()
+        .toLowerCase();
 
-        if (!name) return false;
+      if (!name) return false;
 
-        const dummyNames = [
-          "dummy",
-          "dummy company",
-          "unnamed company",
-          "test",
-          "test company",
-          "na",
-          "n/a",
-        ];
+      const dummyNames = [
+        "dummy",
+        "dummy company",
+        "unnamed company",
+        "test",
+        "test company",
+        "na",
+        "n/a",
+      ];
 
-        return !dummyNames.includes(name);
-      })
+      return !dummyNames.includes(name);
+    })
     : [];
 
   /* ============================================================
@@ -1051,13 +1063,12 @@ function AppHeader({
                 sm:gap-3
                 sm:px-5
 
-                ${
-                  selectedCompany
-                    ? `
+                ${selectedCompany
+                  ? `
                       cursor-pointer
                       hover:bg-black/[0.03]
                     `
-                    : `
+                  : `
                       cursor-not-allowed
                       bg-black/[0.04]
                     `
@@ -1229,17 +1240,16 @@ function AppHeader({
 
                                   transition-all
 
-                                  ${
-                                    isSelected
-                                      ? `
+                                  ${isSelected
+                                ? `
                                         bg-emerald-300/[0.08]
 
                                         shadow-[inset_0_1px_0_rgba(0,0,0,0.04)]
                                       `
-                                      : `
+                                : `
                                         hover:bg-black/[0.03]
                                       `
-                                  }
+                              }
                                 `}
                           >
                             {/* COMPANY ICON */}
@@ -1258,9 +1268,8 @@ function AppHeader({
                                     text-xs
                                     font-bold
 
-                                    ${
-                                      isSelected
-                                        ? `
+                                    ${isSelected
+                                  ? `
                                           border
                                           border-emerald-300/[0.12]
 
@@ -1268,7 +1277,7 @@ function AppHeader({
 
                                           text-emerald-800
                                         `
-                                        : `
+                                  : `
                                           border
                                           border-black/[0.06]
 
@@ -1276,7 +1285,7 @@ function AppHeader({
 
                                           text-gray-500
                                         `
-                                    }
+                                }
                                   `}
                             >
                               {companyName.trim().charAt(0).toUpperCase()}
@@ -1292,11 +1301,10 @@ function AppHeader({
                                       text-xs
                                       font-semibold
 
-                                      ${
-                                        isSelected
-                                          ? "text-emerald-800"
-                                          : "text-gray-800"
-                                      }
+                                      ${isSelected
+                                    ? "text-emerald-800"
+                                    : "text-gray-800"
+                                  }
                                     `}
                               >
                                 {companyName}
@@ -1600,12 +1608,14 @@ function AppHeader({
                   "
                 >
                   <div className="relative z-10">
-                    {profileItems.map((label) => (
-                      <button
-                        key={label}
-                        type="button"
-                        onClick={() => handleProfileAction(label)}
-                        className="
+                    {profileItems
+                      .filter((label) => label !== "Download Invoice" || hasInvoices)
+                      .map((label) => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() => handleProfileAction(label)}
+                          className="
                           block
                           w-full
 
@@ -1626,10 +1636,10 @@ function AppHeader({
                           hover:bg-black/[0.04]
                           hover:text-gray-900
                         "
-                      >
-                        {label}
-                      </button>
-                    ))}
+                        >
+                          {label}
+                        </button>
+                      ))}
                   </div>
                 </div>
               )}
