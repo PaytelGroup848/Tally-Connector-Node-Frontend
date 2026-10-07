@@ -346,7 +346,7 @@ export default function EnquiryModal({ isOpen, onClose }) {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-600 py-3 text-sm font-bold text-emerald-950 shadow-md transition hover:brightness-105 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-emerald-950 shadow-md transition hover:brightness-105 disabled:opacity-60"
           >
             {loading ? "Sending..." : "Request Demo"}
             {!loading && <ArrowRight size={14} />}
