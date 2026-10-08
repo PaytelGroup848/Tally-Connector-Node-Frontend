@@ -136,17 +136,17 @@ function InvoiceViewModal({ invoice, onClose, onDownload, isDownloading }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 sm:p-6"
+      className="fixed inset-0 z-5000 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 sm:p-6"
       onClick={onClose}
     >
       <div
-        className="relative bg-white w-full max-w-4xl max-h-[95vh] rounded-xl shadow-2xl overflow-hidden flex flex-col"
+        className="mt-20 relative bg-white w-full max-w-4xl max-h-[95vh] rounded-xl shadow-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-600" />
+            <FileText className="w-5 h-5 text-emerald-600" />
             <h2 className="text-base sm:text-lg font-semibold text-slate-800">
               Tax Invoice — {invoice.invoiceNumber}
             </h2>
@@ -155,7 +155,7 @@ function InvoiceViewModal({ invoice, onClose, onDownload, isDownloading }) {
             <button
               onClick={() => onDownload(invoice)}
               disabled={isDownloading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-60 disabled:cursor-wait transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md disabled:opacity-60 disabled:cursor-wait transition"
             >
               <Download className="w-4 h-4" />
               {isDownloading ? "Downloading..." : "Download"}
