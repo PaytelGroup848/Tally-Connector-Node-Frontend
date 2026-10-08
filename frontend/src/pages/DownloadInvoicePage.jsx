@@ -3,6 +3,7 @@ import {
   FileText,
   Eye,
   Download,
+  FileDown,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -217,7 +218,22 @@ function DownloadInvoicePage() {
                           <button
                             onClick={() => handleDownload(inv)}
                             disabled={downloadingId === inv._id}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-red-500 rounded-md hover:bg-red-600 disabled:opacity-60 disabled:cursor-wait transition"
+                            className="inline-flex
+      h-8
+      items-center
+      justify-center
+      gap-1.5
+      rounded-md
+      border
+      border-red-200
+      bg-white
+      px-3
+      text-xs
+      font-medium
+      text-red-600
+      transition
+      hover:border-red-300
+      hover:bg-red-50"
                             title="Download PDF"
                           >
                             {downloadingId === inv._id ? (
@@ -227,7 +243,7 @@ function DownloadInvoicePage() {
                               </>
                             ) : (
                               <>
-                                <Download className="w-3.5 h-3.5" />
+                                <FileDown className="w-3.5 h-3.5" />
                                 PDF
                               </>
                             )}
