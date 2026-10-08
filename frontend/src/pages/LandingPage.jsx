@@ -174,9 +174,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const [activeFeature, setActiveFeature] = useState(
-    showcaseFeatures[0]?.id || "feature-invoices"
-  );
+  const [activeFeature, setActiveFeature] = useState(null);
   const scrollTo = (id) => {
     setMobileOpen(false);
 
@@ -1259,15 +1257,15 @@ function FeatureCard({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`group w-full rounded-2xl border p-6 text-left transition duration-300 focus:outline-none focus:ring-2 focus:ring-[#61c928]/30 ${active
-        ? "border-[#61c928] bg-[#f7fff3] shadow-xl shadow-green-100/70"
+      className={`group w-full rounded-2xl border p-6 text-left transition duration-300 focus:outline-none focus:ring-[#61c928]/30 ${active
+        ? "border-slate-200 bg-white hover:-translate-y-1 hover:border-green-200 hover:shadow-xl hover:shadow-slate-200/40"
         : "border-slate-200 bg-white hover:-translate-y-1 hover:border-green-200 hover:shadow-xl hover:shadow-slate-200/40"
         }`}
     >
       <div className="flex items-start justify-between gap-4">
         <div
           className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition ${active
-            ? "bg-emerald-700 text-white"
+            ? "bg-green-50 text-emerald-700 group-hover:bg-emerald-700 group-hover:text-white"
             : "bg-green-50 text-emerald-700 group-hover:bg-emerald-700 group-hover:text-white"
             }`}
         >
@@ -1276,7 +1274,7 @@ function FeatureCard({
 
         <div
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition ${active
-            ? "bg-emerald-700 text-white rotate-90"
+            ? "bg-slate-50 text-slate-400 group-hover:bg-green-50 group-hover:text-emerald-700"
             : "bg-slate-50 text-slate-400 group-hover:bg-green-50 group-hover:text-emerald-700"
             }`}
           aria-hidden="true"
@@ -1294,10 +1292,10 @@ function FeatureCard({
       </p>
 
       <div
-        className={`mt-5 text-xs font-black uppercase tracking-[0.14em] transition ${active ? "text-emerald-700" : "text-slate-400 group-hover:text-emerald-700"
+        className={`mt-5 text-xs font-black uppercase tracking-[0.14em] transition ${active ? "text-slate-400 group-hover:text-emerald-700" : "text-slate-400 group-hover:text-emerald-700"
           }`}
       >
-        {active ? "Selected feature" : "View feature"}
+        {active ? "View feature" : "View feature"}
       </div>
     </button>
   );
@@ -1805,7 +1803,7 @@ function PriceCard({
       {/* Features */}
       <div className="mt-4 grid grid-cols-1 gap-x-5 gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => (
-          <div
+          <div  
             key={feature}
             className="flex min-w-0 items-start gap-1.5"
           >
