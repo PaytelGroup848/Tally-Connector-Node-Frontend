@@ -809,7 +809,7 @@ function App() {
 
         {/* ================= TESTIMONIALS ================= */}
         <section id="testimonials" className="bg-slate-50">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="pt-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionHeading
               eyebrow="TESTIMONIALS"
               title=""
