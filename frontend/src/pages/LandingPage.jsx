@@ -710,7 +710,7 @@ function App() {
             {/* ================= PRICING ================= */}
             <section
               id="pricing"
-              className="bg-[#f7fbf7] px-4 py-20 sm:px-6 lg:px-8 lg:py-28"
+              className="bg-[#f7fbf7] px-4 pt-20 sm:px-6 lg:px-8 lg:pt-28"
             >
               <div className="mx-auto max-w-7xl">
                 <SectionHeading
