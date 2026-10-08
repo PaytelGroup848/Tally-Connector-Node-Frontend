@@ -434,7 +434,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
       command?.id;
 
     if (!commandId || deletingCommandId) return;
-    if (!window.confirm('Delete this pending command?')) return;
+    if (!window.confirm('Are you sure, you want to delete this?')) return;
 
     try {
       setDeletingCommandId(String(commandId));

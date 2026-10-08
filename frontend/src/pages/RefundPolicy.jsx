@@ -1,4 +1,6 @@
 import React from "react";
+import HeaderLandingPage from "./HeaderLandingPage";
+import FooterLandingPage from "./FooterLandingPage";
 import {
     FileText,
     Mail,
@@ -35,8 +37,7 @@ const RefundPolicy = () => {
 
     return (
         <div className="min-h-screen bg-[#f6f8fb] text-slate-800">
-            {/* Top Accent */}
-            <div className="h-1 w-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600" />
+           <HeaderLandingPage/>
 
             {/* Header */}
             <header className="border-b border-slate-200 bg-white">
@@ -555,6 +556,7 @@ const RefundPolicy = () => {
                     </article>
                 </div>
             </main>
+            <FooterLandingPage/>
         </div>
     );
 };

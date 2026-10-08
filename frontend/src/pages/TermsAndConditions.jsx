@@ -1,5 +1,7 @@
 
 import React from "react";
+import HeaderLandingPage from "./HeaderLandingPage";
+import FooterLandingPage from "./FooterLandingPage";
 import {
     FileText,
     Mail,
@@ -51,9 +53,7 @@ const TermsAndConditions = () => {
 
     return (
         <div className="min-h-screen bg-[#f6f8fb] text-slate-800">
-            {/* Top Accent */}
-            <div className="h-1 w-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600" />
-
+               <HeaderLandingPage/>
             {/* Header */}
             <header className="border-b border-slate-200 bg-white">
                 <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
@@ -836,6 +836,7 @@ const TermsAndConditions = () => {
                     </article>
                 </div>
             </main>
+            <FooterLandingPage/>
         </div>
     );
 };

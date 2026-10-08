@@ -1,6 +1,7 @@
 import React from "react";
 import { FileText, Mail, Globe, ShieldCheck } from "lucide-react";
-
+import HeaderLandingPage from "./HeaderLandingPage";
+import FooterLandingPage from "./FooterLandingPage";
 const PrivacyPage = () => {
     const sections = [
         { id: "overview", label: "Overview" },
@@ -26,8 +27,8 @@ const PrivacyPage = () => {
 
     return (
         <div className="min-h-screen bg-[#f6f8fb] text-slate-800">
-            {/* Top Accent */}
-            <div className="h-1 w-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600" />
+            <HeaderLandingPage />
+
 
             {/* Hero */}
             <header className="border-b border-slate-200 bg-white">
@@ -56,10 +57,10 @@ const PrivacyPage = () => {
 
                             <p className="mt-2 text-base font-semibold text-slate-900">
                                 {new Date().toLocaleDateString("en-IN", {
-                                                day: "numeric",
-                                                month: "long",
-                                                year: "numeric",
-                                            })}
+                                    day: "numeric",
+                                    month: "long",
+                                    year: "numeric",
+                                })}
                             </p>
 
                             <div className="mt-5 space-y-2 border-t border-slate-200 pt-4">
@@ -478,7 +479,9 @@ const PrivacyPage = () => {
                     </article>
                 </div>
             </main>
+            <FooterLandingPage />
         </div>
+
     );
 };
 

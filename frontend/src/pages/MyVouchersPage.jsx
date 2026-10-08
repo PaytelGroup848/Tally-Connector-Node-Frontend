@@ -412,7 +412,7 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
     const commandId = getCommandId(command)
     if (!commandId || deletingCommandId) return
 
-    if (!window.confirm('Delete this pending command?')) return
+    if (!window.confirm('Are you sure, you want to delete this?')) return
 
     try {
       setDeletingCommandId(String(commandId))

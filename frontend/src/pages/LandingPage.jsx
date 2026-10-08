@@ -1072,12 +1072,12 @@ function App() {
               >
                 Contact Us
               </button>
-              <button
+              {/* <button
                 onClick={goToPrivacy}
                 className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
               >
                 Privacy Policy
-              </button>
+              </button> */}
             </div>
           </div>
 
