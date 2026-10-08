@@ -1777,13 +1777,11 @@ function PriceCard({
       </div>
 
       {/* Choose Plan */}
-      <button
-        type="button"
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[#9feebd] bg-[#f3fff6] px-4 py-3 text-xs font-semibold text-emerald-700 transition hover:bg-[#eaffef]"
+      <div className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[#9feebd] bg-[#f3fff6] px-4 py-3 text-xs font-semibold text-emerald-700 transition hover:bg-[#eaffef]"
       >
         Choose Plan
         <ArrowRight size={15} />
-      </button>
+      </div>
 
       {/* Divider */}
       <div className="my-3 h-px bg-slate-200" />
