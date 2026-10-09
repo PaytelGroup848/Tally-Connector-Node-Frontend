@@ -82,7 +82,80 @@ function getPageMeta(path = '') {
     ],
   }
 }
+// function extractHsnOptions(response) {
+//   if (Array.isArray(response)) return response
 
+//   if (!response || typeof response !== 'object') return []
+
+//   const possibleKeys = [
+//     'results',
+//     'data',
+//     'result',
+//     'hsnList',
+//     'hsnDetails',
+//     'hsnCodes',
+//     'suggestions',
+//     'items',
+//     'records',
+//   ]
+
+//   for (const key of possibleKeys) {
+//     const value = response[key]
+
+//     if (Array.isArray(value) && value.length > 0) {
+//       return value
+//     }
+
+//     if (value && typeof value === 'object') {
+//       const nested = extractHsnOptions(value)
+//       if (nested.length > 0) return nested
+//     }
+//   }
+
+//   return []
+// }
+
+
+// const code =
+//   option?.hsnCode ??
+//   option?.hsncode ??
+//   option?.hsn_code ??
+//   option?.HSNCode ??
+//   option?.HSN_CODE ??
+//   option?.code ??
+//   option?.Code ??
+//   option?.hsn ??
+//   option?.value ??
+//   ''
+
+// const description =
+//   option?.hsnDesc ??
+//   option?.hsnDescription ??
+//   option?.hsn_description ??
+//   option?.description ??
+//   option?.Description ??
+//   option?.desc ??
+//   option?.name ??
+//   option?.text ??
+//   option?.label ??
+//   ''
+
+// return {
+//   code: String(code).trim(),
+//   description: String(description).trim(),
+// }
+// function getHsnOptionDetails(option) {
+//   return {
+//     code: String(option?.c ?? '').trim(),
+//     description: String(option?.n ?? '').trim(),
+//   }
+// }
+function getHsnOptionDetails(option) {
+  return {
+    code: String(option?.c ?? '').trim(),
+    description: String(option?.n ?? '').trim(),
+  }
+}
 function AddNewPage({ path, companyId }) {
   const meta = getPageMeta(path)
   const accessToken = useAuthStore((state) => state.accessToken)
@@ -92,7 +165,86 @@ function AddNewPage({ path, companyId }) {
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+  const [hsnSuggestions, setHsnSuggestions] = useState([])
+  const [isSearchingHsn, setIsSearchingHsn] = useState(false)
+  const [isHsnDropdownOpen, setIsHsnDropdownOpen] = useState(false)
+  const [hsnSearchError, setHsnSearchError] = useState('')
 
+  const hsnQuery = String(formValues.hsnCode || '').trim()
+  const quantity = Number(formValues.quantity) || 0
+  const rate = Number(formValues.rate) || 0
+
+  const calculatedAmount = Number(
+    (quantity * rate).toFixed(2)
+  )
+  useEffect(() => {
+    if (!isItemPage || hsnQuery.length < 3) {
+      setHsnSuggestions([])
+      setIsSearchingHsn(false)
+      setHsnSearchError('')
+      return
+    }
+
+    const controller = new AbortController()
+
+    const timeoutId = window.setTimeout(async () => {
+      setIsSearchingHsn(true)
+      setHsnSearchError('')
+
+      try {
+        const params = new URLSearchParams({
+          inputText: hsnQuery,
+          selectedType: 'byCode',
+          category: 'null',
+        })
+
+        const response = await fetch(
+          `https://services.gst.gov.in/commonservices/hsn/search/qsearch?${params.toString()}`,
+          {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+            },
+            signal: controller.signal,
+          }
+        )
+
+        if (!response.ok) {
+          throw new Error(`HSN search failed (${response.status})`)
+        }
+
+        const result = await response.json()
+
+        // API response: { data: [{ c: '7117', n: 'IMITATION JEWELLERY' }] }
+        const options = Array.isArray(result?.data)
+          ? result.data
+          : []
+
+        setHsnSuggestions(
+          options
+            .filter((option) => option?.c != null && String(option.c).trim())
+            .slice(0, 15)
+        )
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('HSN search error:', error)
+          setHsnSuggestions([])
+          setHsnSearchError(
+            'Unable to load HSN suggestions. Please try again.'
+          )
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSearchingHsn(false)
+        }
+      }
+    }, 350)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      controller.abort()
+    }
+  }, [hsnQuery, isItemPage])
   useEffect(() => {
     setFormValues({})
     setErrorMessage('')
@@ -128,7 +280,7 @@ function AddNewPage({ path, companyId }) {
           itemName,
           quantity: Number(formValues.quantity) || 0,
           rate: Number(formValues.rate) || 0,
-          value: Number(formValues.value) || 0,
+          value: calculatedAmount,
           hsnCode: String(formValues.hsnCode || '').trim(),
           unit: String(formValues.unit || '').trim(),
           batch: String(formValues.batch || '').trim(),
@@ -166,19 +318,119 @@ function AddNewPage({ path, companyId }) {
         <div className="p-6">
           <p className="mb-6 text-sm text-slate-600">{meta.subtitle}</p>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            {meta.fields.map((field) => (
-              <label key={field.label} className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-                {field.label}
-                <input
-                  value={formValues[field.key || field.label] || ''}
-                  onChange={(event) => updateField(field.key || field.label, event.target.value)}
-                  type={field.label.toLowerCase().includes('date') ? 'date' : 'text'}
-                  placeholder={field.placeholder}
-                  className="h-11 rounded-md border border-slate-300 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition focus:border-slate-500 focus:bg-white"
-                />
-              </label>
-            ))}
+          <div className="grid gap-5 md:grid-cols-1">
+            <div className="grid gap-5 md:grid-cols-2">
+              {meta.fields.map((field) => {
+                const fieldKey = field.key || field.label
+                const isCalculatedAmount = isItemPage && fieldKey === 'value'
+
+                return (
+                  <label
+                    key={field.label}
+                    className="flex flex-col gap-2 text-sm font-medium text-slate-700"
+                  >
+                    {field.label}
+
+                    <div className="relative">
+                      <input
+                        value={
+                          isCalculatedAmount
+                            ? calculatedAmount.toFixed(2)
+                            : formValues[fieldKey] || ''
+                        }
+                        onChange={(event) => {
+                          updateField(fieldKey, event.target.value)
+
+                          if (fieldKey === 'hsnCode') {
+                            setIsHsnDropdownOpen(true)
+                          }
+                        }}
+                        onFocus={() => {
+                          if (fieldKey === 'hsnCode') {
+                            setIsHsnDropdownOpen(true)
+                          }
+                        }}
+                        onBlur={() => {
+                          if (fieldKey === 'hsnCode') {
+                            setIsHsnDropdownOpen(false)
+                          }
+                        }}
+                        readOnly={isCalculatedAmount}
+                        type={
+                          field.label.toLowerCase().includes('date')
+                            ? 'date'
+                            : 'text'
+                        }
+                        placeholder={field.placeholder}
+                        className="h-11 w-full rounded-md border border-slate-300 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition focus:border-slate-500 focus:bg-white"
+                      />
+
+                      {fieldKey === 'hsnCode' &&
+                        isItemPage &&
+                        isHsnDropdownOpen &&
+                        hsnQuery.length >= 3 && (
+                          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg">
+                            {isSearchingHsn ? (
+                              <div className="px-3 py-3 text-sm text-slate-500">
+                                Searching HSN codes...
+                              </div>
+                            ) : hsnSearchError ? (
+                              <div className="px-3 py-3 text-sm text-red-600">
+                                {hsnSearchError}
+                              </div>
+                            ) : hsnSuggestions.length === 0 ? (
+                              <div className="px-3 py-3 text-sm text-slate-500">
+                                No HSN codes found.
+                              </div>
+                            ) : (
+                              <div className="overflow-x-auto">
+                                <table className="w-full border-collapse text-left text-xs">
+                                  <thead className="sticky top-0 bg-slate-100">
+                                    <tr>
+                                      <th className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-700">
+                                        HSN Code
+                                      </th>
+                                      <th className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700">
+                                        Description
+                                      </th>
+                                    </tr>
+                                  </thead>
+
+                                  <tbody>
+                                    {hsnSuggestions.map((option, index) => {
+                                      const { code, description } = getHsnOptionDetails(option)
+
+                                      return (
+                                        <tr
+                                          key={`${code}-${index}`}
+                                          onMouseDown={(event) => event.preventDefault()}
+                                          onClick={() => {
+                                            updateField('hsnCode', code)
+                                            setIsHsnDropdownOpen(false)
+                                            setHsnSuggestions([])
+                                          }}
+                                          className="cursor-pointer hover:bg-emerald-50"
+                                        >
+                                          <td className="border-b border-r border-slate-100 px-3 py-2 font-medium text-slate-800">
+                                            {code}
+                                          </td>
+                                          <td className="border-b border-slate-100 px-3 py-2 text-slate-600">
+                                            {description}
+                                          </td>
+                                        </tr>
+                                      )
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                    </div>
+                  </label>
+                )
+              })}
+            </div>
           </div>
 
           <div className="mt-8 flex items-center justify-end gap-3">

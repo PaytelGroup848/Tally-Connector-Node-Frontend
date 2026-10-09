@@ -20,11 +20,12 @@ const initialPartyForm = {
   partyName: "",
   partyType: "",
   contactNumber: "",
-  gstNumber: "", // ← existing
-  gstRegistrationType: "", // ← existing
-  state: "", // ← existing
-  postalAddress: "", // ← existing
-  postalCode: "", // ← existing
+  gstNumber: "",
+  gstRegistrationType: "",
+  state: "",
+  stateCode: "", // Add this
+  postalAddress: "",
+  postalCode: "",
   ledgerGroup: "",
   ledgerName: "",
   openingBalance: "",
@@ -34,6 +35,57 @@ const initialPartyForm = {
   email: "",
   narration: "",
 };
+const GST_STATE_CODES = {
+  "jammu and kashmir": "01",
+  "himachal pradesh": "02",
+  punjab: "03",
+  chandigarh: "04",
+  uttarakhand: "05",
+  haryana: "06",
+  delhi: "07",
+  rajasthan: "08",
+  "uttar pradesh": "09",
+  bihar: "10",
+  sikkim: "11",
+  "arunachal pradesh": "12",
+  nagaland: "13",
+  manipur: "14",
+  mizoram: "15",
+  tripura: "16",
+  meghalaya: "17",
+  assam: "18",
+  "west bengal": "19",
+  jharkhand: "20",
+  odisha: "21",
+  orissa: "21",
+  chhattisgarh: "22",
+  "madhya pradesh": "23",
+  gujarat: "24",
+  "dadra and nagar haveli and daman and diu": "26",
+  maharashtra: "27",
+  karnataka: "29",
+  goa: "30",
+  lakshadweep: "31",
+  kerala: "32",
+  "tamil nadu": "33",
+  puducherry: "34",
+  pondicherry: "34",
+  "andaman and nicobar islands": "35",
+  telangana: "36",
+  "andhra pradesh": "37",
+  ladakh: "38",
+  "other territory": "97",
+  "other country": "99",
+};
+
+function getGstStateCode(state) {
+  const normalizedState = String(state || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+  return GST_STATE_CODES[normalizedState] || "";
+}
 /* =========================================================
    DATE
 ========================================================= */
@@ -98,7 +150,7 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
   const selectedCompany = selectedCompanyProp || storedSelectedCompany;
 
   const companyId = getCompanyId(selectedCompany);
-
+  const [isPartyCreatedOpen, setIsPartyCreatedOpen] = useState(false);
   const [parties, setParties] = useState([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -177,14 +229,14 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
 
     setPartyForm((current) => ({
       ...current,
-      // Auto-fill only if user hasn't typed something manually
-      // (we overwrite for simplicity — user can still edit after)
       state: d.state || current.state,
+      stateCode: getGstStateCode(d.state) || current.stateCode,
       postalCode: d.pincode || current.postalCode,
       postalAddress: d.address || current.postalAddress,
-      gstRegistrationType: d.registration_type || current.gstRegistrationType,
-      // You can also auto-fill party name if empty
-      partyName: current.partyName || d.trade_name || d.legal_name || "",
+      gstRegistrationType:
+        d.registration_type || current.gstRegistrationType,
+      partyName:
+        current.partyName || d.trade_name || d.legal_name || "",
     }));
   }, [gstLookup.status, gstLookup.data]);
 
@@ -257,7 +309,8 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
       setPartyForm(initialPartyForm);
       setPage(1);
       setRefreshKey((current) => current + 1);
-      setCreateMessage("Party created successfully.");
+      setCreateMessage("");
+      setIsPartyCreatedOpen(true);
     } catch (requestError) {
       setCreateError(requestError?.message || "Unable to create party.");
     } finally {
@@ -880,7 +933,7 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
                   onChange={(event) =>
                     updatePartyField("contactNumber", event.target.value)
                   }
-                  placeholder="9953792488"
+                  placeholder="9999999999"
                   maxLength={15}
                   className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
@@ -940,7 +993,7 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
                       )
                     }
                     maxLength={15}
-                    placeholder="29AAICA3918J1ZE"
+                    placeholder=""
                     className="h-full w-full rounded-md bg-transparent px-3 pr-10 text-sm font-medium tracking-wider text-slate-800 outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400"
                   />
 
@@ -1013,15 +1066,37 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
                 <input
                   type="text"
                   value={partyForm.state}
-                  onChange={(event) =>
-                    updatePartyField("state", event.target.value)
-                  }
-                  placeholder="Karnataka"
+                  onChange={(event) => {
+                    const state = event.target.value;
+
+                    updatePartyField("state", state);
+                    updatePartyField("stateCode", getGstStateCode(state));
+                  }}
+                  placeholder=""
                   className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </label>
 
-              {/* Postal Code */}
+
+              <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
+                <span>State Code</span>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={partyForm.stateCode}
+                  onChange={(event) =>
+                    updatePartyField(
+                      "stateCode",
+                      event.target.value.replace(/\D/g, "").slice(0, 2)
+                    )
+                  }
+                  maxLength={2}
+                  placeholder=""
+                  className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+              </label>
+
               <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
                 <span>Postal Code</span>
 
@@ -1036,7 +1111,7 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
                     )
                   }
                   maxLength={6}
-                  placeholder="560064"
+                  placeholder=""
                   className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </label>
@@ -1055,6 +1130,8 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
                   className="min-h-[80px] w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </label>
+
+
 
               {/* Error */}
               {createError && (
@@ -1092,7 +1169,55 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
           </form>
         </div>
       )}
+      {isPartyCreatedOpen && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-950/50 p-4">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="party-created-title"
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
+          >
+            <div className="text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-2xl font-semibold text-emerald-700">
+                ✓
+              </div>
 
+              <h2
+                id="party-created-title"
+                className="mt-4 text-lg font-semibold text-slate-900"
+              >
+                Party created successfully
+              </h2>
+
+              <p className="mt-2 text-sm text-slate-600">
+                You can check the party creation status in My Parties.
+              </p>
+            </div>
+
+            <div className="mt-6 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsPartyCreatedOpen(false)}
+                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Close
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPartyCreatedOpen(false);
+                  window.history.pushState({}, "", "/my-parties");
+                  window.dispatchEvent(new PopStateEvent("popstate"));
+                }}
+                className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+              >
+                View Status
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {/* =====================================================
           PAGE SPECIFIC CSS
       ===================================================== */}

@@ -613,21 +613,9 @@ function ItemsPage({ companyId, myStockItems = false }) {
       <div className="">
 
 
-        {!myStockItems && (
-          <DateRangePicker
-            className="flex justify-end border-0"
-            startDate={startDate}
-            endDate={endDate}
-            onChange={(nextStart, nextEnd) => {
-              setStartDate(nextStart || startDate);
-              setEndDate(nextEnd || endDate);
-              setCurrentPage(1);
-            }}
-            compact
-          />
-        )}
+        
       </div>
-      <div className="p-10 mb-4 flex flex-wrap items-center gap-4 bg-white">
+      <div className="p-2 mb-4 flex flex-wrap items-center gap-4 bg-white">
         <div className="relative">
           <input
             className="
@@ -683,11 +671,23 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
           <span>records</span>
         </label>
-
+{!myStockItems && (
+          <DateRangePicker
+            className="ml-auto flex justify-end border-0"
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(nextStart, nextEnd) => {
+              setStartDate(nextStart || startDate);
+              setEndDate(nextEnd || endDate);
+              setCurrentPage(1);
+            }}
+            compact
+          />
+        )}
         {!myStockItems && (
           <button
             className="
-              ml-auto
+              max-sm:ml-auto
               inline-flex
               items-center
               gap-1
@@ -1048,55 +1048,60 @@ function ItemsPage({ companyId, myStockItems = false }) {
                 !Array.isArray(detailDialog.value) ? (
                 <table className="w-full border-collapse text-left text-xs">
                   <tbody className="divide-y divide-slate-100">
-                    {Object.entries(detailDialog.value).map(([key, value]) => (
-                      <tr key={key} className="hover:bg-slate-50">
-                        <th className="w-1/3 bg-slate-50 px-4 py-3 font-semibold text-slate-600">
-                          {key
-                            .replace(/([a-z])([A-Z])/g, '$1 $2')
-                            .replace(/[_-]+/g, ' ')
-                            .replace(/\b\w/g, (char) => char.toUpperCase())}
-                        </th>
+                    {Object.entries(detailDialog.value)
+                      .filter(
+                        ([key]) =>
+                          key.replace(/[\s_-]/g, "").toLowerCase() !==
+                          "tallyexternalid"
+                      ).map(([key, value]) => (
+                        <tr key={key} className="hover:bg-slate-50">
+                          <th className="w-1/3 bg-slate-50 px-4 py-3 font-semibold text-slate-600">
+                            {key
+                              .replace(/([a-z])([A-Z])/g, '$1 $2')
+                              .replace(/[_-]+/g, ' ')
+                              .replace(/\b\w/g, (char) => char.toUpperCase())}
+                          </th>
 
-                        <td className="px-4 py-3 text-slate-700">
-                          {value !== null && typeof value === "object" ? (
-                            <div className="max-w-xl overflow-x-auto rounded-lg border border-slate-200">
-                              <table className="w-full border-collapse text-left text-xs">
-                                <thead className="bg-slate-100">
-                                  <tr>
-                                    <th className="border-b border-r border-slate-200 px-3 py-2">
-                                      Field
-                                    </th>
-                                    <th className="border-b border-slate-200 px-3 py-2">
-                                      Value
-                                    </th>
-                                  </tr>
-                                </thead>
-
-                                <tbody>
-                                  {Object.entries(value).map(([nestedKey, nestedValue]) => (
-                                    <tr key={nestedKey} className="hover:bg-slate-50">
-                                      <td className="break-words border-b border-r border-slate-200 px-3 py-2 font-medium">
-                                        {nestedKey}
-                                      </td>
-
-                                      <td className="break-words border-b border-slate-200 px-3 py-2">
-                                        {nestedValue == null
-                                          ? "—"
-                                          : typeof nestedValue === "object"
-                                            ? JSON.stringify(nestedValue, null, 2)
-                                            : String(nestedValue)}
-                                      </td>
+                          <td className="px-4 py-3 text-slate-700">
+                            {value !== null && typeof value === "object" ? (
+                              <div className="max-w-xl overflow-x-auto rounded-lg border border-slate-200">
+                                <table className="w-full border-collapse text-left text-xs">
+                                  <thead className="bg-slate-100">
+                                    <tr>
+                                      <th className="border-b border-r border-slate-200 px-3 py-2">
+                                        Field
+                                      </th>
+                                      <th className="border-b border-slate-200 px-3 py-2">
+                                        Value
+                                      </th>
                                     </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          ) : (
-                            String(value ?? "—")
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                                  </thead>
+
+                                  <tbody>
+                                    {Object.entries(value).map(([nestedKey, nestedValue]) => (
+                                      <tr key={nestedKey} className="hover:bg-slate-50">
+                                        <td className="break-words border-b border-r border-slate-200 px-3 py-2 font-medium">
+                                          {nestedKey}
+                                        </td>
+
+                                        <td className="break-words border-b border-slate-200 px-3 py-2">
+                                          {nestedValue == null
+                                            ? "—"
+                                            : typeof nestedValue === "object"
+                                              ? JSON.stringify(nestedValue, null, 2)
+                                              : String(nestedValue)}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            ) : (
+                              String(value ?? "—")
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               ) : Array.isArray(detailDialog.value) ? (
