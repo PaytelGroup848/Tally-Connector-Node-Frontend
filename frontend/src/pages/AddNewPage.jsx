@@ -31,6 +31,8 @@ function getPageMeta(path = '') {
         { key: 'unit', label: 'Unit', placeholder: 'e.g. Nos, Kg' },
         { key: 'batch', label: 'Batch', placeholder: 'Enter batch number' },
         { key: 'godown', label: 'Godown', placeholder: 'Enter godown name' },
+        { key: 'gstRate', label: 'GST Rate', placeholder: 'Enter GST Rate' },
+        { key: 'typeOfSupply', label: 'Type Of Supply', placeholder: 'Enter Type Of Supply' },
       ],
     }
   }
@@ -285,6 +287,11 @@ function AddNewPage({ path, companyId }) {
           unit: String(formValues.unit || '').trim(),
           batch: String(formValues.batch || '').trim(),
           godown: String(formValues.godown || '').trim(),
+          gstRate:
+            formValues.gstRate == null || formValues.gstRate === ''
+              ? 18
+              : Number(formValues.gstRate),
+          typeOfSupply: String(formValues.typeOfSupply || '').trim(),
         },
       })
 
@@ -322,7 +329,8 @@ function AddNewPage({ path, companyId }) {
             <div className="grid gap-5 md:grid-cols-2">
               {meta.fields.map((field) => {
                 const fieldKey = field.key || field.label
-                const isCalculatedAmount = isItemPage && fieldKey === 'value'
+                const isCalculatedAmount =
+                  isItemPage && fieldKey === 'value'
 
                 return (
                   <label
@@ -332,100 +340,125 @@ function AddNewPage({ path, companyId }) {
                     {field.label}
 
                     <div className="relative">
-                      <input
-                        value={
-                          isCalculatedAmount
-                            ? calculatedAmount.toFixed(2)
-                            : formValues[fieldKey] || ''
-                        }
-                        onChange={(event) => {
-                          updateField(fieldKey, event.target.value)
-
-                          if (fieldKey === 'hsnCode') {
-                            setIsHsnDropdownOpen(true)
+                      {fieldKey === 'typeOfSupply' ? (
+                        <select
+                          value={formValues.typeOfSupply || ''}
+                          onChange={(event) =>
+                            updateField('typeOfSupply', event.target.value)
                           }
-                        }}
-                        onFocus={() => {
-                          if (fieldKey === 'hsnCode') {
-                            setIsHsnDropdownOpen(true)
-                          }
-                        }}
-                        onBlur={() => {
-                          if (fieldKey === 'hsnCode') {
-                            setIsHsnDropdownOpen(false)
-                          }
-                        }}
-                        readOnly={isCalculatedAmount}
-                        type={
-                          field.label.toLowerCase().includes('date')
-                            ? 'date'
-                            : 'text'
-                        }
-                        placeholder={field.placeholder}
-                        className="h-11 w-full rounded-md border border-slate-300 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition focus:border-slate-500 focus:bg-white"
-                      />
+                          className="h-11 w-full rounded-md border border-slate-300 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition focus:border-slate-500 focus:bg-white"
+                        >
+                          <option value="">Select Type Of Supply</option>
+                          <option value="Capital Goods">Capital Goods</option>
+                          <option value="Goods">Goods</option>
+                          <option value="Services">Services</option>
+                        </select>
+                      ) : (
+                        <>
+                          <input
+                            value={
+                              isCalculatedAmount
+                                ? calculatedAmount.toFixed(2)
+                                : fieldKey === 'gstRate'
+                                  ? (formValues.gstRate ?? '18')
+                                  : formValues[fieldKey] || ''
+                            }
+                            onChange={(event) => {
+                              updateField(fieldKey, event.target.value)
 
-                      {fieldKey === 'hsnCode' &&
-                        isItemPage &&
-                        isHsnDropdownOpen &&
-                        hsnQuery.length >= 3 && (
-                          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg">
-                            {isSearchingHsn ? (
-                              <div className="px-3 py-3 text-sm text-slate-500">
-                                Searching HSN codes...
-                              </div>
-                            ) : hsnSearchError ? (
-                              <div className="px-3 py-3 text-sm text-red-600">
-                                {hsnSearchError}
-                              </div>
-                            ) : hsnSuggestions.length === 0 ? (
-                              <div className="px-3 py-3 text-sm text-slate-500">
-                                No HSN codes found.
-                              </div>
-                            ) : (
-                              <div className="overflow-x-auto">
-                                <table className="w-full border-collapse text-left text-xs">
-                                  <thead className="sticky top-0 bg-slate-100">
-                                    <tr>
-                                      <th className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-700">
-                                        HSN Code
-                                      </th>
-                                      <th className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700">
-                                        Description
-                                      </th>
-                                    </tr>
-                                  </thead>
+                              if (fieldKey === 'hsnCode') {
+                                setIsHsnDropdownOpen(true)
+                              }
+                            }}
+                            onFocus={() => {
+                              if (fieldKey === 'hsnCode') {
+                                setIsHsnDropdownOpen(true)
+                              }
+                            }}
+                            onBlur={() => {
+                              if (fieldKey === 'hsnCode') {
+                                setIsHsnDropdownOpen(false)
+                              }
+                            }}
+                            readOnly={isCalculatedAmount}
+                            type="text"
+                            inputMode={fieldKey === 'gstRate' ? 'decimal' : 'text'}
+                            placeholder={field.placeholder}
+                            className={`h-11 w-full rounded-md border border-slate-300 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition focus:border-slate-500 focus:bg-white ${fieldKey === 'gstRate' ? 'pr-8' : ''
+                              }`}
+                          />
 
-                                  <tbody>
-                                    {hsnSuggestions.map((option, index) => {
-                                      const { code, description } = getHsnOptionDetails(option)
+                          {fieldKey === 'gstRate' && (
+                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                              %
+                            </span>
+                          )}
 
-                                      return (
-                                        <tr
-                                          key={`${code}-${index}`}
-                                          onMouseDown={(event) => event.preventDefault()}
-                                          onClick={() => {
-                                            updateField('hsnCode', code)
-                                            setIsHsnDropdownOpen(false)
-                                            setHsnSuggestions([])
-                                          }}
-                                          className="cursor-pointer hover:bg-emerald-50"
-                                        >
-                                          <td className="border-b border-r border-slate-100 px-3 py-2 font-medium text-slate-800">
-                                            {code}
-                                          </td>
-                                          <td className="border-b border-slate-100 px-3 py-2 text-slate-600">
-                                            {description}
-                                          </td>
-                                        </tr>
-                                      )
-                                    })}
-                                  </tbody>
-                                </table>
+                          {/* HSN search dropdown */}
+                          {fieldKey === 'hsnCode' &&
+                            isItemPage &&
+                            isHsnDropdownOpen &&
+                            hsnQuery.length >= 3 && (
+                              <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg">
+                                {isSearchingHsn ? (
+                                  <div className="px-3 py-3 text-sm text-slate-500">
+                                    Searching HSN codes...
+                                  </div>
+                                ) : hsnSearchError ? (
+                                  <div className="px-3 py-3 text-sm text-red-600">
+                                    {hsnSearchError}
+                                  </div>
+                                ) : hsnSuggestions.length === 0 ? (
+                                  <div className="px-3 py-3 text-sm text-slate-500">
+                                    No HSN codes found.
+                                  </div>
+                                ) : (
+                                  <table className="w-full border-collapse text-left text-xs">
+                                    <thead className="sticky top-0 bg-slate-100">
+                                      <tr>
+                                        <th className="border-b border-r border-slate-200 px-3 py-2 font-semibold text-slate-700">
+                                          HSN Code
+                                        </th>
+                                        <th className="border-b border-slate-200 px-3 py-2 font-semibold text-slate-700">
+                                          Description
+                                        </th>
+                                      </tr>
+                                    </thead>
+
+                                    <tbody>
+                                      {hsnSuggestions.map((option, index) => {
+                                        const { code, description } =
+                                          getHsnOptionDetails(option)
+
+                                        return (
+                                          <tr
+                                            key={`${code}-${index}`}
+                                            onMouseDown={(event) =>
+                                              event.preventDefault()
+                                            }
+                                            onClick={() => {
+                                              updateField('hsnCode', code)
+                                              setIsHsnDropdownOpen(false)
+                                              setHsnSuggestions([])
+                                            }}
+                                            className="cursor-pointer hover:bg-emerald-50"
+                                          >
+                                            <td className="border-b border-r border-slate-100 px-3 py-2 font-medium text-slate-800">
+                                              {code}
+                                            </td>
+                                            <td className="border-b border-slate-100 px-3 py-2 text-slate-600">
+                                              {description}
+                                            </td>
+                                          </tr>
+                                        )
+                                      })}
+                                    </tbody>
+                                  </table>
+                                )}
                               </div>
                             )}
-                          </div>
-                        )}
+                        </>
+                      )}
                     </div>
                   </label>
                 )
