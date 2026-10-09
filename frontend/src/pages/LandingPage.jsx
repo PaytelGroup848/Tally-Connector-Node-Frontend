@@ -7,6 +7,7 @@ import CloudeData from "../assets/Cloudedata.png"
 import PrivacyPage from "./PrivacyPage";
 import TermsAndConditions from "./TermsAndConditions";
 import RefundPolicy from "./RefundPolicy";
+import logo from "../assets/Ctrl-Books-New-Dashboard-Image-2 (1).png"
 import mobileScreen from "../assets/Control-Books-Mobile-Screen-Website-Image-1.png";
 import invoiceFeatureImage from "../assets/Control-Books-Website-Image-2 (7).png";
 import inactiveFeatureImage from "../assets/Control-Books-Website-Image-3 (2).png";
@@ -284,30 +285,30 @@ function App() {
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-8 lg:flex">
-            <div className="flex items-center gap-1">
+            {/* <div className="flex items-center gap-1">
               <Phone size={16} strokeWidth={2} />
 
               <div className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700">
                 +91 9311472357
               </div>
-            </div>
+            </div> */}
 
             <button
               onClick={() => scrollTo("home")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
+              className="text-md font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               Home
             </button>
 
             <button
               onClick={() => scrollTo("features")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
+              className="text-md font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               Features
             </button>
             <button
               onClick={() => scrollTo("pricing")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
+              className="text-md font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               Pricing
             </button>
@@ -320,14 +321,14 @@ function App() {
 
             <button
               onClick={() => scrollTo("testimonials")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
+              className="text-md font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               Testimonials
             </button>
 
             <button
               onClick={() => scrollTo("faq")}
-              className="text-sm font-semibold text-slate-700 transition hover:text-emerald-700"
+              className="text-md font-semibold text-slate-700 transition hover:text-emerald-700"
             >
               FAQ
             </button>
@@ -340,14 +341,14 @@ function App() {
             {/* Start using CtrlBooks */}
             <button
               onClick={goToLogin}
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-emerald-800 mr-8"
+              className="border-1 border-emerald-700 group inline-flex items-center justify-center gap-2 rounded-full  px-6 py-2.5 text-sm font-bold text-slate-700 transition hover:text-white hover:bg-emerald-700 mr-8"
             >
               Start using CtrlBooks
 
-              <ArrowRight
+              {/* <ArrowRight
                 size={18}
                 className="transition group-hover:translate-x-1"
-              />
+              /> */}
             </button>
 
             {/* Download Connector + Enquiry */}
@@ -358,17 +359,17 @@ function App() {
                 href="http://191.44.87.205:8000/downloads/CtrlBooks_Setup_v1.0.2.exe"
                 download
                 title="Download CtrlBooks Connector"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-emerald-800"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-emerald-800"
               >
                 <span className="whitespace-nowrap">
                   Download Connector
                 </span>
 
-                <Download
+                {/* <Download
                   size={18}
                   strokeWidth={2.2}
                   className="shrink-0"
-                />
+                /> */}
               </a>
 
               {/* Enquiry Now */}
@@ -589,7 +590,7 @@ function App() {
             <div className="w-full max-w-lg shrink-0 text-left lg:w-[42%]">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-bold text-green-700">
                 <span className="h-2 w-2 rounded-full bg-emerald-700" />
-                Business data on mobile & web
+                AI Powered Accounting & Business Management
               </div>
 
               <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
@@ -1852,7 +1853,7 @@ function DashboardPreview() {
   return (
     // <div className="hidden lg:block rounded-[30px] border border-[#dfeae3] bg-[#eef6ee] shadow-[0_20px_55px_rgba(13,58,77,0.12)] sm:p-3">
     // <div className="lg:mb-20">
-    <img className="w-full h-[600px]" src={DashboardInlaptop} alt="Dashboard Preview" />
+    <img className="w-full h-[600px]" src={logo} alt="Dashboard Preview" />
     // </div>
   );
 }
