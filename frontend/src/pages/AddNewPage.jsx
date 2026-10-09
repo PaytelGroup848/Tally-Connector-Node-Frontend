@@ -287,10 +287,8 @@ function AddNewPage({ path, companyId }) {
           unit: String(formValues.unit || '').trim(),
           batch: String(formValues.batch || '').trim(),
           godown: String(formValues.godown || '').trim(),
-          gstRate:
-            formValues.gstRate == null || formValues.gstRate === ''
-              ? 18
-              : Number(formValues.gstRate),
+          gstRate: `${String(formValues.gstRate ?? '18').replace(/%/g, '').trim() || '18'
+            }%`,
           typeOfSupply: String(formValues.typeOfSupply || '').trim(),
         },
       })
