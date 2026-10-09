@@ -155,6 +155,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
     : columns;
 
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const [editForm, setEditForm] = useState({
     tallyExternalId: '',
@@ -214,15 +215,77 @@ function ItemsPage({ companyId, myStockItems = false }) {
         endDate: endDate || undefined,
       });
 
-    Promise.allSettled([
-      stockRequest,
-      fetchCompanyCommands(accessToken, companyId, {
-        type: myStockItems ? 'CREATE_STOCK_ITEM' : '',
+    const commandRequest = myStockItems
+      ? Promise.all([
+        fetchCompanyCommands(accessToken, companyId, {
+          type: 'CREATE_STOCK_ITEM',
+          page: 1,
+          limit: currentPage * pageSize,
+          q: query,
+        }),
+        fetchCompanyCommands(accessToken, companyId, {
+          type: 'UPDATE_STOCK_ITEM',
+          page: 1,
+          limit: currentPage * pageSize,
+          q: query,
+        }),
+      ]).then(([createResponse, updateResponse]) => {
+        const getTotal = (response) => {
+          const pagination =
+            response?.pagination ||
+            response?.data?.pagination ||
+            response?.meta ||
+            response?.data ||
+            response;
+
+          const total = Number(
+            pagination?.total ??
+            pagination?.totalItems ??
+            pagination?.totalRecords ??
+            pagination?.count
+          );
+
+          return Number.isFinite(total) && total >= 0
+            ? total
+            : extractCommands(response).length;
+        };
+
+        const getTime = (item) => {
+          const date =
+            item?.createdAt ||
+            item?.created_at ||
+            item?.submittedAt ||
+            item?.submitted_at;
+
+          const time = date ? new Date(date).getTime() : 0;
+          return Number.isNaN(time) ? 0 : time;
+        };
+
+        const commands = [
+          ...extractCommands(createResponse),
+          ...extractCommands(updateResponse),
+        ].sort((a, b) => getTime(b) - getTime(a));
+
+        const total =
+          getTotal(createResponse) + getTotal(updateResponse);
+
+        return {
+          __mergedCommands: commands,
+          pagination: {
+            total,
+            totalItems: total,
+            totalPages: Math.max(1, Math.ceil(total / pageSize)),
+          },
+        };
+      })
+      : fetchCompanyCommands(accessToken, companyId, {
+        type: '',
         page: currentPage,
         limit: pageSize,
         q: query,
-      }),
-    ])
+      });
+
+    Promise.allSettled([stockRequest, commandRequest])
       .then(([stockResult, commandResult]) => {
         if (!isMounted) return;
 
@@ -241,22 +304,49 @@ function ItemsPage({ companyId, myStockItems = false }) {
           ? extractStockItems(stockResult.value)
           : [];
 
-        const commandItemsFromApi = commandResult.status === 'fulfilled'
-          ? extractCommands(commandResult.value).map((command) => {
-            if (myStockItems) return command;
 
-            const payload = command?.payload || command?.data?.payload || command?.data || command || {};
+        const commandItemsFromApi =
+          commandResult.status === 'fulfilled'
+            ? myStockItems
+              ? (
+                commandResult.value?.__mergedCommands || []
+              ).slice(
+                (currentPage - 1) * pageSize,
+                currentPage * pageSize
+              )
+              : extractCommands(commandResult.value)
+                .map((command) => {
+                  const payload =
+                    command?.payload ||
+                    command?.data?.payload ||
+                    command?.data ||
+                    command ||
+                    {};
 
-            if (!payload || typeof payload !== 'object') return null;
+                  if (!payload || typeof payload !== 'object') {
+                    return null;
+                  }
 
-            return {
-              ...payload,
-              _id: command?._id || command?.id || command?.commandId || payload?._id || payload?.id,
-              createdAt: payload?.createdAt || command?.createdAt || command?.created_at,
-              updatedAt: payload?.updatedAt || command?.updatedAt || command?.updated_at,
-            };
-          }).filter(Boolean)
-          : [];
+                  return {
+                    ...payload,
+                    _id:
+                      command?._id ||
+                      command?.id ||
+                      command?.commandId ||
+                      payload?._id ||
+                      payload?.id,
+                    createdAt:
+                      payload?.createdAt ||
+                      command?.createdAt ||
+                      command?.created_at,
+                    updatedAt:
+                      payload?.updatedAt ||
+                      command?.updatedAt ||
+                      command?.updated_at,
+                  };
+                })
+                .filter(Boolean)
+            : [];
 
         const mergedItems = myStockItems
           ? commandItemsFromApi
@@ -508,6 +598,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
       );
 
       setIsEditOpen(false);
+      setShowSuccessDialog(true);
     } catch (error) {
       console.error('UPDATE_STOCK_ITEM failed:', error);
       setErrorMessage(error?.message || 'Unable to update stock item.');
@@ -767,12 +858,12 @@ function ItemsPage({ companyId, myStockItems = false }) {
                           <td key={column.key} className="px-4 py-3">
                             {column.key === 'status' ? (
                               <span className={`font-semibold ${String(value || '').toLowerCase() === 'pending'
-                                  ? 'text-amber-600'
-                                  : String(value || '').toLowerCase() === 'failed'
-                                    ? 'text-red-600'
-                                    : String(value || '').toLowerCase() === 'done'
-                                      ? 'text-emerald-600'
-                                      : 'text-slate-600'
+                                ? 'text-amber-600'
+                                : String(value || '').toLowerCase() === 'failed'
+                                  ? 'text-red-600'
+                                  : String(value || '').toLowerCase() === 'done'
+                                    ? 'text-emerald-600'
+                                    : 'text-slate-600'
                                 }`}>
                                 {formatStockCommandValue(value)}
                               </span>
@@ -967,12 +1058,41 @@ function ItemsPage({ companyId, myStockItems = false }) {
                         </th>
 
                         <td className="px-4 py-3 text-slate-700">
-                          {value !== null && typeof value === 'object' ? (
-                            <pre className="whitespace-pre-wrap break-words font-mono text-[11px]">
-                              {JSON.stringify(value, null, 2)}
-                            </pre>
+                          {value !== null && typeof value === "object" ? (
+                            <div className="max-w-xl overflow-x-auto rounded-lg border border-slate-200">
+                              <table className="w-full border-collapse text-left text-xs">
+                                <thead className="bg-slate-100">
+                                  <tr>
+                                    <th className="border-b border-r border-slate-200 px-3 py-2">
+                                      Field
+                                    </th>
+                                    <th className="border-b border-slate-200 px-3 py-2">
+                                      Value
+                                    </th>
+                                  </tr>
+                                </thead>
+
+                                <tbody>
+                                  {Object.entries(value).map(([nestedKey, nestedValue]) => (
+                                    <tr key={nestedKey} className="hover:bg-slate-50">
+                                      <td className="break-words border-b border-r border-slate-200 px-3 py-2 font-medium">
+                                        {nestedKey}
+                                      </td>
+
+                                      <td className="break-words border-b border-slate-200 px-3 py-2">
+                                        {nestedValue == null
+                                          ? "—"
+                                          : typeof nestedValue === "object"
+                                            ? JSON.stringify(nestedValue, null, 2)
+                                            : String(nestedValue)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
                           ) : (
-                            String(value ?? '—')
+                            String(value ?? "—")
                           )}
                         </td>
                       </tr>
@@ -1262,6 +1382,59 @@ function ItemsPage({ companyId, myStockItems = false }) {
                 className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
               >
                 Update Item
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSuccessDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="success-dialog-title"
+            className="w-full max-w-md rounded-2xl bg-white p-7 text-center shadow-2xl"
+          >
+            {/* Success icon */}
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+              <span className="text-3xl font-bold text-emerald-600">
+                ✓
+              </span>
+            </div>
+
+            {/* Success message */}
+            <h2
+              id="success-dialog-title"
+              className="text-xl font-semibold text-slate-800"
+            >
+              Item updated successfully
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-slate-500">
+              You can check the updated item status in My Stock Items.
+            </p>
+
+            {/* Actions */}
+            <div className="mt-7 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowSuccessDialog(false)}
+                className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Close
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSuccessDialog(false);
+                  window.history.pushState({}, "", "/my-stock-items");
+                  window.dispatchEvent(new PopStateEvent("popstate"));
+                }}
+                className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+              >
+                View Status
               </button>
             </div>
           </div>
