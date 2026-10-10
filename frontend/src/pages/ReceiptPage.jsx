@@ -347,13 +347,12 @@ function ReceiptPage({
     const amount = Number(form.amount)
 
     if (
-      !form.partyName ||
+      !form.ledger ||
       !form.date ||
-      !form.transactionType ||
-      !form.ledger
+      !form.transactionType
     ) {
       setSubmitError(
-        'Select a party, date, transaction type, and ledger before submitting.',
+        'Select a party, date and transaction type before submitting.',
       )
       return
     }
@@ -841,7 +840,7 @@ useEffect(() => {
               <AdvancedVoucherSettings />
             </div>
 
-            <div className="rounded-md bg-white p-3">
+            {/* <div className="rounded-md bg-white p-3">
               <GstLedgerPanel subtotal={Number(form.amount || 0)} ledgerOptions={ledgerOptions} />
 
               <div className="space-y-2 bg-green-50 p-3 text-sm text-slate-700">
@@ -860,7 +859,7 @@ useEffect(() => {
                   <span>₹{Number(form.amount || 0).toFixed(2)}</span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Error / Success */}

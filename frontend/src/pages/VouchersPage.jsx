@@ -122,7 +122,7 @@ function isHiddenColumn(key) {
         isIdentifierColumn(key) ||
         normalizedKey === 'vouchernumber' ||
         normalizedKey.includes('date') ||
-         normalizedKey.includes('v') ||
+        (normalizedKey.includes('v') && normalizedKey.length==1) ||
         normalizedKey === 'raw' ||
         normalizedKey === 'source'
     )
