@@ -917,7 +917,7 @@ function ReceiptNotePage({ companyId }) {
         companyId,
         accessToken,
         page: 1,
-        limit: 100,
+        limit: 20,
       }),
 
       fetchCompanyStock(
@@ -925,7 +925,7 @@ function ReceiptNotePage({ companyId }) {
         companyId,
         {
           page: 1,
-          limit: 100,
+          limit: 20,
         }
       ),
 
@@ -934,7 +934,7 @@ function ReceiptNotePage({ companyId }) {
         companyId,
         {
           page: 1,
-          limit: 100,
+          limit: 20,
         }
       ),
 
@@ -943,7 +943,7 @@ function ReceiptNotePage({ companyId }) {
         companyId,
         {
           page: 1,
-          limit: 100,
+          limit: 20,
         }
       ),
 
@@ -952,7 +952,7 @@ function ReceiptNotePage({ companyId }) {
         companyId,
         {
           page: 1,
-          limit: 100,
+          limit: 20,
         }
       ),
     ])

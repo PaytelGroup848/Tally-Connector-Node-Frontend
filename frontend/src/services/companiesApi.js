@@ -283,13 +283,13 @@ export function fetchCompanyLedgers(accessToken, companyId, { page = 1, limit = 
   return request(`/companies/${encodeURIComponent(companyId)}/ledgers?${params.toString()}`, accessToken)
 }
 
-export function fetchCompanyGodowns(accessToken, companyId, { page = 1, limit = 100, q = '' } = {}) {
+export function fetchCompanyGodowns(accessToken, companyId, { page = 1, limit = 20, q = '' } = {}) {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q.trim()) params.set('q', q.trim())
   return request(`/companies/${encodeURIComponent(companyId)}/godowns?${params.toString()}`, accessToken)
 }
 
-export function fetchCompanyBatches(accessToken, companyId, { page = 1, limit = 100, q = '' } = {}) {
+export function fetchCompanyBatches(accessToken, companyId, { page = 1, limit = 20, q = '' } = {}) {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q.trim()) params.set('q', q.trim())
   return request(`/companies/${encodeURIComponent(companyId)}/batches?${params.toString()}`, accessToken)

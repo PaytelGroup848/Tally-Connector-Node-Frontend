@@ -178,7 +178,7 @@ function StockJournalPage() {
             </label>
 
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Voucher No</span>
+              <span>Voucher No </span>
               <input value={voucherNo} onChange={(event) => setVoucherNo(event.target.value)} className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100" />
             </label>
 

@@ -42,7 +42,7 @@ function JournalPage() {
             </label>
 
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Voucher No</span>
+              <span>Voucher No </span>
               <input value="1" readOnly className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none" />
             </label>
 

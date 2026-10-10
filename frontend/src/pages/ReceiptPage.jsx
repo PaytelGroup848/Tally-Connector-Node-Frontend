@@ -59,29 +59,78 @@ function getDisplayName(value, keys) {
   return ''
 }
 
-function getNumericValue(value, keys) {
-  for (const key of keys) {
-    const candidate = value?.[key]
+function getBalanceValue(entry) {
+  const balanceKeys = new Set([
+    'closingbalance',
+    'currentbalance',
+    'balance',
+  ])
+  const pending = [entry]
 
-    if (
-      candidate !== undefined &&
-      candidate !== null &&
-      String(candidate).trim() !== ''
-    ) {
-      const numericValue = Number(candidate)
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
 
-      if (Number.isFinite(numericValue)) {
-        return numericValue
+    for (const [key, candidate] of Object.entries(value)) {
+      const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, '')
+      if (
+        balanceKeys.has(normalizedKey) &&
+        candidate !== null &&
+        candidate !== undefined &&
+        String(candidate).trim() !== '' &&
+        Number.isFinite(Number(candidate))
+      ) {
+        return String(candidate)
       }
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
     }
   }
 
-  return 0
+  return null
+}
+
+function getVoucherNumber(entry) {
+  const voucherNumberKeys = new Set([
+    'vouchernumber',
+    'voucherno',
+    'vouchernum',
+    'nextvouchernumber',
+    'nextvoucherno',
+  ])
+  const pending = [entry]
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const [key, candidate] of Object.entries(value)) {
+      const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, '')
+      if (
+        voucherNumberKeys.has(normalizedKey) &&
+        candidate !== null &&
+        candidate !== undefined &&
+        String(candidate).trim()
+      ) {
+        return String(candidate).trim()
+      }
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return ''
 }
 
 function getToday() {
   return new Date().toLocaleDateString('en-CA')
 }
+
+const LEDGER_PAGE_SIZE = 20
 
 function ReceiptPage({
   companyId: companyIdProp,
@@ -101,6 +150,19 @@ function ReceiptPage({
 
   const [partyOptions, setPartyOptions] = useState([])
   const [ledgerOptions, setLedgerOptions] = useState([])
+  const [ledgerPage, setLedgerPage] = useState({
+    nextPage: 1,
+    hasMore: false,
+    loading: false,
+    error: '',
+  })
+  const ledgerPageRef = useRef(ledgerPage)
+  const [closingBalance, setClosingBalance] = useState('')
+  const [closingBalanceLoading, setClosingBalanceLoading] = useState(false)
+  const [closingBalanceError, setClosingBalanceError] = useState('')
+  const closingBalanceRequestRef = useRef(0)
+  const closingBalanceEditedRef = useRef(false)
+  const voucherNumberEditedRef = useRef(false)
 
   const [optionsLoading, setOptionsLoading] = useState(false)
   const [optionsError, setOptionsError] = useState('')
@@ -121,6 +183,151 @@ function ReceiptPage({
   const [submitError, setSubmitError] = useState('')
 
   const successTimerRef = useRef(null)
+
+  const updateLedgerPage = (pageState) => {
+    ledgerPageRef.current = pageState
+    setLedgerPage(pageState)
+  }
+
+  const loadMoreLedgers = async () => {
+    const currentPage = ledgerPageRef.current
+    if (!currentPage.hasMore || currentPage.loading) return
+
+    updateLedgerPage({ ...currentPage, loading: true, error: '' })
+
+    try {
+      const response = await fetchCompanyLedgers(accessToken, companyId, {
+        page: currentPage.nextPage,
+        limit: LEDGER_PAGE_SIZE,
+      })
+      const ledgers = extractLedgers(response).filter((ledger) =>
+        getDisplayName(ledger, [
+          'ledgerName',
+          'name',
+          'displayName',
+          'partyName',
+        ]),
+      )
+      setLedgerOptions((existingLedgers) => [...existingLedgers, ...ledgers])
+      updateLedgerPage({
+        nextPage: currentPage.nextPage + 1,
+        hasMore: ledgers.length >= LEDGER_PAGE_SIZE,
+        loading: false,
+        error: '',
+      })
+    } catch (error) {
+      updateLedgerPage({
+        ...currentPage,
+        loading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to load more ledgers.',
+      })
+    }
+  }
+
+  const resetClosingBalance = () => {
+    closingBalanceRequestRef.current += 1
+    closingBalanceEditedRef.current = false
+    voucherNumberEditedRef.current = false
+    setClosingBalance('')
+    setClosingBalanceLoading(false)
+    setClosingBalanceError('')
+    setForm((current) => ({ ...current, voucherNumber: '' }))
+  }
+
+  const fetchClosingBalance = async (partyName) => {
+    const requestId = ++closingBalanceRequestRef.current
+    closingBalanceEditedRef.current = false
+    voucherNumberEditedRef.current = false
+    setClosingBalance('')
+    setClosingBalanceError('')
+    setForm((current) => ({ ...current, voucherNumber: '' }))
+
+    if (!partyName || !companyId || !accessToken) {
+      setClosingBalanceLoading(false)
+      return
+    }
+
+    setClosingBalanceLoading(true)
+    const [partiesResult, ledgersResult] = await Promise.allSettled([
+      fetchParties({
+        companyId,
+        accessToken,
+        page: 1,
+        limit: LEDGER_PAGE_SIZE,
+        q: partyName,
+      }),
+      fetchCompanyLedgers(accessToken, companyId, {
+        page: 1,
+        limit: LEDGER_PAGE_SIZE,
+        q: partyName,
+      }),
+    ])
+
+    if (requestId !== closingBalanceRequestRef.current) return
+
+    const matchingEntries = [
+      ...(partiesResult.status === 'fulfilled'
+        ? extractCustomers(partiesResult.value)
+        : []),
+      ...(ledgersResult.status === 'fulfilled'
+        ? extractLedgers(ledgersResult.value)
+        : []),
+    ].filter((entry) => {
+      const name = getDisplayName(entry, [
+        'partyName',
+        'name',
+        'customerName',
+        'ledgerName',
+        'displayName',
+      ])
+      return name.toLowerCase().trim() === partyName.toLowerCase().trim()
+    })
+    const matchingLedger = (
+      ledgersResult.status === 'fulfilled'
+        ? extractLedgers(ledgersResult.value)
+        : []
+    ).find((ledger) => {
+      const name = getDisplayName(ledger, [
+        'partyName',
+        'name',
+        'customerName',
+        'ledgerName',
+        'displayName',
+      ])
+      return name.toLowerCase().trim() === partyName.toLowerCase().trim()
+    })
+    const voucherNumber = getVoucherNumber(matchingLedger)
+    if (voucherNumber && !voucherNumberEditedRef.current) {
+      setForm((current) => ({ ...current, voucherNumber }))
+    }
+
+    const balance = matchingEntries
+      .map(getBalanceValue)
+      .find((value) => value !== null)
+
+    if (balance !== undefined) {
+      if (!closingBalanceEditedRef.current) setClosingBalance(balance)
+      setClosingBalanceError('')
+    } else if (
+      partiesResult.status === 'rejected' &&
+      ledgersResult.status === 'rejected'
+    ) {
+      setClosingBalanceError(
+        partiesResult.reason?.message ||
+          ledgersResult.reason?.message ||
+          'Unable to load the selected party closing balance.',
+      )
+    } else {
+      setClosingBalanceError(
+        'Closing balance is unavailable for the selected party.',
+      )
+    }
+
+    setClosingBalanceLoading(false)
+  }
 
   useEffect(() => {
     return () => {
@@ -151,15 +358,6 @@ function ReceiptPage({
       ]) === form.ledger,
   )
 
-  const closingBalance = getNumericValue(selectedParty, [
-    'closingBalance',
-    'ClosingBalance',
-    'closing_balance',
-    'balance',
-    'currentBalance',
-    'current_balance',
-  ])
-
   const updateField = (field, value) => {
     setForm((current) => ({
       ...current,
@@ -168,6 +366,7 @@ function ReceiptPage({
   }
 
   const resetForm = () => {
+    resetClosingBalance()
     setForm({
       voucherNumber: '',
       partyName: '',
@@ -353,109 +552,80 @@ function ReceiptPage({
   }, [accessToken, companyId, documentType])
 
   /*
-   * Load parties and ledgers
    */
-  useEffect(() => {
-    if (!accessToken || !companyId) {
-      setPartyOptions([])
-      setLedgerOptions([])
-      return undefined
-    }
+/*
+ * Load ledgers only
+ */
+useEffect(() => {
+  if (!accessToken || !companyId) {
+    setLedgerOptions([])
+    updateLedgerPage({
+      nextPage: 1,
+      hasMore: false,
+      loading: false,
+      error: '',
+    })
+    return undefined
+  }
 
-    let mounted = true
+  let mounted = true
 
-    setOptionsLoading(true)
-    setOptionsError('')
+  setOptionsLoading(true)
+  setOptionsError('')
+  updateLedgerPage({
+    nextPage: 1,
+    hasMore: false,
+    loading: false,
+    error: '',
+  })
 
-    Promise.allSettled([
-      fetchParties({
-        companyId,
-        accessToken,
-        page: 1,
-        limit: 100,
-      }),
+  fetchCompanyLedgers(accessToken, companyId, {
+    page: 1,
+    limit: LEDGER_PAGE_SIZE,
+  })
+    .then((response) => {
+      if (!mounted) return
 
-      fetchCompanyLedgers(
-        accessToken,
-        companyId,
-        {
-          page: 1,
-          limit: 100,
-        },
-      ),
-    ])
-      .then(([customersResult, ledgersResult]) => {
-        if (!mounted) return
-
-        /*
-         * Parties
-         */
-        if (customersResult.status === 'fulfilled') {
-          const partyResponseItems =
-            customersResult.value?.data?.items
-
-          const parties = Array.isArray(partyResponseItems)
-            ? partyResponseItems
-            : extractCustomers(customersResult.value)
-
-          setPartyOptions(
-            parties.filter((customer) =>
-              getDisplayName(customer, [
-                'partyName',
-                'name',
-                'customerName',
-                'ledgerName',
-                'displayName',
-              ]),
-            ),
-          )
-        } else {
-          setPartyOptions([])
-        }
-
-        /*
-         * Ledgers
-         */
-        if (ledgersResult.status === 'fulfilled') {
-          setLedgerOptions(
-            extractLedgers(ledgersResult.value).filter(
-              (ledger) =>
-                getDisplayName(ledger, [
-                  'ledgerName',
-                  'name',
-                  'displayName',
-                  'partyName',
-                ]),
-            ),
-          )
-        } else {
-          setLedgerOptions([])
-        }
-
-        const failures = [
-          customersResult,
-          ledgersResult,
-        ].filter(
-          (result) => result.status === 'rejected',
+      const firstPage = extractLedgers(response).filter((ledger) =>
+          getDisplayName(ledger, [
+            'ledgerName',
+            'name',
+            'displayName',
+            'partyName',
+          ]),
         )
-
-        if (failures.length > 0) {
-          setOptionsError(
-            failures[0].reason?.message ||
-            'Unable to load party or ledger options.',
-          )
-        }
+      setLedgerOptions(firstPage)
+      updateLedgerPage({
+        nextPage: 2,
+        hasMore: firstPage.length >= LEDGER_PAGE_SIZE,
+        loading: false,
+        error: '',
       })
-      .finally(() => {
-        if (mounted) {
-          setOptionsLoading(false)
-        }
-      })
+    })
+    .catch((error) => {
+      if (!mounted) return
 
-    return () => {
-      mounted = false
-    }
-  }, [accessToken, companyId])
+      setLedgerOptions([])
+      updateLedgerPage({
+        nextPage: 1,
+        hasMore: false,
+        loading: false,
+        error: '',
+      })
+      setOptionsError(
+        error?.message || 'Unable to load ledger options.',
+      )
+    })
+    .finally(() => {
+      if (mounted) {
+        setOptionsLoading(false)
+      }
+    })
+
+  return () => {
+    mounted = false
+  }
+}, [accessToken, companyId])
 
   return (
     <div className="relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
@@ -535,27 +705,26 @@ function ReceiptPage({
 
             {/* Voucher Number */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Voucher No</span>
+              <span>Voucher No (optional)</span>
 
               <input
+                name="voucherNumber"
                 value={form.voucherNumber}
                 type="text"
                 min="0"
                 step="1"
                 required
-                onChange={(event) =>
-                  updateField(
-                    'voucherNumber',
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => {
+                  voucherNumberEditedRef.current = true
+                  updateField('voucherNumber', event.target.value)
+                }}
                 className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
                 placeholder="Voucher No"
               />
             </label>
 
             {/* Party Name */}
-            <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+            {/* <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Party Name</span>
 
               <SearchableDropdown
@@ -576,7 +745,7 @@ function ReceiptPage({
                 onClear={() => updateField('partyName', '')}
                 disabled={optionsLoading}
               />
-            </label>
+            </label> */}
 
             {/* Date */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
@@ -619,7 +788,7 @@ function ReceiptPage({
 
             {/* Ledger */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Select Ledger</span>
+              <span>Party Name</span>
 
               <SearchableDropdown
                 name="ledger"
@@ -632,10 +801,19 @@ function ReceiptPage({
                     'partyName',
                   ]),
                 )}
-                placeholder="Select Ledger"
+                infiniteScroll
+                hasMoreOptions={ledgerPage.hasMore}
+                loadingMore={ledgerPage.loading}
+                loadMoreError={ledgerPage.error}
+                onLoadMore={loadMoreLedgers}
+                placeholder="Select Party"
                 value={form.ledger}
                 onSelect={(value) => updateField('ledger', value)}
-                onClear={() => updateField('ledger', '')}
+                onOptionSelect={fetchClosingBalance}
+                onClear={() => {
+                  updateField('ledger', '')
+                  resetClosingBalance()
+                }}
                 disabled={optionsLoading}
               />
             </label>
@@ -645,21 +823,30 @@ function ReceiptPage({
               <span>Closing Balance</span>
 
               <input
-                value={
-                  optionsLoading
-                    ? 'Loading...'
-                    : closingBalance.toLocaleString(
-                      'en-IN',
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      },
-                    )
+                type="number"
+                step="any"
+                value={closingBalance}
+                onChange={(event) => {
+                  closingBalanceEditedRef.current = true
+                  setClosingBalance(event.target.value)
+                }}
+                aria-describedby={
+                  closingBalanceError ? 'closing-balance-error' : undefined
                 }
-                readOnly
-                disabled
-                className="min-h-10 w-full rounded-md border border-slate-300 bg-slate-100 px-3 text-sm text-slate-700 outline-none"
+                placeholder={
+                  closingBalanceLoading ? 'Loading...' : 'Closing Balance'
+                }
+                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
+              {closingBalanceError && (
+                <span
+                  id="closing-balance-error"
+                  className="text-xs text-red-600"
+                  role="status"
+                >
+                  {closingBalanceError}
+                </span>
+              )}
             </label>
 
             {/* Amount */}

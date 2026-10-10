@@ -650,11 +650,11 @@ function DeliveryNotePage({ companyId }) {
     setOptionsLoading(true)
     setOptionsError('')
     Promise.allSettled([
-      fetchCustomers({ companyId, accessToken, page: 1, limit: 100 }),
-      fetchCompanyStock(accessToken, companyId, { page: 1, limit: 100 }),
-      fetchCompanyVouchers(accessToken, companyId, { page: 1, limit: 100 }),
-      fetchCompanyGodowns(accessToken, companyId, { page: 1, limit: 100 }),
-      fetchCompanyLedgers(accessToken, companyId, { page: 1, limit: 100 }),
+      fetchCustomers({ companyId, accessToken, page: 1, limit: 20 }),
+      fetchCompanyStock(accessToken, companyId, { page: 1, limit: 20 }),
+      fetchCompanyVouchers(accessToken, companyId, { page: 1, limit: 20 }),
+      fetchCompanyGodowns(accessToken, companyId, { page: 1, limit: 20 }),
+      fetchCompanyLedgers(accessToken, companyId, { page: 1, limit: 20 }),
     ])
       .then(([customersResult, stockResult, vouchersResult, godownsResult, ledgersResult]) => {
         if (!mounted) return

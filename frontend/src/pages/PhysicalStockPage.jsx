@@ -23,6 +23,8 @@ const getDisplayValue = (entry, keys) => {
   return ''
 }
 
+const DROPDOWN_PAGE_SIZE = 20
+
 const getRow = (id) => ({
   id,
   item: '',
@@ -42,6 +44,7 @@ function PhysicalStockPage({ companyId }) {
   const [message, setMessage] = useState('')
   const [stockItems, setStockItems] = useState([])
   const [godowns, setGodowns] = useState([])
+  const [optionPages, setOptionPages] = useState({})
   const [optionsLoading, setOptionsLoading] = useState(false)
   const [optionsError, setOptionsError] = useState('')
   const [voucherNumber, setVoucherNumber] = useState('')
@@ -50,7 +53,64 @@ function PhysicalStockPage({ companyId }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
   const successTimerRef = useRef(null)
+  const optionPagesRef = useRef({})
   const accessToken = useAuthStore((state) => state.accessToken)
+
+  const updateOptionPage = (source, pageState) => {
+    const nextPages = { ...optionPagesRef.current, [source]: pageState }
+    optionPagesRef.current = nextPages
+    setOptionPages(nextPages)
+  }
+
+  const loadMoreOptions = async (source) => {
+    const currentPage = optionPagesRef.current[source]
+    if (!currentPage?.hasMore || currentPage.loading) return
+
+    updateOptionPage(source, { ...currentPage, loading: true, error: '' })
+
+    try {
+      const response =
+        source === 'stock'
+          ? await fetchCompanyStock(accessToken, companyId, {
+              page: currentPage.nextPage,
+              limit: DROPDOWN_PAGE_SIZE,
+            })
+          : await fetchCompanyGodowns(accessToken, companyId, {
+              page: currentPage.nextPage,
+              limit: DROPDOWN_PAGE_SIZE,
+            })
+      const items =
+        source === 'stock' ? extractStockItems(response) : extractGodowns(response)
+      const setItems = source === 'stock' ? setStockItems : setGodowns
+      setItems((existingItems) => [...existingItems, ...items])
+      updateOptionPage(source, {
+        nextPage: currentPage.nextPage + 1,
+        hasMore: items.length >= DROPDOWN_PAGE_SIZE,
+        loading: false,
+        error: '',
+      })
+    } catch (error) {
+      updateOptionPage(source, {
+        ...currentPage,
+        loading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to load more options.',
+      })
+    }
+  }
+
+  const getPaginationProps = (source) => {
+    const pageState = optionPages[source]
+    return {
+      infiniteScroll: true,
+      hasMoreOptions: pageState?.hasMore || false,
+      loadingMore: pageState?.loading || false,
+      loadMoreError: pageState?.error || '',
+      onLoadMore: () => loadMoreOptions(source),
+    }
+  }
 
   useEffect(() => () => {
     if (successTimerRef.current) {
@@ -62,29 +122,53 @@ function PhysicalStockPage({ companyId }) {
     if (!companyId || !accessToken) {
       setStockItems([])
       setGodowns([])
+      optionPagesRef.current = {}
+      setOptionPages({})
       return undefined
     }
 
     let mounted = true
+    optionPagesRef.current = {}
+    setOptionPages({})
     setOptionsLoading(true)
     setOptionsError('')
 
     Promise.allSettled([
-      fetchCompanyStock(accessToken, companyId, { page: 1, limit: 100 }),
-      fetchCompanyGodowns(accessToken, companyId, { page: 1, limit: 100 }),
+      fetchCompanyStock(accessToken, companyId, {
+        page: 1,
+        limit: DROPDOWN_PAGE_SIZE,
+      }),
+      fetchCompanyGodowns(accessToken, companyId, {
+        page: 1,
+        limit: DROPDOWN_PAGE_SIZE,
+      }),
     ])
       .then(([stockResult, godownsResult]) => {
         if (!mounted) return
 
         if (stockResult.status === 'fulfilled') {
-          setStockItems(extractStockItems(stockResult.value))
+          const stockPage = extractStockItems(stockResult.value)
+          setStockItems(stockPage)
+          updateOptionPage('stock', {
+            nextPage: 2,
+            hasMore: stockPage.length >= DROPDOWN_PAGE_SIZE,
+            loading: false,
+            error: '',
+          })
         } else {
           setStockItems([])
           setOptionsError(stockResult.reason?.message || 'Unable to load stock items.')
         }
 
         if (godownsResult.status === 'fulfilled') {
-          setGodowns(extractGodowns(godownsResult.value))
+          const godownPage = extractGodowns(godownsResult.value)
+          setGodowns(godownPage)
+          updateOptionPage('godowns', {
+            nextPage: 2,
+            hasMore: godownPage.length >= DROPDOWN_PAGE_SIZE,
+            loading: false,
+            error: '',
+          })
         } else {
           setGodowns([])
           setOptionsError((current) => current || godownsResult.reason?.message || 'Unable to load godowns.')
@@ -312,7 +396,7 @@ function PhysicalStockPage({ companyId }) {
             {/* VOUCHER NUMBER */}
 
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Voucher No</span>
+              <span>Voucher No (optional)</span>
 
               <input
                 value={voucherNumber}
@@ -417,6 +501,7 @@ function PhysicalStockPage({ companyId }) {
                   name={`physicalStockItem-${row.id}`}
                   label="items"
                   options={itemOptions}
+                  {...getPaginationProps('stock')}
                   loading={optionsLoading}
                   value={row.item}
                   onSelect={(value) => updateRow(row.id, 'item', value)}
@@ -454,6 +539,7 @@ function PhysicalStockPage({ companyId }) {
                   name={`physicalStockGodown-${row.id}`}
                   label="godowns"
                   options={godownOptions}
+                  {...getPaginationProps('godowns')}
                   loading={optionsLoading}
                   value={row.godown}
                   onSelect={(value) => updateRow(row.id, 'godown', value)}

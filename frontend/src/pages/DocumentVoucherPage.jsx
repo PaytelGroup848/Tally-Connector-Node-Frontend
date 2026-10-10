@@ -65,10 +65,51 @@ function createJournalRow(id = Date.now()) {
   };
 }
 
+function normalizePartyName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getPartyBalance(entry) {
+  const balanceKeys = new Set([
+    "closingbalance",
+    "balance",
+    "currentbalance",
+  ]);
+  const pending = [entry];
+
+  while (pending.length > 0) {
+    const value = pending.shift();
+    if (!value || typeof value !== "object") continue;
+
+    for (const [key, candidate] of Object.entries(value)) {
+      const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (
+        balanceKeys.has(normalizedKey) &&
+        candidate !== null &&
+        candidate !== undefined &&
+        String(candidate).trim() !== "" &&
+        Number.isFinite(Number(candidate))
+      ) {
+        return String(candidate);
+      }
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === "object") pending.push(child);
+    }
+  }
+
+  return null;
+}
+
 function JournalVoucherContent({
   voucherType,
   rows,
   partyOptions,
+  partyDropdownProps,
   optionsLoading,
   onAddRow,
   onRemoveRow,
@@ -115,6 +156,7 @@ function JournalVoucherContent({
               name={`journalPartyName-${row.id}`}
               label="parties"
               options={partyOptions}
+              {...partyDropdownProps}
               loading={optionsLoading}
               value={row.partyName}
               onSelect={(value) => onRowChange(row.id, "partyName", value)}
@@ -162,7 +204,7 @@ function JournalVoucherContent({
         </label>
 
         <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-slate-700">
-          <span>Voucher No</span>
+          <span>Voucher No (optional)</span>
           <input
             name="voucherNumber"
             type="text"
@@ -924,6 +966,7 @@ export function SearchableDropdown({
   defaultValue = "",
   value,
   onSelect,
+  onOptionSelect,
   onClear,
   resetToken = 0,
   disabled = false,
@@ -936,7 +979,10 @@ export function SearchableDropdown({
   const menuRef = useRef(null);
   const loadMoreRef = useRef(onLoadMore);
   const [menuPosition, setMenuPosition] = useState(null);
-  loadMoreRef.current = onLoadMore;
+
+  useEffect(() => {
+    loadMoreRef.current = onLoadMore;
+  }, [onLoadMore]);
 
   const updateMenuPosition = () => {
     const input = dropdownRef.current?.querySelector("input");
@@ -1021,6 +1067,7 @@ export function SearchableDropdown({
       query &&
       filteredOptions.length === 0 &&
       hasMoreOptions &&
+      !loadMoreError &&
       !loadingMore
     ) {
       loadMoreRef.current?.();
@@ -1031,6 +1078,7 @@ export function SearchableDropdown({
     query,
     filteredOptions.length,
     hasMoreOptions,
+    loadMoreError,
     loadingMore,
   ]);
 
@@ -1120,6 +1168,7 @@ export function SearchableDropdown({
                     onClick={() => {
                       setQuery(option);
                       onSelect?.(option);
+                      onOptionSelect?.(option);
                       setOpen(false);
                       setShowAll(false);
                     }}
@@ -1198,6 +1247,11 @@ export function DocumentVoucherPage({
     title === "Sales Order" ? "Sales Order" : "Sales",
   );
   const [selectedGstin, setSelectedGstin] = useState("");
+  const [partyBalance, setPartyBalance] = useState("");
+  const [partyBalanceLoading, setPartyBalanceLoading] = useState(false);
+  const [partyBalanceError, setPartyBalanceError] = useState("");
+  const partyBalanceRequestRef = useRef(0);
+  const partyBalanceEditedRef = useRef(false);
 
   const [itemRows, setItemRows] = useState([createEmptyItemRow()]);
   const [additionalLedgers, setAdditionalLedgers] = useState([]);
@@ -1231,7 +1285,7 @@ export function DocumentVoucherPage({
   const isDebitNote = title === "Debit Note";
   const isNoteVoucher = isCreditNote || isDebitNote;
   const isStockJournal = title === "Stock Journal";
-  const enableQuotationDropdownPagination = title === "Quotation";
+  const enableVoucherDropdownPagination = true;
   const defaultVoucherType = title === "Quotation" ? "Quotation" : title;
   const showPageLoader =
     isOptionsLoading || isSubmitting || showSuccessAnimation;
@@ -1249,6 +1303,86 @@ export function DocumentVoucherPage({
 
   const requestCompanyId =
     title === "Quotation" ? companyId || QUOTATION_COMPANY_ID : companyId;
+
+  const fetchSelectedPartyBalance = async (partyName) => {
+    const requestId = ++partyBalanceRequestRef.current;
+    partyBalanceEditedRef.current = false;
+    setPartyBalance("");
+    setPartyBalanceError("");
+
+    if (!partyName || !requestCompanyId || !accessToken) {
+      setPartyBalanceLoading(false);
+      return;
+    }
+
+    setPartyBalanceLoading(true);
+
+    const [customersResult, ledgersResult] = await Promise.allSettled([
+      fetchCustomers({
+        companyId: requestCompanyId,
+        accessToken,
+        page: 1,
+        limit: DROPDOWN_PAGE_SIZE,
+        q: partyName,
+      }),
+      fetchCompanyLedgers(accessToken, requestCompanyId, {
+        page: 1,
+        limit: DROPDOWN_PAGE_SIZE,
+        q: partyName,
+      }),
+    ]);
+
+    if (requestId !== partyBalanceRequestRef.current) return;
+
+    const matchingEntries = [
+      ...(customersResult.status === "fulfilled"
+        ? extractCustomers(customersResult.value)
+        : []),
+      ...(ledgersResult.status === "fulfilled"
+        ? extractLedgers(ledgersResult.value)
+        : []),
+    ].filter((entry) => {
+      const name = getDisplayValue(entry, [
+        "name",
+        "customerName",
+        "partyName",
+        "ledgerName",
+        "displayName",
+      ]);
+      return normalizePartyName(name) === normalizePartyName(partyName);
+    });
+    const balance = matchingEntries
+      .map(getPartyBalance)
+      .find((value) => value !== null);
+
+    if (balance !== undefined) {
+      if (!partyBalanceEditedRef.current) setPartyBalance(balance);
+      setPartyBalanceError("");
+    } else if (
+      customersResult.status === "rejected" &&
+      ledgersResult.status === "rejected"
+    ) {
+      setPartyBalanceError(
+        customersResult.reason?.message ||
+          ledgersResult.reason?.message ||
+          "Unable to load the selected party's closing balance.",
+      );
+    } else {
+      setPartyBalanceError(
+        "Closing balance is unavailable for the selected party.",
+      );
+    }
+
+    setPartyBalanceLoading(false);
+  };
+
+  const resetSelectedPartyBalance = () => {
+    partyBalanceRequestRef.current += 1;
+    partyBalanceEditedRef.current = false;
+    setPartyBalance("");
+    setPartyBalanceLoading(false);
+    setPartyBalanceError("");
+  };
 
   const updateOptionPage = (source, pageState) => {
     const nextPages = {
@@ -1273,6 +1407,17 @@ export function DocumentVoucherPage({
         extract: extractVouchers,
         setItems: setVouchers,
       },
+      customers: {
+        fetch: () =>
+          fetchCustomers({
+            companyId: requestCompanyId,
+            accessToken,
+            page: currentPage.nextPage,
+            limit: DROPDOWN_PAGE_SIZE,
+          }),
+        extract: extractCustomers,
+        setItems: setCustomers,
+      },
       stock: {
         fetch: () =>
           fetchCompanyStock(accessToken, requestCompanyId, {
@@ -1290,6 +1435,15 @@ export function DocumentVoucherPage({
           }),
         extract: extractLedgers,
         setItems: setLedgers,
+      },
+      batches: {
+        fetch: () =>
+          fetchCompanyBatches(accessToken, requestCompanyId, {
+            page: currentPage.nextPage,
+            limit: DROPDOWN_PAGE_SIZE,
+          }),
+        extract: extractBatches,
+        setItems: setBatches,
       },
       godowns: {
         fetch: () =>
@@ -1330,6 +1484,46 @@ export function DocumentVoucherPage({
     }
   };
 
+  const getPaginationProps = (source) => {
+    const sources = Array.isArray(source) ? source : [source];
+    const pageStates = sources
+      .map((sourceName) => optionPages[sourceName])
+      .filter(Boolean);
+    return {
+      infiniteScroll: enableVoucherDropdownPagination,
+      hasMoreOptions:
+        enableVoucherDropdownPagination &&
+        pageStates.some((pageState) => pageState.hasMore),
+      loadingMore:
+        enableVoucherDropdownPagination &&
+        pageStates.some((pageState) => pageState.loading),
+      loadMoreError: enableVoucherDropdownPagination
+        ? pageStates.find((pageState) => pageState.error)?.error || ""
+        : "",
+      onLoadMore: enableVoucherDropdownPagination
+        ? () => Promise.all(sources.map(loadMoreOptions))
+        : undefined,
+    };
+  };
+
+  const getNativeDropdownPaginationProps = (source) => ({
+    onScroll: (event) => {
+      const dropdown = event.currentTarget;
+      if (
+        dropdown.scrollTop + dropdown.clientHeight >=
+        dropdown.scrollHeight - 24
+      ) {
+        loadMoreOptions(source);
+      }
+    },
+  });
+
+  const loadMoreOnNativeDropdownSelection = (event, source) => {
+    if (event.currentTarget.selectedIndex >= event.currentTarget.options.length - 2) {
+      loadMoreOptions(source);
+    }
+  };
+
   useEffect(() => {
     if (!requestCompanyId || !accessToken) {
       optionPagesRef.current = {};
@@ -1345,6 +1539,11 @@ export function DocumentVoucherPage({
       setSelectedVoucherNumber("");
       setSelectedVoucherType("Sales");
       setSelectedGstin("");
+      partyBalanceRequestRef.current += 1;
+      partyBalanceEditedRef.current = false;
+      setPartyBalance("");
+      setPartyBalanceLoading(false);
+      setPartyBalanceError("");
       setItemRows([createEmptyItemRow()]);
       setAdditionalLedgers([]);
       setShowLedgerPanel(false);
@@ -1443,7 +1642,14 @@ export function DocumentVoucherPage({
           if (!mounted) return;
 
           if (customersResult.status === "fulfilled") {
-            setCustomers(extractCustomers(customersResult.value));
+            const customerPage = extractCustomers(customersResult.value);
+            setCustomers(customerPage);
+            updateOptionPage("customers", {
+              nextPage: 2,
+              hasMore: customerPage.length >= DROPDOWN_PAGE_SIZE,
+              loading: false,
+              error: "",
+            });
           }
 
           if (stockResult.status === "fulfilled") {
@@ -1464,7 +1670,14 @@ export function DocumentVoucherPage({
           }
 
           if (batchesResult?.status === "fulfilled") {
-            setBatches(extractBatches(batchesResult.value));
+            const batchPage = extractBatches(batchesResult.value);
+            setBatches(batchPage);
+            updateOptionPage("batches", {
+              nextPage: 2,
+              hasMore: batchPage.length >= DROPDOWN_PAGE_SIZE,
+              loading: false,
+              error: "",
+            });
           }
 
           if (vouchersResult?.status === "fulfilled") {
@@ -1767,8 +1980,6 @@ export function DocumentVoucherPage({
     )
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index);
-
-  const quotationItemOptions = itemOptions;
 
   const quotationPartyOptions = voucherPartyOptions;
 
@@ -2585,6 +2796,7 @@ export function DocumentVoucherPage({
 
       setSelectedParty("");
       setSelectedVoucherNumber("");
+      resetSelectedPartyBalance();
       setAdditionalLedgers([]);
       setShowLedgerPanel(false);
       setJournalRows([
@@ -2624,6 +2836,7 @@ export function DocumentVoucherPage({
 
     setSelectedParty("");
     setSelectedVoucherNumber("");
+    resetSelectedPartyBalance();
 
     resetItemRows();
     setAdditionalLedgers([]);
@@ -2855,6 +3068,9 @@ export function DocumentVoucherPage({
               batches={batches}
               itemOptions={itemOptions}
               godownOptions={godownOptions}
+              itemDropdownProps={getPaginationProps("stock")}
+              godownDropdownProps={getPaginationProps("godowns")}
+              batchDropdownProps={getPaginationProps("batches")}
               optionsLoading={isOptionsLoading}
               onAddSource={() => addStockRow(setSourceRows)}
               onAddDestination={() => addStockRow(setDestinationRows)}
@@ -2874,6 +3090,7 @@ export function DocumentVoucherPage({
               voucherType={title}
               rows={journalRows}
               partyOptions={partyLedgerOptions}
+              partyDropdownProps={getPaginationProps(["customers", "ledgers"])}
               optionsLoading={isOptionsLoading}
               onAddRow={addJournalRow}
               onRemoveRow={removeJournalRow}
@@ -2912,30 +3129,17 @@ export function DocumentVoucherPage({
                         name="partyName"
                         label="parties"
                         options={partyOptions}
-                        infiniteScroll={enableQuotationDropdownPagination}
-                        hasMoreOptions={
-                          enableQuotationDropdownPagination &&
-                          optionPages.vouchers?.hasMore
-                        }
-                        loadingMore={
-                          enableQuotationDropdownPagination &&
-                          optionPages.vouchers?.loading
-                        }
-                        loadMoreError={
-                          enableQuotationDropdownPagination
-                            ? optionPages.vouchers?.error
-                            : ""
-                        }
-                        onLoadMore={
-                          enableQuotationDropdownPagination
-                            ? () => loadMoreOptions("vouchers")
-                            : undefined
-                        }
+                        {...getPaginationProps(
+                          isSalesOrder ? ["customers", "ledgers"] : "vouchers",
+                        )}
                         placeholder="Select Party"
                         loading={isOptionsLoading}
                         value={selectedParty}
                         resetToken={clearToken}
                         onSelect={(party) => {
+                          if (party !== selectedParty) {
+                            resetSelectedPartyBalance();
+                          }
                           setSelectedParty(party);
 
                           setSelectedVoucherNumber(
@@ -2944,8 +3148,12 @@ export function DocumentVoucherPage({
 
                           setSelectedGstin(findLedgerGstin(party));
                         }}
+                        onOptionSelect={(party) =>
+                          fetchSelectedPartyBalance(party)
+                        }
                         onClear={() => {
                           setSelectedParty("");
+                          resetSelectedPartyBalance();
 
                           setSelectedVoucherNumber("");
 
@@ -2956,10 +3164,13 @@ export function DocumentVoucherPage({
                       <select
                         name="partyName"
                         defaultValue=""
+                        {...getNativeDropdownPaginationProps("customers")}
                         onChange={(event) => {
                           const party = event.target.value;
                           setSelectedParty(party);
+                          void fetchSelectedPartyBalance(party);
                           setSelectedGstin(findLedgerGstin(party));
+                          loadMoreOnNativeDropdownSelection(event, "customers");
                         }}
                         className="min-h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                       >
@@ -2978,6 +3189,37 @@ export function DocumentVoucherPage({
                     )}
                   </div>
                 </label>
+
+                {!isJournalStyleVoucher && !isStockJournal && (
+                  <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                    <span>Closing Balance</span>
+                    <input
+                      type="number"
+                      step="any"
+                      value={partyBalance}
+                      onChange={(event) => {
+                        partyBalanceEditedRef.current = true;
+                        setPartyBalance(event.target.value);
+                      }}
+                      aria-describedby={
+                        partyBalanceError ? "party-balance-error" : undefined
+                      }
+                      className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                      placeholder={
+                        partyBalanceLoading ? "Loading..." : "Closing Balance"
+                      }
+                    />
+                    {partyBalanceError && (
+                      <span
+                        id="party-balance-error"
+                        className="text-xs text-red-600"
+                        role="status"
+                      >
+                        {partyBalanceError}
+                      </span>
+                    )}
+                  </label>
+                )}
 
                 {(title === "Receipt Note" || title === "Delivery Note") && (
                   <>
@@ -3013,32 +3255,14 @@ export function DocumentVoucherPage({
                 )}
 
                 <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                  <span>Voucher No</span>
+                  <span>Voucher No (optional)</span>
 
                   {title === "Quotation" || isSalesInvoice ? (
                     <SearchableDropdown
                       name="voucherNumber"
                       label="voucher numbers"
                       options={voucherNumberOptions}
-                      infiniteScroll={enableQuotationDropdownPagination}
-                      hasMoreOptions={
-                        enableQuotationDropdownPagination &&
-                        optionPages.vouchers?.hasMore
-                      }
-                      loadingMore={
-                        enableQuotationDropdownPagination &&
-                        optionPages.vouchers?.loading
-                      }
-                      loadMoreError={
-                        enableQuotationDropdownPagination
-                          ? optionPages.vouchers?.error
-                          : ""
-                      }
-                      onLoadMore={
-                        enableQuotationDropdownPagination
-                          ? () => loadMoreOptions("vouchers")
-                          : undefined
-                      }
+                      {...getPaginationProps("vouchers")}
                       placeholder="Voucher number"
                       loading={isOptionsLoading}
                       value={selectedVoucherNumber}
@@ -3068,25 +3292,7 @@ export function DocumentVoucherPage({
                       name="ledgerType"
                       label="ledger types"
                       options={ledgerTypeOptions}
-                      infiniteScroll={enableQuotationDropdownPagination}
-                      hasMoreOptions={
-                        enableQuotationDropdownPagination &&
-                        optionPages.ledgers?.hasMore
-                      }
-                      loadingMore={
-                        enableQuotationDropdownPagination &&
-                        optionPages.ledgers?.loading
-                      }
-                      loadMoreError={
-                        enableQuotationDropdownPagination
-                          ? optionPages.ledgers?.error
-                          : ""
-                      }
-                      onLoadMore={
-                        enableQuotationDropdownPagination
-                          ? () => loadMoreOptions("ledgers")
-                          : undefined
-                      }
+                      {...getPaginationProps("ledgers")}
                       placeholder="Select Ledger"
                       loading={isOptionsLoading}
                       resetToken={clearToken}
@@ -3242,32 +3448,8 @@ export function DocumentVoucherPage({
                               <SearchableDropdown
                                 name={`item-${row.id}`}
                                 label="items"
-                                options={
-                                  isSalesInvoice || isSalesOrder
-                                    ? itemOptions
-                                    : quotationItemOptions
-                                }
-                                infiniteScroll={
-                                  enableQuotationDropdownPagination
-                                }
-                                hasMoreOptions={
-                                  enableQuotationDropdownPagination &&
-                                  optionPages.stock?.hasMore
-                                }
-                                loadingMore={
-                                  enableQuotationDropdownPagination &&
-                                  optionPages.stock?.loading
-                                }
-                                loadMoreError={
-                                  enableQuotationDropdownPagination
-                                    ? optionPages.stock?.error
-                                    : ""
-                                }
-                                onLoadMore={
-                                  enableQuotationDropdownPagination
-                                    ? () => loadMoreOptions("stock")
-                                    : undefined
-                                }
+                                options={itemOptions}
+                                {...getPaginationProps("stock")}
                                 placeholder={stockError || "Search item"}
                                 loading={isOptionsLoading}
                                 value={row.item}
@@ -3285,9 +3467,11 @@ export function DocumentVoucherPage({
                               <select
                                 name={`item-${row.id}`}
                                 value={row.item}
-                                onChange={(event) =>
+                                {...getNativeDropdownPaginationProps("stock")}
+                                onChange={(event) => {
                                   handleItemSelect(row.id, event.target.value)
-                                }
+                                  loadMoreOnNativeDropdownSelection(event, "stock")
+                                }}
                                 className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                               >
                                 <option value="">
@@ -3451,27 +3635,7 @@ export function DocumentVoucherPage({
                                 name={`godown-${row.id}`}
                                 label="godowns"
                                 options={godownOptions}
-                                infiniteScroll={
-                                  enableQuotationDropdownPagination
-                                }
-                                hasMoreOptions={
-                                  enableQuotationDropdownPagination &&
-                                  optionPages.godowns?.hasMore
-                                }
-                                loadingMore={
-                                  enableQuotationDropdownPagination &&
-                                  optionPages.godowns?.loading
-                                }
-                                loadMoreError={
-                                  enableQuotationDropdownPagination
-                                    ? optionPages.godowns?.error
-                                    : ""
-                                }
-                                onLoadMore={
-                                  enableQuotationDropdownPagination
-                                    ? () => loadMoreOptions("godowns")
-                                    : undefined
-                                }
+                                {...getPaginationProps("godowns")}
                                 placeholder="Search Godown"
                                 loading={isOptionsLoading}
                                 value={row.godown}
@@ -3599,21 +3763,7 @@ export function DocumentVoucherPage({
                 subtotal={subtotal}
                 itemTaxes={itemTaxes}
                 ledgerOptions={ledgerOptions}
-                ledgerDropdownProps={{
-                  infiniteScroll: enableQuotationDropdownPagination,
-                  hasMoreOptions:
-                    enableQuotationDropdownPagination &&
-                    optionPages.ledgers?.hasMore,
-                  loadingMore:
-                    enableQuotationDropdownPagination &&
-                    optionPages.ledgers?.loading,
-                  loadMoreError: enableQuotationDropdownPagination
-                    ? optionPages.ledgers?.error
-                    : "",
-                  onLoadMore: enableQuotationDropdownPagination
-                    ? () => loadMoreOptions("ledgers")
-                    : undefined,
-                }}
+                ledgerDropdownProps={getPaginationProps("ledgers")}
                 additionalLedgers={additionalLedgers}
                 onAddLedger={addAdditionalLedger}
                 onRemoveLedger={removeAdditionalLedger}
@@ -3711,6 +3861,9 @@ function StockJournalSide({
   batches,
   itemOptions,
   godownOptions,
+  itemDropdownProps,
+  godownDropdownProps,
+  batchDropdownProps,
   optionsLoading,
   onAddRow,
   onRemoveRow,
@@ -3812,6 +3965,7 @@ function StockJournalSide({
                   name={`stockItem-${row.id}`}
                   label="items"
                   options={itemOptions}
+                  {...itemDropdownProps}
                   loading={optionsLoading}
                   value={row.item}
                   onSelect={(value) => onRowChange(row.id, "item", value)}
@@ -3842,6 +3996,7 @@ function StockJournalSide({
                   name={`stockGodown-${row.id}`}
                   label="godowns"
                   options={godownOptions}
+                  {...godownDropdownProps}
                   loading={optionsLoading}
                   value={row.godown}
                   onSelect={(value) => onRowChange(row.id, "godown", value)}
@@ -3852,6 +4007,7 @@ function StockJournalSide({
                   name={`stockBatch-${row.id}`}
                   label="batches"
                   options={batchOptionsFor(row.item)}
+                  {...batchDropdownProps}
                   loading={optionsLoading}
                   value={row.batch}
                   onSelect={(value) => onRowChange(row.id, "batch", value)}
@@ -3891,6 +4047,9 @@ function StockJournalVoucherContent({
   batches,
   itemOptions,
   godownOptions,
+  itemDropdownProps,
+  godownDropdownProps,
+  batchDropdownProps,
   optionsLoading,
   onAddSource,
   onAddDestination,
@@ -3921,7 +4080,7 @@ function StockJournalVoucherContent({
           />
         </label>
         <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
-          <span>Voucher No</span>
+          <span>Voucher No (optional)</span>
           <input
             name="voucherNumber"
             defaultValue=""
@@ -3947,6 +4106,9 @@ function StockJournalVoucherContent({
           batches={batches}
           itemOptions={itemOptions}
           godownOptions={godownOptions}
+          itemDropdownProps={itemDropdownProps}
+          godownDropdownProps={godownDropdownProps}
+          batchDropdownProps={batchDropdownProps}
           optionsLoading={optionsLoading}
           onAddRow={onAddSource}
           onRemoveRow={onRemoveSource}
@@ -3959,6 +4121,9 @@ function StockJournalVoucherContent({
           batches={batches}
           itemOptions={itemOptions}
           godownOptions={godownOptions}
+          itemDropdownProps={itemDropdownProps}
+          godownDropdownProps={godownDropdownProps}
+          batchDropdownProps={batchDropdownProps}
           optionsLoading={optionsLoading}
           onAddRow={onAddDestination}
           onRemoveRow={onRemoveDestination}
