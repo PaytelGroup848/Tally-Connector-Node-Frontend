@@ -79,6 +79,7 @@ export function getRouteFlags(path = '') {
     showReportsPage: normalizedPath === '/reports',
     showVouchersPage: normalizedPath === '/vouchers',
     showItemsPage: normalizedPath === '/items',
+    showSettingsPage:normalizedPath==='/settings',
     showPartiesPage: normalizedPath === '/parties',
     showMyVouchersPage: myVoucherPaths.includes(normalizedPath),
     showEntryList: entryListPaths.has(normalizedPath) && !myVoucherPaths.includes(normalizedPath),

@@ -19,6 +19,7 @@ import DeliveryNotePage from "./DeliveryNotePage";
 import JournalPage from "./JournalPage";
 import GstSearchPage from "./GstSearchPage";
 import ItemsPage from "./ItemsPage";
+import SettingsPage from "./SettingsPage";
 import CreateItemPage from "./CreateItemPage";
 import CreatePartyPage from "./CreatePartyPage";
 import MyEntryListPage from "./MyEntryListPage";
@@ -973,6 +974,15 @@ function App() {
     if (flags.showPartiesPage) {
       return (
         <PartiesPage
+          selectedCompany={
+            selectedCompany
+          }
+        />
+      );
+    }
+    if (flags.showSettingsPage) {
+      return (
+        <SettingsPage
           selectedCompany={
             selectedCompany
           }

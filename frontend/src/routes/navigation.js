@@ -18,6 +18,7 @@ import {
 
 export const navItems = [
   [LayoutDashboard, "Dashboard", false, false, "dashboard"],
+  [Settings,"Settings",false,false,"settings"],
   [Plus, "Create Vouchers", true, false, "create-voucher"],
   [FileText, "Sales", true, false, "sales"],
   [ShoppingCart, "Purchase", true, false, "purchase"],
