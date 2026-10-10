@@ -92,40 +92,6 @@ function getBalanceValue(entry) {
   return null
 }
 
-function getVoucherNumber(entry) {
-  const voucherNumberKeys = new Set([
-    'vouchernumber',
-    'voucherno',
-    'vouchernum',
-    'nextvouchernumber',
-    'nextvoucherno',
-  ])
-  const pending = [entry]
-
-  while (pending.length > 0) {
-    const value = pending.shift()
-    if (!value || typeof value !== 'object') continue
-
-    for (const [key, candidate] of Object.entries(value)) {
-      const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, '')
-      if (
-        voucherNumberKeys.has(normalizedKey) &&
-        candidate !== null &&
-        candidate !== undefined &&
-        String(candidate).trim()
-      ) {
-        return String(candidate).trim()
-      }
-    }
-
-    for (const child of Object.values(value)) {
-      if (child && typeof child === 'object') pending.push(child)
-    }
-  }
-
-  return ''
-}
-
 function getToday() {
   return new Date().toLocaleDateString('en-CA')
 }
@@ -162,7 +128,6 @@ function ReceiptPage({
   const [closingBalanceError, setClosingBalanceError] = useState('')
   const closingBalanceRequestRef = useRef(0)
   const closingBalanceEditedRef = useRef(false)
-  const voucherNumberEditedRef = useRef(false)
 
   const [optionsLoading, setOptionsLoading] = useState(false)
   const [optionsError, setOptionsError] = useState('')
@@ -230,20 +195,16 @@ function ReceiptPage({
   const resetClosingBalance = () => {
     closingBalanceRequestRef.current += 1
     closingBalanceEditedRef.current = false
-    voucherNumberEditedRef.current = false
     setClosingBalance('')
     setClosingBalanceLoading(false)
     setClosingBalanceError('')
-    setForm((current) => ({ ...current, voucherNumber: '' }))
   }
 
   const fetchClosingBalance = async (partyName) => {
     const requestId = ++closingBalanceRequestRef.current
     closingBalanceEditedRef.current = false
-    voucherNumberEditedRef.current = false
     setClosingBalance('')
     setClosingBalanceError('')
-    setForm((current) => ({ ...current, voucherNumber: '' }))
 
     if (!partyName || !companyId || !accessToken) {
       setClosingBalanceLoading(false)
@@ -285,25 +246,6 @@ function ReceiptPage({
       ])
       return name.toLowerCase().trim() === partyName.toLowerCase().trim()
     })
-    const matchingLedger = (
-      ledgersResult.status === 'fulfilled'
-        ? extractLedgers(ledgersResult.value)
-        : []
-    ).find((ledger) => {
-      const name = getDisplayName(ledger, [
-        'partyName',
-        'name',
-        'customerName',
-        'ledgerName',
-        'displayName',
-      ])
-      return name.toLowerCase().trim() === partyName.toLowerCase().trim()
-    })
-    const voucherNumber = getVoucherNumber(matchingLedger)
-    if (voucherNumber && !voucherNumberEditedRef.current) {
-      setForm((current) => ({ ...current, voucherNumber }))
-    }
-
     const balance = matchingEntries
       .map(getBalanceValue)
       .find((value) => value !== null)
@@ -708,16 +650,17 @@ useEffect(() => {
               <span>Voucher No (optional)</span>
 
               <input
-                name="voucherNumber"
                 value={form.voucherNumber}
                 type="text"
                 min="0"
                 step="1"
                 required
-                onChange={(event) => {
-                  voucherNumberEditedRef.current = true
-                  updateField('voucherNumber', event.target.value)
-                }}
+                onChange={(event) =>
+                  updateField(
+                    'voucherNumber',
+                    event.target.value,
+                  )
+                }
                 className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
                 placeholder="Voucher No"
               />
