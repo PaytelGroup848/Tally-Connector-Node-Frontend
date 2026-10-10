@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import FeatureCards from "../components/FeatureCards";
 import EnquiryModal from "../components/EnquiryModal";
 import EnquiryForm from "../components/EnquiryFormSection";
 import LoginPage from "./LoginPage";
@@ -29,6 +30,7 @@ import test10 from "../assets/New-Testimonial-Review-Card-7 (2).png";
 import test11 from "../assets/New-Testimonial-Review-Card-9 (2).png";
 import {
   ArrowRight,
+  Sparkles,
   Download,
   BarChart3,
   Bell,
@@ -589,27 +591,35 @@ function App() {
             {/* Left */}
             <div className="w-full max-w-lg shrink-0 text-left lg:w-[42%]">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-bold text-green-700">
-                <span className="h-2 w-2 rounded-full bg-emerald-700" />
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50">
+                  <Sparkles
+                    size={18}
+                    strokeWidth={2}
+                    className="text-emerald-700"
+                  />
+                </span>
                 AI Powered Accounting & Business Management
               </div>
 
               <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-                <span className="block">Your business,</span>
+                <span className="block">Smart accounts,</span>
 
                 <span className="block text-emerald-700">
-                  Live on your fingertips.
+                  Bigger Decisions.
+                </span>
+                <span className="block text-emerald-700">
+                  with AI.
                 </span>
               </h1>
 
               <p className="mt-6 text-base leading-8 text-slate-600 sm:text-lg">
-                Monitor your business, access accounting information and stay
-                connected with your team from anywhere.
+                CtrlBooks brings your accounting, inventory, invoicing and business insights together — powered by AI, so you can focus on what really matters: growing your business.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-start">
                 <button
                   onClick={goToLogin}
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-emerald-800 mr-8"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-emerald-800 mr-8"
                 >
                   Start using CtrlBooks
 
@@ -620,11 +630,8 @@ function App() {
                 </button>
               </div>
 
-              <div className="mt-8 grid max-w-lg grid-cols-2 gap-4 sm:grid-cols-3">
-                <MiniStat value="24/7" label="Business access" />
-                <MiniStat value="Cloud" label="Connected data" />
-                <MiniStat value="Mobile" label="Ready" />
-              </div>
+                {/* <FeatureCards/> */}
+
             </div>
 
             {/* Right - More Width */}
@@ -1802,7 +1809,7 @@ function PriceCard({
       {/* Features */}
       <div className="mt-4 grid grid-cols-1 gap-x-5 gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => (
-          <div  
+          <div
             key={feature}
             className="flex min-w-0 items-start gap-1.5"
           >

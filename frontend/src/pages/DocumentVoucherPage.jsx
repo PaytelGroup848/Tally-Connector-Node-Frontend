@@ -25,6 +25,7 @@ import {
 import { extractCustomers, fetchCustomers } from "../services/customersApi";
 
 const QUOTATION_COMPANY_ID = "6aa0f659f858467a84d08d57";
+const DROPDOWN_PAGE_SIZE = 100;
 
 let nextItemRowId = 1;
 let nextLedgerRowId = 1;
@@ -430,7 +431,11 @@ function calculateAdditionalLedgerAmount(row, subtotal) {
   return Math.max(0, (subtotal * Math.max(0, value)) / 100);
 }
 
-export function GstLedgerPanel({ subtotal = 0, ledgerOptions = [] }) {
+export function GstLedgerPanel({
+  subtotal = 0,
+  ledgerOptions = [],
+  ledgerDropdownProps = {},
+}) {
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
 
@@ -502,6 +507,7 @@ export function GstLedgerPanel({ subtotal = 0, ledgerOptions = [] }) {
                         name={`additionalLedger-${row.id}`}
                         label="GST and other ledgers"
                         options={ledgerOptions}
+                        {...ledgerDropdownProps}
                         placeholder="Select ledger"
                         value={row.ledgerName}
                         onSelect={(value) =>
@@ -622,6 +628,7 @@ function VoucherBottomSection({
   subtotal,
   itemTaxes,
   ledgerOptions,
+  ledgerDropdownProps,
   additionalLedgers,
   onAddLedger,
   onRemoveLedger,
@@ -743,6 +750,7 @@ function VoucherBottomSection({
                             name={`additionalLedger-${row.id}`}
                             label="GST and other ledgers"
                             options={ledgerOptions}
+                            {...ledgerDropdownProps}
                             placeholder="Select ledger"
                             value={row.ledgerName}
                             onSelect={(value) => {
@@ -908,6 +916,11 @@ export function SearchableDropdown({
   options,
   placeholder,
   loading = false,
+  infiniteScroll = false,
+  hasMoreOptions = false,
+  loadingMore = false,
+  loadMoreError = "",
+  onLoadMore,
   defaultValue = "",
   value,
   onSelect,
@@ -919,10 +932,11 @@ export function SearchableDropdown({
   const [open, setOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
-  // Reference to the complete dropdown wrapper
   const dropdownRef = useRef(null);
   const menuRef = useRef(null);
+  const loadMoreRef = useRef(onLoadMore);
   const [menuPosition, setMenuPosition] = useState(null);
+  loadMoreRef.current = onLoadMore;
 
   const updateMenuPosition = () => {
     const input = dropdownRef.current?.querySelector("input");
@@ -1000,9 +1014,31 @@ export function SearchableDropdown({
       .includes(String(query).toLowerCase());
   });
 
-  const visibleOptions = showAll
+  useEffect(() => {
+    if (
+      open &&
+      infiniteScroll &&
+      query &&
+      filteredOptions.length === 0 &&
+      hasMoreOptions &&
+      !loadingMore
+    ) {
+      loadMoreRef.current?.();
+    }
+  }, [
+    infiniteScroll,
+    open,
+    query,
+    filteredOptions.length,
+    hasMoreOptions,
+    loadingMore,
+  ]);
+
+  const visibleOptions = infiniteScroll
     ? filteredOptions
-    : filteredOptions.slice(0, 10);
+    : showAll
+      ? filteredOptions
+      : filteredOptions.slice(0, 10);
 
   return (
     <div ref={dropdownRef} className="relative w-full">
@@ -1040,6 +1076,7 @@ export function SearchableDropdown({
           aria-label={`Clear ${label}`}
           onClick={() => {
             setQuery("");
+            setShowAll(false);
             onSelect?.("");
             onClear?.();
           }}
@@ -1063,6 +1100,15 @@ export function SearchableDropdown({
             ref={menuRef}
             className="fixed z-[1200] max-h-72 overflow-y-auto rounded-md border border-slate-200 bg-white p-1 shadow-xl"
             style={menuPosition}
+            onScroll={(event) => {
+              if (!infiniteScroll) return;
+              const menu = event.currentTarget;
+              if (
+                menu.scrollTop + menu.clientHeight >= menu.scrollHeight - 40
+              ) {
+                loadMoreRef.current?.();
+              }
+            }}
           >
             <div>
               {visibleOptions.length > 0 ? (
@@ -1088,15 +1134,35 @@ export function SearchableDropdown({
                 </p>
               )}
 
-              {!showAll && filteredOptions.length > 10 && (
-                <button
-                  type="button"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => setShowAll(true)}
-                  className="mt-1 w-full border-t border-slate-100 px-3 py-2 text-center text-[11px] font-semibold text-green-700 hover:bg-green-50"
-                >
-                  Show more ({filteredOptions.length - 10})
-                </button>
+              {!infiniteScroll &&
+                !showAll &&
+                filteredOptions.length > 10 && (
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => setShowAll(true)}
+                    className="mt-1 w-full border-t border-slate-100 px-3 py-2 text-center text-[11px] font-semibold text-green-700 hover:bg-green-50"
+                  >
+                    Show more ({filteredOptions.length - 10})
+                  </button>
+                )}
+              {infiniteScroll && loadingMore && (
+                <p className="px-3 py-2 text-center text-xs text-slate-500">
+                  Loading more {label.toLowerCase()}...
+                </p>
+              )}
+              {infiniteScroll && loadMoreError && (
+                <div className="border-t border-slate-100 px-3 py-2 text-xs text-red-600">
+                  <p>{loadMoreError}</p>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => loadMoreRef.current?.()}
+                    className="mt-1 font-semibold text-green-700 hover:text-green-800"
+                  >
+                    Retry
+                  </button>
+                </div>
               )}
             </div>
           </div>,
@@ -1148,6 +1214,8 @@ export function DocumentVoucherPage({
   const [clearToken, setClearToken] = useState(0);
 
   const [isOptionsLoading, setIsOptionsLoading] = useState(false);
+  const [optionPages, setOptionPages] = useState({});
+  const optionPagesRef = useRef({});
 
   const [stockError, setStockError] = useState("");
 
@@ -1163,6 +1231,7 @@ export function DocumentVoucherPage({
   const isDebitNote = title === "Debit Note";
   const isNoteVoucher = isCreditNote || isDebitNote;
   const isStockJournal = title === "Stock Journal";
+  const enableQuotationDropdownPagination = title === "Quotation";
   const defaultVoucherType = title === "Quotation" ? "Quotation" : title;
   const showPageLoader =
     isOptionsLoading || isSubmitting || showSuccessAnimation;
@@ -1181,8 +1250,90 @@ export function DocumentVoucherPage({
   const requestCompanyId =
     title === "Quotation" ? companyId || QUOTATION_COMPANY_ID : companyId;
 
+  const updateOptionPage = (source, pageState) => {
+    const nextPages = {
+      ...optionPagesRef.current,
+      [source]: pageState,
+    };
+    optionPagesRef.current = nextPages;
+    setOptionPages(nextPages);
+  };
+
+  const loadMoreOptions = async (source) => {
+    const currentPage = optionPagesRef.current[source];
+    if (!currentPage?.hasMore || currentPage.loading) return;
+
+    const sources = {
+      vouchers: {
+        fetch: () =>
+          fetchCompanyVouchers(accessToken, requestCompanyId, {
+            page: currentPage.nextPage,
+            limit: DROPDOWN_PAGE_SIZE,
+          }),
+        extract: extractVouchers,
+        setItems: setVouchers,
+      },
+      stock: {
+        fetch: () =>
+          fetchCompanyStock(accessToken, requestCompanyId, {
+            page: currentPage.nextPage,
+            limit: DROPDOWN_PAGE_SIZE,
+          }),
+        extract: extractStockItems,
+        setItems: setStockItems,
+      },
+      ledgers: {
+        fetch: () =>
+          fetchCompanyLedgers(accessToken, requestCompanyId, {
+            page: currentPage.nextPage,
+            limit: DROPDOWN_PAGE_SIZE,
+          }),
+        extract: extractLedgers,
+        setItems: setLedgers,
+      },
+      godowns: {
+        fetch: () =>
+          fetchCompanyGodowns(accessToken, requestCompanyId, {
+            page: currentPage.nextPage,
+            limit: DROPDOWN_PAGE_SIZE,
+          }),
+        extract: extractGodowns,
+        setItems: setGodowns,
+      },
+    };
+    const sourceConfig = sources[source];
+    if (!sourceConfig) {
+      throw new Error(`Unsupported dropdown option source: ${source}`);
+    }
+
+    updateOptionPage(source, { ...currentPage, loading: true, error: "" });
+
+    try {
+      const response = await sourceConfig.fetch();
+      const items = sourceConfig.extract(response);
+      sourceConfig.setItems((existingItems) => [...existingItems, ...items]);
+      updateOptionPage(source, {
+        nextPage: currentPage.nextPage + 1,
+        hasMore: items.length >= DROPDOWN_PAGE_SIZE,
+        loading: false,
+        error: "",
+      });
+    } catch (error) {
+      updateOptionPage(source, {
+        ...currentPage,
+        loading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load more dropdown options.",
+      });
+    }
+  };
+
   useEffect(() => {
     if (!requestCompanyId || !accessToken) {
+      optionPagesRef.current = {};
+      setOptionPages({});
       setCustomers([]);
       setStockItems([]);
       setVouchers([]);
@@ -1209,6 +1360,8 @@ export function DocumentVoucherPage({
 
     let mounted = true;
 
+    optionPagesRef.current = {};
+    setOptionPages({});
     setIsOptionsLoading(true);
     setStockError("");
 
@@ -1294,7 +1447,14 @@ export function DocumentVoucherPage({
           }
 
           if (stockResult.status === "fulfilled") {
-            setStockItems(extractStockItems(stockResult.value));
+            const stockPage = extractStockItems(stockResult.value);
+            setStockItems(stockPage);
+            updateOptionPage("stock", {
+              nextPage: 2,
+              hasMore: stockPage.length >= DROPDOWN_PAGE_SIZE,
+              loading: false,
+              error: "",
+            });
           } else {
             setStockItems([]);
 
@@ -1308,15 +1468,36 @@ export function DocumentVoucherPage({
           }
 
           if (vouchersResult?.status === "fulfilled") {
-            setVouchers(extractVouchers(vouchersResult.value));
+            const voucherPage = extractVouchers(vouchersResult.value);
+            setVouchers(voucherPage);
+            updateOptionPage("vouchers", {
+              nextPage: 2,
+              hasMore: voucherPage.length >= DROPDOWN_PAGE_SIZE,
+              loading: false,
+              error: "",
+            });
           }
 
           if (ledgersResult?.status === "fulfilled") {
-            setLedgers(extractLedgers(ledgersResult.value));
+            const ledgerPage = extractLedgers(ledgersResult.value);
+            setLedgers(ledgerPage);
+            updateOptionPage("ledgers", {
+              nextPage: 2,
+              hasMore: ledgerPage.length >= DROPDOWN_PAGE_SIZE,
+              loading: false,
+              error: "",
+            });
           }
 
           if (godownsResult?.status === "fulfilled") {
-            setGodowns(extractGodowns(godownsResult.value));
+            const godownPage = extractGodowns(godownsResult.value);
+            setGodowns(godownPage);
+            updateOptionPage("godowns", {
+              nextPage: 2,
+              hasMore: godownPage.length >= DROPDOWN_PAGE_SIZE,
+              loading: false,
+              error: "",
+            });
           }
 
           if (voucherTypesResult?.status === "fulfilled") {
@@ -2731,6 +2912,25 @@ export function DocumentVoucherPage({
                         name="partyName"
                         label="parties"
                         options={partyOptions}
+                        infiniteScroll={enableQuotationDropdownPagination}
+                        hasMoreOptions={
+                          enableQuotationDropdownPagination &&
+                          optionPages.vouchers?.hasMore
+                        }
+                        loadingMore={
+                          enableQuotationDropdownPagination &&
+                          optionPages.vouchers?.loading
+                        }
+                        loadMoreError={
+                          enableQuotationDropdownPagination
+                            ? optionPages.vouchers?.error
+                            : ""
+                        }
+                        onLoadMore={
+                          enableQuotationDropdownPagination
+                            ? () => loadMoreOptions("vouchers")
+                            : undefined
+                        }
                         placeholder="Select Party"
                         loading={isOptionsLoading}
                         value={selectedParty}
@@ -2820,6 +3020,25 @@ export function DocumentVoucherPage({
                       name="voucherNumber"
                       label="voucher numbers"
                       options={voucherNumberOptions}
+                      infiniteScroll={enableQuotationDropdownPagination}
+                      hasMoreOptions={
+                        enableQuotationDropdownPagination &&
+                        optionPages.vouchers?.hasMore
+                      }
+                      loadingMore={
+                        enableQuotationDropdownPagination &&
+                        optionPages.vouchers?.loading
+                      }
+                      loadMoreError={
+                        enableQuotationDropdownPagination
+                          ? optionPages.vouchers?.error
+                          : ""
+                      }
+                      onLoadMore={
+                        enableQuotationDropdownPagination
+                          ? () => loadMoreOptions("vouchers")
+                          : undefined
+                      }
                       placeholder="Voucher number"
                       loading={isOptionsLoading}
                       value={selectedVoucherNumber}
@@ -2849,6 +3068,25 @@ export function DocumentVoucherPage({
                       name="ledgerType"
                       label="ledger types"
                       options={ledgerTypeOptions}
+                      infiniteScroll={enableQuotationDropdownPagination}
+                      hasMoreOptions={
+                        enableQuotationDropdownPagination &&
+                        optionPages.ledgers?.hasMore
+                      }
+                      loadingMore={
+                        enableQuotationDropdownPagination &&
+                        optionPages.ledgers?.loading
+                      }
+                      loadMoreError={
+                        enableQuotationDropdownPagination
+                          ? optionPages.ledgers?.error
+                          : ""
+                      }
+                      onLoadMore={
+                        enableQuotationDropdownPagination
+                          ? () => loadMoreOptions("ledgers")
+                          : undefined
+                      }
                       placeholder="Select Ledger"
                       loading={isOptionsLoading}
                       resetToken={clearToken}
@@ -3008,6 +3246,27 @@ export function DocumentVoucherPage({
                                   isSalesInvoice || isSalesOrder
                                     ? itemOptions
                                     : quotationItemOptions
+                                }
+                                infiniteScroll={
+                                  enableQuotationDropdownPagination
+                                }
+                                hasMoreOptions={
+                                  enableQuotationDropdownPagination &&
+                                  optionPages.stock?.hasMore
+                                }
+                                loadingMore={
+                                  enableQuotationDropdownPagination &&
+                                  optionPages.stock?.loading
+                                }
+                                loadMoreError={
+                                  enableQuotationDropdownPagination
+                                    ? optionPages.stock?.error
+                                    : ""
+                                }
+                                onLoadMore={
+                                  enableQuotationDropdownPagination
+                                    ? () => loadMoreOptions("stock")
+                                    : undefined
                                 }
                                 placeholder={stockError || "Search item"}
                                 loading={isOptionsLoading}
@@ -3192,6 +3451,27 @@ export function DocumentVoucherPage({
                                 name={`godown-${row.id}`}
                                 label="godowns"
                                 options={godownOptions}
+                                infiniteScroll={
+                                  enableQuotationDropdownPagination
+                                }
+                                hasMoreOptions={
+                                  enableQuotationDropdownPagination &&
+                                  optionPages.godowns?.hasMore
+                                }
+                                loadingMore={
+                                  enableQuotationDropdownPagination &&
+                                  optionPages.godowns?.loading
+                                }
+                                loadMoreError={
+                                  enableQuotationDropdownPagination
+                                    ? optionPages.godowns?.error
+                                    : ""
+                                }
+                                onLoadMore={
+                                  enableQuotationDropdownPagination
+                                    ? () => loadMoreOptions("godowns")
+                                    : undefined
+                                }
                                 placeholder="Search Godown"
                                 loading={isOptionsLoading}
                                 value={row.godown}
@@ -3319,6 +3599,21 @@ export function DocumentVoucherPage({
                 subtotal={subtotal}
                 itemTaxes={itemTaxes}
                 ledgerOptions={ledgerOptions}
+                ledgerDropdownProps={{
+                  infiniteScroll: enableQuotationDropdownPagination,
+                  hasMoreOptions:
+                    enableQuotationDropdownPagination &&
+                    optionPages.ledgers?.hasMore,
+                  loadingMore:
+                    enableQuotationDropdownPagination &&
+                    optionPages.ledgers?.loading,
+                  loadMoreError: enableQuotationDropdownPagination
+                    ? optionPages.ledgers?.error
+                    : "",
+                  onLoadMore: enableQuotationDropdownPagination
+                    ? () => loadMoreOptions("ledgers")
+                    : undefined,
+                }}
                 additionalLedgers={additionalLedgers}
                 onAddLedger={addAdditionalLedger}
                 onRemoveLedger={removeAdditionalLedger}
