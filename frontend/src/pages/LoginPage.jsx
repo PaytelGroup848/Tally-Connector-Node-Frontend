@@ -669,22 +669,24 @@ const LoginPage = () => {
 
               pt-14
 
-              sm:pt-10
-
+              max-sm:pt-10
+              
               lg:justify-start
               lg:pt-2
             "
           >
-            <img
+            {/* <img
               src={logo}
               alt="CtrlBooks logo"
-              className="sm:ml-[8%]
+              className="max-sm:ml-[-5%]
+                lg:ml-[-7%]
+                xl:ml-[5%]  
                 h-auto
                 w-50
                 max-w-full
                 object-contain
               "
-            />
+            /> */}
           </div>
 
           {/* =================================================
@@ -725,7 +727,18 @@ const LoginPage = () => {
             {/* =================================================
                 HEADING
             ================================================== */}
-
+            <img
+              src={logo}
+              alt="CtrlBooks logo"
+              className="max-sm:ml-[-5%]
+                lg:ml-[-7%]
+                 
+                h-auto
+                w-50
+                max-w-full
+                object-contain
+              "
+            />
             <h2
               className="
                 w-full

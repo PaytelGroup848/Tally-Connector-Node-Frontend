@@ -5,6 +5,7 @@ import {
     Landmark,
     ChevronRight,
     X,
+    User,
     Pencil,
     Trash2,
     Star,
@@ -25,7 +26,7 @@ import {
     updateCompanyBank,
     updateCompanySettings,
     uploadCompanyLogo,
-} from '../services/BanksApi'
+} from '../services/CompanyDetailsAndBanksApi'
 import {
     extractCompanies,
     fetchCompanies,
@@ -242,6 +243,23 @@ const flattenSettings = (value, parentKey = '') => {
         value: formatFieldValue(value),
     }]
 }
+
+const CompanyLogo = ({ src, name, size = 'h-28 w-28', iconSize = 44 }) =>
+    src ? (
+        <img
+            src={src}
+            alt={`${name || 'Company'} logo`}
+            className={`${size} rounded-full border border-slate-200 bg-white object-contain p-2 shadow-sm`}
+        />
+    ) : (
+        <div
+            role="img"
+            aria-label="No company logo"
+            className={`${size} flex items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-slate-400`}
+        >
+            <User size={iconSize} strokeWidth={1.5} />
+        </div>
+    )
 
 const SettingsPage = () => {
     const [companies, setCompanies] = useState([])
@@ -801,7 +819,7 @@ const SettingsPage = () => {
                     >
                         <header className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
                             <div>
-                                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
                                     Bank Details
                                 </p>
                                 <h2
@@ -832,7 +850,7 @@ const SettingsPage = () => {
                                         setBankSaveError('')
                                         setBankFormOpen((open) => !open)
                                     }}
-                                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
                                 >
                                     <Plus size={16} />
                                     {bankFormOpen ? 'Close Form' : 'Add Bank'}
@@ -971,7 +989,7 @@ const SettingsPage = () => {
                                     >
                                         <header className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
                                             <div>
-                                                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
                                                     Bank Details
                                                 </p>
                                                 <h3 id="add-bank-title" className="mt-1 text-lg font-bold text-slate-900">
@@ -1002,8 +1020,8 @@ const SettingsPage = () => {
                                                     ['accountHolderName', 'Account Holder Name'],
                                                     ['accountNumber', 'Account Number'],
                                                     ['ifscCode', 'IFSC Code'],
-                                                    ['swiftCode', 'SWIFT Code'],
-                                                    ['branchName', 'Branch Name'],
+                                                    ['swiftCode', 'SWIFT Code (optional)'],
+                                                    ['branchName', 'Branch Name (optional)'],
                                                 ].map(([name, label]) => (
                                                     <label key={name} className="block">
                                                         <span className="mb-1.5 block text-sm font-medium text-slate-700">
@@ -1085,7 +1103,7 @@ const SettingsPage = () => {
                                                 <button
                                                     type="submit"
                                                     disabled={bankSaving}
-                                                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                                                 >
                                                     {bankSaving
                                                         ? editingBankId ? 'Saving...' : 'Adding...'
@@ -1119,7 +1137,7 @@ const SettingsPage = () => {
                     >
                         <header className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
                             <div>
-                                <p className="text-xs font-semibold uppercase tracking-wide text-violet-600">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
                                     Company Settings
                                 </p>
                                 <h2
@@ -1170,21 +1188,15 @@ const SettingsPage = () => {
                                                 setSettingsSaveError('')
                                                 setEditingSettings(true)
                                             }}
-                                            className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700"
+                                            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
                                         >
                                             <Pencil size={16} />
                                             Edit Settings
                                         </button>
                                     </div>
-                                    {logoUrl && (
-                                        <div className="flex justify-center">
-                                            <img
-                                                src={logoUrl}
-                                                alt={`${settingsCompany.name || 'Company'} logo`}
-                                                className="h-28 w-28 rounded-full border border-slate-200 bg-white object-contain p-2 shadow-sm"
-                                            />
-                                        </div>
-                                    )}
+                                    <div className="flex justify-center">
+                                        <CompanyLogo src={logoUrl} name={settingsCompany.name} />
+                                    </div>
                                     <div className="overflow-x-auto rounded-xl border border-slate-200">
                                         <table className="w-full min-w-[400px] border-collapse text-left text-sm">
                                             <thead className="bg-slate-50">
@@ -1305,7 +1317,7 @@ const SettingsPage = () => {
                                                                         website: normalizeWebsite(event.target.value),
                                                                     }))
                                                                 : undefined
-                                                         }
+                                                        }
                                                         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
                                                     />
                                                 )}
@@ -1385,7 +1397,7 @@ const SettingsPage = () => {
                                         <button
                                             type="submit"
                                             disabled={settingsSaving || logoBusy}
-                                            className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                                         >
                                             <Save size={16} />
                                             {settingsSaving ? 'Saving...' : 'Save Settings'}
