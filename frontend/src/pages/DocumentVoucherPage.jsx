@@ -977,7 +977,7 @@ function VoucherBottomSection({
                 : companyGstinError
                   ? `GST breakdown unavailable: ${companyGstinError}`
                   : hasCompanyGstin
-                    ? "Enter a valid party GSTIN to determine the GST split."
+                    ? ""
                     : "Company GSTIN is not configured; GST breakdown is unavailable."}
             </div>
           ) : null}
@@ -4105,7 +4105,7 @@ function StockJournalSide({
 
       <div className="min-h-0 flex-1 overflow-x-auto">
         <div className="min-w-[760px] xl:min-w-0">
-          <div className="grid grid-cols-[minmax(115px,1.15fr)_minmax(48px,.55fr)_minmax(52px,.6fr)_minmax(78px,.8fr)_minmax(88px,.9fr)_minmax(70px,.7fr)_28px] gap-1 bg-slate-100 p-1.5 text-[10px] font-semibold text-slate-700">
+          <div className="pl-[5%] grid grid-cols-[minmax(115px,1.15fr)_minmax(48px,.55fr)_minmax(52px,.6fr)_minmax(78px,.8fr)_minmax(88px,.9fr)_minmax(70px,.7fr)_28px] gap-1 bg-slate-100 p-1.5 text-[10px] font-semibold text-slate-700">
             <span>Items</span>
             <span>Qty</span>
             <span>Rate</span>

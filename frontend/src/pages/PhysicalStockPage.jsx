@@ -434,7 +434,7 @@ function PhysicalStockPage({ companyId }) {
 
             {/* TABLE HEADER */}
 
-            <div className="grid min-w-[1000px] grid-cols-[1.3fr_0.5fr_0.8fr_0.8fr_0.7fr_0.7fr_0.7fr_0.4fr] gap-1 bg-slate-100 p-1.5 text-[10px] font-semibold text-slate-700">
+            <div className="pl-[5%] grid min-w-[1000px] grid-cols-[1.3fr_0.5fr_0.8fr_0.8fr_0.7fr_0.7fr_0.7fr_0.4fr] gap-1 bg-slate-100 p-1.5 text-[10px] font-semibold text-slate-700">
 
               <span>Items</span>
 
