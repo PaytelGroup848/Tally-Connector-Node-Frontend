@@ -1476,3 +1476,13 @@ export function extractVoucherLinesPagination(response) {
   if (response?.data && typeof response.data === 'object') return response.data
   return response && typeof response === 'object' ? response : {}
 }
+export function fetchCompanySettings(accessToken, companyId) {
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/settings`,
+    accessToken,
+  )
+}
+
+export function extractCompanyProfile(response) {
+  return response?.data?.profile || response?.profile || {}
+}

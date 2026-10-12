@@ -35,18 +35,67 @@ import {
 
 
 const COMPANY_SETTING_FIELDS = [
-    { name: 'address', label: 'Address', type: 'text' },
-    { name: 'gstin', label: 'GSTIN', type: 'text' },
-    { name: 'cin', label: 'CIN', type: 'text' },
-    { name: 'pan', label: 'PAN', type: 'text' },
-    { name: 'mobile', label: 'Mobile', type: 'tel' },
-    { name: 'email', label: 'Email', type: 'email' },
+    { name: 'address', label: 'Address', type: 'text', required: true },
+    { name: 'gstin', label: 'GSTIN', type: 'text', required: true },
+    { name: 'cin', label: 'CIN', type: 'text', required: true },
+    { name: 'pan', label: 'PAN', type: 'text', required: true },
+    { name: 'mobile', label: 'Mobile', type: 'tel', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
     { name: 'website', label: 'Website (optional)', type: 'text' },
-    { name: 'state', label: 'State', type: 'text' },
-    { name: 'stateCode', label: 'State Code', type: 'text' },
+    { name: 'state', label: 'State', type: 'text', required: true },
+    { name: 'stateCode', label: 'State Code', type: 'text', required: true },
     { name: 'termsAndConditions', label: 'Terms and Conditions (optional)', type: 'textarea' },
 ]
+const FIELD_RULES = {
+    gstin: {
+        maxLength: 15,
+        transform: (v) => v.toUpperCase().replace(/[^A-Z0-9]/g, ''),
+        pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/,
+        message: 'Enter a valid 15-character GSTIN (e.g. 07ABCDE1234F1Z5)',
+    },
+    cin: {
+        maxLength: 21,
+        transform: (v) => v.toUpperCase().replace(/[^A-Z0-9]/g, ''),
+        pattern: /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/,
+        message: 'Enter a valid 21-character CIN (e.g. U12345DL2020PTC123456)',
+    },
+    pan: {
+        maxLength: 10,
+        transform: (v) => v.toUpperCase().replace(/[^A-Z0-9]/g, ''),
+        pattern: /^[A-Z]{5}[0-9]{4}[A-Z]$/,
+        message: 'Enter a valid 10-character PAN (e.g. ABCDE1234F)',
+    },
+    mobile: {
+        maxLength: 10,
+        transform: (v) => v.replace(/\D/g, ''),
+        pattern: /^[6-9][0-9]{9}$/,
+        message: 'Enter a valid 10-digit mobile number starting with 6, 7, 8 or 9',
+    },
+}
 
+const validateSettings = (form) => {
+    const errors = {}
+
+    for (const { name, label, required } of COMPANY_SETTING_FIELDS) {
+        const value = String(form[name] ?? '').trim()
+        const rule = FIELD_RULES[name]
+
+        if (!value) {
+            if (required) errors[name] = `${label} is required`
+            continue
+        }
+        if (rule && !rule.pattern.test(value)) {
+            errors[name] = rule.message
+        }
+    }
+
+    // A GSTIN contains the PAN in characters 3-12
+    if (!errors.gstin && !errors.pan && form.gstin.slice(2, 12) !== form.pan) {
+        errors.gstin = 'GSTIN does not match the PAN'
+    }
+
+    return errors
+}
 const EMPTY_BANK_FORM = {
     bankName: '',
     under: '',
@@ -289,6 +338,7 @@ const SettingsPage = () => {
     const [settingsSaving, setSettingsSaving] = useState(false)
     const [settingsSaveMessage, setSettingsSaveMessage] = useState('')
     const [settingsSaveError, setSettingsSaveError] = useState('')
+    const [settingsFieldErrors, setSettingsFieldErrors] = useState({})
     const [logoUrl, setLogoUrl] = useState('')
     const [logoBusy, setLogoBusy] = useState(false)
     const [logoError, setLogoError] = useState('')
@@ -353,6 +403,7 @@ const SettingsPage = () => {
         setSettingsForm(getSettingsFormValues(null))
         setSettingsSaveMessage('')
         setSettingsSaveError('')
+        setSettingsFieldErrors({})
         setLogoUrl('')
         setLogoError('')
 
@@ -386,6 +437,18 @@ const SettingsPage = () => {
         const companyId = settingsCompany?.id
         if (!companyId || !accessToken) return
 
+        const normalized = { ...settingsForm }
+        for (const [name, rule] of Object.entries(FIELD_RULES)) {
+            normalized[name] = rule.transform(String(normalized[name] ?? '')).trim()
+        }
+
+        const errors = validateSettings(normalized)
+        setSettingsFieldErrors(errors)
+        if (Object.keys(errors).length > 0) {
+            setSettingsSaveError('Please fix the highlighted fields.')
+            return
+        }
+
         const requestId = settingsRequestRef.current
         setSettingsSaving(true)
         setSettingsSaveMessage('')
@@ -393,14 +456,10 @@ const SettingsPage = () => {
 
         try {
             const settingsToSave = {
-                ...settingsForm,
-                website: normalizeWebsite(settingsForm.website || ''),
+                ...normalized,
+                website: normalizeWebsite(normalized.website || ''),
             }
-            await updateCompanySettings(
-                accessToken,
-                companyId,
-                settingsToSave,
-            )
+            await updateCompanySettings(accessToken, companyId, settingsToSave)
             if (requestId !== settingsRequestRef.current) return
             setCompanySettings({
                 data: {
@@ -1186,6 +1245,7 @@ const SettingsPage = () => {
                                                 )
                                                 setSettingsSaveMessage('')
                                                 setSettingsSaveError('')
+                                                setSettingsFieldErrors({})
                                                 setEditingSettings(true)
                                             }}
                                             className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
@@ -1272,57 +1332,94 @@ const SettingsPage = () => {
                                         )}
                                     </div>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                        {COMPANY_SETTING_FIELDS.map((field) => (
-                                            <label
-                                                key={field.name}
-                                                className={`block ${field.type === 'textarea' ? 'sm:col-span-2' : ''}`}
-                                            >
-                                                <span className="mb-1.5 block text-sm font-medium text-slate-700">
-                                                    {field.label}
-                                                </span>
-                                                {field.type === 'textarea' ? (
-                                                    <div>
-                                                        <textarea
-                                                            rows={5}
-                                                            maxLength={200}
-                                                            value={settingsForm[field.name]}
-                                                            onChange={(event) =>
-                                                                setSettingsForm((current) => ({
-                                                                    ...current,
-                                                                    [field.name]: event.target.value,
-                                                                }))
+                                        {COMPANY_SETTING_FIELDS.map((field) => {
+                                            const error = settingsFieldErrors[field.name]
+                                            const rule = FIELD_RULES[field.name]
+                                            const borderClass = error
+                                                ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                                                : 'border-slate-300 focus:border-violet-500 focus:ring-violet-100'
+
+                                            const handleChange = (event) => {
+                                                const value = rule ? rule.transform(event.target.value) : event.target.value
+
+                                                setSettingsForm((current) => {
+                                                    const next = { ...current, [field.name]: value }
+
+                                                    // First 2 digits of a GSTIN are the state code
+                                                    if (field.name === 'gstin' && /^\d{2}/.test(value)) {
+                                                        next.stateCode = value.slice(0, 2)
+                                                    }
+
+                                                    return next
+                                                })
+
+                                                setSettingsFieldErrors((current) => ({
+                                                    ...current,
+                                                    [field.name]: undefined,
+                                                    ...(field.name === 'gstin' ? { stateCode: undefined } : {}),
+                                                }))
+                                            }
+
+                                            return (
+                                                <label
+                                                    key={field.name}
+                                                    className={`block ${field.type === 'textarea' ? 'sm:col-span-2' : ''}`}
+                                                >
+                                                    <span className="mb-1.5 block text-sm font-medium text-slate-700">
+                                                        {field.label}
+                                                        {field.required && <span className="text-red-500"> *</span>}
+                                                    </span>
+
+                                                    {field.type === 'textarea' ? (
+
+                                                        <div>
+                                                            <textarea
+                                                                rows={5}
+                                                                maxLength={200}
+                                                                value={settingsForm[field.name]}
+                                                                onChange={handleChange}
+                                                                className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 outline-none transition focus:ring-2 ${borderClass}`}
+                                                            />
+                                                            <span className="mt-1 block text-right text-xs text-slate-500">
+                                                                {settingsForm[field.name].length}/200
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <input
+                                                            required={field.required}
+                                                            type={field.type}
+                                                            inputMode={
+                                                                field.name === 'website'
+                                                                    ? 'url'
+                                                                    : field.name === 'mobile'
+                                                                        ? 'numeric'
+                                                                        : undefined
                                                             }
-                                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                                                            maxLength={rule?.maxLength}
+                                                            aria-invalid={Boolean(error)}
+                                                            value={settingsForm[field.name]}
+                                                            onChange={handleChange}
+                                                            onBlur={
+                                                                field.name === 'website'
+                                                                    ? (event) =>
+                                                                        setSettingsForm((current) => ({
+                                                                            ...current,
+                                                                            website: normalizeWebsite(event.target.value),
+                                                                        }))
+                                                                    : undefined
+                                                            }
+                                                            className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 outline-none transition focus:ring-2 ${borderClass}`}
                                                         />
-                                                        <span className="mt-1 block text-right text-xs text-slate-500">
-                                                            {settingsForm[field.name].length}/200
+                                                    )}
+
+                                                    {error && (
+                                                        <span className="mt-1 block text-xs text-red-600" role="alert">
+                                                            {error}
                                                         </span>
-                                                    </div>
-                                                ) : (
-                                                    <input
-                                                        type={field.type}
-                                                        inputMode={field.name === 'website' ? 'url' : undefined}
-                                                        value={settingsForm[field.name]}
-                                                        onChange={(event) =>
-                                                            setSettingsForm((current) => ({
-                                                                ...current,
-                                                                [field.name]: event.target.value,
-                                                            }))
-                                                        }
-                                                        onBlur={
-                                                            field.name === 'website'
-                                                                ? (event) =>
-                                                                    setSettingsForm((current) => ({
-                                                                        ...current,
-                                                                        website: normalizeWebsite(event.target.value),
-                                                                    }))
-                                                                : undefined
-                                                        }
-                                                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
-                                                    />
-                                                )}
-                                            </label>
-                                        ))}
+                                                    )}
+                                                </label>
+                                            )
+                                        })}
                                     </div>
 
                                     {/* <div className="rounded-xl border border-slate-200 p-4">
@@ -1388,6 +1485,7 @@ const SettingsPage = () => {
                                                 )
                                                 setSettingsSaveMessage('')
                                                 setSettingsSaveError('')
+                                                setSettingsFieldErrors({})
                                                 setEditingSettings(false)
                                             }}
                                             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
