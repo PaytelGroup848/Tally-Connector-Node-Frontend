@@ -16,6 +16,7 @@ import {
   GstLedgerPanel,
   SearchableDropdown,
 } from './DocumentVoucherPage'
+import { fetchCompanyBanks } from '../services/CompanyDetailsAndBanksApi'
 
 function getCompanyId(company) {
   return (
@@ -103,6 +104,11 @@ function ReceiptPage({
   selectedCompany,
   documentType = 'Receipt',
 }) {
+
+  const [companyBanks, setCompanyBanks] = useState([])
+  const [banksLoading, setBanksLoading] = useState(false)
+
+
   const accessToken = useAuthStore((state) => state.accessToken)
 
   const companyId =
@@ -259,8 +265,8 @@ function ReceiptPage({
     ) {
       setClosingBalanceError(
         partiesResult.reason?.message ||
-          ledgersResult.reason?.message ||
-          'Unable to load the selected party closing balance.',
+        ledgersResult.reason?.message ||
+        'Unable to load the selected party closing balance.',
       )
     } else {
       setClosingBalanceError(
@@ -270,6 +276,54 @@ function ReceiptPage({
 
     setClosingBalanceLoading(false)
   }
+
+  useEffect(() => {
+    let active = true
+
+    const loadBanks = async () => {
+      if (!accessToken || !companyId) {
+        setCompanyBanks([])
+        return
+      }
+
+      try {
+        setBanksLoading(true)
+
+        const response = await fetchCompanyBanks(
+          accessToken,
+          companyId,
+        )
+
+        const banks =
+          Array.isArray(response) ? response :
+            Array.isArray(response?.data) ? response.data :
+              Array.isArray(response?.banks) ? response.banks :
+                Array.isArray(response?.data?.banks) ? response.data.banks :
+                  Array.isArray(response?.items) ? response.items :
+                    []
+
+        if (active) {
+          setCompanyBanks(banks)
+        }
+      } catch (error) {
+        console.error('Failed to fetch company banks:', error)
+
+        if (active) {
+          setCompanyBanks([])
+        }
+      } finally {
+        if (active) {
+          setBanksLoading(false)
+        }
+      }
+    }
+
+    loadBanks()
+
+    return () => {
+      active = false
+    }
+  }, [accessToken, companyId])
 
   useEffect(() => {
     return () => {
@@ -494,58 +548,11 @@ function ReceiptPage({
 
   /*
    */
-/*
- * Load ledgers only
- */
-useEffect(() => {
-  if (!accessToken || !companyId) {
-    setLedgerOptions([])
-    updateLedgerPage({
-      nextPage: 1,
-      hasMore: false,
-      loading: false,
-      error: '',
-    })
-    return undefined
-  }
-
-  let mounted = true
-
-  setOptionsLoading(true)
-  setOptionsError('')
-  updateLedgerPage({
-    nextPage: 1,
-    hasMore: false,
-    loading: false,
-    error: '',
-  })
-
-  fetchCompanyLedgers(accessToken, companyId, {
-    page: 1,
-    limit: LEDGER_PAGE_SIZE,
-  })
-    .then((response) => {
-      if (!mounted) return
-
-      const firstPage = extractLedgers(response).filter((ledger) =>
-          getDisplayName(ledger, [
-            'ledgerName',
-            'name',
-            'displayName',
-            'partyName',
-          ]),
-        )
-      setLedgerOptions(firstPage)
-      updateLedgerPage({
-        nextPage: 2,
-        hasMore: firstPage.length >= LEDGER_PAGE_SIZE,
-        loading: false,
-        error: '',
-      })
-    })
-    .catch((error) => {
-      if (!mounted) return
-
+  /*
+   * Load ledgers only
+   */
+  useEffect(() => {
+    if (!accessToken || !companyId) {
       setLedgerOptions([])
       updateLedgerPage({
         nextPage: 1,
@@ -553,20 +560,67 @@ useEffect(() => {
         loading: false,
         error: '',
       })
-      setOptionsError(
-        error?.message || 'Unable to load ledger options.',
-      )
-    })
-    .finally(() => {
-      if (mounted) {
-        setOptionsLoading(false)
-      }
+      return undefined
+    }
+
+    let mounted = true
+
+    setOptionsLoading(true)
+    setOptionsError('')
+    updateLedgerPage({
+      nextPage: 1,
+      hasMore: false,
+      loading: false,
+      error: '',
     })
 
-  return () => {
-    mounted = false
-  }
-}, [accessToken, companyId])
+    fetchCompanyLedgers(accessToken, companyId, {
+      page: 1,
+      limit: LEDGER_PAGE_SIZE,
+    })
+      .then((response) => {
+        if (!mounted) return
+
+        const firstPage = extractLedgers(response).filter((ledger) =>
+          getDisplayName(ledger, [
+            'ledgerName',
+            'name',
+            'displayName',
+            'partyName',
+          ]),
+        )
+        setLedgerOptions(firstPage)
+        updateLedgerPage({
+          nextPage: 2,
+          hasMore: firstPage.length >= LEDGER_PAGE_SIZE,
+          loading: false,
+          error: '',
+        })
+      })
+      .catch((error) => {
+        if (!mounted) return
+
+        setLedgerOptions([])
+        updateLedgerPage({
+          nextPage: 1,
+          hasMore: false,
+          loading: false,
+          error: '',
+        })
+        setOptionsError(
+          error?.message || 'Unable to load ledger options.',
+        )
+      })
+      .finally(() => {
+        if (mounted) {
+          setOptionsLoading(false)
+        }
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [accessToken, companyId])
 
   return (
     <div className="relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
@@ -618,8 +672,8 @@ useEffect(() => {
                   } else if (documentType === "Payment") {
                     path = "/my-payments";
                   }
-                   window.history.pushState({}, "", path);
-                window.dispatchEvent(new PopStateEvent("popstate"));
+                  window.history.pushState({}, "", path);
+                  window.dispatchEvent(new PopStateEvent("popstate"));
                 }}
               >
                 View status
@@ -713,20 +767,65 @@ useEffect(() => {
               </div>
             </label>
 
+
             {/* Transaction Type */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Transaction Type</span>
 
-              <SearchableDropdown
+              <select
                 name="transactionType"
-                label="transaction types"
-                options={['Cash', 'Bank']}
-                placeholder="Select Transaction Type"
                 value={form.transactionType}
-                onSelect={(value) => updateField('transactionType', value)}
-                onClear={() => updateField('transactionType', '')}
-              />
+                required
+                disabled={banksLoading}
+                onChange={(event) => updateField('transactionType', event.target.value)}
+                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+              >
+                <option value="">
+                  {banksLoading ? 'Loading...' : 'Select transaction type'}
+                </option>
+                <option value="CASH">Cash</option>
+
+                {companyBanks
+                  .map((bank) => ({
+                    bank,
+                    bankId:
+                      bank._id ??
+                      bank.id ??
+                      bank.bankId ??
+                      bank.accountId ??
+                      bank.bank_id,
+                  }))
+                  .filter(
+                    ({ bankId }) =>
+                      bankId !== undefined &&
+                      bankId !== null &&
+                      String(bankId).trim() !== '',
+                  )
+                  .map(({ bank, bankId }) => {
+                    const bankName =
+                      bank.bankName ??
+                      bank.name ??
+                      bank.accountName ??
+                      bank.accountHolderName ??
+                      'Bank Account'
+
+                    const accountNumber =
+                      bank.accountNumber ??
+                      bank.accountNo ??
+                      bank.maskedAccountNumber
+
+                    return (
+                      <option key={String(bankId)} value={String(bankName)}>
+                        {accountNumber
+                          ? `${bankName} (${accountNumber})`
+                          : bankName}
+                      </option>
+                    )
+                  })}
+              </select>
             </label>
+
+            {banksLoading && <small>Loading bank accounts...</small>}
 
             {/* Ledger */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
