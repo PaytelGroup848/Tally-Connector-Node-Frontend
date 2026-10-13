@@ -495,14 +495,14 @@ function App() {
           </div>
 
          {/* Yellow Tag */}
-<div className="relative mt-12 w-[60%] origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
+<div className="relative mt-12 w-full origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
             {/* Screw holes */}
             <span className="absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
             <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
             <span className="absolute bottom-1.5 left-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
             <span className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
 
-            <div className="text-center font-serif text-[13px] font-black leading-tight tracking-[0.08em] text-black">
+            <div className="text-center font-serif text-[9px] font-black leading-tight tracking-[0.08em] text-black">
               <button
                 onClick={() => setShowEnquiry(true)}
                 className="focus:outline-none"
@@ -617,7 +617,7 @@ function App() {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-start">
                 <button
                   onClick={goToLogin}
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-emerald-800 mr-8"
+                  className="max-sm:w-[60%] group inline-flex items-center justify-center gap-2 rounded-full bg-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-green-100 transition hover:bg-emerald-800 mr-8"
                 >
                   Start using CtrlBooks
 

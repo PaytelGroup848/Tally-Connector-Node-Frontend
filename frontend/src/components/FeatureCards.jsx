@@ -53,7 +53,7 @@ export default function FeatureCards() {
       {cards.map(({ title, text, icon }) => (
         <div
           key={title}
-          className="max-sm:mx-[20%] rounded-2xl border border-emerald-100 bg-white/90 p-3 shadow-sm"
+          className=" rounded-2xl border border-emerald-100 bg-white/90 p-3 shadow-sm"
         >
           <div className="mb-1 flex h-5 w-5 items-center justify-center rounded-xl bg-emerald-50">
             {icon}
