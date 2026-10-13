@@ -24,7 +24,12 @@ import {
   fetchCompanySettings,
   extractCompanyProfile,
 } from "../services/companiesApi";
-import { extractCustomers, fetchCustomers } from "../services/customersApi";
+import {
+  extractCustomers,
+  extractSuppliers,
+  fetchCustomers,
+  fetchSuppliers,
+} from "../services/customersApi";
 
 const DROPDOWN_PAGE_SIZE = 100;
 
@@ -1023,6 +1028,7 @@ export function SearchableDropdown({
   options,
   placeholder,
   loading = false,
+  loadError = "",
   infiniteScroll = false,
   hasMoreOptions = false,
   loadingMore = false,
@@ -1243,7 +1249,12 @@ export function SearchableDropdown({
                 ))
               ) : (
                 <p className="px-3 py-2 text-xs text-slate-500">
-                  No matching options.
+                  {loadError || "No matching options."}
+                </p>
+              )}
+              {visibleOptions.length > 0 && loadError && (
+                <p className="border-t border-slate-100 px-3 py-2 text-xs text-red-600">
+                  {loadError}
                 </p>
               )}
 
@@ -1298,12 +1309,14 @@ export function DocumentVoucherPage({
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
   const [customers, setCustomers] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [stockItems, setStockItems] = useState([]);
   const [vouchers, setVouchers] = useState([]);
   const [ledgers, setLedgers] = useState([]);
   const [godowns, setGodowns] = useState([]);
   const [batches, setBatches] = useState([]);
   const [voucherTypes, setVoucherTypes] = useState([]);
+  const [voucherTypesError, setVoucherTypesError] = useState("");
 
   const [selectedParty, setSelectedParty] = useState("");
   const [selectedVoucherNumber, setSelectedVoucherNumber] = useState("");
@@ -1348,6 +1361,8 @@ export function DocumentVoucherPage({
   const isJournalStyleVoucher = isJournal || isContra;
   const isCreditNote = title === "Credit Note";
   const isDebitNote = title === "Debit Note";
+  const isSupplierVoucher =
+    title === "Purchase" || title === "Purchase Order" || isDebitNote;
   const isNoteVoucher = isCreditNote || isDebitNote;
   const isStockJournal = title === "Stock Journal";
   const enableVoucherDropdownPagination = true;
@@ -1430,14 +1445,22 @@ export function DocumentVoucherPage({
 
     setPartyBalanceLoading(true);
 
-    const [customersResult, ledgersResult] = await Promise.allSettled([
-      fetchCustomers({
-        companyId: requestCompanyId,
-        accessToken,
-        page: 1,
-        limit: DROPDOWN_PAGE_SIZE,
-        q: partyName,
-      }),
+    const [partyResult, ledgersResult] = await Promise.allSettled([
+      isSupplierVoucher
+        ? fetchSuppliers({
+          companyId: requestCompanyId,
+          accessToken,
+          page: 1,
+          limit: DROPDOWN_PAGE_SIZE,
+          q: partyName,
+        })
+        : fetchCustomers({
+          companyId: requestCompanyId,
+          accessToken,
+          page: 1,
+          limit: DROPDOWN_PAGE_SIZE,
+          q: partyName,
+        }),
       fetchCompanyLedgers(accessToken, requestCompanyId, {
         page: 1,
         limit: DROPDOWN_PAGE_SIZE,
@@ -1448,8 +1471,10 @@ export function DocumentVoucherPage({
     if (requestId !== partyBalanceRequestRef.current) return;
 
     const matchingEntries = [
-      ...(customersResult.status === "fulfilled"
-        ? extractCustomers(customersResult.value)
+      ...(partyResult.status === "fulfilled"
+        ? isSupplierVoucher
+          ? extractSuppliers(partyResult.value)
+          : extractCustomers(partyResult.value)
         : []),
       ...(ledgersResult.status === "fulfilled"
         ? extractLedgers(ledgersResult.value)
@@ -1472,11 +1497,11 @@ export function DocumentVoucherPage({
       if (!partyBalanceEditedRef.current) setPartyBalance(balance);
       setPartyBalanceError("");
     } else if (
-      customersResult.status === "rejected" &&
+      partyResult.status === "rejected" &&
       ledgersResult.status === "rejected"
     ) {
       setPartyBalanceError(
-        customersResult.reason?.message ||
+        partyResult.reason?.message ||
         ledgersResult.reason?.message ||
         "Unable to load the selected party's closing balance.",
       );
@@ -1530,6 +1555,17 @@ export function DocumentVoucherPage({
           }),
         extract: extractCustomers,
         setItems: setCustomers,
+      },
+      suppliers: {
+        fetch: () =>
+          fetchSuppliers({
+            companyId: requestCompanyId,
+            accessToken,
+            page: currentPage.nextPage,
+            limit: DROPDOWN_PAGE_SIZE,
+          }),
+        extract: extractSuppliers,
+        setItems: setSuppliers,
       },
       stock: {
         fetch: () =>
@@ -1613,6 +1649,10 @@ export function DocumentVoucherPage({
       loadMoreError: enableVoucherDropdownPagination
         ? pageStates.find((pageState) => pageState.error)?.error || ""
         : "",
+      loadError:
+        pageStates.find((pageState) => pageState.loadError)?.loadError ||
+        pageStates.find((pageState) => pageState.error)?.error ||
+        "",
       onLoadMore: enableVoucherDropdownPagination
         ? () => Promise.all(sources.map(loadMoreOptions))
         : undefined,
@@ -1642,12 +1682,14 @@ export function DocumentVoucherPage({
       optionPagesRef.current = {};
       setOptionPages({});
       setCustomers([]);
+      setSuppliers([]);
       setStockItems([]);
       setVouchers([]);
       setLedgers([]);
       setGodowns([]);
       setBatches([]);
       setVoucherTypes([]);
+      setVoucherTypesError("");
       setSelectedParty("");
       setSelectedVoucherNumber("");
       setSelectedVoucherType("Sales");
@@ -1674,16 +1716,36 @@ export function DocumentVoucherPage({
 
     optionPagesRef.current = {};
     setOptionPages({});
+    setCustomers([]);
+    setSuppliers([]);
+    setStockItems([]);
+    setVouchers([]);
+    setLedgers([]);
+    setGodowns([]);
+    setBatches([]);
+    setVoucherTypes([]);
     setIsOptionsLoading(true);
     setStockError("");
+    setVoucherTypesError("");
 
     const requests = [
-      fetchCustomers({
-        companyId: requestCompanyId,
-        accessToken,
-        page: 1,
-        limit: 100,
-      }),
+      isSupplierVoucher
+        ? Promise.resolve(null)
+        : fetchCustomers({
+          companyId: requestCompanyId,
+          accessToken,
+          page: 1,
+          limit: DROPDOWN_PAGE_SIZE,
+        }),
+
+      isSupplierVoucher
+        ? fetchSuppliers({
+          companyId: requestCompanyId,
+          accessToken,
+          page: 1,
+          limit: DROPDOWN_PAGE_SIZE,
+        })
+        : Promise.resolve(null),
 
       fetchCompanyStock(accessToken, requestCompanyId, {
         page: 1,
@@ -1723,7 +1785,12 @@ export function DocumentVoucherPage({
       }),
     );
 
-    if (isSalesInvoice || isSalesOrder) {
+    if (
+      isSalesInvoice ||
+      isSalesOrder ||
+      title === "Receipt Note" ||
+      title === "Delivery Note"
+    ) {
       requests.push(fetchCompanyVoucherTypes(accessToken, requestCompanyId));
     } else {
       requests.push(Promise.resolve(null));
@@ -1745,6 +1812,7 @@ export function DocumentVoucherPage({
       .then(
         ([
           customersResult,
+          suppliersResult,
           stockResult,
           vouchersResult,
           batchesResult,
@@ -1762,6 +1830,7 @@ export function DocumentVoucherPage({
               hasMore: customerPage.length >= DROPDOWN_PAGE_SIZE,
               loading: false,
               error: "",
+              loadError: "",
             });
           } else {
             setCustomers([]);
@@ -1769,9 +1838,33 @@ export function DocumentVoucherPage({
               nextPage: 2,
               hasMore: false,
               loading: false,
-              error:
+              error: "",
+              loadError:
                 customersResult.reason?.message ||
                 "Unable to load customers.",
+            });
+          }
+
+          if (suppliersResult.status === "fulfilled") {
+            const supplierPage = extractSuppliers(suppliersResult.value);
+            setSuppliers(supplierPage);
+            updateOptionPage("suppliers", {
+              nextPage: 2,
+              hasMore: supplierPage.length >= DROPDOWN_PAGE_SIZE,
+              loading: false,
+              error: "",
+              loadError: "",
+            });
+          } else {
+            setSuppliers([]);
+            updateOptionPage("suppliers", {
+              nextPage: 2,
+              hasMore: false,
+              loading: false,
+              error: "",
+              loadError:
+                suppliersResult.reason?.message ||
+                "Unable to load suppliers.",
             });
           }
 
@@ -1783,13 +1876,22 @@ export function DocumentVoucherPage({
               hasMore: stockPage.length >= DROPDOWN_PAGE_SIZE,
               loading: false,
               error: "",
+              loadError: "",
             });
           } else {
             setStockItems([]);
-
             setStockError(
               stockResult.reason?.message || "Unable to load stock items.",
             );
+            updateOptionPage("stock", {
+              nextPage: 2,
+              hasMore: false,
+              loading: false,
+              error: "",
+              loadError:
+                stockResult.reason?.message ||
+                "Unable to load stock items.",
+            });
           }
 
           if (batchesResult?.status === "fulfilled") {
@@ -1800,6 +1902,18 @@ export function DocumentVoucherPage({
               hasMore: batchPage.length >= DROPDOWN_PAGE_SIZE,
               loading: false,
               error: "",
+              loadError: "",
+            });
+          } else if (batchesResult?.status === "rejected") {
+            setBatches([]);
+            updateOptionPage("batches", {
+              nextPage: 2,
+              hasMore: false,
+              loading: false,
+              error: "",
+              loadError:
+                batchesResult.reason?.message ||
+                "Unable to load batches.",
             });
           }
 
@@ -1811,6 +1925,18 @@ export function DocumentVoucherPage({
               hasMore: voucherPage.length >= DROPDOWN_PAGE_SIZE,
               loading: false,
               error: "",
+              loadError: "",
+            });
+          } else if (vouchersResult?.status === "rejected") {
+            setVouchers([]);
+            updateOptionPage("vouchers", {
+              nextPage: 2,
+              hasMore: false,
+              loading: false,
+              error: "",
+              loadError:
+                vouchersResult.reason?.message ||
+                "Unable to load vouchers.",
             });
           }
 
@@ -1822,6 +1948,7 @@ export function DocumentVoucherPage({
               hasMore: ledgerPage.length >= DROPDOWN_PAGE_SIZE,
               loading: false,
               error: "",
+              loadError: "",
             });
           } else if (ledgersResult?.status === "rejected") {
             setLedgers([]);
@@ -1829,7 +1956,8 @@ export function DocumentVoucherPage({
               nextPage: 2,
               hasMore: false,
               loading: false,
-              error:
+              error: "",
+              loadError:
                 ledgersResult.reason?.message ||
                 "Unable to load ledgers.",
             });
@@ -1843,11 +1971,30 @@ export function DocumentVoucherPage({
               hasMore: godownPage.length >= DROPDOWN_PAGE_SIZE,
               loading: false,
               error: "",
+              loadError: "",
+            });
+          } else if (godownsResult?.status === "rejected") {
+            setGodowns([]);
+            updateOptionPage("godowns", {
+              nextPage: 2,
+              hasMore: false,
+              loading: false,
+              error: "",
+              loadError:
+                godownsResult.reason?.message ||
+                "Unable to load godowns.",
             });
           }
 
           if (voucherTypesResult?.status === "fulfilled") {
             setVoucherTypes(extractVoucherTypes(voucherTypesResult.value));
+            setVoucherTypesError("");
+          } else if (voucherTypesResult?.status === "rejected") {
+            setVoucherTypes([]);
+            setVoucherTypesError(
+              voucherTypesResult.reason?.message ||
+                "Unable to load voucher types.",
+            );
           }
         },
       )
@@ -1942,6 +2089,19 @@ export function DocumentVoucherPage({
       getDisplayValue(customer, [
         "name",
         "customerName",
+        "partyName",
+        "ledgerName",
+        "displayName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((name, index, names) => names.indexOf(name) === index);
+
+  const supplierOptions = suppliers
+    .map((supplier) =>
+      getDisplayValue(supplier, [
+        "name",
+        "supplierName",
         "partyName",
         "ledgerName",
         "displayName",
@@ -2068,6 +2228,20 @@ export function DocumentVoucherPage({
       .filter(Boolean),
   ].filter((value, index, values) => values.indexOf(value) === index);
 
+  const supplierLedgerOptions = [
+    ...supplierOptions,
+    ...ledgers
+      .map((ledger) =>
+        getDisplayValue(ledger, [
+          "ledgerName",
+          "name",
+          "displayName",
+          "partyName",
+        ]),
+      )
+      .filter(Boolean),
+  ].filter((value, index, values) => values.indexOf(value) === index);
+
   const ledgerOptions = ledgers
     .map((ledger) =>
       getDisplayValue(ledger, [
@@ -2114,10 +2288,12 @@ export function DocumentVoucherPage({
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index);
 
-  const partyOptions =
-    title === "Quotation" || isSalesOrder
-      ? partyLedgerOptions
-      : voucherPartyOptions;
+  const partySources = isSupplierVoucher
+    ? ["suppliers", "ledgers"]
+    : ["customers", "ledgers"];
+  const partyOptions = isSupplierVoucher
+    ? supplierLedgerOptions
+    : partyLedgerOptions;
 
 
   // Qty × Rate, minus the row discount %
@@ -3298,71 +3474,35 @@ const calculateRowAmount = (row) => getEnteredAmount(row);
                   <span>Party Name</span>
 
                   <div className="relative">
-                    {title === "Quotation" || isSalesInvoice || isSalesOrder ? (
-                      <SearchableDropdown
-                        name="partyName"
-                        label="parties"
-                        options={partyOptions}
-                        {...getPaginationProps(
-                          title === "Quotation" || isSalesOrder
-                            ? ["customers", "ledgers"]
-                            : "vouchers",
-                        )}
-                        placeholder="Select Party"
-                        loading={isOptionsLoading}
-                        value={selectedParty}
-                        resetToken={clearToken}
-                        onSelect={(party) => {
-                          if (party !== selectedParty) {
-                            resetSelectedPartyBalance();
-                          }
-                          setSelectedParty(party);
-
-                          setSelectedVoucherNumber(
-                            findVoucherNumberForParty(party),
-                          );
-
-                          setSelectedGstin(findLedgerGstin(party));
-                        }}
-                        onOptionSelect={(party) =>
-                          fetchSelectedPartyBalance(party)
-                        }
-                        onClear={() => {
-                          setSelectedParty("");
+                    <SearchableDropdown
+                      name="partyName"
+                      label={isSupplierVoucher ? "suppliers" : "parties"}
+                      options={partyOptions}
+                      {...getPaginationProps(partySources)}
+                      placeholder="Select Party"
+                      loading={isOptionsLoading}
+                      value={selectedParty}
+                      resetToken={clearToken}
+                      onSelect={(party) => {
+                        if (party !== selectedParty) {
                           resetSelectedPartyBalance();
-
-                          setSelectedVoucherNumber("");
-
-                          setSelectedGstin("");
-                        }}
-                      />
-                    ) : (
-                      <select
-                        name="partyName"
-                        defaultValue=""
-                        {...getNativeDropdownPaginationProps("customers")}
-                        onChange={(event) => {
-                          const party = event.target.value;
-                          setSelectedParty(party);
-                          void fetchSelectedPartyBalance(party);
-                          setSelectedGstin(findLedgerGstin(party));
-                          loadMoreOnNativeDropdownSelection(event, "customers");
-                        }}
-                        className="min-h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                      >
-                        <option value="">
-                          {isOptionsLoading
-                            ? "Loading parties..."
-                            : "Select Party"}
-                        </option>
-
-                        {customerOptions.map((name) => (
-                          <option key={name} value={name}>
-                            {name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
+                        }
+                        setSelectedParty(party);
+                        setSelectedVoucherNumber(
+                          findVoucherNumberForParty(party),
+                        );
+                        setSelectedGstin(findLedgerGstin(party));
+                      }}
+                      onOptionSelect={(party) =>
+                        fetchSelectedPartyBalance(party)
+                      }
+                      onClear={() => {
+                        setSelectedParty("");
+                        resetSelectedPartyBalance();
+                        setSelectedVoucherNumber("");
+                        setSelectedGstin("");
+                      }}
+                    />
                   </div>
                 </label>
 
@@ -3405,6 +3545,7 @@ const calculateRowAmount = (row) => getEnteredAmount(row);
                         name="orderType"
                         label="order types"
                         options={voucherTypeOptions}
+                        loadError={voucherTypesError}
                         placeholder="Select ref"
                         loading={isOptionsLoading}
                         resetToken={clearToken}
