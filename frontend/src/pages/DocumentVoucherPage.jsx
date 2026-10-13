@@ -26,7 +26,6 @@ import {
 } from "../services/companiesApi";
 import { extractCustomers, fetchCustomers } from "../services/customersApi";
 
-const QUOTATION_COMPANY_ID = "6aa0f659f858467a84d08d57";
 const DROPDOWN_PAGE_SIZE = 100;
 
 let nextItemRowId = 1;
@@ -1367,8 +1366,7 @@ export function DocumentVoucherPage({
   const defaultDate =
     title === "Quotation" ? new Date().toLocaleDateString("en-CA") : date;
 
-  const requestCompanyId =
-    title === "Quotation" ? companyId || QUOTATION_COMPANY_ID : companyId;
+  const requestCompanyId = companyId;
   const currentCompanyGstinResult =
     companyGstinResult?.companyId === requestCompanyId
       ? companyGstinResult
@@ -1765,6 +1763,16 @@ export function DocumentVoucherPage({
               loading: false,
               error: "",
             });
+          } else {
+            setCustomers([]);
+            updateOptionPage("customers", {
+              nextPage: 2,
+              hasMore: false,
+              loading: false,
+              error:
+                customersResult.reason?.message ||
+                "Unable to load customers.",
+            });
           }
 
           if (stockResult.status === "fulfilled") {
@@ -1814,6 +1822,16 @@ export function DocumentVoucherPage({
               hasMore: ledgerPage.length >= DROPDOWN_PAGE_SIZE,
               loading: false,
               error: "",
+            });
+          } else if (ledgersResult?.status === "rejected") {
+            setLedgers([]);
+            updateOptionPage("ledgers", {
+              nextPage: 2,
+              hasMore: false,
+              loading: false,
+              error:
+                ledgersResult.reason?.message ||
+                "Unable to load ledgers.",
             });
           }
 
@@ -2096,10 +2114,10 @@ export function DocumentVoucherPage({
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index);
 
-  const quotationPartyOptions = voucherPartyOptions;
-
   const partyOptions =
-    title === "Sales Order" ? partyLedgerOptions : quotationPartyOptions;
+    title === "Quotation" || isSalesOrder
+      ? partyLedgerOptions
+      : voucherPartyOptions;
 
 
   // Qty × Rate, minus the row discount %
@@ -3286,7 +3304,9 @@ const calculateRowAmount = (row) => getEnteredAmount(row);
                         label="parties"
                         options={partyOptions}
                         {...getPaginationProps(
-                          isSalesOrder ? ["customers", "ledgers"] : "vouchers",
+                          title === "Quotation" || isSalesOrder
+                            ? ["customers", "ledgers"]
+                            : "vouchers",
                         )}
                         placeholder="Select Party"
                         loading={isOptionsLoading}
