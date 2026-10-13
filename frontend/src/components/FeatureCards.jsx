@@ -1,80 +1,67 @@
 import React from "react";
 
+const iconProps = {
+  xmlns: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "1.8",
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  className: "h-5 w-5 text-emerald-500",
+};
+
+const cards = [
+  {
+    title: "AI Insights",
+    text: "Get smart suggestions and stay ahead.",
+    icon: (
+      <svg {...iconProps}>
+        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+        <path d="M20 3v4" />
+        <path d="M22 5h-4" />
+      </svg>
+    ),
+  },
+  {
+    title: "Real-Time",
+    text: "Track your business live, anytime.",
+    icon: (
+      <svg {...iconProps}>
+        <path d="M7 20v-4" />
+        <path d="M12 20v-8" />
+        <path d="M17 20V8" />
+        <path d="M22 4v16" />
+      </svg>
+    ),
+  },
+  {
+    title: "Multi-Device",
+    text: "Access on web & mobile, wherever you are.",
+    icon: (
+      <svg {...iconProps}>
+        <rect x="7" y="2" width="10" height="20" rx="2" ry="2" />
+        <path d="M12 18h.01" />
+      </svg>
+    ),
+  },
+];
+
 export default function FeatureCards() {
   return (
-    <div className="flex flex-row justify-center gap-6 p-8 bg-gradient-to-b from-white to-emerald-50/40">
-      {/* AI Insights */}
-      <div className="w-64 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-5 w-5 text-emerald-500"
-          >
-            <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
-            <path d="M5 19l.8 2.4L8 22l-2.2.6L5 25l-.8-2.4L2 22l2.2-.6L5 19z" />
-            <path d="M19 15l.6 1.8L21 17l-1.4.4L19 19l-.6-1.8L17 17l1.4-.4L19 15z" />
-          </svg>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mt-5 mb-5">
+      {cards.map(({ title, text, icon }) => (
+        <div
+          key={title}
+          className="max-sm:mx-[20%] rounded-2xl border border-emerald-100 bg-white/90 p-5 shadow-sm"
+        >
+          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
+            {icon}
+          </div>
+          <h3 className="mb-1 text-base font-semibold text-slate-800">{title}</h3>
+          <p className="text-sm leading-relaxed text-slate-500">{text}</p>
         </div>
-        <h3 className="mb-1 text-lg font-semibold text-slate-800">AI Insights</h3>
-        <p className="text-sm leading-relaxed text-slate-500">
-          Get smart suggestions and stay ahead.
-        </p>
-      </div>
-
-      {/* Real-Time */}
-      <div className="w-64 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-5 w-5 text-emerald-500"
-          >
-            <path d="M2 20h.01" />
-            <path d="M7 20v-4" />
-            <path d="M12 20v-8" />
-            <path d="M17 20V8" />
-            <path d="M22 4v16" />
-          </svg>
-        </div>
-        <h3 className="mb-1 text-lg font-semibold text-slate-800">Real-Time</h3>
-        <p className="text-sm leading-relaxed text-slate-500">
-          Track your business live, anytime.
-        </p>
-      </div>
-
-      {/* Multi-Device */}
-      <div className="w-64 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-5 w-5 text-emerald-500"
-          >
-            <rect x="7" y="2" width="10" height="20" rx="2" ry="2" />
-            <path d="M12 18h.01" />
-          </svg>
-        </div>
-        <h3 className="mb-1 text-lg font-semibold text-slate-800">Multi-Device</h3>
-        <p className="text-sm leading-relaxed text-slate-500">
-          Access on web & mobile, wherever you are.
-        </p>
-      </div>
+      ))}
     </div>
   );
 }

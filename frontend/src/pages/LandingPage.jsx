@@ -553,7 +553,7 @@ function App() {
                       {feature.title}
                     </button>
                   ))}
-                </div> */}
+                </div>
               <div>
 
               </div>
@@ -630,7 +630,7 @@ function App() {
                 </button>
               </div>
 
-                {/* <FeatureCards/> */}
+                <FeatureCards/>
 
             </div>
 
@@ -644,7 +644,7 @@ function App() {
         </section>
 
         {/* ================= TRUST BAR ================= */}
-        <section className="border-y border-slate-100 bg-white">
+        {/* <section className="border-y border-slate-100 bg-white">
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-5 px-4 py-8 sm:px-6 md:grid-cols-4 lg:px-8">
             <TrustItem
               icon={Cloud}
@@ -663,7 +663,7 @@ function App() {
               text="Anywhere access"
             />
           </div>
-        </section>
+        </section> */}
 
         {/* ================= FEATURES ================= */}
         <section

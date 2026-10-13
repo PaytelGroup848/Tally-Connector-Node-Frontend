@@ -21,6 +21,8 @@ import {
   fetchCompanyVouchers,
   fetchCompanyVoucherTypes,
   postCompanyCommand,
+  fetchCompanySettings,
+  extractCompanyProfile,
 } from "../services/companiesApi";
 import { extractCustomers, fetchCustomers } from "../services/customersApi";
 
@@ -52,10 +54,10 @@ function createEmptyItemRow() {
     hsnCode: "",
     godown: "",
     description: "",
+    gstRate: "18", // ADD THIS
     taxInclusive: false,
   };
 }
-
 function createJournalRow(id = Date.now()) {
   return {
     id,
@@ -70,6 +72,37 @@ function normalizePartyName(value) {
     .toLowerCase()
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function findCompanyGstin(response) {
+  const gstinKeys = new Set(["gstin", "gstnumber", "gstregistrationnumber"])
+  const pending = [response]
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== "object") continue
+
+    for (const [key, candidate] of Object.entries(value)) {
+      if (
+        gstinKeys.has(key.toLowerCase().replace(/[^a-z0-9]/g, "")) &&
+        typeof candidate === "string" &&
+        candidate.trim()
+      ) {
+        return candidate.trim()
+      }
+
+      if (candidate && typeof candidate === "object") pending.push(candidate)
+    }
+  }
+
+  return ""
+}
+
+function getGstinStateCode(value) {
+  const gstin = String(value || "").trim().toUpperCase()
+  const match =
+    /^([0-9]{2})[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.exec(gstin)
+  return match?.[1] || ""
 }
 
 function getPartyBalance(entry) {
@@ -276,7 +309,6 @@ export const advancedVoucherFieldNames = [
   "registrationType",
   "postalCode",
   "gstinUin",
-  "placeOfSupply",
   "address",
   "consigneeName",
   "consigneeCountry",
@@ -363,11 +395,6 @@ function AdvancedVoucherContent({ activeTab }) {
           name="gstinUin"
           label="GSTIN/UIN"
           placeholder="GSTIN/UIN"
-        />
-        <VoucherField
-          name="placeOfSupply"
-          label="Place of Supply"
-          placeholder="Place of Supply"
         />
         <VoucherField
           name="address"
@@ -669,6 +696,10 @@ export function GstLedgerPanel({
 function VoucherBottomSection({
   subtotal,
   itemTaxes,
+  isSameState,
+  companyGstinLoading,
+  companyGstinError,
+  hasCompanyGstin,
   ledgerOptions,
   ledgerDropdownProps,
   additionalLedgers,
@@ -703,6 +734,8 @@ function VoucherBottomSection({
 
   const taxes = itemTaxes + ledgerTaxes;
   const grandTotal = subtotal + taxes + otherLedgers;
+  const cgstAmount = Number((itemTaxes / 2).toFixed(2));
+  const sgstAmount = Number((itemTaxes - cgstAmount).toFixed(2));
 
   const formatCurrency = (value) =>
     Number(value || 0).toLocaleString("en-IN", {
@@ -921,6 +954,39 @@ function VoucherBottomSection({
             <span>Sub Total</span>
             <span>₹{formatCurrency(subtotal)}</span>
           </div>
+          {isSameState === true ? (
+            <>
+              <div className="flex justify-between">
+                <span>CGST (9%)</span>
+                <span>₹{formatCurrency(cgstAmount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>SGST (9%)</span>
+                <span>₹{formatCurrency(sgstAmount)}</span>
+              </div>
+            </>
+          ) : isSameState === false ? (
+            <div className="flex justify-between">
+              <span>IGST (18%)</span>
+              <span>₹{formatCurrency(itemTaxes)}</span>
+            </div>
+          ) : itemTaxes > 0 ? (
+            <div className="text-xs text-amber-700">
+              {companyGstinLoading
+                ? "Loading company GSTIN to determine the GST split..."
+                : companyGstinError
+                  ? `GST breakdown unavailable: ${companyGstinError}`
+                  : hasCompanyGstin
+                    ? ""
+                    : "Company GSTIN is not configured; GST breakdown is unavailable."}
+            </div>
+          ) : null}
+          {Math.abs(ledgerTaxes) > 0.000001 && (
+            <div className="flex justify-between">
+              <span>Other GST / Tax Ledgers</span>
+              <span>₹{formatCurrency(ledgerTaxes)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>Taxes</span>
             <span>₹{formatCurrency(taxes)}</span>
@@ -1050,10 +1116,10 @@ export function SearchableDropdown({
       typeof option === "string"
         ? option
         : option?.name ||
-          option?.label ||
-          option?.partyName ||
-          option?.ledgerName ||
-          "";
+        option?.label ||
+        option?.partyName ||
+        option?.ledgerName ||
+        "";
 
     return String(optionText)
       .toLowerCase()
@@ -1113,9 +1179,8 @@ export function SearchableDropdown({
         placeholder={
           loading ? `Loading ${label.toLowerCase()}...` : placeholder
         }
-        className={`min-h-9 w-full rounded-md border border-slate-300 px-2.5 pr-14 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 ${
-          disabled ? "cursor-not-allowed bg-slate-100" : "bg-white"
-        }`}
+        className={`min-h-9 w-full rounded-md border border-slate-300 px-2.5 pr-14 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 ${disabled ? "cursor-not-allowed bg-slate-100" : "bg-white"
+          }`}
       />
 
       {query && !disabled && (
@@ -1247,6 +1312,7 @@ export function DocumentVoucherPage({
     title === "Sales Order" ? "Sales Order" : "Sales",
   );
   const [selectedGstin, setSelectedGstin] = useState("");
+  const [companyGstinResult, setCompanyGstinResult] = useState(null);
   const [partyBalance, setPartyBalance] = useState("");
   const [partyBalanceLoading, setPartyBalanceLoading] = useState(false);
   const [partyBalanceError, setPartyBalanceError] = useState("");
@@ -1303,6 +1369,55 @@ export function DocumentVoucherPage({
 
   const requestCompanyId =
     title === "Quotation" ? companyId || QUOTATION_COMPANY_ID : companyId;
+  const currentCompanyGstinResult =
+    companyGstinResult?.companyId === requestCompanyId
+      ? companyGstinResult
+      : null;
+  const companyGstin = currentCompanyGstinResult?.gstin || "";
+  const companyGstinError = currentCompanyGstinResult?.error || "";
+  const companyGstinLoading = Boolean(
+    requestCompanyId && accessToken && !currentCompanyGstinResult,
+  );
+  const companyStateCode = getGstinStateCode(companyGstin);
+  const partyStateCode = getGstinStateCode(selectedGstin);
+  const isSameState =
+    companyStateCode && partyStateCode
+      ? companyStateCode === partyStateCode
+      : null;
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (!requestCompanyId || !accessToken) {
+      return undefined;
+    }
+
+    fetchCompanySettings(accessToken, requestCompanyId)
+      .then((response) => {
+        if (!mounted) return;
+        const profile = extractCompanyProfile(response);
+        setCompanyGstinResult({
+          companyId: requestCompanyId,
+          gstin: findCompanyGstin(profile) || findCompanyGstin(response),
+          error: "",
+        });
+      })
+      .catch((error) => {
+        if (!mounted) return;
+        setCompanyGstinResult({
+          companyId: requestCompanyId,
+          gstin: "",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to load the company GSTIN.",
+        });
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [accessToken, requestCompanyId]);
 
   const fetchSelectedPartyBalance = async (partyName) => {
     const requestId = ++partyBalanceRequestRef.current;
@@ -1364,8 +1479,8 @@ export function DocumentVoucherPage({
     ) {
       setPartyBalanceError(
         customersResult.reason?.message ||
-          ledgersResult.reason?.message ||
-          "Unable to load the selected party's closing balance.",
+        ledgersResult.reason?.message ||
+        "Unable to load the selected party's closing balance.",
       );
     } else {
       setPartyBalanceError(
@@ -1952,13 +2067,13 @@ export function DocumentVoucherPage({
       typeof voucherType === "string"
         ? voucherType
         : getDisplayValue(voucherType, [
-            "voucherType",
-            "voucher_type",
-            "type",
-            "name",
-            "value",
-            "displayName",
-          ]),
+          "voucherType",
+          "voucher_type",
+          "type",
+          "name",
+          "value",
+          "displayName",
+        ]),
     )
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index);
@@ -1986,27 +2101,53 @@ export function DocumentVoucherPage({
   const partyOptions =
     title === "Sales Order" ? partyLedgerOptions : quotationPartyOptions;
 
-  const calculateRowSubtotal = (row) => {
-    const quantity = Number(row.quantity) || 0;
-    const rate = Number(row.rate) || 0;
-    const discountPercent = Math.max(
-      0,
-      Math.min(Number(row.discount) || 0, 100),
-    );
 
-    const discountMultiplier = 1 - discountPercent / 100;
+  // Qty × Rate, minus the row discount %
+const getEnteredAmount = (row) => {
+  const quantity = Math.max(0, Number(row.quantity) || 0);
+  const rate = Math.max(0, Number(row.rate) || 0);
+  const discount = Math.min(100, Math.max(0, Number(row.discount) || 0));
 
-    return Math.max(0, quantity * rate * discountMultiplier);
+  return quantity * rate * (1 - discount / 100);
+};
+
+const calculateRowAmount = (row) => getEnteredAmount(row);
+
+  const calculateRowTax = (row) => {
+    if (!row.taxInclusive) return 0;
+
+    const gstRate = Math.max(0, Number(row.gstRate ?? 18) || 0);
+
+    return calculateRowAmount(row) * (gstRate / 100);
   };
 
-  const calculateRowTax = (row) =>
-    row.taxInclusive ? calculateRowSubtotal(row) * 0.18 : 0;
+  const calculateRowTaxBreakdown = (row) => {
+    const taxAmount = Number(calculateRowTax(row).toFixed(2));
 
-  const calculateRowAmount = (row) =>
-    calculateRowSubtotal(row) + calculateRowTax(row);
+    if (isSameState === null) {
+      return { taxAmount, cgstAmount: null, sgstAmount: null, igstAmount: null };
+    }
+
+    if (isSameState) {
+      const cgstAmount = Number((taxAmount / 2).toFixed(2));
+      return {
+        taxAmount,
+        cgstAmount,
+        sgstAmount: Number((taxAmount - cgstAmount).toFixed(2)),
+        igstAmount: 0,
+      };
+    }
+
+    return {
+      taxAmount,
+      cgstAmount: 0,
+      sgstAmount: 0,
+      igstAmount: taxAmount,
+    };
+  };
 
   const subtotal = itemRows.reduce(
-    (total, row) => total + calculateRowSubtotal(row),
+    (total, row) => total + calculateRowAmount(row),
     0,
   );
 
@@ -2116,14 +2257,14 @@ export function DocumentVoucherPage({
 
     return matchingItem
       ? getStockValue(matchingItem, [
-          "rate",
-          "salesRate",
-          "sellingRate",
-          "price",
-          "mrp",
-          "avgPurRate",
-          "purchaseRate",
-        ])
+        "rate",
+        "salesRate",
+        "sellingRate",
+        "price",
+        "mrp",
+        "avgPurRate",
+        "purchaseRate",
+      ])
       : "";
   };
 
@@ -2132,17 +2273,17 @@ export function DocumentVoucherPage({
 
     return matchingItem
       ? getStockValue(matchingItem, [
-          "units",
-          "unit",
-          "unitName",
-          "unit_name",
-          "uom",
-          "stockUnit",
-          "stock_unit",
-          "itemUnit",
-          "item_unit",
-          "measure",
-        ])
+        "units",
+        "unit",
+        "unitName",
+        "unit_name",
+        "uom",
+        "stockUnit",
+        "stock_unit",
+        "itemUnit",
+        "item_unit",
+        "measure",
+      ])
       : "";
   };
 
@@ -2151,14 +2292,14 @@ export function DocumentVoucherPage({
 
     return matchingItem
       ? getStockValue(matchingItem, [
-          "hsnCode",
-          "hsn_code",
-          "hsn",
-          "hsnCodeValue",
-          "hsn_code_value",
-          "itemHsn",
-          "item_hsn",
-        ])
+        "hsnCode",
+        "hsn_code",
+        "hsn",
+        "hsnCodeValue",
+        "hsn_code_value",
+        "itemHsn",
+        "item_hsn",
+      ])
       : "";
   };
 
@@ -2187,12 +2328,12 @@ export function DocumentVoucherPage({
 
     return matchingVoucher
       ? getVoucherValue(matchingVoucher, [
-          "voucherNumber",
-          "voucherNo",
-          "voucher no",
-          "voucher_no",
-          "number",
-        ])
+        "voucherNumber",
+        "voucherNo",
+        "voucher no",
+        "voucher_no",
+        "number",
+      ])
       : "";
   };
 
@@ -2257,9 +2398,9 @@ export function DocumentVoucherPage({
       currentRows.map((row) =>
         row.id === rowId
           ? {
-              ...row,
-              [field]: value,
-            }
+            ...row,
+            [field]: value,
+          }
           : row,
       ),
     );
@@ -2270,9 +2411,9 @@ export function DocumentVoucherPage({
       currentRows.map((row) =>
         row.id === rowId
           ? {
-              ...row,
-              ...changes,
-            }
+            ...row,
+            ...changes,
+          }
           : row,
       ),
     );
@@ -2298,17 +2439,18 @@ export function DocumentVoucherPage({
       currentRows.map((row) =>
         row.id === rowId
           ? {
-              ...row,
-              item: "",
-              quantity: "0",
-              rate: "",
-              units: "",
-              discount: "0",
-              hsnCode: "",
-              godown: "",
-              description: "",
-              taxInclusive: false,
-            }
+            ...row,
+            item: "",
+            quantity: "0",
+            rate: "",
+            units: "",
+            discount: "0",
+            hsnCode: "",
+            godown: "",
+            description: "",
+            gstRate: "18",
+            taxInclusive: false,
+          }
           : row,
       ),
     );
@@ -2328,6 +2470,7 @@ export function DocumentVoucherPage({
             hsnCode: "",
             godown: "",
             description: "",
+            gstRate: "18",
             taxInclusive: false,
           },
         ];
@@ -2643,24 +2786,26 @@ export function DocumentVoucherPage({
 
     const items = isStockJournal
       ? {
-          source: sourceRows.map((row) => ({
-            ...row,
-            quantity: Number(row.qty) || 0,
-            amount: (Number(row.qty) || 0) * (Number(row.rate) || 0),
-          })),
-          destination: destinationRows.map((row) => ({
-            ...row,
-            quantity: Number(row.qty) || 0,
-            amount: (Number(row.qty) || 0) * (Number(row.rate) || 0),
-          })),
-        }
+        source: sourceRows.map((row) => ({
+          ...row,
+          quantity: Number(row.qty) || 0,
+          amount: (Number(row.qty) || 0) * (Number(row.rate) || 0),
+        })),
+        destination: destinationRows.map((row) => ({
+          ...row,
+          quantity: Number(row.qty) || 0,
+          amount: (Number(row.qty) || 0) * (Number(row.rate) || 0),
+        })),
+      }
       : isJournalStyleVoucher
         ? journalRows.map((row) => ({
-            type: row.type,
-            partyName: row.partyName,
-            amount: Number(row.amount) || 0,
-          }))
-        : itemRows.map((row) => ({
+          type: row.type,
+          partyName: row.partyName,
+          amount: Number(row.amount) || 0,
+        }))
+        : itemRows.map((row) => {
+          const taxBreakdown = calculateRowTaxBreakdown(row);
+          return {
             itemName: row.item || "",
             quantity: Number(row.quantity) || 0,
             rate: Number(row.rate) || 0,
@@ -2670,8 +2815,15 @@ export function DocumentVoucherPage({
             godown: row.godown || "",
             description: row.description || "",
             amount: calculateRowAmount(row),
+            gstRate: Number(row.gstRate ?? 18),
+            taxableValue: Number(calculateRowAmount(row).toFixed(2)),
+            taxAmount: taxBreakdown.taxAmount,
+            cgstAmount: taxBreakdown.cgstAmount,
+            sgstAmount: taxBreakdown.sgstAmount,
+            igstAmount: taxBreakdown.igstAmount,
             taxInclusive: Boolean(row.taxInclusive),
-          }));
+          };
+        });
 
     const ledgerTotals = calculateLedgerTotals();
 
@@ -2696,35 +2848,41 @@ export function DocumentVoucherPage({
       payload: isJournal
         ? journalPayload
         : {
-            voucherType,
-            partyLedger: submittedPartyName || "",
-            ledgerType: values.ledgerType || "",
-            gstin: values.gstin || selectedGstin || "",
-            date: values.date || "",
-            voucherNumber: values.voucherNumber || "",
-            items,
-            ledgers: ledgerTotals.entries.map((row) => ({
-              ledgerName: row.ledgerName,
-              category: row.category,
-              calculationType: row.calculationType,
-              value: Number(row.value) || 0,
-              effect: row.effect,
-              amount: Number(row.amount.toFixed(2)),
-            })),
-            subTotal: Number(subtotal.toFixed(2)),
-            taxes: Number(ledgerTotals.taxes.toFixed(2)),
-            otherLedgerAmount: Number(ledgerTotals.otherLedgers.toFixed(2)),
-            grandTotal: Number(ledgerTotals.grandTotal.toFixed(2)),
-            narration: values.narration || "",
-            referenceNumber: values.referenceNumber || "",
-            referenceDate: values.referenceDate || "",
-            orderType: values.orderType || "",
-            orderNumber: values.orderNumber || "",
-            orderDate: values.orderDate || "",
-            reasonForReturn: values.reasonForReturn || "",
-            advancedSettings,
-            ...advancedSettings,
-          },
+          voucherType,
+          partyLedger: submittedPartyName || "",
+          ledgerType: values.ledgerType || "",
+          gstin: values.gstin || selectedGstin || "",
+          gstType:
+            isSameState === null
+              ? ""
+              : isSameState
+                ? "CGST_SGST"
+                : "IGST",
+          date: values.date || "",
+          voucherNumber: values.voucherNumber || "",
+          items,
+          ledgers: ledgerTotals.entries.map((row) => ({
+            ledgerName: row.ledgerName,
+            category: row.category,
+            calculationType: row.calculationType,
+            value: Number(row.value) || 0,
+            effect: row.effect,
+            amount: Number(row.amount.toFixed(2)),
+          })),
+          subTotal: Number(subtotal.toFixed(2)),
+          taxes: Number(ledgerTotals.taxes.toFixed(2)),
+          otherLedgerAmount: Number(ledgerTotals.otherLedgers.toFixed(2)),
+          grandTotal: Number(ledgerTotals.grandTotal.toFixed(2)),
+          narration: values.narration || "",
+          referenceNumber: values.referenceNumber || "",
+          referenceDate: values.referenceDate || "",
+          orderType: values.orderType || "",
+          orderNumber: values.orderNumber || "",
+          orderDate: values.orderDate || "",
+          reasonForReturn: values.reasonForReturn || "",
+          advancedSettings,
+          ...advancedSettings,
+        },
     };
 
     try {
@@ -2869,11 +3027,10 @@ export function DocumentVoucherPage({
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
           <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
             <div
-              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${
-                showSuccessAnimation
-                  ? "border-t-green-600 animate-spin"
-                  : "border-t-[#1a1f24] animate-spin"
-              }`}
+              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${showSuccessAnimation
+                ? "border-t-green-600 animate-spin"
+                : "border-t-[#1a1f24] animate-spin"
+                }`}
               aria-hidden="true"
             />
 
@@ -3100,13 +3257,12 @@ export function DocumentVoucherPage({
             <>
               {/* Voucher Details */}
               <div
-                className={`grid items-start gap-3 sm:grid-cols-2 ${
-                  isSalesInvoice || isSalesOrder || title === "Purchase"
-                    ? "xl:grid-cols-3"
-                    : title === "Receipt Note" || title === "Delivery Note"
-                      ? "xl:grid-cols-5"
-                      : "xl:grid-cols-4"
-                }`}
+                className={`grid items-start gap-3 sm:grid-cols-2 ${isSalesInvoice || isSalesOrder || title === "Purchase"
+                  ? "xl:grid-cols-3"
+                  : title === "Receipt Note" || title === "Delivery Note"
+                    ? "xl:grid-cols-5"
+                    : "xl:grid-cols-4"
+                  }`}
               >
                 <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
                   <span>Voucher Type</span>
@@ -3285,20 +3441,20 @@ export function DocumentVoucherPage({
                   title === "Purchase" ||
                   title === "Purchase Order" ||
                   isNoteVoucher) && (
-                  <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                    <span>Ledger Type</span>
+                    <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                      <span>Ledger Type</span>
 
-                    <SearchableDropdown
-                      name="ledgerType"
-                      label="ledger types"
-                      options={ledgerTypeOptions}
-                      {...getPaginationProps("ledgers")}
-                      placeholder="Select Ledger"
-                      loading={isOptionsLoading}
-                      resetToken={clearToken}
-                    />
-                  </label>
-                )}
+                      <SearchableDropdown
+                        name="ledgerType"
+                        label="ledger types"
+                        options={ledgerTypeOptions}
+                        {...getPaginationProps("ledgers")}
+                        placeholder="Select Ledger"
+                        loading={isOptionsLoading}
+                        resetToken={clearToken}
+                      />
+                    </label>
+                  )}
 
                 {(title === "Quotation" ||
                   isSalesInvoice ||
@@ -3306,20 +3462,20 @@ export function DocumentVoucherPage({
                   title === "Purchase" ||
                   title === "Purchase Order" ||
                   isNoteVoucher) && (
-                  <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                    <span>GST Number</span>
+                    <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                      <span>GST Number</span>
 
-                    <input
-                      name="gstin"
-                      type="text"
-                      value={selectedGstin}
-                      onChange={(event) => setSelectedGstin(event.target.value)}
-                      className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                      placeholder="Enter GST Number"
-                    />
-                  </label>
-                )}
+                      <input
+                        name="gstin"
+                        type="text"
+                        value={selectedGstin}
+                        onChange={(event) => setSelectedGstin(event.target.value)}
+                        className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                        placeholder="Enter GST Number"
+                      />
+                    </label>
 
+                  )}
                 {isNoteVoucher && (
                   <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
                     <span>Reason For Return</span>
@@ -3431,20 +3587,19 @@ export function DocumentVoucherPage({
                       const amount = calculateRowAmount(row);
 
                       return (
-                        <div
-                          key={row.id}
-                          className={`grid grid-cols-[1.45fr_.55fr_.7fr_.7fr_.65fr_.9fr_1fr_1.4fr_.9fr_.6fr_.5fr] items-stretch border-b border-slate-200 bg-white last:border-b-0 ${
-                            index % 2 === 1 ? "bg-slate-[25]" : "bg-white"
-                          }`}
+                        <div key={row.id}>
+                          <div
+                            className={`grid grid-cols-[1.45fr_.55fr_.7fr_.7fr_.65fr_.9fr_1fr_1.4fr_.9fr_.6fr_.5fr] items-stretch border-b border-slate-200 bg-white last:border-b-0 ${index % 2 === 1 ? "bg-slate-[25]" : "bg-white"
+                            }`}
                         >
                           {/* Item */}
                           <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
                             {title === "Quotation" ||
-                            isSalesInvoice ||
-                            isSalesOrder ||
-                            title === "Purchase Order" ||
-                            isCreditNote ||
-                            isDebitNote ? (
+                              isSalesInvoice ||
+                              isSalesOrder ||
+                              title === "Purchase Order" ||
+                              isCreditNote ||
+                              isDebitNote ? (
                               <SearchableDropdown
                                 name={`item-${row.id}`}
                                 label="items"
@@ -3624,13 +3779,13 @@ export function DocumentVoucherPage({
                           {/* Godown */}
                           <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
                             {title === "Quotation" ||
-                            isSalesInvoice ||
-                            isSalesOrder ||
-                            title === "Purchase Order" ||
-                            title === "Receipt Note" ||
-                            title === "Delivery Note" ||
-                            isCreditNote ||
-                            isDebitNote ? (
+                              isSalesInvoice ||
+                              isSalesOrder ||
+                              title === "Purchase Order" ||
+                              title === "Receipt Note" ||
+                              title === "Delivery Note" ||
+                              isCreditNote ||
+                              isDebitNote ? (
                               <SearchableDropdown
                                 name={`godown-${row.id}`}
                                 label="godowns"
@@ -3710,7 +3865,7 @@ export function DocumentVoucherPage({
                             <input
                               name={`taxInclusive-${row.id}`}
                               type="checkbox"
-                              title="Add 18% GST"
+                              title="Checked: calculate GST included in rate; unchecked: no GST"
                               checked={row.taxInclusive}
                               onChange={(event) =>
                                 updateItemRow(
@@ -3736,6 +3891,7 @@ export function DocumentVoucherPage({
                             </button>
                           </div>
                         </div>
+                      </div>
                       );
                     })}
                   </div>
@@ -3762,6 +3918,10 @@ export function DocumentVoucherPage({
               <VoucherBottomSection
                 subtotal={subtotal}
                 itemTaxes={itemTaxes}
+                isSameState={isSameState}
+                companyGstinLoading={companyGstinLoading}
+                companyGstinError={companyGstinError}
+                hasCompanyGstin={Boolean(companyGstin)}
                 ledgerOptions={ledgerOptions}
                 ledgerDropdownProps={getPaginationProps("ledgers")}
                 additionalLedgers={additionalLedgers}
@@ -3945,7 +4105,7 @@ function StockJournalSide({
 
       <div className="min-h-0 flex-1 overflow-x-auto">
         <div className="min-w-[760px] xl:min-w-0">
-          <div className="grid grid-cols-[minmax(115px,1.15fr)_minmax(48px,.55fr)_minmax(52px,.6fr)_minmax(78px,.8fr)_minmax(88px,.9fr)_minmax(70px,.7fr)_28px] gap-1 bg-slate-100 p-1.5 text-[10px] font-semibold text-slate-700">
+          <div className="pl-[5%] grid grid-cols-[minmax(115px,1.15fr)_minmax(48px,.55fr)_minmax(52px,.6fr)_minmax(78px,.8fr)_minmax(88px,.9fr)_minmax(70px,.7fr)_28px] gap-1 bg-slate-100 p-1.5 text-[10px] font-semibold text-slate-700">
             <span>Items</span>
             <span>Qty</span>
             <span>Rate</span>
