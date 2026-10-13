@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import DateRangePicker from '../components/DateRangePicker';
-import useAuthStore from '../store/authStore';
-import { Pencil, X } from 'lucide-react'
+import { useEffect, useState } from "react";
+import DateRangePicker from "../components/DateRangePicker";
+import useAuthStore from "../store/authStore";
+import { Pencil, X } from "lucide-react";
 import {
   deleteCompanyCommand,
   extractCommands,
@@ -10,101 +10,100 @@ import {
   fetchCompanyCommands,
   fetchCompanyStock,
   postCompanyCommand,
-} from '../services/companiesApi';
-
-
-
+} from "../services/companiesApi";
 
 // Columns with all required fields
 const columns = [
-  { key: 'itemName', label: 'Item Name' },
-  { key: 'quantity', label: 'Quantity' },
-  { key: 'rate', label: 'Rate' },
-  { key: 'value', label: 'Value' },
-  { key: 'hsnCode', label: 'HSNCode' },
-  { key: 'godown', label: 'Godown' },
-  { key: 'createdAt', label: 'Created At' },
-  { key: 'updatedAt', label: 'Updated At' },
-  { key: 'action', label: 'Action' },
+  { key: "itemName", label: "Item Name" },
+  { key: "quantity", label: "Quantity" },
+  { key: "rate", label: "Rate" },
+  { key: "value", label: "Value" },
+  { key: "hsnCode", label: "HSNCode" },
+  { key: "godown", label: "Godown" },
+  { key: "createdAt", label: "Created At" },
+  { key: "updatedAt", label: "Updated At" },
+  { key: "action", label: "Action" },
 ];
 
 const stockCommandColumns = [
-  { key: 'status', label: 'Status' },
-  { key: 'payload', label: 'Details' },
-  { key: 'result', label: 'Result' },
-  { key: 'errorMessage', label: 'Error Message' },
-  { key: 'createdAt', label: 'Created At' },
-  { key: 'action', label: 'Action' },
+  { key: "status", label: "Status" },
+  { key: "payload", label: "Details" },
+  { key: "result", label: "Result" },
+  { key: "errorMessage", label: "Error Message" },
+  { key: "createdAt", label: "Created At" },
+  { key: "action", label: "Action" },
 ];
 
 // Alias mappings for flexibility
 const itemAliases = {
-  itemName: ['itemName', 'name', 'stockName'],
-  itemTallyExternalId: [
-    'itemTallyExternalId',
-    'tallyExternalId',
-    'externalId',
-  ],
-  quantity: ['quantity', 'qty', 'closingStock'],
-  rate: ['rate', 'avgPurRate', 'purchaseRate'],
-  value: ['value', 'amount', 'stockValue'],
-  hsnCode: ['hsnCode', 'hsn', 'productHsn'],
-  godown: ['godown', 'warehouse', 'location'],
-  createdAt: ['createdAt', 'created_at', 'dateCreated'],
-  updatedAt: ['updatedAt', 'updated_at', 'dateUpdated'],
-
+  itemName: ["itemName", "name", "stockName"],
+  itemTallyExternalId: ["itemTallyExternalId", "tallyExternalId", "externalId"],
+  quantity: ["quantity", "qty", "closingStock"],
+  rate: ["rate", "avgPurRate", "purchaseRate"],
+  value: ["value", "amount", "stockValue"],
+  hsnCode: ["hsnCode", "hsn", "productHsn"],
+  godown: ["godown", "warehouse", "location"],
+  createdAt: ["createdAt", "created_at", "dateCreated"],
+  updatedAt: ["updatedAt", "updated_at", "dateUpdated"],
 };
 
 // Helper: Convert a date value to an IST date string
 function formatDateToIST(utcDate) {
-  if (!utcDate) return 'NA';
+  if (!utcDate) return "NA";
 
   try {
     const date = new Date(utcDate);
 
     if (Number.isNaN(date.getTime())) {
-      return 'NA';
+      return "NA";
     }
 
-    return date.toLocaleDateString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+    return date.toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   } catch {
-    return 'NA';
+    return "NA";
   }
 }
 
 function getItemValue(item, key) {
+  
   const matchingKey = itemAliases[key]?.find(
-    (alias) => item?.[alias] !== undefined
+    (alias) =>
+      item?.[alias] !== undefined &&
+      item?.[alias] !== null &&
+      item?.[alias] !== "",
   );
+  if (matchingKey) return item[matchingKey];
 
-  return matchingKey ? item[matchingKey] : 'NA';
+  // ⭐ Agar direct nahi mila, raw mein dhundo
+  if (item?.raw && typeof item.raw === "object") {
+    const rawKey = itemAliases[key]?.find(
+      (alias) =>
+        item.raw?.[alias] !== undefined &&
+        item.raw?.[alias] !== null &&
+        item.raw?.[alias] !== "",
+    );
+    if (rawKey) return item.raw[rawKey];
+  }
+
+  return "NA";
 }
 
 function formatItemValue(value, key) {
-  if (
-    value === null ||
-    value === undefined ||
-    value === '' ||
-    value === '-'
-  ) {
-    return 'NA';
+  if (value === null || value === undefined || value === "" || value === "-") {
+    return "NA";
   }
 
-  if (key === 'createdAt' || key === 'updatedAt') {
+  if (key === "createdAt" || key === "updatedAt") {
     return formatDateToIST(value);
   }
 
-  if (typeof value === 'object') {
-    return (
-      Object.values(value)
-        .filter(Boolean)
-        .join(', ') || 'NA'
-    );
+  if (typeof value === "object") {
+    return Object.values(value).filter(Boolean).join(", ") || "NA";
   }
 
   return String(value);
@@ -112,11 +111,11 @@ function formatItemValue(value, key) {
 
 function getStockCommandValue(command, key) {
   const aliases = {
-    status: ['status', 'state', 'commandStatus', 'command_status'],
-    payload: ['payload', 'data'],
-    result: ['result', 'response'],
-    errorMessage: ['errorMessage', 'error_message', 'error', 'message'],
-    createdAt: ['createdAt', 'created_at', 'submittedAt', 'submitted_at'],
+    status: ["status", "state", "commandStatus", "command_status"],
+    payload: ["payload", "data"],
+    result: ["result", "response"],
+    errorMessage: ["errorMessage", "error_message", "error", "message"],
+    createdAt: ["createdAt", "created_at", "submittedAt", "submitted_at"],
   };
   const matchingKey = aliases[key]?.find(
     (alias) => command?.[alias] !== undefined && command?.[alias] !== null,
@@ -126,8 +125,8 @@ function getStockCommandValue(command, key) {
 }
 
 function formatStockCommandValue(value) {
-  if (value === null || value === undefined || value === '') return '—';
-  if (typeof value === 'object') return JSON.stringify(value);
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "object") return JSON.stringify(value);
   return String(value);
 }
 
@@ -150,27 +149,17 @@ function extractHsnResults(response) {
 
   return rows
     .map((item) => ({
-      code: String(
-        item?.c ??
-        item?.code ??
-        item?.hsnCode ??
-        item?.hsn ??
-        ''
-      ),
+      code: String(item?.c ?? item?.code ?? item?.hsnCode ?? item?.hsn ?? ""),
       name: String(
-        item?.n ??
-        item?.name ??
-        item?.description ??
-        item?.desc ??
-        ''
+        item?.n ?? item?.name ?? item?.description ?? item?.desc ?? "",
       ),
     }))
-    .filter((item) => item.code.trim() !== '');
+    .filter((item) => item.code.trim() !== "");
 }
 function isCreatedAtInRange(item, startDate, endDate) {
-  const createdAt = getItemValue(item, 'createdAt');
+  const createdAt = getItemValue(item, "createdAt");
 
-  if (createdAt === 'NA') return false;
+  if (createdAt === "NA") return false;
 
   const createdDate = new Date(createdAt);
 
@@ -186,28 +175,26 @@ function isCreatedAtInRange(item, startDate, endDate) {
 
 function ItemsPage({ companyId, myStockItems = false }) {
   const accessToken = useAuthStore((state) => state.accessToken);
-  const visibleColumns = myStockItems
-    ? stockCommandColumns
-    : columns;
+  const visibleColumns = myStockItems ? stockCommandColumns : columns;
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const [editForm, setEditForm] = useState({
-    tallyExternalId: '',
-    itemName: '',
-    quantity: '',
-    rate: '',
-    value: '',
-    unit: '',
-    hsnCode: '',
-    godown: '',
-    batch: '',
+    tallyExternalId: "",
+    itemName: "",
+    quantity: "",
+    rate: "",
+    value: "",
+    unit: "",
+    hsnCode: "",
+    godown: "",
+    batch: "",
   });
 
-  const [query, setQuery] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [query, setQuery] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const [stockItems, setStockItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -217,13 +204,13 @@ function ItemsPage({ companyId, myStockItems = false }) {
   const [totalPages, setTotalPages] = useState(1);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const [detailDialog, setDetailDialog] = useState(null);
-  const [deletingCommandId, setDeletingCommandId] = useState('');
+  const [deletingCommandId, setDeletingCommandId] = useState("");
   const [hsnOptions, setHsnOptions] = useState([]);
   const [isHsnLoading, setIsHsnLoading] = useState(false);
   const [isHsnDropdownOpen, setIsHsnDropdownOpen] = useState(false);
-  const [hsnLookupError, setHsnLookupError] = useState('');
+  const [hsnLookupError, setHsnLookupError] = useState("");
 
   // Search HSN codes using the GST API
   useEffect(() => {
@@ -232,19 +219,19 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
       if (!isEditOpen) {
         setHsnOptions([]);
-        setHsnLookupError('');
+        setHsnLookupError("");
       }
 
       return undefined;
     }
 
-    const inputText = String(editForm.hsnCode || '').trim();
+    const inputText = String(editForm.hsnCode || "").trim();
 
     // Search only after at least 3 characters are entered
     if (inputText.length < 3) {
       setHsnOptions([]);
       setIsHsnLoading(false);
-      setHsnLookupError('');
+      setHsnLookupError("");
       return undefined;
     }
 
@@ -252,25 +239,25 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
     // Debounce requests while the user is typing
     setIsHsnLoading(true);
-    setHsnLookupError('');
+    setHsnLookupError("");
 
     const timer = window.setTimeout(async () => {
       try {
         const params = new URLSearchParams({
           inputText,
-          selectedType: 'byCode',
-          category: 'null',
+          selectedType: "byCode",
+          category: "null",
         });
 
         const response = await fetch(
           `https://services.gst.gov.in/commonservices/hsn/search/qsearch?${params.toString()}`,
           {
-            method: 'GET',
+            method: "GET",
             headers: {
-              Accept: 'application/json',
+              Accept: "application/json",
             },
             signal: controller.signal,
-          }
+          },
         );
 
         if (!response.ok) {
@@ -282,12 +269,12 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
         setHsnOptions(results);
       } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('HSN API error:', error);
+        if (error.name !== "AbortError") {
+          console.error("HSN API error:", error);
 
           setHsnOptions([]);
           setHsnLookupError(
-            'Unable to load HSN suggestions. You can enter the code manually.'
+            "Unable to load HSN suggestions. You can enter the code manually.",
           );
         }
       } finally {
@@ -301,223 +288,204 @@ function ItemsPage({ companyId, myStockItems = false }) {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [
-    editForm.hsnCode,
-    isEditOpen,
-    isHsnDropdownOpen,
-  ]);
+  }, [editForm.hsnCode, isEditOpen, isHsnDropdownOpen]);
 
   useEffect(() => {
     if (!accessToken || !companyId) {
       setStockItems([]);
       setTotalItems(0);
       setTotalPages(1);
-
       setErrorMessage(
         accessToken
-          ? 'No company is selected.'
-          : 'Your session has expired. Please sign in again.'
+          ? "No company is selected."
+          : "Your session has expired. Please sign in again.",
       );
-
       return undefined;
     }
 
     let isMounted = true;
-
     setIsLoading(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
+    // ⭐ Normal page pe sirf stock API call
+    // ⭐ View Status page pe sirf commands API call
     const stockRequest = myStockItems
       ? Promise.resolve(null)
       : fetchCompanyStock(accessToken, companyId, {
-        page: currentPage,
-        limit: pageSize,
-        q: query,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-      });
+          page: currentPage,
+          limit: pageSize,
+          q: query,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+        });
 
     const commandRequest = myStockItems
       ? Promise.all([
-        fetchCompanyCommands(accessToken, companyId, {
-          type: 'CREATE_STOCK_ITEM',
-          page: 1,
-          limit: currentPage * pageSize,
-          q: query,
-        }),
-        fetchCompanyCommands(accessToken, companyId, {
-          type: 'UPDATE_STOCK_ITEM',
-          page: 1,
-          limit: currentPage * pageSize,
-          q: query,
-        }),
-      ]).then(([createResponse, updateResponse]) => {
-        const getTotal = (response) => {
-          const pagination =
-            response?.pagination ||
-            response?.data?.pagination ||
-            response?.meta ||
-            response?.data ||
-            response;
+          fetchCompanyCommands(accessToken, companyId, {
+            type: "CREATE_STOCK_ITEM",
+            page: 1,
+            limit: currentPage * pageSize,
+            q: query,
+          }),
+          fetchCompanyCommands(accessToken, companyId, {
+            type: "UPDATE_STOCK_ITEM",
+            page: 1,
+            limit: currentPage * pageSize,
+            q: query,
+          }),
+        ]).then(([createResponse, updateResponse]) => {
+          const getTotal = (response) => {
+            const pagination =
+              response?.pagination ||
+              response?.data?.pagination ||
+              response?.meta ||
+              response?.data ||
+              response;
+            const total = Number(
+              pagination?.total ??
+                pagination?.totalItems ??
+                pagination?.totalRecords ??
+                pagination?.count,
+            );
+            return Number.isFinite(total) && total >= 0
+              ? total
+              : extractCommands(response).length;
+          };
 
-          const total = Number(
-            pagination?.total ??
-            pagination?.totalItems ??
-            pagination?.totalRecords ??
-            pagination?.count
-          );
+          const getTime = (item) => {
+            const date =
+              item?.createdAt ||
+              item?.created_at ||
+              item?.submittedAt ||
+              item?.submitted_at;
+            const time = date ? new Date(date).getTime() : 0;
+            return Number.isNaN(time) ? 0 : time;
+          };
 
-          return Number.isFinite(total) && total >= 0
-            ? total
-            : extractCommands(response).length;
-        };
+          const commands = [
+            ...extractCommands(createResponse),
+            ...extractCommands(updateResponse),
+          ].sort((a, b) => getTime(b) - getTime(a));
 
-        const getTime = (item) => {
-          const date =
-            item?.createdAt ||
-            item?.created_at ||
-            item?.submittedAt ||
-            item?.submitted_at;
+          const total = getTotal(createResponse) + getTotal(updateResponse);
 
-          const time = date ? new Date(date).getTime() : 0;
-          return Number.isNaN(time) ? 0 : time;
-        };
-
-        const commands = [
-          ...extractCommands(createResponse),
-          ...extractCommands(updateResponse),
-        ].sort((a, b) => getTime(b) - getTime(a));
-
-        const total =
-          getTotal(createResponse) + getTotal(updateResponse);
-
-        return {
-          __mergedCommands: commands,
-          pagination: {
-            total,
-            totalItems: total,
-            totalPages: Math.max(1, Math.ceil(total / pageSize)),
-          },
-        };
-      })
-      : fetchCompanyCommands(accessToken, companyId, {
-        type: '',
-        page: currentPage,
-        limit: pageSize,
-        q: query,
-      });
+          return {
+            __mergedCommands: commands,
+            pagination: {
+              total,
+              totalItems: total,
+              totalPages: Math.max(1, Math.ceil(total / pageSize)),
+            },
+          };
+        })
+      : Promise.resolve(null); // ⭐ Normal page pe commands nahi
 
     Promise.allSettled([stockRequest, commandRequest])
       .then(([stockResult, commandResult]) => {
         if (!isMounted) return;
 
-        if (
-          (myStockItems && commandResult.status === 'rejected') ||
-          (!myStockItems &&
-            stockResult.status === 'rejected' &&
-            commandResult.status === 'rejected')
-        ) {
-          throw commandResult.status === 'rejected'
-            ? commandResult.reason
-            : stockResult.reason;
+        if (myStockItems && commandResult.status === "rejected") {
+          throw commandResult.reason;
         }
 
-        const stockItemsFromApi = stockResult.status === 'fulfilled'
-          ? extractStockItems(stockResult.value)
-          : [];
+        if (!myStockItems && stockResult.status === "rejected") {
+          throw stockResult.reason;
+        }
 
-
-        const commandItemsFromApi =
-          commandResult.status === 'fulfilled'
-            ? myStockItems
-              ? (
-                commandResult.value?.__mergedCommands || []
-              ).slice(
-                (currentPage - 1) * pageSize,
-                currentPage * pageSize
-              )
-              : extractCommands(commandResult.value)
-                .map((command) => {
-                  const payload =
-                    command?.payload ||
-                    command?.data?.payload ||
-                    command?.data ||
-                    command ||
-                    {};
-
-                  if (!payload || typeof payload !== 'object') {
-                    return null;
-                  }
-
-                  return {
-                    ...payload,
-                    _id:
-                      command?._id ||
-                      command?.id ||
-                      command?.commandId ||
-                      payload?._id ||
-                      payload?.id,
-                    createdAt:
-                      payload?.createdAt ||
-                      command?.createdAt ||
-                      command?.created_at,
-                    updatedAt:
-                      payload?.updatedAt ||
-                      command?.updatedAt ||
-                      command?.updated_at,
-                  };
-                })
-                .filter(Boolean)
+        const stockItemsFromApi =
+          stockResult.status === "fulfilled" && stockResult.value
+            ? extractStockItems(stockResult.value)
             : [];
 
+        const commandItemsFromApi =
+          commandResult.status === "fulfilled" && commandResult.value
+            ? myStockItems
+              ? (commandResult.value?.__mergedCommands || []).slice(
+                  (currentPage - 1) * pageSize,
+                  currentPage * pageSize,
+                )
+              : []
+            : [];
+
+        // ⭐ Normal page pe sirf stock, View Status page pe sirf commands
         const mergedItems = myStockItems
           ? commandItemsFromApi
-          : [...stockItemsFromApi, ...commandItemsFromApi].filter((item, index, arr) => {
-            const key = item?._id || item?.id || item?.tallyExternalId || item?.itemTallyExternalId || `${item?.itemName || ''}-${item?.godown || ''}-${item?.quantity || ''}`;
-            return key && arr.findIndex((candidate) => {
-              const candidateKey = candidate?._id || candidate?.id || candidate?.tallyExternalId || candidate?.itemTallyExternalId || `${candidate?.itemName || ''}-${candidate?.godown || ''}-${candidate?.quantity || ''}`;
+          : stockItemsFromApi;
+
+        // Dedupe safety
+        const uniqueItems = mergedItems.filter((item, index, arr) => {
+          const key =
+            item?._id ||
+            item?.id ||
+            item?.tallyExternalId ||
+            item?.itemTallyExternalId;
+          return (
+            key &&
+            arr.findIndex((candidate) => {
+              const candidateKey =
+                candidate?._id ||
+                candidate?.id ||
+                candidate?.tallyExternalId ||
+                candidate?.itemTallyExternalId;
               return candidateKey && candidateKey === key;
-            }) === index;
-          });
+            }) === index
+          );
+        });
 
-        const filteredItems = (!myStockItems && startDate && endDate)
-          ? mergedItems.filter((item) => isCreatedAtInRange(item, startDate, endDate))
-          : mergedItems;
+        const filteredItems =
+          !myStockItems && startDate && endDate
+            ? uniqueItems.filter((item) =>
+                isCreatedAtInRange(item, startDate, endDate),
+              )
+            : uniqueItems;
 
-        const stockPagination = stockResult.status === 'fulfilled'
-          ? extractLedgerPagination(stockResult.value)
-          : {};
+        const stockPagination =
+          stockResult.status === "fulfilled" && stockResult.value
+            ? extractLedgerPagination(stockResult.value)
+            : {};
 
-        const commandPagination = commandResult.status === 'fulfilled'
-          ? (commandResult.value?.pagination || commandResult.value?.data?.pagination || commandResult.value?.meta || commandResult.value?.data || commandResult.value)
-          : {};
+        const commandPagination =
+          commandResult.status === "fulfilled" && commandResult.value
+            ? commandResult.value?.pagination || {}
+            : {};
 
         const responseTotal = Number(
           stockPagination.total ??
-          stockPagination.totalItems ??
-          stockPagination.totalRecords ??
-          stockPagination.count ??
-          commandPagination.total ??
-          commandPagination.totalItems ??
-          commandPagination.totalRecords ??
-          commandPagination.count ??
-          filteredItems.length
+            stockPagination.totalItems ??
+            stockPagination.totalRecords ??
+            stockPagination.count ??
+            commandPagination.total ??
+            commandPagination.totalItems ??
+            commandPagination.totalRecords ??
+            commandPagination.count ??
+            filteredItems.length,
         );
 
         const responsePages = Number(
           stockPagination.totalPages ??
-          stockPagination.total_pages ??
-          stockPagination.pages ??
-          stockPagination.lastPage ??
-          commandPagination.totalPages ??
-          commandPagination.total_pages ??
-          commandPagination.pages ??
-          commandPagination.lastPage ??
-          Math.ceil((Number.isFinite(responseTotal) ? responseTotal : filteredItems.length) / pageSize)
+            stockPagination.total_pages ??
+            stockPagination.pages ??
+            stockPagination.lastPage ??
+            commandPagination.totalPages ??
+            commandPagination.total_pages ??
+            commandPagination.pages ??
+            commandPagination.lastPage ??
+            Math.ceil(
+              (Number.isFinite(responseTotal)
+                ? responseTotal
+                : filteredItems.length) / pageSize,
+            ),
         );
 
-        const nextTotal = Number.isFinite(responseTotal) && responseTotal >= 0 ? responseTotal : filteredItems.length;
-        const nextPages = Number.isFinite(responsePages) && responsePages > 0 ? responsePages : Math.max(1, Math.ceil(nextTotal / pageSize));
+        const nextTotal =
+          Number.isFinite(responseTotal) && responseTotal >= 0
+            ? responseTotal
+            : filteredItems.length;
+
+        const nextPages =
+          Number.isFinite(responsePages) && responsePages > 0
+            ? responsePages
+            : Math.max(1, Math.ceil(nextTotal / pageSize));
 
         setStockItems(filteredItems);
         setTotalItems(nextTotal);
@@ -525,9 +493,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
       })
       .catch((error) => {
         if (isMounted) {
-          setErrorMessage(
-            error?.message || 'Unable to load stock items'
-          );
+          setErrorMessage(error?.message || "Unable to load stock items");
         }
       })
       .finally(() => {
@@ -556,35 +522,32 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
   const pageItems =
     totalPages <= 7
-      ? Array.from(
-        { length: totalPages },
-        (_, index) => index + 1
-      )
+      ? Array.from({ length: totalPages }, (_, index) => index + 1)
       : currentPage <= 4
-        ? [1, 2, 3, 4, 5, '...', totalPages]
+        ? [1, 2, 3, 4, 5, "...", totalPages]
         : currentPage >= totalPages - 3
           ? [
-            1,
-            '...',
-            totalPages - 4,
-            totalPages - 3,
-            totalPages - 2,
-            totalPages - 1,
-            totalPages,
-          ]
+              1,
+              "...",
+              totalPages - 4,
+              totalPages - 3,
+              totalPages - 2,
+              totalPages - 1,
+              totalPages,
+            ]
           : [
-            1,
-            '...',
-            currentPage - 1,
-            currentPage,
-            currentPage + 1,
-            '...',
-            totalPages,
-          ];
+              1,
+              "...",
+              currentPage - 1,
+              currentPage,
+              currentPage + 1,
+              "...",
+              totalPages,
+            ];
 
   const handleAddNew = () => {
-    window.history.pushState({}, '', '/items/add-new');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.history.pushState({}, "", "/items/add-new");
+    window.dispatchEvent(new PopStateEvent("popstate"));
   };
   const handleEdit = (item) => {
     setEditForm({
@@ -593,91 +556,67 @@ function ItemsPage({ companyId, myStockItems = false }) {
         item?.itemTallyExternalId ||
         item?.tallyExternalId ||
         item?.externalId ||
-        '',
+        "",
 
-      itemName:
-        item?.itemName ||
-        item?.name ||
-        item?.stockName ||
-        '',
+      itemName: item?.itemName || item?.name || item?.stockName || "",
 
-      quantity:
-        item?.quantity ??
-        item?.qty ??
-        item?.closingStock ??
-        '',
+      quantity: item?.quantity ?? item?.qty ?? item?.closingStock ?? "",
 
-      rate:
-        item?.rate ??
-        item?.avgPurRate ??
-        item?.purchaseRate ??
-        '',
+      rate: item?.rate ?? item?.avgPurRate ?? item?.purchaseRate ?? "",
 
-      value:
-        item?.value ??
-        item?.amount ??
-        item?.stockValue ??
-        '',
+      value: item?.value ?? item?.amount ?? item?.stockValue ?? "",
 
-      unit: item?.unit || '',
+      unit: item?.unit || "",
 
-      hsnCode:
-        item?.hsnCode ||
-        item?.hsn ||
-        item?.productHsn ||
-        '',
+      hsnCode: item?.hsnCode || item?.hsn || item?.productHsn || "",
 
-      godown:
-        item?.godown ||
-        item?.warehouse ||
-        item?.location ||
-        '',
+      godown: item?.godown || item?.warehouse || item?.location || "",
 
-      batch: item?.batch || '',
+      batch: item?.batch || "",
     });
 
     setIsEditOpen(true);
   };
   const handleDeleteCommand = async (command) => {
     const commandId =
-      command?._id ||
-      command?.commandId ||
-      command?.command_id ||
-      command?.id;
+      command?._id || command?.commandId || command?.command_id || command?.id;
 
     if (!commandId || deletingCommandId) return;
-    if (!window.confirm('Are you sure, you want to delete this?')) return;
+    if (!window.confirm("Are you sure, you want to delete this?")) return;
 
     try {
       setDeletingCommandId(String(commandId));
-      setErrorMessage('');
+      setErrorMessage("");
       await deleteCompanyCommand(accessToken, companyId, commandId);
       setStockItems((currentItems) =>
-        currentItems.filter((item) => String(
-          item?._id || item?.commandId || item?.command_id || item?.id,
-        ) !== String(commandId)),
+        currentItems.filter(
+          (item) =>
+            String(
+              item?._id || item?.commandId || item?.command_id || item?.id,
+            ) !== String(commandId),
+        ),
       );
       setTotalItems((currentTotal) => Math.max(0, currentTotal - 1));
     } catch (error) {
-      setErrorMessage(error?.message || 'Unable to delete command.');
+      setErrorMessage(error?.message || "Unable to delete command.");
     } finally {
-      setDeletingCommandId('');
+      setDeletingCommandId("");
     }
   };
 
   const handleUpdateStockItem = async () => {
     if (!accessToken || !companyId) {
-      setErrorMessage('Please select a company before updating the item.');
+      setErrorMessage("Please select a company before updating the item.");
       return;
     }
 
     if (!editForm.tallyExternalId) {
-      setErrorMessage('Tally External ID is missing for this item.');
+      setErrorMessage("Tally External ID is missing for this item.");
       return;
     }
 
     const payload = {
-      type: 'UPDATE_STOCK_ITEM',
+      type: "UPDATE_STOCK_ITEM",
       payload: {
         tallyExternalId: editForm.tallyExternalId,
         itemName: editForm.itemName,
@@ -693,37 +632,41 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
     try {
       setIsLoading(true);
-      setErrorMessage('');
+      setErrorMessage("");
 
-      const response = await postCompanyCommand(accessToken, companyId, payload);
-      console.log('UPDATE_STOCK_ITEM response:', response);
+      const response = await postCompanyCommand(
+        accessToken,
+        companyId,
+        payload,
+      );
+      console.log("UPDATE_STOCK_ITEM response:", response);
 
       setStockItems((currentItems) =>
         currentItems.map((item) => {
-          const itemTallyId = getItemValue(item, 'itemTallyExternalId');
+          const itemTallyId = getItemValue(item, "itemTallyExternalId");
 
           return itemTallyId === editForm.tallyExternalId
             ? {
-              ...item,
-              tallyExternalId: editForm.tallyExternalId,
-              itemName: editForm.itemName,
-              quantity: Number(editForm.quantity) || 0,
-              rate: Number(editForm.rate) || 0,
-              value: Number(editForm.value) || 0,
-              unit: editForm.unit,
-              hsnCode: editForm.hsnCode,
-              godown: editForm.godown,
-              batch: editForm.batch,
-            }
+                ...item,
+                tallyExternalId: editForm.tallyExternalId,
+                itemName: editForm.itemName,
+                quantity: Number(editForm.quantity) || 0,
+                rate: Number(editForm.rate) || 0,
+                value: Number(editForm.value) || 0,
+                unit: editForm.unit,
+                hsnCode: editForm.hsnCode,
+                godown: editForm.godown,
+                batch: editForm.batch,
+              }
             : item;
-        })
+        }),
       );
 
       setIsEditOpen(false);
       setShowSuccessDialog(true);
     } catch (error) {
-      console.error('UPDATE_STOCK_ITEM failed:', error);
-      setErrorMessage(error?.message || 'Unable to update stock item.');
+      console.error("UPDATE_STOCK_ITEM failed:", error);
+      setErrorMessage(error?.message || "Unable to update stock item.");
     } finally {
       setIsLoading(false);
     }
@@ -732,11 +675,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
   return (
     <div className="page-surface">
       {/* Top Header */}
-      <div className="">
-
-
-
-      </div>
+      <div className=""></div>
       <div className="p-2 mb-4 flex flex-wrap items-center gap-4 bg-white">
         <div className="relative">
           <input
@@ -840,7 +779,6 @@ function ItemsPage({ companyId, myStockItems = false }) {
             }}
           >
             View status
-
           </button>
         )}
         {/* <button
@@ -866,11 +804,9 @@ function ItemsPage({ companyId, myStockItems = false }) {
           </button> */}
       </div>
 
-
       {/* Main Content */}
       <section className="page-card border border-slate-200 bg-white p-4">
         {/* Filters / Actions */}
-
 
         {/* Error */}
         {errorMessage && (
@@ -897,10 +833,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
             <thead className="bg-slate-100 text-xs font-semibold text-slate-700">
               <tr>
                 {visibleColumns.map((column) => (
-                  <th
-                    key={column.key}
-                    className="whitespace-nowrap px-4 py-3"
-                  >
+                  <th key={column.key} className="whitespace-nowrap px-4 py-3">
                     {column.label}
                   </th>
                 ))}
@@ -926,11 +859,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
               ) : stockItems.length > 0 ? (
                 stockItems.map((item, index) => (
                   <tr
-                    key={
-                      item?._id ||
-                      item?.id ||
-                      index
-                    }
+                    key={item?._id || item?.id || index}
                     className="
                       text-xs
                       text-slate-700
@@ -939,9 +868,9 @@ function ItemsPage({ companyId, myStockItems = false }) {
                     "
                   >
                     {visibleColumns.map((column) => {
-                      if (myStockItems && column.key === 'action') {
+                      if (myStockItems && column.key === "action") {
                         const status = String(
-                          getStockCommandValue(item, 'status') || '',
+                          getStockCommandValue(item, "status") || "",
                         ).toLowerCase();
                         const commandId =
                           item?._id ||
@@ -951,16 +880,18 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
                         return (
                           <td key={column.key} className="px-4 py-3">
-                            {status === 'pending' && commandId ? (
+                            {status === "pending" && commandId ? (
                               <button
                                 type="button"
-                                disabled={deletingCommandId === String(commandId)}
+                                disabled={
+                                  deletingCommandId === String(commandId)
+                                }
                                 onClick={() => handleDeleteCommand(item)}
                                 className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 {deletingCommandId === String(commandId)
-                                  ? 'Deleting...'
-                                  : 'Delete'}
+                                  ? "Deleting..."
+                                  : "Delete"}
                               </button>
                             ) : null}
                           </td>
@@ -972,39 +903,47 @@ function ItemsPage({ companyId, myStockItems = false }) {
                         const isViewable =
                           value !== null &&
                           value !== undefined &&
-                          value !== '' &&
-                          (typeof value === 'object' ||
-                            column.key === 'errorMessage');
+                          value !== "" &&
+                          (typeof value === "object" ||
+                            column.key === "errorMessage");
 
                         return (
                           <td key={column.key} className="px-4 py-3">
-                            {column.key === 'status' ? (
-                              <span className={`font-semibold ${String(value || '').toLowerCase() === 'pending'
-                                ? 'text-amber-600'
-                                : String(value || '').toLowerCase() === 'failed'
-                                  ? 'text-red-600'
-                                  : String(value || '').toLowerCase() === 'done'
-                                    ? 'text-emerald-600'
-                                    : 'text-slate-600'
-                                }`}>
+                            {column.key === "status" ? (
+                              <span
+                                className={`font-semibold ${
+                                  String(value || "").toLowerCase() ===
+                                  "pending"
+                                    ? "text-amber-600"
+                                    : String(value || "").toLowerCase() ===
+                                        "failed"
+                                      ? "text-red-600"
+                                      : String(value || "").toLowerCase() ===
+                                          "done"
+                                        ? "text-emerald-600"
+                                        : "text-slate-600"
+                                }`}
+                              >
                                 {formatStockCommandValue(value)}
                               </span>
-                            ) : column.key === 'createdAt' ? (
-                              formatItemValue(value, 'createdAt')
+                            ) : column.key === "createdAt" ? (
+                              formatItemValue(value, "createdAt")
                             ) : isViewable ? (
                               <button
                                 type="button"
-                                onClick={() => setDetailDialog({
-                                  title: column.label,
-                                  value,
-                                })}
+                                onClick={() =>
+                                  setDetailDialog({
+                                    title: column.label,
+                                    value,
+                                  })
+                                }
                                 className="rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700"
                               >
-                                {column.key === 'payload'
-                                  ? 'View details'
-                                  : column.key === 'errorMessage'
-                                    ? 'View error'
-                                    : 'View result'}
+                                {column.key === "payload"
+                                  ? "View details"
+                                  : column.key === "errorMessage"
+                                    ? "View error"
+                                    : "View result"}
                               </button>
                             ) : (
                               <span className="whitespace-pre-wrap break-words">
@@ -1015,7 +954,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
                         );
                       }
 
-                      if (column.key === 'action') {
+                      if (column.key === "action") {
                         return (
                           <td key={column.key} className="px-4 py-3">
                             <button
@@ -1068,8 +1007,8 @@ function ItemsPage({ companyId, myStockItems = false }) {
                     "
                   >
                     {myStockItems
-                      ? 'No stock item commands found.'
-                      : 'No stock data available.'}
+                      ? "No stock item commands found."
+                      : "No stock data available."}
                   </td>
                 </tr>
               )}
@@ -1078,7 +1017,8 @@ function ItemsPage({ companyId, myStockItems = false }) {
         </div>
 
         {/* Pagination */}
-        <footer className="
+        <footer
+          className="
           flex
           flex-wrap
           items-center
@@ -1087,9 +1027,10 @@ function ItemsPage({ companyId, myStockItems = false }) {
           border-t
           border-slate-200
           pt-4
-        ">
+        "
+        >
           {pageItems.map((page, index) =>
-            page === '...' ? (
+            page === "..." ? (
               <span
                 key={`ellipsis-${index}`}
                 className="
@@ -1105,9 +1046,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
                 key={page}
                 type="button"
                 disabled={isLoading}
-                onClick={() =>
-                  setCurrentPage(page)
-                }
+                onClick={() => setCurrentPage(page)}
                 className={`
                   h-9
                   min-w-9
@@ -1117,13 +1056,14 @@ function ItemsPage({ companyId, myStockItems = false }) {
                   text-sm
                   font-medium
                   transition
-                  ${currentPage === page
-                    ? `
+                  ${
+                    currentPage === page
+                      ? `
                         border-emerald-600
                         bg-emerald-600
                         text-white
                       `
-                    : `
+                      : `
                         border-slate-200
                         text-slate-700
                         hover:bg-emerald-50
@@ -1135,17 +1075,17 @@ function ItemsPage({ companyId, myStockItems = false }) {
               >
                 {page}
               </button>
-            )
+            ),
           )}
         </footer>
 
         {/* Record count */}
         <div className="pt-3 text-center text-xs text-slate-500">
           {totalItems === 0
-            ? '0 of 0'
-            : `${(currentPage - 1) * pageSize + 1}-${(currentPage - 1) * pageSize +
-            stockItems.length
-            } of ${totalItems}`}
+            ? "0 of 0"
+            : `${(currentPage - 1) * pageSize + 1}-${
+                (currentPage - 1) * pageSize + stockItems.length
+              } of ${totalItems}`}
         </div>
       </section>
       {detailDialog && (
@@ -1166,21 +1106,22 @@ function ItemsPage({ companyId, myStockItems = false }) {
             </div>
             <div className="overflow-x-auto rounded-lg border border-slate-200">
               {detailDialog.value &&
-                typeof detailDialog.value === 'object' &&
-                !Array.isArray(detailDialog.value) ? (
+              typeof detailDialog.value === "object" &&
+              !Array.isArray(detailDialog.value) ? (
                 <table className="w-full border-collapse text-left text-xs">
                   <tbody className="divide-y divide-slate-100">
                     {Object.entries(detailDialog.value)
                       .filter(
                         ([key]) =>
                           key.replace(/[\s_-]/g, "").toLowerCase() !==
-                          "tallyexternalid"
-                      ).map(([key, value]) => (
+                          "tallyexternalid",
+                      )
+                      .map(([key, value]) => (
                         <tr key={key} className="hover:bg-slate-50">
                           <th className="w-1/3 bg-slate-50 px-4 py-3 font-semibold text-slate-600">
                             {key
-                              .replace(/([a-z])([A-Z])/g, '$1 $2')
-                              .replace(/[_-]+/g, ' ')
+                              .replace(/([a-z])([A-Z])/g, "$1 $2")
+                              .replace(/[_-]+/g, " ")
                               .replace(/\b\w/g, (char) => char.toUpperCase())}
                           </th>
 
@@ -1200,21 +1141,30 @@ function ItemsPage({ companyId, myStockItems = false }) {
                                   </thead>
 
                                   <tbody>
-                                    {Object.entries(value).map(([nestedKey, nestedValue]) => (
-                                      <tr key={nestedKey} className="hover:bg-slate-50">
-                                        <td className="break-words border-b border-r border-slate-200 px-3 py-2 font-medium">
-                                          {nestedKey}
-                                        </td>
+                                    {Object.entries(value).map(
+                                      ([nestedKey, nestedValue]) => (
+                                        <tr
+                                          key={nestedKey}
+                                          className="hover:bg-slate-50"
+                                        >
+                                          <td className="break-words border-b border-r border-slate-200 px-3 py-2 font-medium">
+                                            {nestedKey}
+                                          </td>
 
-                                        <td className="break-words border-b border-slate-200 px-3 py-2">
-                                          {nestedValue == null
-                                            ? "—"
-                                            : typeof nestedValue === "object"
-                                              ? JSON.stringify(nestedValue, null, 2)
-                                              : String(nestedValue)}
-                                        </td>
-                                      </tr>
-                                    ))}
+                                          <td className="break-words border-b border-slate-200 px-3 py-2">
+                                            {nestedValue == null
+                                              ? "—"
+                                              : typeof nestedValue === "object"
+                                                ? JSON.stringify(
+                                                    nestedValue,
+                                                    null,
+                                                    2,
+                                                  )
+                                                : String(nestedValue)}
+                                          </td>
+                                        </tr>
+                                      ),
+                                    )}
                                   </tbody>
                                 </table>
                               </div>
@@ -1247,12 +1197,12 @@ function ItemsPage({ companyId, myStockItems = false }) {
                         </td>
 
                         <td className="px-4 py-3 text-slate-700">
-                          {typeof item === 'object' ? (
+                          {typeof item === "object" ? (
                             <pre className="whitespace-pre-wrap break-words font-mono text-[11px]">
                               {JSON.stringify(item, null, 2)}
                             </pre>
                           ) : (
-                            String(item ?? '—')
+                            String(item ?? "—")
                           )}
                         </td>
                       </tr>
@@ -1267,7 +1217,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
                         Value
                       </th>
                       <td className="px-4 py-3 whitespace-pre-wrap break-words text-slate-700">
-                        {String(detailDialog.value ?? '—')}
+                        {String(detailDialog.value ?? "—")}
                       </td>
                     </tr>
                   </tbody>
@@ -1280,7 +1230,6 @@ function ItemsPage({ companyId, myStockItems = false }) {
       {isEditOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-2xl rounded-xl bg-white shadow-2xl">
-
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 mt-2">
               <div>
@@ -1303,7 +1252,6 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
             {/* Form */}
             <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
-
               {/* Item Name */}
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs font-medium text-slate-600">
@@ -1337,9 +1285,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
                     setEditForm({
                       ...editForm,
                       quantity,
-                      value:
-                        Number(quantity || 0) *
-                        Number(editForm.rate || 0),
+                      value: Number(quantity || 0) * Number(editForm.rate || 0),
                     });
                   }}
                   className="
@@ -1373,9 +1319,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
                     setEditForm({
                       ...editForm,
                       rate,
-                      value:
-                        Number(editForm.quantity || 0) *
-                        Number(rate || 0),
+                      value: Number(editForm.quantity || 0) * Number(rate || 0),
                     });
                   }}
                   className="
@@ -1456,7 +1400,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
                     }));
 
                     setIsHsnDropdownOpen(true);
-                    setHsnLookupError('');
+                    setHsnLookupError("");
                   }}
                   onFocus={() => {
                     if (editForm.hsnCode.trim().length >= 3) {
@@ -1467,101 +1411,100 @@ function ItemsPage({ companyId, myStockItems = false }) {
                   className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
 
-                {isHsnDropdownOpen &&
-                  editForm.hsnCode.trim().length >= 3 && (
-                    <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-auto rounded-lg border border-slate-200 bg-white shadow-xl">
-                      <table className="w-full border-collapse text-left text-xs">
-                        <thead className="sticky top-0 bg-slate-100 text-slate-700">
+                {isHsnDropdownOpen && editForm.hsnCode.trim().length >= 3 && (
+                  <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-auto rounded-lg border border-slate-200 bg-white shadow-xl">
+                    <table className="w-full border-collapse text-left text-xs">
+                      <thead className="sticky top-0 bg-slate-100 text-slate-700">
+                        <tr>
+                          <th className="border-b border-slate-200 px-3 py-3 font-semibold">
+                            HSN Code
+                          </th>
+
+                          <th className="border-b border-slate-200 px-3 py-3 font-semibold">
+                            Description
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <tbody className="divide-y divide-slate-100">
+                        {isHsnLoading ? (
                           <tr>
-                            <th className="border-b border-slate-200 px-3 py-3 font-semibold">
-                              HSN Code
-                            </th>
-
-                            <th className="border-b border-slate-200 px-3 py-3 font-semibold">
-                              Description
-                            </th>
+                            <td
+                              colSpan={2}
+                              className="px-3 py-4 text-center text-slate-500"
+                            >
+                              Searching HSN codes...
+                            </td>
                           </tr>
-                        </thead>
+                        ) : hsnLookupError ? (
+                          <tr>
+                            <td
+                              colSpan={2}
+                              className="px-3 py-4 text-center text-red-600"
+                            >
+                              {hsnLookupError}
+                            </td>
+                          </tr>
+                        ) : hsnOptions.length > 0 ? (
+                          hsnOptions.map((option, index) => (
+                            <tr
+                              key={`${option.code}-${index}`}
+                              className="cursor-pointer hover:bg-emerald-50"
+                              onMouseDown={(event) => event.preventDefault()}
+                            >
+                              <td className="whitespace-nowrap px-3 py-3 font-semibold text-slate-700">
+                                <button
+                                  type="button"
+                                  className="w-full text-left"
+                                  onClick={() => {
+                                    setEditForm((current) => ({
+                                      ...current,
+                                      hsnCode: option.code,
+                                    }));
 
-                        <tbody className="divide-y divide-slate-100">
-                          {isHsnLoading ? (
-                            <tr>
-                              <td
-                                colSpan={2}
-                                className="px-3 py-4 text-center text-slate-500"
-                              >
-                                Searching HSN codes...
+                                    setHsnOptions([]);
+                                    setIsHsnDropdownOpen(false);
+                                    setHsnLookupError("");
+                                  }}
+                                >
+                                  {option.code}
+                                </button>
+                              </td>
+
+                              <td className="px-3 py-3 text-slate-600">
+                                <button
+                                  type="button"
+                                  className="w-full text-left"
+                                  onClick={() => {
+                                    setEditForm((current) => ({
+                                      ...current,
+                                      hsnCode: option.code,
+                                    }));
+
+                                    setHsnOptions([]);
+                                    setIsHsnDropdownOpen(false);
+                                    setHsnLookupError("");
+                                  }}
+                                >
+                                  {option.name || "No description available"}
+                                </button>
                               </td>
                             </tr>
-                          ) : hsnLookupError ? (
-                            <tr>
-                              <td
-                                colSpan={2}
-                                className="px-3 py-4 text-center text-red-600"
-                              >
-                                {hsnLookupError}
-                              </td>
-                            </tr>
-                          ) : hsnOptions.length > 0 ? (
-                            hsnOptions.map((option, index) => (
-                              <tr
-                                key={`${option.code}-${index}`}
-                                className="cursor-pointer hover:bg-emerald-50"
-                                onMouseDown={(event) => event.preventDefault()}
-                              >
-                                <td className="whitespace-nowrap px-3 py-3 font-semibold text-slate-700">
-                                  <button
-                                    type="button"
-                                    className="w-full text-left"
-                                    onClick={() => {
-                                      setEditForm((current) => ({
-                                        ...current,
-                                        hsnCode: option.code,
-                                      }));
-
-                                      setHsnOptions([]);
-                                      setIsHsnDropdownOpen(false);
-                                      setHsnLookupError('');
-                                    }}
-                                  >
-                                    {option.code}
-                                  </button>
-                                </td>
-
-                                <td className="px-3 py-3 text-slate-600">
-                                  <button
-                                    type="button"
-                                    className="w-full text-left"
-                                    onClick={() => {
-                                      setEditForm((current) => ({
-                                        ...current,
-                                        hsnCode: option.code,
-                                      }));
-
-                                      setHsnOptions([]);
-                                      setIsHsnDropdownOpen(false);
-                                      setHsnLookupError('');
-                                    }}
-                                  >
-                                    {option.name || 'No description available'}
-                                  </button>
-                                </td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td
-                                colSpan={2}
-                                className="px-3 py-4 text-center text-slate-500"
-                              >
-                                No matching HSN codes found.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan={2}
+                              className="px-3 py-4 text-center text-slate-500"
+                            >
+                              No matching HSN codes found.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
 
               {/* Godown */}
@@ -1599,7 +1542,6 @@ function ItemsPage({ companyId, myStockItems = false }) {
                   className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </div>
-
             </div>
 
             {/* Footer */}
@@ -1634,9 +1576,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
           >
             {/* Success icon */}
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-              <span className="text-3xl font-bold text-emerald-600">
-                ✓
-              </span>
+              <span className="text-3xl font-bold text-emerald-600">✓</span>
             </div>
 
             {/* Success message */}
