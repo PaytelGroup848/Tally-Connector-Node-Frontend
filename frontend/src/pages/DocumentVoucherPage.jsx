@@ -262,7 +262,7 @@ function JournalVoucherContent({
           />
         </label>
 
-        <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-slate-700 md:col-span-2">
+        {/* <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-slate-700 md:col-span-2">
           <span>Reference Number</span>
           <input
             name="referenceNumber"
@@ -278,7 +278,7 @@ function JournalVoucherContent({
             type="date"
             className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
           />
-        </label>
+        </label> */}
       </div>
 
       <div className="mt-5 space-y-4 overflow-x-auto">
@@ -3025,8 +3025,8 @@ const calculateRowAmount = (row) => getEnteredAmount(row);
       voucherType,
       voucherNumber: values.voucherNumber || "",
       date: values.date || "",
-      referenceNumber: values.referenceNumber || "",
-      referenceDate: values.referenceDate || "",
+      // referenceNumber: values.referenceNumber || "",
+      // referenceDate: values.referenceDate || "",
       particulars: journalRows.map((row) => ({
         type: row.type || "",
         partyName: row.partyName || "",
