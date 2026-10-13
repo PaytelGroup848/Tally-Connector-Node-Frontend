@@ -49,17 +49,17 @@ const cards = [
 
 export default function FeatureCards() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mt-5 mb-5">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 mt-5 mb-5">
       {cards.map(({ title, text, icon }) => (
         <div
           key={title}
-          className="max-sm:mx-[20%] rounded-2xl border border-emerald-100 bg-white/90 p-5 shadow-sm"
+          className="max-sm:mx-[20%] rounded-2xl border border-emerald-100 bg-white/90 p-3 shadow-sm"
         >
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
+          <div className="mb-1 flex h-5 w-5 items-center justify-center rounded-xl bg-emerald-50">
             {icon}
           </div>
-          <h3 className="mb-1 text-base font-semibold text-slate-800">{title}</h3>
-          <p className="text-sm leading-relaxed text-slate-500">{text}</p>
+          <h6 className="text-sm mb-1 text-base font-semibold text-slate-800">{title}</h6>
+          <p className="text-xs leading-relaxed text-slate-500">{text}</p>
         </div>
       ))}
     </div>

@@ -392,15 +392,14 @@ function App() {
                 </div>
 
                 {/* Yellow Tag */}
-                <div className="relative mt-12 w-[125px] rotate-[-14deg] rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)]">
-
+<div className="relative mt-12 w-[100px] origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
                   {/* Screw holes */}
                   <span className="absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
                   <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
                   <span className="absolute bottom-1.5 left-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
                   <span className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
 
-                  <div className="text-center font-serif text-[13px] font-black leading-tight tracking-[0.08em] text-black">
+                  <div className="text-center font-serif text-[12px] font-black leading-tight tracking-[0.08em] text-black">
                     <button
                       onClick={() => setShowEnquiry(true)}
                       className="focus:outline-none"
@@ -495,9 +494,8 @@ function App() {
             <div className="mt-1 h-4 w-4 rounded-full border border-gray-400 bg-gradient-to-br from-gray-100 via-gray-300 to-gray-500 shadow-md" />
           </div>
 
-          {/* Yellow Tag */}
-          <div className="relative mt-12 w-[125px] rotate-[-14deg] rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)]">
-
+         {/* Yellow Tag */}
+<div className="relative mt-12 w-[60%] origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
             {/* Screw holes */}
             <span className="absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
             <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
@@ -587,7 +585,7 @@ function App() {
 
           <div className="absolute right-[-100px] top-0 h-96 w-96 rounded-full bg-lime-100/50 blur-3xl" />
 
-          <div className="relative mx-auto flex max-w-7xl items-start gap-2 px-4 pt-10 sm:px-6 lg:gap-10 lg:px-8 lg:pt-10">
+          <div className="max-sm:pt-[100px] relative mx-auto flex max-w-7xl items-start gap-2 px-4 pt-10 sm:px-6 lg:gap-10 lg:px-8 lg:pt-10">
             {/* Left */}
             <div className="w-full max-w-lg shrink-0 text-left lg:w-[42%]">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-bold text-green-700">
@@ -849,12 +847,16 @@ function App() {
             </div>
           </div>
 
-          <style>{`
-    @keyframes testimonialScroll {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
-    }
-  `}</style>
+        <style>{`
+  @keyframes testimonialScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes swing {
+    0%, 100% { transform: rotate(18deg); }
+    50% { transform: rotate(-18deg); }
+  }
+`}</style>
         </section>
 
         {/* ================= STATS ================= */}
