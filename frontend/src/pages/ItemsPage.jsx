@@ -131,6 +131,42 @@ function formatStockCommandValue(value) {
   return String(value);
 }
 
+// Normalize the HSN API response
+function extractHsnResults(response) {
+  const candidates = [
+    response,
+    response?.data,
+    response?.results,
+    response?.result,
+    response?.hsn,
+    response?.hsnList,
+    response?.data?.data,
+    response?.data?.results,
+    response?.data?.result,
+    response?.data?.hsnList,
+  ];
+
+  const rows = candidates.find(Array.isArray) || [];
+
+  return rows
+    .map((item) => ({
+      code: String(
+        item?.c ??
+        item?.code ??
+        item?.hsnCode ??
+        item?.hsn ??
+        ''
+      ),
+      name: String(
+        item?.n ??
+        item?.name ??
+        item?.description ??
+        item?.desc ??
+        ''
+      ),
+    }))
+    .filter((item) => item.code.trim() !== '');
+}
 function isCreatedAtInRange(item, startDate, endDate) {
   const createdAt = getItemValue(item, 'createdAt');
 
@@ -184,6 +220,92 @@ function ItemsPage({ companyId, myStockItems = false }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [detailDialog, setDetailDialog] = useState(null);
   const [deletingCommandId, setDeletingCommandId] = useState('');
+  const [hsnOptions, setHsnOptions] = useState([]);
+  const [isHsnLoading, setIsHsnLoading] = useState(false);
+  const [isHsnDropdownOpen, setIsHsnDropdownOpen] = useState(false);
+  const [hsnLookupError, setHsnLookupError] = useState('');
+
+  // Search HSN codes using the GST API
+  useEffect(() => {
+    if (!isEditOpen || !isHsnDropdownOpen) {
+      setIsHsnLoading(false);
+
+      if (!isEditOpen) {
+        setHsnOptions([]);
+        setHsnLookupError('');
+      }
+
+      return undefined;
+    }
+
+    const inputText = String(editForm.hsnCode || '').trim();
+
+    // Search only after at least 3 characters are entered
+    if (inputText.length < 3) {
+      setHsnOptions([]);
+      setIsHsnLoading(false);
+      setHsnLookupError('');
+      return undefined;
+    }
+
+    const controller = new AbortController();
+
+    // Debounce requests while the user is typing
+    setIsHsnLoading(true);
+    setHsnLookupError('');
+
+    const timer = window.setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          inputText,
+          selectedType: 'byCode',
+          category: 'null',
+        });
+
+        const response = await fetch(
+          `https://services.gst.gov.in/commonservices/hsn/search/qsearch?${params.toString()}`,
+          {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+            },
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HSN lookup failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const results = extractHsnResults(data);
+
+        setHsnOptions(results);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('HSN API error:', error);
+
+          setHsnOptions([]);
+          setHsnLookupError(
+            'Unable to load HSN suggestions. You can enter the code manually.'
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsHsnLoading(false);
+        }
+      }
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [
+    editForm.hsnCode,
+    isEditOpen,
+    isHsnDropdownOpen,
+  ]);
 
   useEffect(() => {
     if (!accessToken || !companyId) {
@@ -613,7 +735,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
       <div className="">
 
 
-        
+
       </div>
       <div className="p-2 mb-4 flex flex-wrap items-center gap-4 bg-white">
         <div className="relative">
@@ -671,7 +793,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
           <span>records</span>
         </label>
-{!myStockItems && (
+        {!myStockItems && (
           <DateRangePicker
             className="ml-auto flex justify-end border-0"
             startDate={startDate}
@@ -1316,22 +1438,130 @@ function ItemsPage({ companyId, myStockItems = false }) {
                 />
               </div>
 
-              {/* HSN Code */}
-              <div>
+              {/* HSN Code with GST API suggestions */}
+              <div className="relative">
                 <label className="mb-1 block text-xs font-medium text-slate-600">
                   HSN Code
                 </label>
+
                 <input
                   type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
                   value={editForm.hsnCode}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
+                  onChange={(e) => {
+                    setEditForm((current) => ({
+                      ...current,
                       hsnCode: e.target.value,
-                    })
-                  }
+                    }));
+
+                    setIsHsnDropdownOpen(true);
+                    setHsnLookupError('');
+                  }}
+                  onFocus={() => {
+                    if (editForm.hsnCode.trim().length >= 3) {
+                      setIsHsnDropdownOpen(true);
+                    }
+                  }}
+                  placeholder="Enter HSN code"
                   className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
+
+                {isHsnDropdownOpen &&
+                  editForm.hsnCode.trim().length >= 3 && (
+                    <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-auto rounded-lg border border-slate-200 bg-white shadow-xl">
+                      <table className="w-full border-collapse text-left text-xs">
+                        <thead className="sticky top-0 bg-slate-100 text-slate-700">
+                          <tr>
+                            <th className="border-b border-slate-200 px-3 py-3 font-semibold">
+                              HSN Code
+                            </th>
+
+                            <th className="border-b border-slate-200 px-3 py-3 font-semibold">
+                              Description
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody className="divide-y divide-slate-100">
+                          {isHsnLoading ? (
+                            <tr>
+                              <td
+                                colSpan={2}
+                                className="px-3 py-4 text-center text-slate-500"
+                              >
+                                Searching HSN codes...
+                              </td>
+                            </tr>
+                          ) : hsnLookupError ? (
+                            <tr>
+                              <td
+                                colSpan={2}
+                                className="px-3 py-4 text-center text-red-600"
+                              >
+                                {hsnLookupError}
+                              </td>
+                            </tr>
+                          ) : hsnOptions.length > 0 ? (
+                            hsnOptions.map((option, index) => (
+                              <tr
+                                key={`${option.code}-${index}`}
+                                className="cursor-pointer hover:bg-emerald-50"
+                                onMouseDown={(event) => event.preventDefault()}
+                              >
+                                <td className="whitespace-nowrap px-3 py-3 font-semibold text-slate-700">
+                                  <button
+                                    type="button"
+                                    className="w-full text-left"
+                                    onClick={() => {
+                                      setEditForm((current) => ({
+                                        ...current,
+                                        hsnCode: option.code,
+                                      }));
+
+                                      setHsnOptions([]);
+                                      setIsHsnDropdownOpen(false);
+                                      setHsnLookupError('');
+                                    }}
+                                  >
+                                    {option.code}
+                                  </button>
+                                </td>
+
+                                <td className="px-3 py-3 text-slate-600">
+                                  <button
+                                    type="button"
+                                    className="w-full text-left"
+                                    onClick={() => {
+                                      setEditForm((current) => ({
+                                        ...current,
+                                        hsnCode: option.code,
+                                      }));
+
+                                      setHsnOptions([]);
+                                      setIsHsnDropdownOpen(false);
+                                      setHsnLookupError('');
+                                    }}
+                                  >
+                                    {option.name || 'No description available'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td
+                                colSpan={2}
+                                className="px-3 py-4 text-center text-slate-500"
+                              >
+                                No matching HSN codes found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
               </div>
 
               {/* Godown */}
@@ -1369,7 +1599,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
                   className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </div>
-              
+
             </div>
 
             {/* Footer */}
