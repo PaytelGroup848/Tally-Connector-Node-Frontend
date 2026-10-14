@@ -464,7 +464,7 @@ function ReceiptPage({
        */
       resetForm()
 
-      setSubmitMessage(`${documentType} created successfully.`)
+      setSubmitMessage(``)
       setShowSuccessAnimation(true)
 
       if (successTimerRef.current) {
@@ -923,7 +923,6 @@ function ReceiptPage({
                 <div className="relative p-3">
                   <textarea
                     value={form.narration}
-                    required
                     onChange={(event) =>
                       updateField(
                         'narration',

@@ -1275,7 +1275,7 @@ export function SearchableDropdown({
       )}
 
       {!disabled && (
-        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+        <span className="pointer-events-none absolute right-2.5 top-3 -translate-y-1/2 text-slate-400">
           ⌄
         </span>
       )}
@@ -2556,9 +2556,26 @@ export function DocumentVoucherPage({
 
   const updateStockRow = (setter, rowId, field, value) => {
     setter((currentRows) =>
-      currentRows.map((row) =>
-        row.id === rowId ? { ...row, [field]: value } : row,
-      ),
+      currentRows.map((row) => {
+        if (row.id !== rowId) return row;
+
+        // Auto-fetch rate when item is selected
+        if (field === "item") {
+          const matchingRate = findStockRate(value);
+
+          return {
+            ...row,
+            item: value,
+            rate: matchingRate || "", // Auto fill rate
+          };
+        }
+
+        // Normal field update
+        return {
+          ...row,
+          [field]: value,
+        };
+      }),
     );
   };
 
@@ -2593,56 +2610,262 @@ export function DocumentVoucherPage({
       : "";
   };
   const findStockQuantity = (itemName) => {
-  const matchingItem = findStockItem(itemName);
+    const matchingItem = findStockItem(itemName);
 
-  if (!matchingItem) return "";
+    if (!matchingItem) return "";
 
-  return getStockValue(matchingItem, [
-    "quantity",
-    "qty",
-    "availableQuantity",
-    "availableQty",
-    "stockQuantity",
-    "stockQty",
-    "closingQuantity",
-    "closingQty",
-    "currentStock",
-  ]);
-};
+    return getStockValue(matchingItem, [
+      "quantity",
+      "qty",
+      "availableQuantity",
+      "availableQty",
+      "stockQuantity",
+      "stockQty",
+      "closingQuantity",
+      "closingQty",
+      "currentStock",
+    ]);
+  };
 
   const findStockUnits = (itemName) => {
     const matchingItem = findStockItem(itemName);
 
-    return matchingItem
-      ? getStockValue(matchingItem, [
-        "units",
-        "unit",
-        "unitName",
-        "unit_name",
-        "uom",
-        "stockUnit",
-        "stock_unit",
-        "itemUnit",
-        "item_unit",
-        "measure",
-      ])
-      : "";
+    if (!matchingItem) return "";
+
+    const normalizeKey = (key) =>
+      String(key).toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const unitFieldKeys = new Set([
+      "unit",
+      "units",
+      "unitname",
+      "unitsname",
+      "uom",
+      "uomname",
+      "stockunit",
+      "stockunits",
+      "stockunitname",
+      "itemunit",
+      "itemunits",
+      "measure",
+      "measurementunit",
+      "unitofmeasure",
+      "unitofmeasurement",
+      "baseunit",
+      "baseunits",
+      "primaryunit",
+      "unitdetails",
+      "unitinfo",
+      "unitlist",
+      "quantityunit",
+    ]);
+
+    const unitLabelKeys = new Set([
+      "name",
+      "unit",
+      "unitname",
+      "displayname",
+      "formalname",
+      "symbol",
+      "code",
+      "value",
+      "abbreviation",
+      "shortname",
+      "uom",
+      "uomname",
+    ]);
+
+    const isValue = (value) =>
+      (typeof value === "string" || typeof value === "number") &&
+      String(value).trim() !== "";
+
+    // Extract the readable unit name from a string or nested object.
+    const getUnitLabel = (value) => {
+      if (isValue(value)) {
+        return String(value).trim();
+      }
+
+      if (!value || typeof value !== "object") {
+        return "";
+      }
+
+      const pending = [value];
+      const visited = new Set();
+
+      while (pending.length > 0) {
+        const current = pending.shift();
+
+        if (!current || typeof current !== "object") continue;
+        if (visited.has(current)) continue;
+
+        visited.add(current);
+
+        const entries = Array.isArray(current)
+          ? current.map((entry, index) => [String(index), entry])
+          : Object.entries(current);
+
+        for (const [key, child] of entries) {
+          if (
+            unitLabelKeys.has(normalizeKey(key)) &&
+            isValue(child)
+          ) {
+            return String(child).trim();
+          }
+        }
+
+        for (const child of Object.values(current)) {
+          if (child && typeof child === "object") {
+            pending.push(child);
+          }
+        }
+      }
+
+      return "";
+    };
+
+    // Search the entire stock item, including raw and nested objects.
+    const pending = [matchingItem];
+    const visited = new Set();
+
+    while (pending.length > 0) {
+      const current = pending.shift();
+
+      if (!current || typeof current !== "object") continue;
+      if (visited.has(current)) continue;
+
+      visited.add(current);
+
+      const entries = Array.isArray(current)
+        ? current.map((entry, index) => [String(index), entry])
+        : Object.entries(current);
+
+      for (const [key, value] of entries) {
+        if (unitFieldKeys.has(normalizeKey(key))) {
+          const unitName = getUnitLabel(value);
+
+          if (unitName) {
+            return unitName;
+          }
+        }
+      }
+
+      for (const value of Object.values(current)) {
+        if (value && typeof value === "object") {
+          pending.push(value);
+        }
+      }
+    }
+
+    return "";
   };
 
   const findStockHsnCode = (itemName) => {
     const matchingItem = findStockItem(itemName);
 
-    return matchingItem
-      ? getStockValue(matchingItem, [
-        "hsnCode",
-        "hsn_code",
-        "hsn",
-        "hsnCodeValue",
-        "hsn_code_value",
-        "itemHsn",
-        "item_hsn",
-      ])
-      : "";
+    if (!matchingItem) return "";
+
+    const normalizeKey = (key) =>
+      String(key).toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const hsnKeys = new Set([
+      "hsn",
+      "hsncode",
+      "hsncodevalue",
+      "hsnnumber",
+      "hsnno",
+      "itemhsn",
+      "itemhsncode",
+      "hsnsac",
+      "hsnsaccode",
+      "hsnsacdetails",
+      "hsnorsac",
+      "gsthsncode",
+      "sac",
+      "saccode",
+      "sacnumber",
+    ]);
+
+    const isValue = (value) =>
+      (typeof value === "string" || typeof value === "number") &&
+      String(value).trim() !== "";
+
+    const queue = [matchingItem];
+    const visited = new Set();
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+
+      if (!current || typeof current !== "object") continue;
+      if (visited.has(current)) continue;
+
+      visited.add(current);
+
+      const entries = Array.isArray(current)
+        ? current.map((value, index) => [String(index), value])
+        : Object.entries(current);
+
+      for (const [key, value] of entries) {
+        const normalizedKey = normalizeKey(key);
+
+        if (hsnKeys.has(normalizedKey)) {
+          if (isValue(value)) {
+            return String(value).trim();
+          }
+
+          // Handle HSN stored inside an object.
+          if (value && typeof value === "object") {
+            const nestedQueue = [value];
+            const nestedVisited = new Set();
+
+            while (nestedQueue.length > 0) {
+              const nested = nestedQueue.shift();
+
+              if (!nested || typeof nested !== "object") continue;
+              if (nestedVisited.has(nested)) continue;
+
+              nestedVisited.add(nested);
+
+              const nestedEntries = Array.isArray(nested)
+                ? nested.map((child, index) => [String(index), child])
+                : Object.entries(nested);
+
+              for (const [nestedKey, nestedValue] of nestedEntries) {
+                const normalizedNestedKey = normalizeKey(nestedKey);
+
+                if (
+                  [
+                    "code",
+                    "value",
+                    "number",
+                    "hsn",
+                    "hsncode",
+                    "sac",
+                    "saccode",
+                  ].includes(normalizedNestedKey) &&
+                  isValue(nestedValue)
+                ) {
+                  return String(nestedValue).trim();
+                }
+
+                if (
+                  nestedValue &&
+                  typeof nestedValue === "object"
+                ) {
+                  nestedQueue.push(nestedValue);
+                }
+              }
+            }
+          }
+        }
+
+        // Continue searching nested objects such as raw and gstDetails.
+        if (value && typeof value === "object") {
+          queue.push(value);
+        }
+      }
+    }
+
+    return "";
   };
 
   const findVoucherNumberForParty = (party) => {
@@ -2761,18 +2984,19 @@ export function DocumentVoucherPage({
     );
   };
 
- const handleItemSelect = (rowId, itemName) => {
-  const matchingRate = findStockRate(itemName);
-  const matchingQuantity = findStockQuantity(itemName);
+  const handleItemSelect = (rowId, itemName) => {
+    const matchingRate = findStockRate(itemName);
+    const matchingQuantity = findStockQuantity(itemName);
+    const matchingHsnCode = findStockHsnCode(itemName);
 
-  updateItemRowValues(rowId, {
-    item: itemName,
-    quantity: matchingQuantity !== "" ? matchingQuantity : "0",
-    rate: matchingRate,
-    units: findStockUnits(itemName),
-    hsnCode: findStockHsnCode(itemName),
-  });
-};
+    updateItemRowValues(rowId, {
+      item: itemName,
+      quantity: matchingQuantity !== "" ? matchingQuantity : "0",
+      rate: matchingRate,
+      units: findStockUnits(itemName),
+      hsnCode: matchingHsnCode,
+    });
+  };
 
   const addItemRow = () => {
     setItemRows((currentRows) => [...currentRows, createEmptyItemRow()]);
@@ -3024,10 +3248,10 @@ export function DocumentVoucherPage({
       return;
     }
 
-    if (!values.voucherNumber?.trim()) {
-      setSubmitError(validationError("Enter a voucher number."));
-      return;
-    }
+    // if (!values.voucherNumber?.trim()) {
+    //   setSubmitError(validationError("Enter a voucher number."));
+    //   return;
+    // }
 
     if (
       (isSalesInvoice ||
@@ -3851,7 +4075,7 @@ export function DocumentVoucherPage({
                       defaultValue={defaultDate}
                       className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <span className="pointer-events-none absolute right-3 top-4.5 -translate-y-1/2 text-slate-400">
                       🗓
                     </span>
 
@@ -3960,7 +4184,10 @@ export function DocumentVoucherPage({
                                   onClear={() =>
                                     updateItemRowValues(row.id, {
                                       item: "",
+                                      quantity: "0",
                                       rate: "",
+                                      units: "",
+                                      hsnCode: "",
                                     })
                                   }
                                 />
@@ -4126,7 +4353,7 @@ export function DocumentVoucherPage({
                             <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
                               {title === "Quotation" ||
                                 isSalesInvoice ||
-                                isSalesOrder ||
+                                isSalesOrder || title === "Purchase" ||
                                 title === "Purchase Order" ||
                                 title === "Receipt Note" ||
                                 title === "Delivery Note" ||
@@ -4490,6 +4717,7 @@ function StockJournalSide({
                 />
                 <input
                   type="number"
+                  step="any"
                   min="0"
                   value={row.rate}
                   onChange={(event) =>

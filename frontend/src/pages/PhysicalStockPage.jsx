@@ -72,13 +72,13 @@ function PhysicalStockPage({ companyId }) {
       const response =
         source === 'stock'
           ? await fetchCompanyStock(accessToken, companyId, {
-              page: currentPage.nextPage,
-              limit: DROPDOWN_PAGE_SIZE,
-            })
+            page: currentPage.nextPage,
+            limit: DROPDOWN_PAGE_SIZE,
+          })
           : await fetchCompanyGodowns(accessToken, companyId, {
-              page: currentPage.nextPage,
-              limit: DROPDOWN_PAGE_SIZE,
-            })
+            page: currentPage.nextPage,
+            limit: DROPDOWN_PAGE_SIZE,
+          })
       const items =
         source === 'stock' ? extractStockItems(response) : extractGodowns(response)
       const setItems = source === 'stock' ? setStockItems : setGodowns
@@ -229,11 +229,18 @@ function PhysicalStockPage({ companyId }) {
     )
   }
 
-  const updateRow = (id, field, value) => {
-    setRows((current) => current.map((row) => (
-      row.id === id ? { ...row, [field]: value } : row
-    )))
-  }
+const updateRow = (id, field, value) => {
+  setRows((current) =>
+    current.map((row) => {
+      if (row.id !== id) return row
+
+      return {
+        ...row,
+        [field]: value,
+      }
+    })
+  )
+}
 
   // ============================================================
   // CREATE VOUCHER
@@ -245,10 +252,10 @@ function PhysicalStockPage({ companyId }) {
       return
     }
 
-    if (!voucherNumber.trim()) {
-      setOptionsError('Enter a voucher number.')
-      return
-    }
+    // if (!voucherNumber.trim()) {
+    //   setOptionsError('Enter a voucher number.')
+    //   return
+    // }
 
     if (!voucherDate || Number.isNaN(Date.parse(voucherDate))) {
       setOptionsError('Enter a valid voucher date.')
@@ -303,7 +310,10 @@ function PhysicalStockPage({ companyId }) {
       setIsSubmitting(false)
     }
   }
+  // ====================== TOTALS ======================
+  const totalQty = rows.reduce((sum, row) => sum + (Number(row.qty) || 0), 0)
 
+  const totalAmount = rows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0)
   return (
     <div className="voucher-page-animate relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
       {(optionsLoading || isSubmitting || showSuccessAnimation) && (
@@ -311,8 +321,8 @@ function PhysicalStockPage({ companyId }) {
           <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
             <div
               className={`h-10 w-10 rounded-full border-4 border-slate-200 ${showSuccessAnimation
-                  ? 'border-t-green-600 animate-spin'
-                  : 'border-t-[#1a1f24] animate-spin'
+                ? 'border-t-green-600 animate-spin'
+                : 'border-t-[#1a1f24] animate-spin'
                 }`}
               aria-hidden="true"
             />
@@ -346,9 +356,9 @@ function PhysicalStockPage({ companyId }) {
                 className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
 
                 onClick={() => {
-                   let path="/my-physical-stock"
+                  let path = "/my-physical-stock"
                   window.history.pushState({}, "", path);
-                window.dispatchEvent(new PopStateEvent("popstate"));
+                  window.dispatchEvent(new PopStateEvent("popstate"));
 
                 }}
 
@@ -400,7 +410,6 @@ function PhysicalStockPage({ companyId }) {
 
               <input
                 value={voucherNumber}
-                required
                 onChange={(event) => setVoucherNumber(event.target.value)}
                 className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
               />
@@ -675,26 +684,31 @@ function PhysicalStockPage({ companyId }) {
             <p className="mt-2 text-xs text-red-600">{optionsError}</p>
           )}
 
+          {/* ================================================= */}
+          {/* TOTAL */}
+          {/* ================================================= */}
+
+          {optionsError && (
+            <p className="mt-2 text-xs text-red-600">{optionsError}</p>
+          )}
+
           <div className="mt-5 rounded-lg border border-slate-200 bg-[#e8f7ea] px-4 py-3 text-[12px] text-slate-700">
-
             <div className="flex items-center justify-between gap-4">
-
-              <div className="font-semibold">
-                TOTAL
-              </div>
+              <div className="font-semibold">TOTAL</div>
 
               <div className="flex gap-8 text-right">
                 <span>
-                  Qty: 0
+                  Qty: {totalQty}
                 </span>
 
                 <span>
-                  Amount: ₹0
+                  Amount: ₹{totalAmount.toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
               </div>
-
             </div>
-
           </div>
 
           {/* ================================================= */}
