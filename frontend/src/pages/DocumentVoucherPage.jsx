@@ -1387,6 +1387,8 @@ export function DocumentVoucherPage({
   const [batches, setBatches] = useState([]);
   const [voucherTypes, setVoucherTypes] = useState([]);
   const [voucherTypesError, setVoucherTypesError] = useState("");
+  const [visibleVoucherTypeCount, setVisibleVoucherTypeCount] =
+    useState(DROPDOWN_PAGE_SIZE);
 
   const [selectedParty, setSelectedParty] = useState("");
   const [selectedVoucherNumber, setSelectedVoucherNumber] = useState("");
@@ -2339,6 +2341,22 @@ export function DocumentVoucherPage({
     )
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index);
+  const visibleVoucherTypeOptions = voucherTypeOptions.slice(
+    0,
+    visibleVoucherTypeCount
+  );
+
+  const hasMoreVoucherTypeOptions =
+    visibleVoucherTypeCount < voucherTypeOptions.length;
+
+  const loadMoreVoucherTypeOptions = () => {
+    setVisibleVoucherTypeCount((current) =>
+      Math.min(
+        current + DROPDOWN_PAGE_SIZE,
+        voucherTypeOptions.length
+      )
+    );
+  };
 
   if ((isSalesInvoice || isSalesOrder) && voucherTypeOptions.length === 0) {
     voucherTypeOptions.push(isSalesOrder ? "Sales Order" : "Sales");
@@ -3953,10 +3971,14 @@ export function DocumentVoucherPage({
                       <SearchableDropdown
                         name="orderType"
                         label="order types"
-                        options={voucherTypeOptions}
-                        loadError={voucherTypesError}
+                        options={visibleVoucherTypeOptions}
                         placeholder="Select ref"
                         loading={isOptionsLoading}
+                        loadError={voucherTypesError}
+                        infiniteScroll={true}
+                        hasMoreOptions={hasMoreVoucherTypeOptions}
+                        loadingMore={false}
+                        onLoadMore={loadMoreVoucherTypeOptions}
                         resetToken={clearToken}
                       />
                     </label>
