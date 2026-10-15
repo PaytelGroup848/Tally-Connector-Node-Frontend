@@ -59,6 +59,68 @@ export function getCompanyLogoUrl(response) {
   return ''
 }
 
+export function getCompanySignatureUrl(response) {
+  const pending = [response];
+  const signatureKeys = new Set([
+    "signature",
+    "signatureurl",
+    "companysignature",
+    "companysignatureurl",
+    "signaturepath",
+    "signaturefile",
+  ]);
+  const urlKeys = new Set(["url", "src", "path", "href"]);
+
+  const findSignatureUrl = (sig) => {
+    if (typeof sig === "string") return sig;
+    if (!sig || typeof sig !== "object") return "";
+
+    const nested = [sig];
+    while (nested.length > 0) {
+      const current = nested.shift();
+      for (const [key, child] of Object.entries(current)) {
+        if (
+          urlKeys.has(key.toLowerCase()) &&
+          typeof child === "string" &&
+          child.trim()
+        ) {
+          return child;
+        }
+        if (child && typeof child === "object") nested.push(child);
+      }
+    }
+
+    return "";
+  };
+
+  while (pending.length > 0) {
+    const value = pending.shift();
+    if (!value || typeof value !== "object") continue;
+
+    for (const [key, child] of Object.entries(value)) {
+      const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (signatureKeys.has(normalizedKey)) {
+        const sigValue = findSignatureUrl(child);
+        if (typeof sigValue === "string" && sigValue.trim()) {
+          return normalizeSignatureUrl(sigValue.trim());
+        }
+      }
+      if (child && typeof child === "object") pending.push(child);
+    }
+  }
+
+  return "";
+}
+
+function normalizeSignatureUrl(signatureUrl) {
+  if (/^(https?:|data:|blob:)/i.test(signatureUrl)) return signatureUrl;
+  try {
+    return new URL(signatureUrl, `${API_BASE_URL}/`).toString();
+  } catch {
+    return signatureUrl;
+  }
+}
+
 function normalizeLogoUrl(logoUrl) {
   if (/^(https?:|data:|blob:)/i.test(logoUrl)) return logoUrl
   try {
@@ -156,6 +218,8 @@ export function uploadCompanyLogo(accessToken, companyId, logoFile) {
   )
 }
 
+
+
 export function deleteCompanyLogo(accessToken, companyId) {
   return sendCompanySettingsRequest(
     accessToken,
@@ -164,6 +228,39 @@ export function deleteCompanyLogo(accessToken, companyId) {
     undefined,
     '/logo',
   )
+}
+
+export function uploadCompanySignature(accessToken, companyId, signatureFile) {
+  if (!signatureFile) {
+    throw new Error("Select a signature file");
+  }
+
+  const formData = new FormData();
+  formData.set("signature", signatureFile, signatureFile.name || "signature");
+
+  if (!formData.has("signature")) {
+    throw new Error(
+      "The signature file could not be added to the upload request",
+    );
+  }
+
+  return sendCompanySettingsRequest(
+    accessToken,
+    companyId,
+    "POST",
+    formData,
+    "/signature",
+  );
+}
+
+export function deleteCompanySignature(accessToken, companyId) {
+  return sendCompanySettingsRequest(
+    accessToken,
+    companyId,
+    "DELETE",
+    undefined,
+    "/signature",
+  );
 }
 
 async function sendCompanyBanksRequest(
