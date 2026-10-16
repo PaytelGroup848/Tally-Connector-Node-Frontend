@@ -71,7 +71,6 @@ function createJournalRow(id = Date.now()) {
   };
 }
 
-
 function getJournalTotalsInPaise(rows = []) {
   return rows.reduce(
     (totals, row) => {
@@ -90,7 +89,7 @@ function getJournalTotalsInPaise(rows = []) {
 
       return totals;
     },
-    { debit: 0, credit: 0 }
+    { debit: 0, credit: 0 },
   );
 }
 
@@ -101,7 +100,6 @@ function formatJournalPaise(amountInPaise) {
   });
 }
 
-
 function normalizePartyName(value) {
   return String(value || "")
     .toLowerCase()
@@ -110,12 +108,12 @@ function normalizePartyName(value) {
 }
 
 function findCompanyGstin(response) {
-  const gstinKeys = new Set(["gstin", "gstnumber", "gstregistrationnumber"])
-  const pending = [response]
+  const gstinKeys = new Set(["gstin", "gstnumber", "gstregistrationnumber"]);
+  const pending = [response];
 
   while (pending.length > 0) {
-    const value = pending.shift()
-    if (!value || typeof value !== "object") continue
+    const value = pending.shift();
+    if (!value || typeof value !== "object") continue;
 
     for (const [key, candidate] of Object.entries(value)) {
       if (
@@ -123,29 +121,28 @@ function findCompanyGstin(response) {
         typeof candidate === "string" &&
         candidate.trim()
       ) {
-        return candidate.trim()
+        return candidate.trim();
       }
 
-      if (candidate && typeof candidate === "object") pending.push(candidate)
+      if (candidate && typeof candidate === "object") pending.push(candidate);
     }
   }
 
-  return ""
+  return "";
 }
 
 function getGstinStateCode(value) {
-  const gstin = String(value || "").trim().toUpperCase()
-  const match =
-    /^([0-9]{2})[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.exec(gstin)
-  return match?.[1] || ""
+  const gstin = String(value || "")
+    .trim()
+    .toUpperCase();
+  const match = /^([0-9]{2})[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.exec(
+    gstin,
+  );
+  return match?.[1] || "";
 }
 
 function getPartyBalance(entry) {
-  const balanceKeys = new Set([
-    "closingbalance",
-    "balance",
-    "currentbalance",
-  ]);
+  const balanceKeys = new Set(["closingbalance", "balance", "currentbalance"]);
   const pending = [entry];
 
   while (pending.length > 0) {
@@ -182,20 +179,17 @@ function JournalVoucherContent({
   onAddRow,
   onRemoveRow,
   onRowChange,
-
 }) {
   const { debit: debitTotal, credit: creditTotal } =
     getJournalTotalsInPaise(rows);
 
   const hasEnteredAmount = rows.some(
-    (row) => String(row.amount ?? "").trim() !== ""
+    (row) => String(row.amount ?? "").trim() !== "",
   );
 
-  const amountsDoNotMatch =
-    hasEnteredAmount && debitTotal !== creditTotal;
+  const amountsDoNotMatch = hasEnteredAmount && debitTotal !== creditTotal;
 
   const renderParticularSection = (type) => {
-
     const sectionRows = rows.filter((row) => row.type === type);
 
     return (
@@ -355,7 +349,6 @@ function JournalVoucherContent({
         </div>
       )}
 
-
       <label className="mt-5 block text-xs font-semibold text-slate-700">
         <span>Narration</span>
         <textarea
@@ -370,8 +363,7 @@ function JournalVoucherContent({
 }
 
 const advancedVoucherTabs = [
-  "Supplier's Details",
-  "Consignee Details",
+  "Consignee Details / Ship To",
   "Dispatch Details",
   "Order Details",
 ];
@@ -392,6 +384,7 @@ export const advancedVoucherFieldNames = [
   "consigneeAddress",
   "dispatchFrom",
   "dispatchThrough",
+  "vehicleNo",
   "dispatchDocNo",
   "dispatchDate",
   "orderNo",
@@ -433,55 +426,10 @@ function VoucherField({
 }
 
 function AdvancedVoucherContent({ activeTab }) {
-  if (activeTab === "Supplier's Details") {
-    return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <VoucherField
-          name="supplierName"
-          label="Supplier's Name"
-          placeholder="Supplier's Name"
-          search
-        />
-        <VoucherField
-          name="supplierCountry"
-          label="Supplier's Country"
-          placeholder="Supplier's Country"
-          search
-        />
-        <VoucherField
-          name="supplierState"
-          label="Supplier's State"
-          placeholder="Supplier's State"
-          search
-        />
-        <VoucherField
-          name="registrationType"
-          label="Registration Type"
-          placeholder="Registration Type"
-          search
-        />
-        <VoucherField
-          name="postalCode"
-          label="Postal Code"
-          placeholder="Postal Code"
-        />
-        <VoucherField
-          name="gstinUin"
-          label="GSTIN/UIN"
-          placeholder="GSTIN/UIN"
-        />
-        <VoucherField
-          name="address"
-          label="Address"
-          placeholder="Address"
-          className="md:col-span-2 xl:col-span-2"
-        />
-      </div>
-    );
-  }
+
 
   const fields = {
-    "Consignee Details": [
+    "Consignee Details / Ship To": [
       ["consigneeName", "Consignee Name", "Consignee Name", true],
       ["consigneeCountry", "Consignee Country", "Country", false],
       ["consigneeState", "Consignee State", "State", false],
@@ -492,6 +440,7 @@ function AdvancedVoucherContent({ activeTab }) {
     "Dispatch Details": [
       ["dispatchFrom", "Dispatch From", "Dispatch From", true],
       ["dispatchThrough", "Dispatch Through", "Dispatch Through", false],
+      ["vehicleNo", "Vehicle Number", "Vehicle Number", false],
       ["dispatchDocNo", "Dispatch Document No", "Document No", false],
       ["dispatchDate", "Dispatch Date", "Dispatch Date", false],
     ],
@@ -1191,10 +1140,10 @@ export function SearchableDropdown({
       typeof option === "string"
         ? option
         : option?.name ||
-        option?.label ||
-        option?.partyName ||
-        option?.ledgerName ||
-        "";
+          option?.label ||
+          option?.partyName ||
+          option?.ledgerName ||
+          "";
 
     return String(optionText)
       .toLowerCase()
@@ -1254,8 +1203,9 @@ export function SearchableDropdown({
         placeholder={
           loading ? `Loading ${label.toLowerCase()}...` : placeholder
         }
-        className={`min-h-9 w-full rounded-md border border-slate-300 px-2.5 pr-14 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 ${disabled ? "cursor-not-allowed bg-slate-100" : "bg-white"
-          }`}
+        className={`min-h-9 w-full rounded-md border border-slate-300 px-2.5 pr-14 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 ${
+          disabled ? "cursor-not-allowed bg-slate-100" : "bg-white"
+        }`}
       />
 
       {query && !disabled && (
@@ -1292,7 +1242,8 @@ export function SearchableDropdown({
               if (!infiniteScroll) return;
               const menu = event.currentTarget;
               if (
-                menu.scrollTop + menu.clientHeight >= menu.scrollHeight - 40
+                menu.scrollTop + menu.clientHeight >=
+                menu.scrollHeight - 40
               ) {
                 loadMoreRef.current?.();
               }
@@ -1328,18 +1279,16 @@ export function SearchableDropdown({
                 </p>
               )}
 
-              {!infiniteScroll &&
-                !showAll &&
-                filteredOptions.length > 10 && (
-                  <button
-                    type="button"
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => setShowAll(true)}
-                    className="mt-1 w-full border-t border-slate-100 px-3 py-2 text-center text-[11px] font-semibold text-green-700 hover:bg-green-50"
-                  >
-                    Show more ({filteredOptions.length - 10})
-                  </button>
-                )}
+              {!infiniteScroll && !showAll && filteredOptions.length > 10 && (
+                <button
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => setShowAll(true)}
+                  className="mt-1 w-full border-t border-slate-100 px-3 py-2 text-center text-[11px] font-semibold text-green-700 hover:bg-green-50"
+                >
+                  Show more ({filteredOptions.length - 10})
+                </button>
+              )}
               {infiniteScroll && loadingMore && (
                 <p className="px-3 py-2 text-center text-xs text-slate-500">
                   Loading more {label.toLowerCase()}...
@@ -1520,19 +1469,19 @@ export function DocumentVoucherPage({
     const [partyResult, ledgersResult] = await Promise.allSettled([
       isSupplierVoucher
         ? fetchSuppliers({
-          companyId: requestCompanyId,
-          accessToken,
-          page: 1,
-          limit: DROPDOWN_PAGE_SIZE,
-          q: partyName,
-        })
+            companyId: requestCompanyId,
+            accessToken,
+            page: 1,
+            limit: DROPDOWN_PAGE_SIZE,
+            q: partyName,
+          })
         : fetchCustomers({
-          companyId: requestCompanyId,
-          accessToken,
-          page: 1,
-          limit: DROPDOWN_PAGE_SIZE,
-          q: partyName,
-        }),
+            companyId: requestCompanyId,
+            accessToken,
+            page: 1,
+            limit: DROPDOWN_PAGE_SIZE,
+            q: partyName,
+          }),
       fetchCompanyLedgers(accessToken, requestCompanyId, {
         page: 1,
         limit: DROPDOWN_PAGE_SIZE,
@@ -1574,8 +1523,8 @@ export function DocumentVoucherPage({
     ) {
       setPartyBalanceError(
         partyResult.reason?.message ||
-        ledgersResult.reason?.message ||
-        "Unable to load the selected party's closing balance.",
+          ledgersResult.reason?.message ||
+          "Unable to load the selected party's closing balance.",
       );
     } else {
       setPartyBalanceError(
@@ -1744,7 +1693,10 @@ export function DocumentVoucherPage({
   });
 
   const loadMoreOnNativeDropdownSelection = (event, source) => {
-    if (event.currentTarget.selectedIndex >= event.currentTarget.options.length - 2) {
+    if (
+      event.currentTarget.selectedIndex >=
+      event.currentTarget.options.length - 2
+    ) {
       loadMoreOptions(source);
     }
   };
@@ -1804,19 +1756,19 @@ export function DocumentVoucherPage({
       isSupplierVoucher
         ? Promise.resolve(null)
         : fetchCustomers({
-          companyId: requestCompanyId,
-          accessToken,
-          page: 1,
-          limit: DROPDOWN_PAGE_SIZE,
-        }),
+            companyId: requestCompanyId,
+            accessToken,
+            page: 1,
+            limit: DROPDOWN_PAGE_SIZE,
+          }),
 
       isSupplierVoucher
         ? fetchSuppliers({
-          companyId: requestCompanyId,
-          accessToken,
-          page: 1,
-          limit: DROPDOWN_PAGE_SIZE,
-        })
+            companyId: requestCompanyId,
+            accessToken,
+            page: 1,
+            limit: DROPDOWN_PAGE_SIZE,
+          })
         : Promise.resolve(null),
 
       fetchCompanyStock(accessToken, requestCompanyId, {
@@ -1912,8 +1864,7 @@ export function DocumentVoucherPage({
               loading: false,
               error: "",
               loadError:
-                customersResult.reason?.message ||
-                "Unable to load customers.",
+                customersResult.reason?.message || "Unable to load customers.",
             });
           }
 
@@ -1935,8 +1886,7 @@ export function DocumentVoucherPage({
               loading: false,
               error: "",
               loadError:
-                suppliersResult.reason?.message ||
-                "Unable to load suppliers.",
+                suppliersResult.reason?.message || "Unable to load suppliers.",
             });
           }
 
@@ -1961,8 +1911,7 @@ export function DocumentVoucherPage({
               loading: false,
               error: "",
               loadError:
-                stockResult.reason?.message ||
-                "Unable to load stock items.",
+                stockResult.reason?.message || "Unable to load stock items.",
             });
           }
 
@@ -1984,8 +1933,7 @@ export function DocumentVoucherPage({
               loading: false,
               error: "",
               loadError:
-                batchesResult.reason?.message ||
-                "Unable to load batches.",
+                batchesResult.reason?.message || "Unable to load batches.",
             });
           }
 
@@ -2007,8 +1955,7 @@ export function DocumentVoucherPage({
               loading: false,
               error: "",
               loadError:
-                vouchersResult.reason?.message ||
-                "Unable to load vouchers.",
+                vouchersResult.reason?.message || "Unable to load vouchers.",
             });
           }
 
@@ -2030,8 +1977,7 @@ export function DocumentVoucherPage({
               loading: false,
               error: "",
               loadError:
-                ledgersResult.reason?.message ||
-                "Unable to load ledgers.",
+                ledgersResult.reason?.message || "Unable to load ledgers.",
             });
           }
 
@@ -2053,8 +1999,7 @@ export function DocumentVoucherPage({
               loading: false,
               error: "",
               loadError:
-                godownsResult.reason?.message ||
-                "Unable to load godowns.",
+                godownsResult.reason?.message || "Unable to load godowns.",
             });
           }
 
@@ -2065,7 +2010,7 @@ export function DocumentVoucherPage({
             setVoucherTypes([]);
             setVoucherTypesError(
               voucherTypesResult.reason?.message ||
-              "Unable to load voucher types.",
+                "Unable to load voucher types.",
             );
           }
         },
@@ -2331,19 +2276,19 @@ export function DocumentVoucherPage({
       typeof voucherType === "string"
         ? voucherType
         : getDisplayValue(voucherType, [
-          "voucherType",
-          "voucher_type",
-          "type",
-          "name",
-          "value",
-          "displayName",
-        ]),
+            "voucherType",
+            "voucher_type",
+            "type",
+            "name",
+            "value",
+            "displayName",
+          ]),
     )
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index);
   const visibleVoucherTypeOptions = voucherTypeOptions.slice(
     0,
-    visibleVoucherTypeCount
+    visibleVoucherTypeCount,
   );
 
   const hasMoreVoucherTypeOptions =
@@ -2351,10 +2296,7 @@ export function DocumentVoucherPage({
 
   const loadMoreVoucherTypeOptions = () => {
     setVisibleVoucherTypeCount((current) =>
-      Math.min(
-        current + DROPDOWN_PAGE_SIZE,
-        voucherTypeOptions.length
-      )
+      Math.min(current + DROPDOWN_PAGE_SIZE, voucherTypeOptions.length),
     );
   };
 
@@ -2383,7 +2325,6 @@ export function DocumentVoucherPage({
     ? supplierLedgerOptions
     : partyLedgerOptions;
 
-
   // Qty × Rate, minus the row discount %
   const getEnteredAmount = (row) => {
     const quantity = Math.max(0, Number(row.quantity) || 0);
@@ -2407,7 +2348,12 @@ export function DocumentVoucherPage({
     const taxAmount = Number(calculateRowTax(row).toFixed(2));
 
     if (isSameState === null) {
-      return { taxAmount, cgstAmount: null, sgstAmount: null, igstAmount: null };
+      return {
+        taxAmount,
+        cgstAmount: null,
+        sgstAmount: null,
+        igstAmount: null,
+      };
     }
 
     if (isSameState) {
@@ -2497,9 +2443,7 @@ export function DocumentVoucherPage({
 
       // Update the selected field.
       const updatedRows = currentRows.map((row) =>
-        row.id === rowId
-          ? { ...row, [field]: value }
-          : row
+        row.id === rowId ? { ...row, [field]: value } : row,
       );
 
       // Automatically synchronize Debit and Credit amounts.
@@ -2510,21 +2454,18 @@ export function DocumentVoucherPage({
         return updatedRows;
       }
 
-      const oppositeType =
-        currentRow.type === "Debit" ? "Credit" : "Debit";
+      const oppositeType = currentRow.type === "Debit" ? "Credit" : "Debit";
 
       // Find this row's position within its Debit/Credit section.
       const sameTypeRows = currentRows.filter(
-        (row) => row.type === currentRow.type
+        (row) => row.type === currentRow.type,
       );
 
-      const rowIndex = sameTypeRows.findIndex(
-        (row) => row.id === rowId
-      );
+      const rowIndex = sameTypeRows.findIndex((row) => row.id === rowId);
 
       // Find the corresponding row in the opposite section.
       const oppositeRows = currentRows.filter(
-        (row) => row.type === oppositeType
+        (row) => row.type === oppositeType,
       );
 
       const oppositeRow = oppositeRows[rowIndex];
@@ -2533,9 +2474,7 @@ export function DocumentVoucherPage({
 
       // Copy the exact amount into the matching opposite row.
       return updatedRows.map((row) =>
-        row.id === oppositeRow.id
-          ? { ...row, amount: value }
-          : row
+        row.id === oppositeRow.id ? { ...row, amount: value } : row,
       );
     });
   };
@@ -2544,12 +2483,10 @@ export function DocumentVoucherPage({
     setJournalRows((currentRows) => {
       const oppositeType = type === "Debit" ? "Credit" : "Debit";
 
-      const sameTypeRows = currentRows.filter(
-        (row) => row.type === type
-      );
+      const sameTypeRows = currentRows.filter((row) => row.type === type);
 
       const oppositeRows = currentRows.filter(
-        (row) => row.type === oppositeType
+        (row) => row.type === oppositeType,
       );
 
       const matchingRow = oppositeRows[sameTypeRows.length];
@@ -2617,14 +2554,14 @@ export function DocumentVoucherPage({
 
     return matchingItem
       ? getStockValue(matchingItem, [
-        "rate",
-        "salesRate",
-        "sellingRate",
-        "price",
-        "mrp",
-        "avgPurRate",
-        "purchaseRate",
-      ])
+          "rate",
+          "salesRate",
+          "sellingRate",
+          "price",
+          "mrp",
+          "avgPurRate",
+          "purchaseRate",
+        ])
       : "";
   };
   const findStockQuantity = (itemName) => {
@@ -2651,7 +2588,9 @@ export function DocumentVoucherPage({
     if (!matchingItem) return "";
 
     const normalizeKey = (key) =>
-      String(key).toLowerCase().replace(/[^a-z0-9]/g, "");
+      String(key)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
 
     const unitFieldKeys = new Set([
       "unit",
@@ -2723,10 +2662,7 @@ export function DocumentVoucherPage({
           : Object.entries(current);
 
         for (const [key, child] of entries) {
-          if (
-            unitLabelKeys.has(normalizeKey(key)) &&
-            isValue(child)
-          ) {
+          if (unitLabelKeys.has(normalizeKey(key)) && isValue(child)) {
             return String(child).trim();
           }
         }
@@ -2783,7 +2719,9 @@ export function DocumentVoucherPage({
     if (!matchingItem) return "";
 
     const normalizeKey = (key) =>
-      String(key).toLowerCase().replace(/[^a-z0-9]/g, "");
+      String(key)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
 
     const hsnKeys = new Set([
       "hsn",
@@ -2865,10 +2803,7 @@ export function DocumentVoucherPage({
                   return String(nestedValue).trim();
                 }
 
-                if (
-                  nestedValue &&
-                  typeof nestedValue === "object"
-                ) {
+                if (nestedValue && typeof nestedValue === "object") {
                   nestedQueue.push(nestedValue);
                 }
               }
@@ -2911,12 +2846,12 @@ export function DocumentVoucherPage({
 
     return matchingVoucher
       ? getVoucherValue(matchingVoucher, [
-        "voucherNumber",
-        "voucherNo",
-        "voucher no",
-        "voucher_no",
-        "number",
-      ])
+          "voucherNumber",
+          "voucherNo",
+          "voucher no",
+          "voucher_no",
+          "number",
+        ])
       : "";
   };
 
@@ -2981,9 +2916,9 @@ export function DocumentVoucherPage({
       currentRows.map((row) =>
         row.id === rowId
           ? {
-            ...row,
-            [field]: value,
-          }
+              ...row,
+              [field]: value,
+            }
           : row,
       ),
     );
@@ -2994,9 +2929,9 @@ export function DocumentVoucherPage({
       currentRows.map((row) =>
         row.id === rowId
           ? {
-            ...row,
-            ...changes,
-          }
+              ...row,
+              ...changes,
+            }
           : row,
       ),
     );
@@ -3025,18 +2960,18 @@ export function DocumentVoucherPage({
       currentRows.map((row) =>
         row.id === rowId
           ? {
-            ...row,
-            item: "",
-            quantity: "0",
-            rate: "",
-            units: "",
-            discount: "0",
-            hsnCode: "",
-            godown: "",
-            description: "",
-            gstRate: "18",
-            taxInclusive: false,
-          }
+              ...row,
+              item: "",
+              quantity: "0",
+              rate: "",
+              units: "",
+              discount: "0",
+              hsnCode: "",
+              godown: "",
+              description: "",
+              gstRate: "18",
+              taxInclusive: false,
+            }
           : row,
       ),
     );
@@ -3289,14 +3224,14 @@ export function DocumentVoucherPage({
         getJournalTotalsInPaise(journalRows);
 
       const hasEnteredAmount = journalRows.some(
-        (row) => String(row.amount ?? "").trim() !== ""
+        (row) => String(row.amount ?? "").trim() !== "",
       );
 
       if (hasEnteredAmount && debitTotal !== creditTotal) {
         setSubmitError(
           validationError(
-            `Debit total ₹${formatJournalPaise(debitTotal)} and Credit total ₹${formatJournalPaise(creditTotal)} are not equal. Both amounts should be the same before creating this ${title} voucher.`
-          )
+            `Debit total ₹${formatJournalPaise(debitTotal)} and Credit total ₹${formatJournalPaise(creditTotal)} are not equal. Both amounts should be the same before creating this ${title} voucher.`,
+          ),
         );
         return;
       }
@@ -3313,7 +3248,6 @@ export function DocumentVoucherPage({
       });
 
       // Keep your existing invalidJournalRow error handling below.
-
 
       if (invalidJournalRow) {
         setSubmitError(
@@ -3334,9 +3268,7 @@ export function DocumentVoucherPage({
 
     if (Math.abs(debitTotal - creditTotal) > 0.009) {
       setSubmitError(
-        validationError(
-          "Debit and Credit amounts must be the same."
-        )
+        validationError("Debit and Credit amounts must be the same."),
       );
       return;
     }
@@ -3407,44 +3339,44 @@ export function DocumentVoucherPage({
 
     const items = isStockJournal
       ? {
-        source: sourceRows.map((row) => ({
-          ...row,
-          quantity: Number(row.qty) || 0,
-          amount: (Number(row.qty) || 0) * (Number(row.rate) || 0),
-        })),
-        destination: destinationRows.map((row) => ({
-          ...row,
-          quantity: Number(row.qty) || 0,
-          amount: (Number(row.qty) || 0) * (Number(row.rate) || 0),
-        })),
-      }
+          source: sourceRows.map((row) => ({
+            ...row,
+            quantity: Number(row.qty) || 0,
+            amount: (Number(row.qty) || 0) * (Number(row.rate) || 0),
+          })),
+          destination: destinationRows.map((row) => ({
+            ...row,
+            quantity: Number(row.qty) || 0,
+            amount: (Number(row.qty) || 0) * (Number(row.rate) || 0),
+          })),
+        }
       : isJournalStyleVoucher
         ? journalRows.map((row) => ({
-          type: row.type,
-          partyName: row.partyName,
-          amount: Number(row.amount) || 0,
-        }))
+            type: row.type,
+            partyName: row.partyName,
+            amount: Number(row.amount) || 0,
+          }))
         : itemRows.map((row) => {
-          const taxBreakdown = calculateRowTaxBreakdown(row);
-          return {
-            itemName: row.item || "",
-            quantity: Number(row.quantity) || 0,
-            rate: Number(row.rate) || 0,
-            units: row.units || "",
-            discount: Number(row.discount) || 0,
-            hsnCode: row.hsnCode || "",
-            godown: row.godown || "",
-            description: row.description || "",
-            amount: calculateRowAmount(row),
-            gstRate: Number(row.gstRate ?? 18),
-            taxableValue: Number(calculateRowAmount(row).toFixed(2)),
-            taxAmount: taxBreakdown.taxAmount,
-            cgstAmount: taxBreakdown.cgstAmount,
-            sgstAmount: taxBreakdown.sgstAmount,
-            igstAmount: taxBreakdown.igstAmount,
-            taxInclusive: Boolean(row.taxInclusive),
-          };
-        });
+            const taxBreakdown = calculateRowTaxBreakdown(row);
+            return {
+              itemName: row.item || "",
+              quantity: Number(row.quantity) || 0,
+              rate: Number(row.rate) || 0,
+              units: row.units || "",
+              discount: Number(row.discount) || 0,
+              hsnCode: row.hsnCode || "",
+              godown: row.godown || "",
+              description: row.description || "",
+              amount: calculateRowAmount(row),
+              gstRate: Number(row.gstRate ?? 18),
+              taxableValue: Number(calculateRowAmount(row).toFixed(2)),
+              taxAmount: taxBreakdown.taxAmount,
+              cgstAmount: taxBreakdown.cgstAmount,
+              sgstAmount: taxBreakdown.sgstAmount,
+              igstAmount: taxBreakdown.igstAmount,
+              taxInclusive: Boolean(row.taxInclusive),
+            };
+          });
 
     const ledgerTotals = calculateLedgerTotals();
 
@@ -3469,41 +3401,37 @@ export function DocumentVoucherPage({
       payload: isJournal
         ? journalPayload
         : {
-          voucherType,
-          partyLedger: submittedPartyName || "",
-          ledgerType: values.ledgerType || "",
-          gstin: values.gstin || selectedGstin || "",
-          gstType:
-            isSameState === null
-              ? ""
-              : isSameState
-                ? "CGST_SGST"
-                : "IGST",
-          date: values.date || "",
-          voucherNumber: values.voucherNumber || "",
-          items,
-          ledgers: ledgerTotals.entries.map((row) => ({
-            ledgerName: row.ledgerName,
-            category: row.category,
-            calculationType: row.calculationType,
-            value: Number(row.value) || 0,
-            effect: row.effect,
-            amount: Number(row.amount.toFixed(2)),
-          })),
-          subTotal: Number(subtotal.toFixed(2)),
-          taxes: Number(ledgerTotals.taxes.toFixed(2)),
-          otherLedgerAmount: Number(ledgerTotals.otherLedgers.toFixed(2)),
-          grandTotal: Number(ledgerTotals.grandTotal.toFixed(2)),
-          narration: values.narration || "",
-          referenceNumber: values.referenceNumber || "",
-          referenceDate: values.referenceDate || "",
-          orderType: values.orderType || "",
-          orderNumber: values.orderNumber || "",
-          orderDate: values.orderDate || "",
-          reasonForReturn: values.reasonForReturn || "",
-          advancedSettings,
-          ...advancedSettings,
-        },
+            voucherType,
+            partyLedger: submittedPartyName || "",
+            ledgerType: values.ledgerType || "",
+            gstin: values.gstin || selectedGstin || "",
+            gstType:
+              isSameState === null ? "" : isSameState ? "CGST_SGST" : "IGST",
+            date: values.date || "",
+            voucherNumber: values.voucherNumber || "",
+            items,
+            ledgers: ledgerTotals.entries.map((row) => ({
+              ledgerName: row.ledgerName,
+              category: row.category,
+              calculationType: row.calculationType,
+              value: Number(row.value) || 0,
+              effect: row.effect,
+              amount: Number(row.amount.toFixed(2)),
+            })),
+            subTotal: Number(subtotal.toFixed(2)),
+            taxes: Number(ledgerTotals.taxes.toFixed(2)),
+            otherLedgerAmount: Number(ledgerTotals.otherLedgers.toFixed(2)),
+            grandTotal: Number(ledgerTotals.grandTotal.toFixed(2)),
+            narration: values.narration || "",
+            referenceNumber: values.referenceNumber || "",
+            referenceDate: values.referenceDate || "",
+            orderType: values.orderType || "",
+            orderNumber: values.orderNumber || "",
+            orderDate: values.orderDate || "",
+            reasonForReturn: values.reasonForReturn || "",
+            advancedSettings,
+            ...advancedSettings,
+          },
     };
 
     try {
@@ -3648,10 +3576,11 @@ export function DocumentVoucherPage({
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
           <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
             <div
-              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${showSuccessAnimation
-                ? "border-t-green-600 animate-spin"
-                : "border-t-[#1a1f24] animate-spin"
-                }`}
+              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${
+                showSuccessAnimation
+                  ? "border-t-green-600 animate-spin"
+                  : "border-t-[#1a1f24] animate-spin"
+              }`}
               aria-hidden="true"
             />
 
@@ -3878,12 +3807,13 @@ export function DocumentVoucherPage({
             <>
               {/* Voucher Details */}
               <div
-                className={`grid items-start gap-3 sm:grid-cols-2 ${isSalesInvoice || isSalesOrder || title === "Purchase"
-                  ? "xl:grid-cols-3"
-                  : title === "Receipt Note" || title === "Delivery Note"
-                    ? "xl:grid-cols-5"
-                    : "xl:grid-cols-4"
-                  }`}
+                className={`grid items-start gap-3 sm:grid-cols-2 ${
+                  isSalesInvoice || isSalesOrder || title === "Purchase"
+                    ? "xl:grid-cols-3"
+                    : title === "Receipt Note" || title === "Delivery Note"
+                      ? "xl:grid-cols-5"
+                      : "xl:grid-cols-4"
+                }`}
               >
                 <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
                   <span>Voucher Type</span>
@@ -4033,20 +3963,20 @@ export function DocumentVoucherPage({
                   title === "Purchase" ||
                   title === "Purchase Order" ||
                   isNoteVoucher) && (
-                    <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                      <span>Ledger Type</span>
+                  <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                    <span>Ledger Type</span>
 
-                      <SearchableDropdown
-                        name="ledgerType"
-                        label="ledger types"
-                        options={ledgerTypeOptions}
-                        {...getPaginationProps("ledgers")}
-                        placeholder="Select Ledger"
-                        loading={isOptionsLoading}
-                        resetToken={clearToken}
-                      />
-                    </label>
-                  )}
+                    <SearchableDropdown
+                      name="ledgerType"
+                      label="ledger types"
+                      options={ledgerTypeOptions}
+                      {...getPaginationProps("ledgers")}
+                      placeholder="Select Ledger"
+                      loading={isOptionsLoading}
+                      resetToken={clearToken}
+                    />
+                  </label>
+                )}
 
                 {(title === "Quotation" ||
                   isSalesInvoice ||
@@ -4054,20 +3984,19 @@ export function DocumentVoucherPage({
                   title === "Purchase" ||
                   title === "Purchase Order" ||
                   isNoteVoucher) && (
-                    <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                      <span>GST Number</span>
+                  <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
+                    <span>GST Number</span>
 
-                      <input
-                        name="gstin"
-                        type="text"
-                        value={selectedGstin}
-                        onChange={(event) => setSelectedGstin(event.target.value)}
-                        className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                        placeholder="Enter GST Number"
-                      />
-                    </label>
-
-                  )}
+                    <input
+                      name="gstin"
+                      type="text"
+                      value={selectedGstin}
+                      onChange={(event) => setSelectedGstin(event.target.value)}
+                      className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                      placeholder="Enter GST Number"
+                    />
+                  </label>
+                )}
                 {isNoteVoucher && (
                   <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
                     <span>Reason For Return</span>
@@ -4152,7 +4081,7 @@ export function DocumentVoucherPage({
                       </div>
 
                       <div className="border-r border-slate-200 px-2 py-3 text-center">
-                        Description
+                        Description (optional)
                       </div>
 
                       <div className="border-r border-slate-200 px-2 py-3 text-center">
@@ -4181,17 +4110,18 @@ export function DocumentVoucherPage({
                       return (
                         <div key={row.id}>
                           <div
-                            className={`grid grid-cols-[1.45fr_.55fr_.7fr_.7fr_.65fr_.9fr_1fr_1.4fr_.9fr_.6fr_.5fr] items-stretch border-b border-slate-200 bg-white last:border-b-0 ${index % 2 === 1 ? "bg-slate-[25]" : "bg-white"
-                              }`}
+                            className={`grid grid-cols-[1.45fr_.55fr_.7fr_.7fr_.65fr_.9fr_1fr_1.4fr_.9fr_.6fr_.5fr] items-stretch border-b border-slate-200 bg-white last:border-b-0 ${
+                              index % 2 === 1 ? "bg-slate-[25]" : "bg-white"
+                            }`}
                           >
                             {/* Item */}
                             <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
                               {title === "Quotation" ||
-                                isSalesInvoice ||
-                                isSalesOrder ||
-                                title === "Purchase Order" ||
-                                isCreditNote ||
-                                isDebitNote ? (
+                              isSalesInvoice ||
+                              isSalesOrder ||
+                              title === "Purchase Order" ||
+                              isCreditNote ||
+                              isDebitNote ? (
                                 <SearchableDropdown
                                   name={`item-${row.id}`}
                                   label="items"
@@ -4219,8 +4149,14 @@ export function DocumentVoucherPage({
                                   value={row.item}
                                   {...getNativeDropdownPaginationProps("stock")}
                                   onChange={(event) => {
-                                    handleItemSelect(row.id, event.target.value)
-                                    loadMoreOnNativeDropdownSelection(event, "stock")
+                                    handleItemSelect(
+                                      row.id,
+                                      event.target.value,
+                                    );
+                                    loadMoreOnNativeDropdownSelection(
+                                      event,
+                                      "stock",
+                                    );
                                   }}
                                   className="h-9 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                                 >
@@ -4374,13 +4310,14 @@ export function DocumentVoucherPage({
                             {/* Godown */}
                             <div className="flex min-w-0 items-center border-r border-slate-200 p-1.5">
                               {title === "Quotation" ||
-                                isSalesInvoice ||
-                                isSalesOrder || title === "Purchase" ||
-                                title === "Purchase Order" ||
-                                title === "Receipt Note" ||
-                                title === "Delivery Note" ||
-                                isCreditNote ||
-                                isDebitNote ? (
+                              isSalesInvoice ||
+                              isSalesOrder ||
+                              title === "Purchase" ||
+                              title === "Purchase Order" ||
+                              title === "Receipt Note" ||
+                              title === "Delivery Note" ||
+                              isCreditNote ||
+                              isDebitNote ? (
                                 <SearchableDropdown
                                   name={`godown-${row.id}`}
                                   label="godowns"
