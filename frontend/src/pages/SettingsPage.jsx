@@ -795,7 +795,7 @@ const SettingsPage = () => {
         {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-            Settings
+            Company & Bank Details
           </h1>
 
           <p className="mt-1 text-sm text-slate-500">

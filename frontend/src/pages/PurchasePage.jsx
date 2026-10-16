@@ -1,58 +1,56 @@
-import { useEffect, useState } from 'react'
-import useAuthStore from '../store/authStore'
+import { useEffect, useState } from "react";
+import useAuthStore from "../store/authStore";
+import { FileDown } from "lucide-react";
 import {
   extractPurchasePagination,
   extractPurchases,
   fetchCompanyPurchases,
-} from '../services/companiesApi'
-import { GstLedgerPanel } from './DocumentVoucherPage'
+} from "../services/companiesApi";
 
-// ============================================================
-// FIELD DATA
-// ============================================================
+import { downloadVoucherPdf } from "../services/voucherPdfApi";
 
 const supplierFields = [
-  ['Supplier’s Name', 'Supplier’s Name'],
-  ['Supplier’s Country', 'Supplier’s Country'],
-  ['Supplier’s State', 'Supplier’s State'],
-  ['Registration Type', 'Registration Type'],
-  ['Postal Code', 'Postal Code'],
-  ['GSTIN/UIN', 'GSTIN/UIN'],
-  ['Place of Supply', 'Place of Supply'],
-]
+  ["Supplier’s Name", "Supplier’s Name"],
+  ["Supplier’s Country", "Supplier’s Country"],
+  ["Supplier’s State", "Supplier’s State"],
+  ["Registration Type", "Registration Type"],
+  ["Postal Code", "Postal Code"],
+  ["GSTIN/UIN", "GSTIN/UIN"],
+  ["Place of Supply", "Place of Supply"],
+];
 
 const consigneeFields = [
-  ['Consignee Name', 'Consignee Name'],
-  ['GSTIN/UIN', 'GSTIN/UIN'],
-  ['Consignee Country', 'Country'],
-  ['Consignee State', 'State'],
-  ['Postal Code', 'Postal Code'],
-]
+  ["Consignee Name", "Consignee Name"],
+  ["GSTIN/UIN", "GSTIN/UIN"],
+  ["Consignee Country", "Country"],
+  ["Consignee State", "State"],
+  ["Postal Code", "Postal Code"],
+];
 
 const dispatchFields = [
-  ['Dispatch From', 'Dispatch From'],
-  ['Dispatch Through', 'Dispatch Through'],
-  ['Vehicle Number', 'Vehicle Number'],
-  ['Transporter Name', 'Transporter Name'],
-  ['Transporter ID', 'Transporter ID'],
-  ['Dispatch Date', 'Dispatch Date'],
-]
+  ["Dispatch From", "Dispatch From"],
+  ["Dispatch Through", "Dispatch Through"],
+  ["Vehicle Number", "Vehicle Number"],
+  ["Transporter Name", "Transporter Name"],
+  ["Transporter ID", "Transporter ID"],
+  ["Dispatch Date", "Dispatch Date"],
+];
 
 const orderFields = [
-  ['Order No', 'Order No'],
-  ['Order Date', 'Order Date'],
-  ['Reference No', 'Reference No'],
-  ['Buyer Order No', 'Buyer Order No'],
-  ['Terms of Delivery', 'Terms of Delivery'],
-  ['Other Reference', 'Other Reference'],
-]
+  ["Order No", "Order No"],
+  ["Order Date", "Order Date"],
+  ["Reference No", "Reference No"],
+  ["Buyer Order No", "Buyer Order No"],
+  ["Terms of Delivery", "Terms of Delivery"],
+  ["Other Reference", "Other Reference"],
+];
 
 const tabs = {
-  'Supplier’s Details': supplierFields,
-  'Consignee Details': consigneeFields,
-  'Dispatch Details': dispatchFields,
-  'Order Details': orderFields,
-}
+  "Supplier’s Details": supplierFields,
+  "Consignee Details": consigneeFields,
+  "Dispatch Details": dispatchFields,
+  "Order Details": orderFields,
+};
 
 // ============================================================
 // REUSABLE INPUT
@@ -61,9 +59,7 @@ const tabs = {
 function InputField({ label, placeholder, search = false }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-slate-700">
-        {label}
-      </span>
+      <span className="text-xs font-medium text-slate-700">{label}</span>
 
       <div className="relative">
         <input
@@ -78,7 +74,7 @@ function InputField({ label, placeholder, search = false }) {
         )}
       </div>
     </label>
-  )
+  );
 }
 
 // ============================================================
@@ -86,24 +82,21 @@ function InputField({ label, placeholder, search = false }) {
 // ============================================================
 
 function ItemsTable() {
-  const [rows, setRows] = useState([1])
+  const [rows, setRows] = useState([1]);
 
   const addRow = () => {
-    setRows([...rows, rows.length + 1])
-  }
+    setRows([...rows, rows.length + 1]);
+  };
 
   const removeRow = (index) => {
-    setRows(rows.filter((_, i) => i !== index))
-  }
+    setRows(rows.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="mt-5 overflow-x-auto rounded-lg border border-slate-200 bg-white">
-
       <div className="min-w-[1100px]">
-
         {/* HEADER */}
         <div className="grid grid-cols-[220px_70px_90px_80px_80px_110px_120px_200px_100px_70px_45px] gap-2 bg-slate-100 p-2 text-xs font-semibold text-slate-600">
-
           <div>Items</div>
           <div>Qty</div>
           <div>Rate</div>
@@ -121,7 +114,6 @@ function ItemsTable() {
           >
             +
           </button>
-
         </div>
 
         {/* ROWS */}
@@ -130,23 +122,11 @@ function ItemsTable() {
             key={index}
             className="grid grid-cols-[220px_70px_90px_80px_80px_110px_120px_200px_100px_70px_45px] gap-2 border-t p-2"
           >
+            <input placeholder="Search Item" className="input" />
 
-            <input
-              placeholder="Search Item"
-              className="input"
-            />
+            <input value="0" readOnly className="input" />
 
-            <input
-              value="0"
-              readOnly
-              className="input"
-            />
-
-            <input
-              value="0"
-              readOnly
-              className="input"
-            />
+            <input value="0" readOnly className="input" />
 
             <select className="input">
               <option>-</option>
@@ -155,32 +135,15 @@ function ItemsTable() {
               <option>BOX</option>
             </select>
 
-            <input
-              value="0"
-              readOnly
-              className="input"
-            />
+            <input value="0" readOnly className="input" />
 
-            <input
-              placeholder=""
-              className="input"
-            />
+            <input placeholder="" className="input" />
 
-            <input
-              placeholder="Search Godown"
-              className="input"
-            />
+            <input placeholder="Search Godown" className="input" />
 
-            <input
-              placeholder="Enter Notes"
-              className="input"
-            />
+            <input placeholder="Enter Notes" className="input" />
 
-            <input
-              value="0"
-              readOnly
-              className="input"
-            />
+            <input value="0" readOnly className="input" />
 
             <div className="flex items-center justify-center">
               <input type="checkbox" />
@@ -192,13 +155,11 @@ function ItemsTable() {
             >
               ×
             </button>
-
           </div>
         ))}
-
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================================
@@ -206,115 +167,118 @@ function ItemsTable() {
 // ============================================================
 
 function PurchasePage({ companyId }) {
-  const accessToken = useAuthStore(
-    (state) => state.accessToken,
-  )
+  const accessToken = useAuthStore((state) => state.accessToken);
 
-  const [advancedOpen, setAdvancedOpen] = useState(true)
+  const [advancedOpen, setAdvancedOpen] = useState(true);
 
-  const [activeTab, setActiveTab] =
-    useState('Supplier’s Details')
+  const [activeTab, setActiveTab] = useState("Supplier’s Details");
 
-  const [purchases, setPurchases] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [pagination, setPagination] = useState({})
-  const [query, setQuery] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [purchases, setPurchases] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [pagination, setPagination] = useState({});
+  const [query, setQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [downloadingId, setDownloadingId] = useState(null);
 
-  const fields = tabs[activeTab]
+  const handleDownload = async (purchase) => {
+    const purchaseId = purchase?._id || purchase?.id;
+
+    try {
+      setDownloadingId(purchaseId);
+
+      await downloadVoucherPdf(companyId, purchase);
+    } catch (err) {
+      alert(err?.message || "Purchase PDF download failed");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const fields = tabs[activeTab];
 
   useEffect(() => {
     if (!accessToken || !companyId) {
-      setPurchases([])
-      setPagination({})
+      setPurchases([]);
+      setPagination({});
       setErrorMessage(
         accessToken
-          ? 'No company selected.'
-          : 'Session expired. Please sign in.',
-      )
-      return undefined
+          ? "No company selected."
+          : "Session expired. Please sign in.",
+      );
+      return undefined;
     }
 
-    let isMounted = true
+    let isMounted = true;
 
-    setIsLoading(true)
-    setErrorMessage('')
+    setIsLoading(true);
+    setErrorMessage("");
 
     fetchCompanyPurchases(accessToken, companyId, {
-      q: '',
-      from: '2010-04-01',
-      to: '2027-03-31',
+      q: "",
+      from: "2010-04-01",
+      to: "2027-03-31",
       page: 1,
       limit: 20,
     })
       .then((response) => {
-        if (!isMounted) return
+        if (!isMounted) return;
 
-        setPurchases(extractPurchases(response))
-        setPagination(extractPurchasePagination(response))
+        setPurchases(extractPurchases(response));
+        setPagination(extractPurchasePagination(response));
       })
       .catch((error) => {
         if (isMounted) {
-          setErrorMessage(
-            error?.message || 'Unable to load purchases',
-          )
+          setErrorMessage(error?.message || "Unable to load purchases");
         }
       })
       .finally(() => {
         if (isMounted) {
-          setIsLoading(false)
+          setIsLoading(false);
         }
-      })
+      });
 
     return () => {
-      isMounted = false
-    }
-  }, [accessToken, companyId])
+      isMounted = false;
+    };
+  }, [accessToken, companyId]);
 
-  const getPurchaseValue = (
-    purchase,
-    keys,
-  ) => {
+  const getPurchaseValue = (purchase, keys) => {
     for (const key of keys) {
-      const value = purchase?.[key]
-      if (
-        value !== null &&
-        value !== undefined &&
-        String(value).trim()
-      ) {
-        return String(value).trim()
+      const value = purchase?.[key];
+      if (value !== null && value !== undefined && String(value).trim()) {
+        return String(value).trim();
       }
     }
 
-    return '-'
-  }
+    return "-";
+  };
 
   const formatCurrency = (value) => {
-    const numericValue = Number(value)
+    const numericValue = Number(value);
 
     if (Number.isNaN(numericValue)) {
-      return '-'
+      return "-";
     }
 
-    return `₹ ${numericValue.toLocaleString('en-IN')}`
-  }
+    return `₹ ${numericValue.toLocaleString("en-IN")}`;
+  };
 
   const formatDate = (value) => {
-    if (!value) return '-'
+    if (!value) return "-";
 
-    const date = new Date(value)
+    const date = new Date(value);
 
     return Number.isNaN(date.getTime())
       ? value
-      : date.toLocaleDateString('en-IN', {
-          timeZone: 'Asia/Kolkata',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })
-  }
+      : date.toLocaleDateString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+  };
 
   const filteredPurchases = purchases.filter((purchase) => {
     const searchableText = [
@@ -328,34 +292,33 @@ function PurchasePage({ companyId }) {
       purchase?.voucherType,
     ]
       .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
+      .join(" ")
+      .toLowerCase();
 
-    return searchableText.includes(query.toLowerCase())
-  })
+    return searchableText.includes(query.toLowerCase());
+  });
 
-  const totalPages = Math.max(1, Math.ceil(filteredPurchases.length / pageSize))
-  const safeCurrentPage = Math.min(currentPage, totalPages)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPurchases.length / pageSize),
+  );
+  const safeCurrentPage = Math.min(currentPage, totalPages);
 
   const paginatedPurchases = filteredPurchases.slice(
     (safeCurrentPage - 1) * pageSize,
     safeCurrentPage * pageSize,
-  )
+  );
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8]">
       <div className="bg-white px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <span className="block text-xs text-slate-600">
-              Purchase Data
-            </span>
+            <span className="block text-xs text-slate-600">Purchase Data</span>
             <strong className="mt-1 block text-xl font-bold text-slate-900">
               {filteredPurchases.length} records
             </strong>
           </div>
-
-       
         </div>
       </div>
 
@@ -367,8 +330,8 @@ function PurchasePage({ companyId }) {
               <input
                 value={query}
                 onChange={(event) => {
-                  setCurrentPage(1)
-                  setQuery(event.target.value)
+                  setCurrentPage(1);
+                  setQuery(event.target.value);
                 }}
                 placeholder="Search party ledger or voucher no."
                 className="w-full bg-transparent outline-none placeholder:text-slate-400"
@@ -380,8 +343,8 @@ function PurchasePage({ companyId }) {
               <select
                 value={pageSize}
                 onChange={(event) => {
-                  setPageSize(Number(event.target.value))
-                  setCurrentPage(1)
+                  setPageSize(Number(event.target.value));
+                  setCurrentPage(1);
                 }}
                 className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none"
                 aria-label="Rows per page"
@@ -434,55 +397,58 @@ function PurchasePage({ companyId }) {
                   <th className="whitespace-nowrap px-5 py-3 font-semibold">
                     Voucher Type
                   </th>
+
+                  <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
+                    Action
+                  </th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-slate-100">
                 {paginatedPurchases.length > 0 ? (
                   paginatedPurchases.map((purchase, index) => {
-                    const voucherNumber = getPurchaseValue(
-                      purchase,
-                      [
-                        'voucherNumber',
-                        'voucherNo',
-                        'voucher_no',
-                        'invoiceNo',
-                        'invoice_no',
-                        'number',
-                      ],
-                    )
+                    const voucherNumber = getPurchaseValue(purchase, [
+                      "voucherNumber",
+                      "voucherNo",
+                      "voucher_no",
+                      "invoiceNo",
+                      "invoice_no",
+                      "number",
+                    ]);
 
-                    const partyLedger = getPurchaseValue(
-                      purchase,
-                      [
-                        'partyLedger',
-                        'partyName',
-                        'party_name',
-                        'party',
-                        'supplierName',
-                        'supplier_name',
-                        'customerName',
-                        'ledgerName',
-                        'name',
-                      ],
-                    )
+                    const purchaseId = purchase?._id || purchase?.id;
+                    const isDownloading = downloadingId === purchaseId;
+
+                    const partyLedger = getPurchaseValue(purchase, [
+                      "partyLedger",
+                      "partyName",
+                      "party_name",
+                      "party",
+                      "supplierName",
+                      "supplier_name",
+                      "customerName",
+                      "ledgerName",
+                      "name",
+                    ]);
 
                     const amount =
                       purchase?.amount ??
                       purchase?.total ??
                       purchase?.grandTotal ??
                       purchase?.totalAmount ??
-                      0
+                      0;
 
-                    const narration = getPurchaseValue(
-                      purchase,
-                      ['narration', 'description', 'notes'],
-                    )
+                    const narration = getPurchaseValue(purchase, [
+                      "narration",
+                      "description",
+                      "notes",
+                    ]);
 
-                    const voucherType = getPurchaseValue(
-                      purchase,
-                      ['voucherType', 'voucher_type', 'type'],
-                    )
+                    const voucherType = getPurchaseValue(purchase, [
+                      "voucherType",
+                      "voucher_type",
+                      "type",
+                    ]);
 
                     return (
                       <tr
@@ -498,7 +464,9 @@ function PurchasePage({ companyId }) {
                         </td>
                         <td className="px-5 py-3 leading-5 text-slate-700">
                           {formatDate(
-                            purchase?.date || purchase?.voucherDate || purchase?.createdAt,
+                            purchase?.date ||
+                              purchase?.voucherDate ||
+                              purchase?.createdAt,
                           )}
                         </td>
                         <td className="max-w-[240px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
@@ -513,8 +481,47 @@ function PurchasePage({ companyId }) {
                         <td className="px-5 py-3 leading-5 text-slate-700">
                           {voucherType}
                         </td>
+
+                        <td className="whitespace-nowrap px-5 py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(purchase)}
+                            disabled={isDownloading || !purchaseId}
+                            className="
+      inline-flex h-8 min-w-[80px]
+      items-center justify-center gap-1.5
+      rounded-md border border-red-200
+      bg-white px-3 text-xs font-medium
+      text-red-600 transition
+      hover:border-red-300 hover:bg-red-50
+      disabled:cursor-wait disabled:opacity-60
+    "
+                            title={
+                              isDownloading
+                                ? "Generating PDF..."
+                                : "Download Purchase PDF"
+                            }
+                            aria-label={
+                              isDownloading
+                                ? "Generating PDF..."
+                                : "Download Purchase PDF"
+                            }
+                          >
+                            {isDownloading ? (
+                              <>
+                                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                                <span>Wait...</span>
+                              </>
+                            ) : (
+                              <>
+                                <FileDown size={14} strokeWidth={2} />
+                                <span>PDF</span>
+                              </>
+                            )}
+                          </button>
+                        </td>
                       </tr>
-                    )
+                    );
                   })
                 ) : (
                   <tr>
@@ -532,25 +539,27 @@ function PurchasePage({ companyId }) {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4">
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-            <button
-              key={page}
-              type="button"
-              disabled={isLoading || totalPages <= 1}
-              onClick={() => setCurrentPage(page)}
-              className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium ${
-                safeCurrentPage === page
-                  ? 'border-emerald-600 bg-emerald-600 text-white'
-                  : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
-              } disabled:opacity-50`}
-            >
-              {page}
-            </button>
-          ))}
+          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+            (page) => (
+              <button
+                key={page}
+                type="button"
+                disabled={isLoading || totalPages <= 1}
+                onClick={() => setCurrentPage(page)}
+                className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium ${
+                  safeCurrentPage === page
+                    ? "border-emerald-600 bg-emerald-600 text-white"
+                    : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
+                } disabled:opacity-50`}
+              >
+                {page}
+              </button>
+            ),
+          )}
         </div>
       </section>
     </div>
-  )
+  );
 }
 
-export default PurchasePage
+export default PurchasePage;

@@ -30,6 +30,7 @@ import {
   fetchCustomers,
   fetchSuppliers,
 } from "../services/customersApi";
+import { fetchCompanyBanks } from "../services/CompanyDetailsAndBanksApi";
 
 const DROPDOWN_PAGE_SIZE = 20;
 
@@ -171,6 +172,7 @@ function getPartyBalance(entry) {
 }
 
 function JournalVoucherContent({
+  companyId,
   voucherType,
   rows,
   partyOptions,
@@ -180,14 +182,75 @@ function JournalVoucherContent({
   onRemoveRow,
   onRowChange,
 }) {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  const [companyBanks, setCompanyBanks] = useState([]);
+  const [banksLoading, setBanksLoading] = useState(false);
+
   const { debit: debitTotal, credit: creditTotal } =
     getJournalTotalsInPaise(rows);
+
+ 
+useEffect(() => {
+  let active = true;
+
+  const loadBanks = async () => {
+    if (!accessToken || !companyId) {
+      setCompanyBanks([]);
+      setBanksLoading(false);
+      return;
+    }
+
+    setBanksLoading(true);
+
+    try {
+      const response = await fetchCompanyBanks(accessToken, companyId);
+
+      console.log("Contra bank API response:", response);
+
+      const banks = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.data)
+          ? response.data
+          : Array.isArray(response?.banks)
+            ? response.banks
+            : Array.isArray(response?.data?.banks)
+              ? response.data.banks
+              : Array.isArray(response?.items)
+                ? response.items
+                : [];
+
+      if (active) {
+        setCompanyBanks(banks);
+      }
+    } catch (error) {
+      console.error("Failed to fetch Contra banks:", error);
+
+      if (active) {
+        setCompanyBanks([]);
+      }
+    } finally {
+      if (active) {
+        setBanksLoading(false);
+      }
+    }
+  };
+
+  loadBanks();
+
+  return () => {
+    active = false;
+  };
+}, [accessToken, companyId]);
+
 
   const hasEnteredAmount = rows.some(
     (row) => String(row.amount ?? "").trim() !== "",
   );
 
   const amountsDoNotMatch = hasEnteredAmount && debitTotal !== creditTotal;
+
+  console.log("this is my voucher type", voucherType);
 
   const renderParticularSection = (type) => {
     const sectionRows = rows.filter((row) => row.type === type);
@@ -210,7 +273,9 @@ function JournalVoucherContent({
 
         <div className="grid min-w-[760px] grid-cols-[1fr_1.4fr_1fr_40px] gap-2 bg-slate-100 p-2 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
           <span>Type</span>
-          <span>Party Name</span>
+          <span>
+            {voucherType === "Contra" ? "Transaction Type" : "Party Name"}
+          </span>
           <span>Amount</span>
           <span />
         </div>
@@ -226,17 +291,73 @@ function JournalVoucherContent({
               aria-label={`${type} entry type`}
               className="min-h-9 rounded-md border border-slate-300 bg-slate-50 px-2 text-xs font-semibold text-slate-700 outline-none"
             />
-            <SearchableDropdown
-              name={`journalPartyName-${row.id}`}
-              label="parties"
-              options={partyOptions}
-              {...partyDropdownProps}
-              loading={optionsLoading}
-              value={row.partyName}
-              onSelect={(value) => onRowChange(row.id, "partyName", value)}
-              onClear={() => onRowChange(row.id, "partyName", "")}
-              placeholder="Select Party Name"
-            />
+
+            {voucherType === "Contra" ? (
+              <select
+                name={`transactionType-${row.id}`}
+                value={row.partyName || ""}
+                required
+                disabled={banksLoading}
+                onChange={(event) =>
+                  onRowChange(row.id, "partyName", event.target.value)
+                }
+                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+              >
+                <option value="">
+                  {banksLoading
+                    ? "Loading bank accounts..."
+                    : "Select transaction type"}
+                </option>
+
+                <option value="CASH">Cash</option>
+
+                {companyBanks.map((bank, index) => {
+                  const bankId =
+                    bank._id ??
+                    bank.id ??
+                    bank.bankId ??
+                    bank.accountId ??
+                    bank.bank_id ??
+                    index;
+
+                  const bankName =
+                    bank.bankName ??
+                    bank.name ??
+                    bank.accountName ??
+                    bank.accountHolderName ??
+                    bank.ledgerName ??
+                    "";
+
+                  const accountNumber =
+                    bank.accountNumber ??
+                    bank.accountNo ??
+                    bank.maskedAccountNumber;
+
+                  if (!bankName) return null;
+
+                  return (
+                    <option key={String(bankId)} value={bankName}>
+                      {accountNumber
+                        ? `${bankName} (${accountNumber})`
+                        : bankName}
+                    </option>
+                  );
+                })}
+              </select>
+            ) : (
+              <SearchableDropdown
+                name={`journalPartyName-${row.id}`}
+                label="parties"
+                options={partyOptions}
+                {...partyDropdownProps}
+                loading={optionsLoading}
+                value={row.partyName}
+                onSelect={(value) => onRowChange(row.id, "partyName", value)}
+                onClear={() => onRowChange(row.id, "partyName", "")}
+                placeholder="Select Party Name"
+              />
+            )}
+
             <input
               name={`journalAmount-${row.id}`}
               type="number"
@@ -426,8 +547,6 @@ function VoucherField({
 }
 
 function AdvancedVoucherContent({ activeTab }) {
-
-
   const fields = {
     "Consignee Details / Ship To": [
       ["consigneeName", "Consignee Name", "Consignee Name", true],
@@ -3794,6 +3913,7 @@ export function DocumentVoucherPage({
             />
           ) : isJournalStyleVoucher ? (
             <JournalVoucherContent
+              companyId={companyId}
               voucherType={title}
               rows={journalRows}
               partyOptions={partyLedgerOptions}
@@ -3828,7 +3948,11 @@ export function DocumentVoucherPage({
                 </label>
 
                 <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-                  <span>Party Name</span>
+                  <span>
+                    {voucherType === "Contra"
+                      ? "Transaction Type"
+                      : "Party Name"}
+                  </span>
 
                   <div className="relative">
                     <SearchableDropdown

@@ -923,12 +923,9 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 
     const fetchTemplate = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:5000/api/reminder-template`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` }, // <-- fix
-          },
-        );
+        const res = await fetch(`http://localhost:5000/api/reminder-template`, {
+          headers: { Authorization: `Bearer ${accessToken}` }, // <-- fix
+        });
         const json = await res.json();
         if (json?.data?.message) {
           setReminderTemplate(json.data.message);
@@ -1372,8 +1369,6 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
               whitespace-nowrap
             "
       >
-        {console.log("My customer", customer)}
-
         <button
           type="button"
           onClick={() => handleReminder(customer)}
@@ -1390,23 +1385,6 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
         >
           <FaWhatsapp />
         </button>
-
-        {/* <button
-          type="button"
-          onClick={() => handleReminder(customer)}
-          className="
-                flex
-                items-center
-                justify-center
-                text-red-500
-                transition
-                hover:text-red-700
-              "
-          title="Send PDF"
-          aria-label="Send PDF"
-        >
-          <FileText size={15} strokeWidth={2} />
-        </button> */}
 
         <button
           type="button"
@@ -1827,11 +1805,6 @@ function SalesReport({ companyId }) {
     startDate,
   ]);
 
-  // ==========================================================
-  // SALES TABLE COLUMNS
-  // Hide ID / Tally ID fields.
-  // ==========================================================
-
   const salesColumns = (() => {
     const columns = getUniqueFields(
       rows.flatMap((row) => {
@@ -1851,10 +1824,6 @@ function SalesReport({ companyId }) {
     ];
   })();
 
-  // ==========================================================
-  // DISPLAY VALUE
-  // ==========================================================
-
   const displayValue = (value, column) => {
     if (value === null || value === undefined || value === "") {
       return "-";
@@ -1870,10 +1839,6 @@ function SalesReport({ companyId }) {
 
     return String(value);
   };
-
-  // ==========================================================
-  // COLUMN LABEL
-  // ==========================================================
 
   const columnLabel = (column) =>
     column.replace(/[_-]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2");
@@ -2228,257 +2193,7 @@ function SalesReport({ companyId }) {
     </div>
   );
 }
-const handleGenerateSalePdf = (sale, rowIndex) => {
-  try {
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
 
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-
-    const marginLeft = 20;
-    const valueX = 70;
-
-    // =========================================================
-    // HELPER - GET VALUE FROM POSSIBLE API FIELD NAMES
-    // =========================================================
-
-    const getFieldValue = (...keys) => {
-      for (const key of keys) {
-        if (
-          sale?.[key] !== undefined &&
-          sale?.[key] !== null &&
-          sale?.[key] !== ""
-        ) {
-          return sale[key];
-        }
-      }
-
-      return "-";
-    };
-
-    const safeText = (value) => {
-      if (value === null || value === undefined || value === "") {
-        return "-";
-      }
-
-      if (typeof value === "object") {
-        try {
-          return JSON.stringify(value);
-        } catch {
-          return "-";
-        }
-      }
-
-      return String(value);
-    };
-
-    // =========================================================
-    // GET ONLY REQUIRED DATA
-    // =========================================================
-
-    const amount = getFieldValue(
-      "amount",
-      "Amount",
-      "totalAmount",
-      "total_amount",
-      "grossAmount",
-      "gross_amount",
-    );
-
-    const date = getFieldValue(
-      "date",
-      "Date",
-      "voucherDate",
-      "voucher_date",
-      "invoiceDate",
-      "invoice_date",
-    );
-
-    const partyLedger = getFieldValue(
-      "partyLedger",
-      "party_ledger",
-      "partyName",
-      "party_name",
-      "ledgerName",
-      "ledger_name",
-    );
-
-    const voucherNumber = getFieldValue(
-      "voucherNumber",
-      "voucher_number",
-      "voucherNo",
-      "voucher_no",
-      "invoiceNumber",
-      "invoice_number",
-    );
-
-    const voucherType = getFieldValue(
-      "voucherType",
-      "voucher_type",
-      "type",
-      "Type",
-    );
-
-    const narration = getFieldValue(
-      "narration",
-      "Narration",
-      "description",
-      "Description",
-    );
-
-    // =========================================================
-    // FORMAT DATE
-    // =========================================================
-
-    let formattedDate = safeText(date);
-
-    if (date !== "-" && date !== null && date !== undefined && date !== "") {
-      formattedDate = formatDateTimeIST(date);
-    }
-
-    // =========================================================
-    // FORMAT AMOUNT
-    // =========================================================
-
-    let formattedAmount = safeText(amount);
-
-    const numericAmount = Number(String(amount).replace(/[^\d.-]/g, ""));
-
-    if (Number.isFinite(numericAmount)) {
-      formattedAmount = `₹ ${numericAmount.toLocaleString("en-IN", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`;
-    }
-
-    // =========================================================
-    // PDF HEADER
-    // =========================================================
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("CtrlBooks", marginLeft, 20);
-
-    doc.setFontSize(15);
-    doc.text("Sales Voucher", marginLeft, 30);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-
-    doc.text(`Voucher No: ${safeText(voucherNumber)}`, marginLeft, 38);
-
-    doc.line(marginLeft, 44, pageWidth - marginLeft, 44);
-
-    // =========================================================
-    // ONLY THESE 6 FIELDS
-    // =========================================================
-
-    const fields = [
-      {
-        label: "Amount",
-        value: formattedAmount,
-      },
-      {
-        label: "Date",
-        value: formattedDate,
-      },
-      {
-        label: "Party Ledger",
-        value: safeText(partyLedger),
-      },
-      {
-        label: "Voucher Number",
-        value: safeText(voucherNumber),
-      },
-      {
-        label: "Voucher Type",
-        value: safeText(voucherType),
-      },
-      {
-        label: "Narration",
-        value: safeText(narration),
-      },
-    ];
-
-    let y = 58;
-
-    fields.forEach(({ label, value }) => {
-      // Replace ₹ in case default PDF font has encoding issues
-      const printableValue = value.replace(/₹/g, "INR");
-
-      const valueLines = doc.splitTextToSize(
-        printableValue,
-        pageWidth - valueX - marginLeft,
-      );
-
-      const rowHeight = Math.max(10, valueLines.length * 5 + 5);
-
-      // New page if needed
-      if (y + rowHeight > pageHeight - 20) {
-        doc.addPage();
-        y = 20;
-      }
-
-      // Field label
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-
-      doc.text(label, marginLeft, y);
-
-      // Field value
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-
-      doc.text(valueLines, valueX, y);
-
-      y += rowHeight;
-
-      // Separator
-      doc.setDrawColor(225, 225, 225);
-
-      doc.line(marginLeft, y - 3, pageWidth - marginLeft, y - 3);
-    });
-
-    // =========================================================
-    // FOOTER
-    // =========================================================
-
-    const totalPages = doc.getNumberOfPages();
-
-    for (let page = 1; page <= totalPages; page++) {
-      doc.setPage(page);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-
-      doc.text("Generated by CtrlBooks", marginLeft, pageHeight - 10);
-
-      doc.text(
-        `Page ${page} of ${totalPages}`,
-        pageWidth - 45,
-        pageHeight - 10,
-      );
-    }
-
-    // =========================================================
-    // FILE NAME
-    // =========================================================
-
-    const safeFileName = safeText(voucherNumber)
-      .replace(/[<>:"/\\|?*]/g, "_")
-      .replace(/\s+/g, "_");
-
-    doc.save(`Sale_${safeFileName}.pdf`);
-  } catch (error) {
-    console.error("PDF GENERATION ERROR:", error);
-
-    alert(`Unable to generate PDF.\n\n${error?.message || "Unknown error"}`);
-  }
-};
 function CashReport({ companyId }) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const [query, setQuery] = useState("");
@@ -3161,6 +2876,19 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
       isHidden: (column) => isHiddenSalesField(column),
     },
   );
+
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  const handleDownload = async (voucher) => {
+    try {
+      setDownloadingId(voucher._id);
+      await downloadVoucherPdf(companyId, voucher);
+    } catch (err) {
+      alert(err.message || "PDF download failed");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
   const narrationColumns = columns.filter(
     (column) => column.toLowerCase() === "narration",
   );
@@ -3293,49 +3021,90 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
                       {label(column)}
                     </th>
                   ))}
+                  <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {rows.length > 0 ? (
-                  rows.map((row, rowIndex) => (
-                    <tr
-                      key={row.id || row._id || rowIndex}
-                      className="text-xs text-slate-700 hover:bg-slate-50"
-                    >
-                      {orderedColumns.map((column) => {
-                        const value = formatValue(row[column], column);
-                        return (
-                          <td
-                            key={`${rowIndex}-${column}`}
-                            title={value}
-                            className="max-w-[280px] px-5 py-3 leading-5 [overflow-wrap:anywhere]"
+                  rows.map((row, rowIndex) => {
+                    const isDownloading = downloadingId === row._id;
+
+                    return (
+                      <tr
+                        key={row.id || row._id || rowIndex}
+                        className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
+                      >
+                        {orderedColumns.map((column) => {
+                          const value = formatValue(row?.[column], column);
+
+                          return (
+                            <td
+                              key={`${rowIndex}-${column}`}
+                              title={value}
+                              className="max-w-[280px] px-5 py-3 leading-5 [overflow-wrap:anywhere]"
+                            >
+                              {value}
+                            </td>
+                          );
+                        })}
+
+                        <td className="whitespace-nowrap px-5 py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(row)}
+                            disabled={isDownloading}
+                            className="inline-flex h-8 min-w-[80px] items-center justify-center gap-1.5 rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-600 transition hover:border-red-300 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+                            title={
+                              isDownloading
+                                ? "Generating PDF..."
+                                : "Generate PDF"
+                            }
+                            aria-label={
+                              isDownloading
+                                ? "Generating PDF..."
+                                : "Generate PDF"
+                            }
                           >
-                            {value}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))
+                            {isDownloading ? (
+                              <>
+                                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                                <span>Wait...</span>
+                              </>
+                            ) : (
+                              <>
+                                <FileDown size={14} strokeWidth={2} />
+                                <span>PDF</span>
+                              </>
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td
-                      colSpan={Math.max(orderedColumns.length, 1)}
+                      colSpan={orderedColumns.length + 1}
                       className="h-[150px] text-center text-sm text-slate-500"
                     >
                       No{" "}
                       {isReceiptReport
                         ? "receipt"
-                        : isSalesOrderReport
-                          ? "sales order"
-                          : isDeliveryNoteReport
-                            ? "delivery note"
-                            : isDebitNoteReport
-                              ? "debit note"
-                              : isPaymentReport
-                                ? "payment"
-                                : isPurchaseOrderReport
-                                  ? "purchase order"
-                                  : "credit note"}{" "}
+                        : isReceiptNoteReport
+                          ? "receipt note"
+                          : isSalesOrderReport
+                            ? "sales order"
+                            : isDeliveryNoteReport
+                              ? "delivery note"
+                              : isDebitNoteReport
+                                ? "debit note"
+                                : isPaymentReport
+                                  ? "payment"
+                                  : isPurchaseOrderReport
+                                    ? "purchase order"
+                                    : "credit note"}{" "}
                       data available.
                     </td>
                   </tr>
