@@ -34,7 +34,8 @@ const hiddenFields = new Set([
   'effective_date',
 
   'guid',
-  'GUID',
+  'GUID', 
+  'date',
 
   'alterId',
   'alterID',
