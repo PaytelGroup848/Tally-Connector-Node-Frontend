@@ -3949,9 +3949,7 @@ export function DocumentVoucherPage({
 
                 <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
                   <span>
-                    {voucherType === "Contra"
-                      ? "Transaction Type"
-                      : "Party Name"}
+                    {title === "Contra" ? "Transaction Type" : "Party Name"}
                   </span>
 
                   <div className="relative">
