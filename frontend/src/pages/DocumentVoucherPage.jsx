@@ -3521,7 +3521,7 @@ export function DocumentVoucherPage({
         ? journalPayload
         : {
             voucherType,
-            partyLedger: submittedPartyName || "",
+            partyLedger: isContra ? "" : submittedPartyName || "",
             ledgerType: values.ledgerType || "",
             gstin: values.gstin || selectedGstin || "",
             gstType:
