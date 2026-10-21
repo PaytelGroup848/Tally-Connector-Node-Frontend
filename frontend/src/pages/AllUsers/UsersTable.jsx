@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Edit, LockKeyhole, Trash2, Clock3, Play, Pause } from "lucide-react";
 import { deleteMember, updateMemberRole } from "../../services/membersApi";
 import { ROLE_OPTIONS } from "./memberUi";
-
+import {formatDate} from "./memberUi";
 function UsersTable({
   users,
   accessToken,

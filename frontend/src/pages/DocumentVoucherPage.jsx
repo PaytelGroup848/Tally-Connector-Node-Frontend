@@ -60,7 +60,6 @@ export function DocumentVoucherPage({
 }) {
   const {
     isSubmitting, setIsSubmitting,
-    submitMessage, setSubmitMessage,
     submitError, setSubmitError,
     showSuccessAnimation, setShowSuccessAnimation,
     customers, setCustomers,
@@ -124,8 +123,6 @@ export function DocumentVoucherPage({
   const isStockJournal = title === "Stock Journal";
   const enableVoucherDropdownPagination = true;
   const defaultVoucherType = title === "Quotation" ? "Quotation" : title;
-  const showPageLoader =
-    isOptionsLoading || isSubmitting || showSuccessAnimation;
   const optionState = {
     setCustomers,
     setSuppliers,
@@ -266,7 +263,7 @@ export function DocumentVoucherPage({
   const handleSubmit = createVoucherSubmitHandler({
     title, accessToken, isJournalStyleVoucher, isSalesInvoice, defaultVoucherType,
     isReceiptDeliveryNote,
-    requestCompanyId, setSubmitError, setShowSuccessAnimation, setSubmitMessage,
+    requestCompanyId, setSubmitError, setShowSuccessAnimation,
     advancedVoucherFieldNames, journalRows, isStockJournal, getJournalTotalsInPaise,
     formatJournalPaise, isSalesOrder, isNoteVoucher, sourceRows, destinationRows,
     itemRows, setIsSubmitting, calculateRowTaxBreakdown, calculateRowAmount,
@@ -292,7 +289,6 @@ export function DocumentVoucherPage({
     setAdditionalLedgers([]);
     setShowLedgerPanel(false);
 
-    setSubmitMessage("");
     setSubmitError(null);
   };
 
@@ -370,7 +366,7 @@ export function DocumentVoucherPage({
 
   return (
     <div className="voucher-page-animate relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-3 text-slate-900 sm:p-5">
-      <VoucherPageStatus showPageLoader={showPageLoader} isSubmitting={isSubmitting} showSuccessAnimation={showSuccessAnimation} submitError={submitError} failedVoucherType={failedVoucherType} failedVoucherNumber={failedVoucherNumber} failedParty={failedParty} failedAmount={failedAmount} failedCompany={failedCompany} failedDate={failedDate} setSubmitError={setSubmitError} />
+      <VoucherPageStatus showSuccessAnimation={showSuccessAnimation} submitError={submitError} failedVoucherType={failedVoucherType} failedVoucherNumber={failedVoucherNumber} failedParty={failedParty} failedAmount={failedAmount} failedCompany={failedCompany} failedDate={failedDate} setSubmitError={setSubmitError} />
 
       <form
         onSubmit={handleSubmit}
@@ -448,12 +444,6 @@ export function DocumentVoucherPage({
 
         {/* Footer */}
         <div className="flex flex-col gap-3 bg-[#f5f7f4] px-3 pb-4 pt-0 sm:flex-row sm:items-center sm:justify-end sm:px-5 sm:pb-5">
-          {submitMessage && (
-            <p className="text-center text-sm text-slate-600 sm:text-right">
-              {submitMessage}
-            </p>
-          )}
-
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             {title === "Quotation" && (
               <button
@@ -474,10 +464,10 @@ export function DocumentVoucherPage({
               {isSubmitting ? (
                 <span className="inline-flex items-center justify-center gap-2">
                   <span
-                    className="h-4 w-4 animate-spin rounded-full border-2 border-white/70 border-t-transparent"
+                    className="inline-flex items-center justify-center gap-2"
                     aria-hidden="true"
-                  />
-                  Creating...
+                  />  
+                  Create Voucher
                 </span>
               ) : isJournalStyleVoucher ? (
                 `Create ${title} `

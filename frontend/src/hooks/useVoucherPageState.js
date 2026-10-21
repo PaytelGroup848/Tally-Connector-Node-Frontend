@@ -4,8 +4,6 @@ import { createEmptyItemRow, createJournalRow, createStockJournalRow, DROPDOWN_P
 export function useVoucherPageState(title) {
 const [isSubmitting, setIsSubmitting] = useState(false);
 
-const [submitMessage, setSubmitMessage] = useState("");
-
 const [submitError, setSubmitError] = useState(null);
 
 const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
@@ -74,5 +72,5 @@ const [stockError, setStockError] = useState("");
 
 const successTimerRef = useRef(null);
 
-  return { isSubmitting, setIsSubmitting, submitMessage, setSubmitMessage, submitError, setSubmitError, showSuccessAnimation, setShowSuccessAnimation, customers, setCustomers, suppliers, setSuppliers, stockItems, setStockItems, vouchers, setVouchers, ledgers, setLedgers, godowns, setGodowns, batches, setBatches, voucherTypes, setVoucherTypes, voucherTypesError, setVoucherTypesError, visibleVoucherTypeCount, setVisibleVoucherTypeCount, selectedParty, setSelectedParty, selectedVoucherNumber, setSelectedVoucherNumber, selectedVoucherType, setSelectedVoucherType, selectedGstin, setSelectedGstin, itemRows, setItemRows, additionalLedgers, setAdditionalLedgers, showLedgerPanel, setShowLedgerPanel, journalRows, setJournalRows, sourceRows, setSourceRows, destinationRows, setDestinationRows, clearToken, setClearToken, isOptionsLoading, setIsOptionsLoading, optionPages, setOptionPages, optionPagesRef, stockError, setStockError, successTimerRef };
+  return { isSubmitting, setIsSubmitting, submitError, setSubmitError, showSuccessAnimation, setShowSuccessAnimation, customers, setCustomers, suppliers, setSuppliers, stockItems, setStockItems, vouchers, setVouchers, ledgers, setLedgers, godowns, setGodowns, batches, setBatches, voucherTypes, setVoucherTypes, voucherTypesError, setVoucherTypesError, visibleVoucherTypeCount, setVisibleVoucherTypeCount, selectedParty, setSelectedParty, selectedVoucherNumber, setSelectedVoucherNumber, selectedVoucherType, setSelectedVoucherType, selectedGstin, setSelectedGstin, itemRows, setItemRows, additionalLedgers, setAdditionalLedgers, showLedgerPanel, setShowLedgerPanel, journalRows, setJournalRows, sourceRows, setSourceRows, destinationRows, setDestinationRows, clearToken, setClearToken, isOptionsLoading, setIsOptionsLoading, optionPages, setOptionPages, optionPagesRef, stockError, setStockError, successTimerRef };
 }
