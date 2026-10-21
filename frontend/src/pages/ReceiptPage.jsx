@@ -16,7 +16,9 @@ import {
   GstLedgerPanel,
   SearchableDropdown,
 } from './DocumentVoucherPage'
-import { fetchCompanyBanks } from '../services/CompanyDetailsAndBanksApi'
+
+
+import { fetchCompanyBank, extractBank } from "../services/companiesApi";
 
 function getCompanyId(company) {
   return (
@@ -279,53 +281,40 @@ function ReceiptPage({
     setClosingBalanceLoading(false)
   }
 
-  useEffect(() => {
-    let active = true
+useEffect(() => {
+  let active = true;
 
-    const loadBanks = async () => {
-      if (!accessToken || !companyId) {
-        setCompanyBanks([])
-        return
-      }
-
-      try {
-        setBanksLoading(true)
-
-        const response = await fetchCompanyBanks(
-          accessToken,
-          companyId,
-        )
-
-        const banks =
-          Array.isArray(response) ? response :
-            Array.isArray(response?.data) ? response.data :
-              Array.isArray(response?.banks) ? response.banks :
-                Array.isArray(response?.data?.banks) ? response.data.banks :
-                  Array.isArray(response?.items) ? response.items :
-                    []
-
-        if (active) {
-          setCompanyBanks(banks)
-        }
-      } catch (error) {
-        console.error('Failed to fetch company banks:', error)
-
-        if (active) {
-          setCompanyBanks([])
-        }
-      } finally {
-        if (active) {
-          setBanksLoading(false)
-        }
-      }
+  const loadBanks = async () => {
+    if (!accessToken || !companyId) {
+      setCompanyBanks([]);
+      return;
     }
 
-    loadBanks()
+    setBanksLoading(true);
+    try {
+      const response = await fetchCompanyBank(accessToken, companyId, {
+        page: 1,
+        limit: 100,
+        q: "",
+      });
 
-    return () => {
-      active = false
+      // extractBank() already companiesApi.js mein hai
+      const banks = extractBank(response);
+
+      if (active) setCompanyBanks(banks);
+    } catch (error) {
+      console.error("Failed to fetch banks:", error);
+      if (active) setCompanyBanks([]);
+    } finally {
+      if (active) setBanksLoading(false);
     }
-  }, [accessToken, companyId])
+  };
+
+  loadBanks();
+  return () => {
+    active = false;
+  };
+}, [accessToken, companyId]);
 
   useEffect(() => {
     return () => {
@@ -425,41 +414,41 @@ function ReceiptPage({
     }
 
     const command = {
-        type: 'CREATE_VOUCHER',
+      type: "CREATE_VOUCHER",
 
-        payload: {
-          voucherType,
+      payload: {
+        voucherType,
 
-          voucherNumber: form.voucherNumber,
+        voucherNumber: form.voucherNumber,
 
-          partyLedger:
-            getDisplayName(selectedParty, [
-              'ledgerName',
-              'partyLedger',
-              'partyName',
-              'name',
-              'displayName',
-            ]) || form.partyName,
+        partyLedger:
+          getDisplayName(selectedParty, [
+            "ledgerName",
+            "partyLedger",
+            "partyName",
+            "name",
+            "displayName",
+          ]) || form.partyName,
 
-          ledgerType: getDisplayName(selectedParty, [
-            'ledgerType',
-            'ledger_type',
-            'type',
-          ]),
+        ledgerType: getDisplayName(selectedParty, [
+          "ledgerType",
+          "ledger_type",
+          "type",
+        ]),
 
-          date: form.date,
+        date: form.date,
 
-          transactionType: form.transactionType,
+        transactionType: form.transactionType,
 
-          ledger: form.ledger,
+        ledger: form.ledger,
 
-          amount,
-          advancedSettings,
-          ...advancedSettings,
+        amount,
+        advancedSettings,
+        ...advancedSettings,
 
-          narration: form.narration,
-        },
-      }
+        narration: form.narration,
+      },
+    };
 
     submitRequestRef.current = true
     setIsSubmitting(true)
@@ -633,7 +622,6 @@ function ReceiptPage({
 
   return (
     <div className="relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
-
       {showSuccessAnimation && (
         <div className="fixed right-4 top-20 z-[300] w-[calc(100%-2rem)] max-w-sm">
           <div
@@ -663,7 +651,6 @@ function ReceiptPage({
         onSubmit={handleSubmit}
         className="mx-auto max-w-[1280px] overflow-hidden border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.05)]"
       >
-
         {/* Header */}
         <div className="bg-emerald-700 px-5 py-4 text-[17px] font-bold text-white flex justify-center">
           Create {documentType}
@@ -691,9 +678,7 @@ function ReceiptPage({
         </div>
 
         <div className="bg-[#f5f7f4] p-5">
-
           <div className="grid gap-3 md:grid-cols-2">
-
             {/* Voucher Type */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Voucher Type</span>
@@ -717,39 +702,12 @@ function ReceiptPage({
                 step="1"
                 required
                 onChange={(event) =>
-                  updateField(
-                    'voucherNumber',
-                    event.target.value,
-                  )
+                  updateField("voucherNumber", event.target.value)
                 }
                 className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
                 placeholder="Voucher No"
               />
             </label>
-
-            {/* Party Name */}
-            {/* <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
-              <span>Party Name</span>
-
-              <SearchableDropdown
-                name="partyName"
-                label="parties"
-                options={partyOptions.map((party) =>
-                  getDisplayName(party, [
-                    'partyName',
-                    'name',
-                    'customerName',
-                    'ledgerName',
-                    'displayName',
-                  ]),
-                )}
-                placeholder="Select Party"
-                value={form.partyName}
-                onSelect={(value) => updateField('partyName', value)}
-                onClear={() => updateField('partyName', '')}
-                disabled={optionsLoading}
-              />
-            </label> */}
 
             {/* Date */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
@@ -760,12 +718,7 @@ function ReceiptPage({
                   type="date"
                   value={form.date}
                   required
-                  onChange={(event) =>
-                    updateField(
-                      'date',
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => updateField("date", event.target.value)}
                   className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                 />
 
@@ -775,61 +728,34 @@ function ReceiptPage({
               </div>
             </label>
 
-
             {/* Transaction Type */}
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Transaction Type</span>
-
               <select
                 name="transactionType"
                 value={form.transactionType}
-                required
+                onChange={(e) => updateField("transactionType", e.target.value)}
                 disabled={banksLoading}
-                onChange={(event) => updateField('transactionType', event.target.value)}
-                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:bg-slate-100"
               >
                 <option value="">
-                  {banksLoading ? 'Loading...' : 'Select transaction type'}
+                  {banksLoading ? "Loading banks..." : "Select Bank / Cash"}
                 </option>
-                <option value="CASH">Cash</option>
 
-                {companyBanks
-                  .map((bank) => ({
-                    bank,
-                    bankId:
-                      bank._id ??
-                      bank.id ??
-                      bank.bankId ??
-                      bank.accountId ??
-                      bank.bank_id,
-                  }))
-                  .filter(
-                    ({ bankId }) =>
-                      bankId !== undefined &&
-                      bankId !== null &&
-                      String(bankId).trim() !== '',
-                  )
-                  .map(({ bank, bankId }) => {
-                    const bankName =
-                      bank.bankName ??
-                      bank.name ??
-                      bank.accountName ??
-                      bank.accountHolderName ??
-                      'Bank Account'
+                <option value="CASH">CASH</option>
 
-                    const accountNumber =
-                      bank.accountNumber ??
-                      bank.accountNo ??
-                      bank.maskedAccountNumber
-
-                    return (
-                      <option key={String(bankId)} value={String(bankName)}>
-                        {accountNumber
-                          ? `${bankName} (${accountNumber})`
-                          : bankName}
-                      </option>
-                    )
-                  })}
+                {companyBanks.map((bank, index) => {
+                  const bankName = bank.name || bank.ledgerName || "";
+                  if (!bankName) return null;
+                  return (
+                    <option
+                      key={bank._id || bank.tallyExternalId || index}
+                      value={bankName}
+                    >
+                      {bankName}
+                    </option>
+                  );
+                })}
               </select>
             </label>
 
@@ -844,10 +770,10 @@ function ReceiptPage({
                 label="ledgers"
                 options={ledgerOptions.map((ledger) =>
                   getDisplayName(ledger, [
-                    'ledgerName',
-                    'name',
-                    'displayName',
-                    'partyName',
+                    "ledgerName",
+                    "name",
+                    "displayName",
+                    "partyName",
                   ]),
                 )}
                 infiniteScroll
@@ -857,11 +783,11 @@ function ReceiptPage({
                 onLoadMore={loadMoreLedgers}
                 placeholder="Select Party"
                 value={form.ledger}
-                onSelect={(value) => updateField('ledger', value)}
+                onSelect={(value) => updateField("ledger", value)}
                 onOptionSelect={fetchClosingBalance}
                 onClear={() => {
-                  updateField('ledger', '')
-                  resetClosingBalance()
+                  updateField("ledger", "");
+                  resetClosingBalance();
                 }}
                 disabled={optionsLoading}
               />
@@ -876,14 +802,14 @@ function ReceiptPage({
                 step="any"
                 value={closingBalance}
                 onChange={(event) => {
-                  closingBalanceEditedRef.current = true
-                  setClosingBalance(event.target.value)
+                  closingBalanceEditedRef.current = true;
+                  setClosingBalance(event.target.value);
                 }}
                 aria-describedby={
-                  closingBalanceError ? 'closing-balance-error' : undefined
+                  closingBalanceError ? "closing-balance-error" : undefined
                 }
                 placeholder={
-                  closingBalanceLoading ? 'Loading...' : 'Closing Balance'
+                  closingBalanceLoading ? "Loading..." : "Closing Balance"
                 }
                 className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
@@ -908,12 +834,7 @@ function ReceiptPage({
                 step="0.01"
                 value={form.amount}
                 required
-                onChange={(event) =>
-                  updateField(
-                    'amount',
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => updateField("amount", event.target.value)}
                 placeholder="Amount"
                 className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
@@ -925,17 +846,16 @@ function ReceiptPage({
               <details open className="group rounded-md bg-white">
                 <summary className="flex cursor-pointer list-none items-center justify-between border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-800">
                   Narration
-                  <span className="text-lg leading-none transition group-open:rotate-90">›</span>
+                  <span className="text-lg leading-none transition group-open:rotate-90">
+                    ›
+                  </span>
                 </summary>
 
                 <div className="relative p-3">
                   <textarea
                     value={form.narration}
                     onChange={(event) =>
-                      updateField(
-                        'narration',
-                        event.target.value,
-                      )
+                      updateField("narration", event.target.value)
                     }
                     placeholder="Enter narration"
                     className="min-h-[78px] w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
@@ -971,19 +891,16 @@ function ReceiptPage({
           {/* Error / Success */}
           {(submitMessage || submitError) && (
             <p
-              className={`mt-3 text-sm ${submitError
-                ? 'text-red-600'
-                : 'text-emerald-600'
-                }`}
+              className={`mt-3 text-sm ${
+                submitError ? "text-red-600" : "text-emerald-600"
+              }`}
             >
               {submitError || submitMessage}
             </p>
           )}
 
           {optionsError && (
-            <p className="mt-2 text-sm text-amber-600">
-              {optionsError}
-            </p>
+            <p className="mt-2 text-sm text-amber-600">{optionsError}</p>
           )}
         </div>
 
@@ -994,14 +911,12 @@ function ReceiptPage({
             disabled={isSubmitting}
             className="rounded-lg bg-[#1a1f24] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(24,33,43,0.2)] disabled:cursor-not-allowed disabled:opacity-60 hover:bg-slate-700"
           >
-            {isSubmitting
-              ? 'Create Voucher'
-              : `Create Voucher`}
+            {isSubmitting ? "Create Voucher" : `Create Voucher`}
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }
 
 export default ReceiptPage
