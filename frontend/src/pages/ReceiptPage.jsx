@@ -154,6 +154,8 @@ function ReceiptPage({
   const [submitError, setSubmitError] = useState('')
 
   const successTimerRef = useRef(null)
+  const submitCooldownTimerRef = useRef(null)
+  const submitRequestRef = useRef(false)
 
   const updateLedgerPage = (pageState) => {
     ledgerPageRef.current = pageState
@@ -330,6 +332,9 @@ function ReceiptPage({
       if (successTimerRef.current) {
         window.clearTimeout(successTimerRef.current)
       }
+      if (submitCooldownTimerRef.current) {
+        window.clearTimeout(submitCooldownTimerRef.current)
+      }
     }
   }, [])
 
@@ -376,9 +381,12 @@ function ReceiptPage({
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    if (submitRequestRef.current) return
+
+    const formElement = event.currentTarget
 
     const formValues = Object.fromEntries(
-      new FormData(event.currentTarget).entries(),
+      new FormData(formElement).entries(),
     )
     const advancedSettings = Object.fromEntries(
       advancedVoucherFieldNames.map((fieldName) => [
@@ -416,10 +424,7 @@ function ReceiptPage({
       return
     }
 
-    try {
-      setIsSubmitting(true)
-
-      await postCompanyCommand(accessToken, companyId, {
+    const command = {
         type: 'CREATE_VOUCHER',
 
         payload: {
@@ -454,29 +459,33 @@ function ReceiptPage({
 
           narration: form.narration,
         },
-      })
+      }
 
-      /*
-       * IMPORTANT:
-       * Reset the form ONLY after the API call succeeds.
-       * This means if Tally/API rejects the voucher,
-       * the entered data remains in the form.
-       */
+    submitRequestRef.current = true
+    setIsSubmitting(true)
+    submitCooldownTimerRef.current = window.setTimeout(() => {
+      setIsSubmitting(false)
+      submitCooldownTimerRef.current = null
+    }, 2000)
+
+    try {
+      formElement.reset()
       resetForm()
 
-      setSubmitMessage(``)
-      setShowSuccessAnimation(true)
+      setSubmitMessage('')
+      await postCompanyCommand(accessToken, companyId, command)
 
+      setShowSuccessAnimation(true)
       if (successTimerRef.current) {
         window.clearTimeout(successTimerRef.current)
       }
-
       successTimerRef.current = window.setTimeout(() => {
         setShowSuccessAnimation(false)
         setSubmitMessage('')
-      }, 1600)
+      }, 7000)
     } catch (error) {
       console.error(`${documentType} creation failed:`, error)
+      setShowSuccessAnimation(false)
 
       setSubmitError(
         error?.response?.data?.message ||
@@ -485,7 +494,7 @@ function ReceiptPage({
         `Unable to create ${documentType.toLowerCase()}.`,
       )
     } finally {
-      setIsSubmitting(false)
+      submitRequestRef.current = false
     }
   }
 
@@ -625,31 +634,30 @@ function ReceiptPage({
   return (
     <div className="relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
 
-      {/* Loading / Success Overlay */}
-      {(optionsLoading ||
-        isSubmitting ||
-        showSuccessAnimation) && (
-          <div className="absolute inset-x-0 bottom-0 top-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
-            <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
-
-              <div
-                className={`h-10 w-10 animate-spin rounded-full border-4 border-slate-200 ${showSuccessAnimation
-                  ? 'border-t-green-600'
-                  : 'border-t-[#1a1f24]'
-                  }`}
-                aria-hidden="true"
-              />
-
-              <span className="mt-3 text-sm font-semibold text-slate-700">
-                {isSubmitting
-                  ? 'Creating voucher...'
-                  : showSuccessAnimation
-                    ? 'Voucher created successfully!'
-                    : 'Loading ...'}
-              </span>
+      {showSuccessAnimation && (
+        <div className="fixed right-4 top-20 z-[300] w-[calc(100%-2rem)] max-w-sm">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-3 rounded-xl border border-green-200 bg-white px-4 py-3 shadow-xl"
+          >
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-lg font-bold text-green-600">
+              ✓
             </div>
+            <p className="text-sm font-semibold text-green-700">
+              Voucher created successfully, click view status
+            </p>
           </div>
-        )}
+        </div>
+      )}
+
+      {optionsLoading && (
+        <div className="absolute inset-x-0 bottom-0 top-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
+          <div className="rounded-xl border border-slate-200 bg-white/90 px-6 py-5 text-sm font-semibold text-slate-700 shadow-xl">
+            Loading...
+          </div>
+        </div>
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -987,7 +995,7 @@ function ReceiptPage({
             className="rounded-lg bg-[#1a1f24] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(24,33,43,0.2)] disabled:cursor-not-allowed disabled:opacity-60 hover:bg-slate-700"
           >
             {isSubmitting
-              ? 'Creating...'
+              ? 'Create Voucher'
               : `Create Voucher`}
           </button>
         </div>

@@ -36,23 +36,24 @@ const getRow = (id) => ({
   amount: '',
 })
 
-function PhysicalStockPage({ companyId }) {
-  const [rows, setRows] = useState([
-    getRow(1),
-  ])
+const getToday = () => new Date().toLocaleDateString('en-CA')
 
-  const [message, setMessage] = useState('')
+function PhysicalStockPage({ companyId }) {
+  const [rows, setRows] = useState([getRow(1)])
+
   const [stockItems, setStockItems] = useState([])
   const [godowns, setGodowns] = useState([])
   const [optionPages, setOptionPages] = useState({})
   const [optionsLoading, setOptionsLoading] = useState(false)
   const [optionsError, setOptionsError] = useState('')
   const [voucherNumber, setVoucherNumber] = useState('')
-  const [voucherDate, setVoucherDate] = useState('2026-08-27')
+  const [voucherDate, setVoucherDate] = useState(getToday)
   const [narration, setNarration] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
   const successTimerRef = useRef(null)
+  const submitCooldownTimerRef = useRef(null)
+  const submitRequestRef = useRef(false)
   const optionPagesRef = useRef({})
   const accessToken = useAuthStore((state) => state.accessToken)
 
@@ -115,6 +116,9 @@ function PhysicalStockPage({ companyId }) {
   useEffect(() => () => {
     if (successTimerRef.current) {
       window.clearTimeout(successTimerRef.current)
+    }
+    if (submitCooldownTimerRef.current) {
+      window.clearTimeout(submitCooldownTimerRef.current)
     }
   }, [])
 
@@ -247,6 +251,8 @@ const updateRow = (id, field, value) => {
   // ============================================================
 
   const createVoucher = async () => {
+    if (submitRequestRef.current) return
+
     if (!companyId || !accessToken) {
       setOptionsError('Select a company and sign in before creating a voucher.')
       return
@@ -292,22 +298,35 @@ const updateRow = (id, field, value) => {
       },
     }
 
-    setIsSubmitting(true)
     setOptionsError('')
     setShowSuccessAnimation(false)
+    submitRequestRef.current = true
+    setIsSubmitting(true)
+    submitCooldownTimerRef.current = window.setTimeout(() => {
+      setIsSubmitting(false)
+      submitCooldownTimerRef.current = null
+    }, 2000)
 
     try {
+      setRows([getRow(Date.now())])
+      setVoucherNumber('')
+      setVoucherDate(getToday())
+      setNarration('')
+
       await postCompanyCommand(accessToken, companyId, command)
-      setMessage('Physical Stock Voucher created successfully.')
-      setTimeout(() => setMessage(''), 3000)
+
       setShowSuccessAnimation(true)
+      if (successTimerRef.current) {
+        window.clearTimeout(successTimerRef.current)
+      }
       successTimerRef.current = window.setTimeout(() => {
         setShowSuccessAnimation(false)
-      }, 1600)
+      }, 7000)
     } catch (error) {
       setOptionsError(error?.message || 'Unable to create Physical Stock Voucher.')
+      setShowSuccessAnimation(false)
     } finally {
-      setIsSubmitting(false)
+      submitRequestRef.current = false
     }
   }
   // ====================== TOTALS ======================
@@ -316,23 +335,31 @@ const updateRow = (id, field, value) => {
   const totalAmount = rows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0)
   return (
     <div className="voucher-page-animate relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
-      {(optionsLoading || isSubmitting || showSuccessAnimation) && (
+      {showSuccessAnimation && (
+        <div className="fixed right-4 top-20 z-[300] w-[calc(100%-2rem)] max-w-sm">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-3 rounded-xl border border-green-200 bg-white px-4 py-3 shadow-xl"
+          >
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-lg font-bold text-green-600">
+              ✓
+            </div>
+            <p className="text-sm font-semibold text-green-700">
+              Physical Stock Voucher created successfully!
+            </p>
+          </div>
+        </div>
+      )}
+
+      {optionsLoading && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
           <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white/90 px-6 py-5 shadow-xl">
             <div
-              className={`h-10 w-10 rounded-full border-4 border-slate-200 ${showSuccessAnimation
-                ? 'border-t-green-600 animate-spin'
-                : 'border-t-[#1a1f24] animate-spin'
-                }`}
+              className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#1a1f24]"
               aria-hidden="true"
             />
-            <span className="mt-3 text-sm font-semibold text-slate-700">
-              {optionsLoading
-                ? 'Loading ...'
-                : isSubmitting
-                  ? 'Creating voucher...'
-                  : 'Voucher created successfully!'}
-            </span>
+            <span className="mt-3 text-sm font-semibold text-slate-700">Loading...</span>
           </div>
         </div>
       )}
