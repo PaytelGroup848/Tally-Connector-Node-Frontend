@@ -301,49 +301,54 @@ export function createVoucherSubmitHandler(options) {
 
       const command = {
         type: "CREATE_VOUCHER",
-        payload: isJournal
+        payload: isJournalStyleVoucher
           ? journalPayload
           : {
-            voucherType,
-            partyLedger: isContra ? "" : submittedPartyName || "",
-            ledgerType: values.ledgerType || "",
-            gstin: voucherType === "Delivery Note" || voucherType === "Receipt Note" ? "" : values.gstin || selectedGstin || "",
+              voucherType,
+              partyLedger: isContra ? "" : submittedPartyName || "",
+              ledgerType: values.ledgerType || "",
+              gstin:
+                voucherType === "Delivery Note" ||
+                voucherType === "Receipt Note"
+                  ? ""
+                  : values.gstin || selectedGstin || "",
               gstType:
-                voucherType === "Delivery Note" || voucherType === "Receipt Note"
+                voucherType === "Delivery Note" ||
+                voucherType === "Receipt Note"
                   ? ""
                   : isSameState === null
                     ? ""
                     : isSameState
                       ? "CGST_SGST"
                       : "IGST",
-            date: values.date || "",
-            voucherNumber: values.voucherNumber || "",
-            items,
-            ledgers: ledgerTotals.entries.map((row) => ({
-              ledgerName: row.ledgerName,
-              category: row.category,
-              calculationType: row.calculationType,
-              value: Number(row.value) || 0,
-              effect: row.effect,
-              amount: Number(row.amount.toFixed(2)),
-            })),
-            subTotal: Number(subtotal.toFixed(2)),
-            taxes: Number(ledgerTotals.taxes.toFixed(2)),
-            otherLedgerAmount: Number(ledgerTotals.otherLedgers.toFixed(2)),
-            grandTotal: Number(ledgerTotals.grandTotal.toFixed(2)),
-            narration: values.narration || "",
-            referenceNumber: values.referenceNumber || "",
-            referenceDate: values.referenceDate || "",
-            orderType: values.orderType || "",
-            orderNumber: values.orderNumber || "",
-            orderDate: values.orderDate || "",
-            reasonForReturn: values.reasonForReturn || "",
-            advancedSettings,
-            ...advancedSettings,
-            ...(isReceiptDeliveryNote && {
+              date: values.date || "",
+              voucherNumber: values.voucherNumber || "",
+              items,
+              ledgers: ledgerTotals.entries.map((row) => ({
+                ledgerName: row.ledgerName,
+                category: row.category,
+                calculationType: row.calculationType,
+                value: Number(row.value) || 0,
+                effect: row.effect,
+                amount: Number(row.amount.toFixed(2)),
+              })),
+              subTotal: Number(subtotal.toFixed(2)),
+              taxes: Number(ledgerTotals.taxes.toFixed(2)),
+              otherLedgerAmount: Number(ledgerTotals.otherLedgers.toFixed(2)),
+              grandTotal: Number(ledgerTotals.grandTotal.toFixed(2)),
+              narration: values.narration || "",
+              referenceNumber: values.referenceNumber || "",
+              referenceDate: values.referenceDate || "",
+              orderType: values.orderType || "",
+              orderNumber: values.orderNumber || "",
               orderDate: values.orderDate || "",
-            }),
-          },
+              reasonForReturn: values.reasonForReturn || "",
+              advancedSettings,
+              ...advancedSettings,
+              ...(isReceiptDeliveryNote && {
+                orderDate: values.orderDate || "",
+              }),
+            },
       };
 
       const commandResponse = isReceiptDeliveryNote
