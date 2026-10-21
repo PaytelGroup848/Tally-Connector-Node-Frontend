@@ -330,7 +330,7 @@ const CompanyLogo = ({ src, name, size = "h-28 w-28", iconSize = 44 }) =>
     </div>
   );
 
-const SettingsPage = () => {
+const SettingsPage = ({ navigateTo }) => {
   const [companies, setCompanies] = useState([]);
   const [companiesLoading, setCompaniesLoading] = useState(false);
   const [companiesError, setCompaniesError] = useState("");
@@ -1101,7 +1101,21 @@ const SettingsPage = () => {
             </header>
 
             <div className="space-y-4 overflow-y-auto p-5">
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const companyId = banksCompanyId;
+                    const companyName = bankModalCompany?.name || "";
+                    closeBankModal();
+                    navigateTo(
+                      `/bank-status?companyId=${encodeURIComponent(companyId || "")}&companyName=${encodeURIComponent(companyName)}`,
+                    );
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                >
+                  View Bank Status
+                </button>
                 <button
                   type="button"
                   onClick={() => {

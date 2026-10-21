@@ -10,6 +10,7 @@ import DownloadInvoicePage from "../DownloadInvoicePage";
 import GstSearchPage from "../GstSearchPage";
 import ItemsPage from "../ItemsPage";
 import SettingsPage from "../SettingsPage";
+import ViewBankStatusPage from "../../components/ViewBankStatusPage";
 import CreateItemPage from "../CreateItemPage";
 import CreatePartyPage from "../CreatePartyPage";
 import MyEntryListPage from "../MyEntryListPage";
@@ -48,6 +49,19 @@ export default function PageRenderer({
   showEway,
 }) {
   const renderPage = () => {
+    if (currentPath === "/bank-status") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const companyName = searchParams.get("companyName") || "";
+
+      return (
+        <ViewBankStatusPage
+          companyId={searchParams.get("companyId")}
+          companyName={companyName}
+          onClose={() => navigateTo("/settings")}
+        />
+      );
+    }
+
     const dashboardRoute = renderDashboardRoute({
       flags,
       currentPath,
@@ -120,6 +134,7 @@ export default function PageRenderer({
           selectedCompany={
             selectedCompany
           }
+          navigateTo={navigateTo}
         />
       );
     }
