@@ -31,6 +31,8 @@ import {
   uploadCompanySignature,
   deleteCompanySignature,
 } from "../services/CompanyDetailsAndBanksApi";
+
+import { fetchCompanyBank, extractBank } from "../services/companiesApi";
 import {
   extractCompanies,
   fetchCompanies,
@@ -653,12 +655,67 @@ const SettingsPage = ({ navigateTo }) => {
 
     const requestId = ++banksRequestRef.current;
     setBanksLoading(true);
+
     try {
-      const response = await fetchCompanyBanks(accessToken, company.id);
+      // 👇 Dono API parallel fetch karo
+      const [tallyRes, appRes] = await Promise.allSettled([
+        fetchCompanyBank(accessToken, company.id, {
+          page: 1,
+          limit: 100,
+          q: "",
+        }),
+        fetchCompanyBanks(accessToken, company.id),
+      ]);
+
       if (requestId !== banksRequestRef.current) return;
-      const banks = extractBankList(response);
-      setCompanyBanks(banks);
-      setBankUnderOptions(extractUnderOptions(response, banks));
+
+      // Tally banks
+      const tallyBanks =
+        tallyRes.status === "fulfilled" ? extractBank(tallyRes.value) : [];
+
+      // App banks (jisme isDefault hota hai)
+      const appBanks =
+        appRes.status === "fulfilled" ? extractBankList(appRes.value) : [];
+
+      const mergedBanks = tallyBanks.map((tallyBank) => {
+        const details = tallyBank.bankDetails || {};
+        const matchedAppBank = appBanks.find((appBank) => {
+          // Match karo: accountNumber + ifscCode
+          const sameAccount =
+            String(appBank.accountNumber || "").trim() ===
+            String(details.accountNumber || "").trim();
+          const sameIfsc =
+            String(appBank.ifscCode || "")
+              .toUpperCase()
+              .trim() ===
+            String(details.ifscCode || "")
+              .toUpperCase()
+              .trim();
+          const sameBankName =
+            String(appBank.bankName || "")
+              .toLowerCase()
+              .trim() ===
+            String(tallyBank.name || "")
+              .toLowerCase()
+              .trim();
+
+          return (sameAccount && sameIfsc) || sameBankName;
+        });
+
+        return {
+          ...tallyBank,
+          // App ka _id (set default / delete ke liye)
+          appBankId: matchedAppBank?._id || null,
+          isDefault: Boolean(matchedAppBank?.isDefault),
+        };
+      });
+
+      setCompanyBanks(mergedBanks);
+
+      const underOptions = [
+        ...new Set(mergedBanks.map((b) => b.parent || b.group).filter(Boolean)),
+      ];
+      setBankUnderOptions(underOptions);
     } catch (error) {
       if (requestId !== banksRequestRef.current) return;
       setBanksError(error?.message || "Unable to load bank details.");
@@ -666,7 +723,6 @@ const SettingsPage = ({ navigateTo }) => {
       if (requestId === banksRequestRef.current) setBanksLoading(false);
     }
   };
-
   const closeBankModal = () => {
     banksRequestRef.current += 1;
     setActiveCard(null);
@@ -698,10 +754,8 @@ const SettingsPage = ({ navigateTo }) => {
               key !== "isDefault" && value !== bankEditOriginal?.[key],
           ),
         );
-        const shouldSetDefault =
-          bankForm.isDefault && !bankEditOriginal?.isDefault;
 
-        if (Object.keys(updates).length === 0 && !shouldSetDefault) {
+        if (Object.keys(updates).length === 0) {
           setBankFormOpen(false);
           setEditingBankId(null);
           setBankEditOriginal(null);
@@ -709,57 +763,51 @@ const SettingsPage = ({ navigateTo }) => {
           return;
         }
 
-        if (Object.keys(updates).length > 0) {
-          apiResponse = await updateCompanyBank(
-            accessToken,
-            banksCompanyId,
-            editingBankId,
-            updates,
-          );
-        }
-        if (shouldSetDefault) {
-          await setDefaultCompanyBank(
-            accessToken,
-            banksCompanyId,
-            editingBankId,
-          );
-        }
-      } else {
-        apiResponse = await createCompanyBank(
-          accessToken,
-          banksCompanyId,
-          bankForm,
+        setBankSaveError(
+          "Editing Tally-synced banks is not supported yet. Please contact support.",
         );
+        setBankSaving(false);
+        return;
       }
+
+      apiResponse = await createCompanyBank(
+        accessToken,
+        banksCompanyId,
+        bankForm,
+      );
 
       if (requestId !== banksRequestRef.current) return;
 
-      // 👇 Tally Sync Check
-      // Backend response check karo ki Tally sync successfully hua ya nahi
+      // Tally sync check
       const responseData = apiResponse?.data || apiResponse;
       if (responseData?.tallySynced === false) {
         setBankSaveError(
-          "Bank saved in app, but failed to sync with Tally. Please check your Tally connection or try again.",
+          "Bank saved, but failed to sync with Tally. It may not appear in the list yet.",
         );
-        // Optional: Alert bhi dikha sakte ho
-        // alert("Bank saved locally, but Tally sync failed.");
       }
 
-      const response = await fetchCompanyBanks(accessToken, banksCompanyId);
+      const response = await fetchCompanyBank(accessToken, banksCompanyId, {
+        page: 1,
+        limit: 100,
+        q: "",
+      });
       if (requestId !== banksRequestRef.current) return;
 
-      const banks = extractBankList(response);
+      const banks = extractBank(response);
       setCompanyBanks(banks);
-      setBankUnderOptions(extractUnderOptions(response, banks));
+
+      const underOptions = [
+        ...new Set(banks.map((b) => b.parent || b.group).filter(Boolean)),
+      ];
+      setBankUnderOptions(underOptions);
+
       setBankForm(EMPTY_BANK_FORM);
       setEditingBankId(null);
       setBankEditOriginal(null);
       setBankFormOpen(false);
     } catch (error) {
       if (requestId !== banksRequestRef.current) return;
-
       const errorMessage = error?.message || "Unable to save bank details.";
-
       if (errorMessage.toLowerCase().includes("tally")) {
         setBankSaveError(`Tally Sync Error: ${errorMessage}`);
       } else {
@@ -771,28 +819,75 @@ const SettingsPage = ({ navigateTo }) => {
   };
 
   const handleBankAction = async (bank, action) => {
-    const bankId = bank.id || bank._id || bank.bankId || bank.bank_id;
+    // App bank ka _id use karo (Tally ka nahi)
+    const bankId = bank.appBankId;
+
     if (!banksCompanyId || !bankId || !accessToken) {
-      setBankActionError("Bank ID is missing; unable to update this bank.");
+      setBankActionError(
+        "This bank is not linked to your account yet. Please refresh or add it manually.",
+      );
       return;
     }
 
     const requestId = banksRequestRef.current;
     setBankActionBusyId(bankId);
     setBankActionError("");
+
     try {
       if (action === "default") {
         await setDefaultCompanyBank(accessToken, banksCompanyId, bankId);
-      } else {
-        await deleteCompanyBank(accessToken, banksCompanyId, bankId);
       }
 
       if (requestId !== banksRequestRef.current) return;
-      const response = await fetchCompanyBanks(accessToken, banksCompanyId);
+
+      // Wapas dono fetch + merge
+      const [tallyRes, appRes] = await Promise.allSettled([
+        fetchCompanyBank(accessToken, banksCompanyId, {
+          page: 1,
+          limit: 100,
+          q: "",
+        }),
+        fetchCompanyBanks(accessToken, banksCompanyId),
+      ]);
+
       if (requestId !== banksRequestRef.current) return;
-      const banks = extractBankList(response);
-      setCompanyBanks(banks);
-      setBankUnderOptions(extractUnderOptions(response, banks));
+
+      const tallyBanks =
+        tallyRes.status === "fulfilled" ? extractBank(tallyRes.value) : [];
+      const appBanks =
+        appRes.status === "fulfilled" ? extractBankList(appRes.value) : [];
+
+      const mergedBanks = tallyBanks.map((tallyBank) => {
+        const details = tallyBank.bankDetails || {};
+        const matchedAppBank = appBanks.find((appBank) => {
+          const sameAccount =
+            String(appBank.accountNumber || "").trim() ===
+            String(details.accountNumber || "").trim();
+          const sameIfsc =
+            String(appBank.ifscCode || "")
+              .toUpperCase()
+              .trim() ===
+            String(details.ifscCode || "")
+              .toUpperCase()
+              .trim();
+          const sameBankName =
+            String(appBank.bankName || "")
+              .toLowerCase()
+              .trim() ===
+            String(tallyBank.name || "")
+              .toLowerCase()
+              .trim();
+          return (sameAccount && sameIfsc) || sameBankName;
+        });
+
+        return {
+          ...tallyBank,
+          appBankId: matchedAppBank?._id || null,
+          isDefault: Boolean(matchedAppBank?.isDefault),
+        };
+      });
+
+      setCompanyBanks(mergedBanks);
     } catch (error) {
       if (requestId !== banksRequestRef.current) return;
       setBankActionError(error?.message || "Unable to update bank details.");
@@ -801,7 +896,6 @@ const SettingsPage = ({ navigateTo }) => {
     }
   };
 
-  // Sections displayed inside each company card
   const sections = [
     {
       id: "settings",
@@ -1061,106 +1155,112 @@ const SettingsPage = ({ navigateTo }) => {
                     No bank accounts found.
                   </div>
                 )}
-              {companyBanks.map((bank, bankIndex) => (
-                <div
-                  key={bank.id || bank._id || bank.accountNumber || bankIndex}
-                  className="rounded-xl border border-slate-200 p-4"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <h3 className="font-semibold text-slate-900">
-                      {bank.bankName || "Bank"}
-                    </h3>
-                    {bank.isDefault && (
-                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                        Default
-                      </span>
-                    )}
-                  </div>
-                  <dl className="mt-3 grid grid-cols-1 gap-x-5 gap-y-2 text-sm sm:grid-cols-2">
-                    {[
-                      ["Account Holder", bank.accountHolderName],
-                      ["Account Number", bank.accountNumber],
-                      ["Under", bank.under],
-                      ["IFSC Code", bank.ifscCode],
-                      ["SWIFT Code", bank.swiftCode],
-                      ["Branch", bank.branchName],
-                    ].map(([label, value]) => (
-                      <div key={label}>
-                        <dt className="text-xs text-slate-500">{label}</dt>
-                        <dd className="break-words font-medium text-slate-800">
-                          {value || "—"}
-                        </dd>
+              {companyBanks.map((bank, bankIndex) => {
+                const details = bank.bankDetails || {};
+                const bankName =
+                  bank.name || bank.bankName || details.bankName || "Bank";
+                const under = bank.parent || bank.group || "Bank Accounts";
+
+                return (
+                  <div
+                    key={bank._id || bank.tallyExternalId || bankIndex}
+                    className="rounded-xl border border-slate-200 p-4"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <h3 className="font-semibold text-slate-900">
+                        {bankName}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {bank.isDefault && (
+                          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                            Default
+                          </span>
+                        )}
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                          {under}
+                        </span>
                       </div>
-                    ))}
-                  </dl>
-                  <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
-                    <button
-                      type="button"
-                      disabled={Boolean(bankActionBusyId)}
-                      onClick={() => {
-                        const bankId =
-                          bank.id || bank._id || bank.bankId || bank.bank_id;
-                        if (!bankId) {
-                          setBankActionError(
-                            "Bank ID is missing; unable to edit this bank.",
-                          );
-                          return;
-                        }
-                        setBankForm({
-                          bankName: bank.bankName || "",
-                          under: bank.under || "",
-                          accountHolderName: bank.accountHolderName || "",
-                          accountNumber: bank.accountNumber || "",
-                          ifscCode: bank.ifscCode || "",
-                          swiftCode: bank.swiftCode || "",
-                          branchName: bank.branchName || "",
-                          isDefault: Boolean(bank.isDefault),
-                        });
-                        setBankEditOriginal({
-                          bankName: bank.bankName || "",
-                          under: bank.under || "",
-                          accountHolderName: bank.accountHolderName || "",
-                          accountNumber: bank.accountNumber || "",
-                          ifscCode: bank.ifscCode || "",
-                          swiftCode: bank.swiftCode || "",
-                          branchName: bank.branchName || "",
-                          isDefault: Boolean(bank.isDefault),
-                        });
-                        setEditingBankId(bankId);
-                        setBankSaveError("");
-                        setBankFormOpen(true);
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
-                    >
-                      <Pencil size={14} />
-                      Edit
-                    </button>
-                    {!bank.isDefault && (
+                    </div>
+                    <dl className="mt-3 grid grid-cols-1 gap-x-5 gap-y-2 text-sm sm:grid-cols-2">
+                      {[
+                        [
+                          "Account Holder",
+                          details.accountHolderName || bank.accountHolderName,
+                        ],
+                        [
+                          "Account Number",
+                          details.accountNumber || bank.accountNumber,
+                        ],
+                        ["IFSC Code", details.ifscCode || bank.ifscCode],
+                        ["SWIFT Code", details.swiftCode || bank.swiftCode],
+                        ["Branch", details.branchName || bank.branchName],
+                        [
+                          "Closing Balance",
+                          bank.closingBalance != null
+                            ? `₹${Number(bank.closingBalance).toLocaleString("en-IN")}`
+                            : null,
+                        ],
+                      ].map(([label, value]) => (
+                        <div key={label}>
+                          <dt className="text-xs text-slate-500">{label}</dt>
+                          <dd className="break-words font-medium text-slate-800">
+                            {value || "—"}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                    <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
+                      {bank.appBankId && !bank.isDefault && (
+                        <button
+                          type="button"
+                          disabled={Boolean(bankActionBusyId)}
+                          onClick={() => handleBankAction(bank, "default")}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-50 disabled:opacity-50"
+                        >
+                          <Star size={14} />
+                          {bankActionBusyId === bank.appBankId
+                            ? "Setting..."
+                            : "Set Default"}
+                        </button>
+                      )}
                       <button
                         type="button"
                         disabled={Boolean(bankActionBusyId)}
-                        onClick={() => handleBankAction(bank, "default")}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-50 disabled:opacity-50"
+                        onClick={() => {
+                          const bankId = bank._id || bank.tallyExternalId;
+                          setBankForm({
+                            bankName: bankName,
+                            under: under,
+                            accountHolderName: details.accountHolderName || "",
+                            accountNumber: details.accountNumber || "",
+                            ifscCode: details.ifscCode || "",
+                            swiftCode: details.swiftCode || "",
+                            branchName: details.branchName || "",
+                            isDefault: false,
+                          });
+                          setBankEditOriginal({
+                            bankName: bankName,
+                            under: under,
+                            accountHolderName: details.accountHolderName || "",
+                            accountNumber: details.accountNumber || "",
+                            ifscCode: details.ifscCode || "",
+                            swiftCode: details.swiftCode || "",
+                            branchName: details.branchName || "",
+                            isDefault: false,
+                          });
+                          setEditingBankId(bankId);
+                          setBankSaveError("");
+                          setBankFormOpen(true);
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
                       >
-                        <Star size={14} />
-                        Set Default
+                        <Pencil size={14} />
+                        Edit
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      disabled={Boolean(bankActionBusyId)}
-                      onClick={() => handleBankAction(bank, "delete")}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
-                    >
-                      <Trash2 size={14} />
-                      {bankActionBusyId ===
-                      (bank.id || bank._id || bank.bankId || bank.bank_id)
-                        ? "Working..."
-                        : "Delete"}
-                    </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {bankFormOpen && (
                 <div
