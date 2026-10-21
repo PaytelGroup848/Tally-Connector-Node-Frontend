@@ -1,95 +1,97 @@
-import { useEffect, useRef, useState } from 'react'
-import { SearchableDropdown } from './DocumentVoucherPage'
-import useAuthStore from '../store/authStore'
-import { Eye } from 'lucide-react'
+import { useEffect, useRef, useState } from "react";
+import { SearchableDropdown } from "./DocumentVoucherPage";
+import useAuthStore from "../store/authStore";
+import { Eye } from "lucide-react";
 import {
   extractGodowns,
   extractStockItems,
   postCompanyCommand,
   fetchCompanyGodowns,
   fetchCompanyStock,
-} from '../services/companiesApi'
+} from "../services/companiesApi";
 
 const getDisplayValue = (entry, keys) => {
-  if (typeof entry === 'string') return entry
+  if (typeof entry === "string") return entry;
 
   for (const key of keys) {
     if (entry?.[key] !== undefined && entry?.[key] !== null) {
-      const value = String(entry[key]).trim()
-      if (value) return value
+      const value = String(entry[key]).trim();
+      if (value) return value;
     }
   }
 
-  return ''
-}
+  return "";
+};
 
-const DROPDOWN_PAGE_SIZE = 20
+const DROPDOWN_PAGE_SIZE = 20;
 
 const getRow = (id) => ({
   id,
-  item: '',
-  qty: '',
-  godown: '',
-  batch: '',
-  mfgDate: '',
-  expDate: '',
-  amount: '',
-})
+  item: "",
+  qty: "",
+  godown: "",
+  batch: "",
+  mfgDate: "",
+  expDate: "",
+  amount: "",
+});
 
-const getToday = () => new Date().toLocaleDateString('en-CA')
+const getToday = () => new Date().toLocaleDateString("en-CA");
 
 function PhysicalStockPage({ companyId }) {
-  const [rows, setRows] = useState([getRow(1)])
+  const [rows, setRows] = useState([getRow(1)]);
 
-  const [stockItems, setStockItems] = useState([])
-  const [godowns, setGodowns] = useState([])
-  const [optionPages, setOptionPages] = useState({})
-  const [optionsLoading, setOptionsLoading] = useState(false)
-  const [optionsError, setOptionsError] = useState('')
-  const [voucherNumber, setVoucherNumber] = useState('')
-  const [voucherDate, setVoucherDate] = useState(getToday)
-  const [narration, setNarration] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false)
-  const successTimerRef = useRef(null)
-  const submitCooldownTimerRef = useRef(null)
-  const submitRequestRef = useRef(false)
-  const optionPagesRef = useRef({})
-  const accessToken = useAuthStore((state) => state.accessToken)
+  const [stockItems, setStockItems] = useState([]);
+  const [godowns, setGodowns] = useState([]);
+  const [optionPages, setOptionPages] = useState({});
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsError, setOptionsError] = useState("");
+  const [voucherNumber, setVoucherNumber] = useState("");
+  const [voucherDate, setVoucherDate] = useState(getToday);
+  const [narration, setNarration] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const successTimerRef = useRef(null);
+  const submitCooldownTimerRef = useRef(null);
+  const submitRequestRef = useRef(false);
+  const optionPagesRef = useRef({});
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   const updateOptionPage = (source, pageState) => {
-    const nextPages = { ...optionPagesRef.current, [source]: pageState }
-    optionPagesRef.current = nextPages
-    setOptionPages(nextPages)
-  }
+    const nextPages = { ...optionPagesRef.current, [source]: pageState };
+    optionPagesRef.current = nextPages;
+    setOptionPages(nextPages);
+  };
 
   const loadMoreOptions = async (source) => {
-    const currentPage = optionPagesRef.current[source]
-    if (!currentPage?.hasMore || currentPage.loading) return
+    const currentPage = optionPagesRef.current[source];
+    if (!currentPage?.hasMore || currentPage.loading) return;
 
-    updateOptionPage(source, { ...currentPage, loading: true, error: '' })
+    updateOptionPage(source, { ...currentPage, loading: true, error: "" });
 
     try {
       const response =
-        source === 'stock'
+        source === "stock"
           ? await fetchCompanyStock(accessToken, companyId, {
-            page: currentPage.nextPage,
-            limit: DROPDOWN_PAGE_SIZE,
-          })
+              page: currentPage.nextPage,
+              limit: DROPDOWN_PAGE_SIZE,
+            })
           : await fetchCompanyGodowns(accessToken, companyId, {
-            page: currentPage.nextPage,
-            limit: DROPDOWN_PAGE_SIZE,
-          })
+              page: currentPage.nextPage,
+              limit: DROPDOWN_PAGE_SIZE,
+            });
       const items =
-        source === 'stock' ? extractStockItems(response) : extractGodowns(response)
-      const setItems = source === 'stock' ? setStockItems : setGodowns
-      setItems((existingItems) => [...existingItems, ...items])
+        source === "stock"
+          ? extractStockItems(response)
+          : extractGodowns(response);
+      const setItems = source === "stock" ? setStockItems : setGodowns;
+      setItems((existingItems) => [...existingItems, ...items]);
       updateOptionPage(source, {
         nextPage: currentPage.nextPage + 1,
         hasMore: items.length >= DROPDOWN_PAGE_SIZE,
         loading: false,
-        error: '',
-      })
+        error: "",
+      });
     } catch (error) {
       updateOptionPage(source, {
         ...currentPage,
@@ -97,45 +99,48 @@ function PhysicalStockPage({ companyId }) {
         error:
           error instanceof Error
             ? error.message
-            : 'Unable to load more options.',
-      })
+            : "Unable to load more options.",
+      });
     }
-  }
+  };
 
   const getPaginationProps = (source) => {
-    const pageState = optionPages[source]
+    const pageState = optionPages[source];
     return {
       infiniteScroll: true,
       hasMoreOptions: pageState?.hasMore || false,
       loadingMore: pageState?.loading || false,
-      loadMoreError: pageState?.error || '',
+      loadMoreError: pageState?.error || "",
       onLoadMore: () => loadMoreOptions(source),
-    }
-  }
+    };
+  };
 
-  useEffect(() => () => {
-    if (successTimerRef.current) {
-      window.clearTimeout(successTimerRef.current)
-    }
-    if (submitCooldownTimerRef.current) {
-      window.clearTimeout(submitCooldownTimerRef.current)
-    }
-  }, [])
+  useEffect(
+    () => () => {
+      if (successTimerRef.current) {
+        window.clearTimeout(successTimerRef.current);
+      }
+      if (submitCooldownTimerRef.current) {
+        window.clearTimeout(submitCooldownTimerRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!companyId || !accessToken) {
-      setStockItems([])
-      setGodowns([])
-      optionPagesRef.current = {}
-      setOptionPages({})
-      return undefined
+      setStockItems([]);
+      setGodowns([]);
+      optionPagesRef.current = {};
+      setOptionPages({});
+      return undefined;
     }
 
-    let mounted = true
-    optionPagesRef.current = {}
-    setOptionPages({})
-    setOptionsLoading(true)
-    setOptionsError('')
+    let mounted = true;
+    optionPagesRef.current = {};
+    setOptionPages({});
+    setOptionsLoading(true);
+    setOptionsError("");
 
     Promise.allSettled([
       fetchCompanyStock(accessToken, companyId, {
@@ -148,114 +153,122 @@ function PhysicalStockPage({ companyId }) {
       }),
     ])
       .then(([stockResult, godownsResult]) => {
-        if (!mounted) return
+        if (!mounted) return;
 
-        if (stockResult.status === 'fulfilled') {
-          const stockPage = extractStockItems(stockResult.value)
-          setStockItems(stockPage)
-          updateOptionPage('stock', {
+        if (stockResult.status === "fulfilled") {
+          const stockPage = extractStockItems(stockResult.value);
+          setStockItems(stockPage);
+          updateOptionPage("stock", {
             nextPage: 2,
             hasMore: stockPage.length >= DROPDOWN_PAGE_SIZE,
             loading: false,
-            error: '',
-          })
+            error: "",
+          });
         } else {
-          setStockItems([])
-          setOptionsError(stockResult.reason?.message || 'Unable to load stock items.')
+          setStockItems([]);
+          setOptionsError(
+            stockResult.reason?.message || "Unable to load stock items.",
+          );
         }
 
-        if (godownsResult.status === 'fulfilled') {
-          const godownPage = extractGodowns(godownsResult.value)
-          setGodowns(godownPage)
-          updateOptionPage('godowns', {
+        if (godownsResult.status === "fulfilled") {
+          const godownPage = extractGodowns(godownsResult.value);
+          setGodowns(godownPage);
+          updateOptionPage("godowns", {
             nextPage: 2,
             hasMore: godownPage.length >= DROPDOWN_PAGE_SIZE,
             loading: false,
-            error: '',
-          })
+            error: "",
+          });
         } else {
-          setGodowns([])
-          setOptionsError((current) => current || godownsResult.reason?.message || 'Unable to load godowns.')
+          setGodowns([]);
+          setOptionsError(
+            (current) =>
+              current ||
+              godownsResult.reason?.message ||
+              "Unable to load godowns.",
+          );
         }
       })
       .finally(() => {
-        if (mounted) setOptionsLoading(false)
-      })
+        if (mounted) setOptionsLoading(false);
+      });
 
     return () => {
-      mounted = false
-    }
-  }, [accessToken, companyId])
+      mounted = false;
+    };
+  }, [accessToken, companyId]);
 
   const itemOptions = stockItems
-    .map((item) => getDisplayValue(item, [
-      'itemName',
-      'item_name',
-      'stockName',
-      'stock_name',
-      'stockItemName',
-      'stock_item_name',
-      'item',
-      'name',
-      'displayName',
-    ]))
-    .filter((value, index, values) => value && values.indexOf(value) === index)
+    .map((item) =>
+      getDisplayValue(item, [
+        "itemName",
+        "item_name",
+        "stockName",
+        "stock_name",
+        "stockItemName",
+        "stock_item_name",
+        "item",
+        "name",
+        "displayName",
+      ]),
+    )
+    .filter((value, index, values) => value && values.indexOf(value) === index);
 
   const godownOptions = godowns
-    .map((godown) => getDisplayValue(godown, [
-      'godownName',
-      'godown_name',
-      'name',
-      'warehouse',
-      'location',
-      'displayName',
-    ]))
-    .filter((value, index, values) => value && values.indexOf(value) === index)
+    .map((godown) =>
+      getDisplayValue(godown, [
+        "godownName",
+        "godown_name",
+        "name",
+        "warehouse",
+        "location",
+        "displayName",
+      ]),
+    )
+    .filter((value, index, values) => value && values.indexOf(value) === index);
 
   // ============================================================
   // ADD ITEM
   // ============================================================
 
   const addItem = () => {
-    setRows((current) => [
-      ...current,
-      getRow(Date.now()),
-    ])
-  }
+    setRows((current) => [...current, getRow(Date.now())]);
+  };
 
   // ============================================================
   // REMOVE ITEM
   // ============================================================
 
   const removeItem = (id) => {
+    setRows((current) => current.filter((row) => row.id !== id));
+  };
+
+  const updateRow = (id, field, value) => {
     setRows((current) =>
-      current.filter((row) => row.id !== id)
-    )
-  }
+      current.map((row) => {
+        if (row.id !== id) return row;
 
-const updateRow = (id, field, value) => {
-  setRows((current) =>
-    current.map((row) => {
-      if (row.id !== id) return row
-
-      return {
-        ...row,
-        [field]: value,
-      }
-    })
-  )
-}
+        return {
+          ...row,
+          [field]: value,
+        };
+      }),
+    );
+  };
 
   // ============================================================
   // CREATE VOUCHER
   // ============================================================
 
   const createVoucher = async () => {
-    if (submitRequestRef.current) return
+    if (submitRequestRef.current) return;
 
     if (!companyId || !accessToken) {
-      setOptionsError('Select a company and sign in before creating a voucher.')
-      return
+      setOptionsError(
+        "Select a company and sign in before creating a voucher.",
+      );
+      return;
     }
 
     // if (!voucherNumber.trim()) {
@@ -264,75 +277,88 @@ const updateRow = (id, field, value) => {
     // }
 
     if (!voucherDate || Number.isNaN(Date.parse(voucherDate))) {
-      setOptionsError('Enter a valid voucher date.')
-      return
+      setOptionsError("Enter a valid voucher date.");
+      return;
     }
 
     const invalidRow = rows.find((row) => {
-      const quantity = Number(row.qty)
-      const amount = Number(row.amount || 0)
-      return !row.item.trim() || !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(amount) || amount < 0
-    })
+      const quantity = Number(row.qty);
+      const amount = Number(row.amount || 0);
+      return (
+        !row.item.trim() ||
+        !Number.isFinite(quantity) ||
+        quantity <= 0 ||
+        !Number.isFinite(amount) ||
+        amount < 0
+      );
+    });
 
     if (invalidRow) {
-      setOptionsError('Complete each item with an item name, quantity greater than 0, and a valid amount.')
-      return
+      setOptionsError(
+        "Complete each item with an item name, quantity greater than 0, and a valid amount.",
+      );
+      return;
     }
 
     const command = {
-      type: 'CREATE_VOUCHER',
+      type: "CREATE_VOUCHER",
       payload: {
-        voucherType: 'Physical Stock',
+        voucherType: "Physical Stock",
         voucherNumber,
         date: voucherDate,
         items: rows.map((row) => ({
-          itemName: row.item || '',
+          itemName: row.item || "",
           quantity: Number(row.qty) || 0,
-          godown: row.godown || '',
-          batchNo: row.batch || '',
-          manufacturingDate: row.mfgDate || '',
-          expiryDate: row.expDate || '',
+          godown: row.godown || "",
+          batchNo: row.batch || "",
+          manufacturingDate: row.mfgDate || "",
+          expiryDate: row.expDate || "",
           amount: Number(row.amount) || 0,
         })),
         narration,
       },
-    }
+    };
 
-    setOptionsError('')
-    setShowSuccessAnimation(false)
-    submitRequestRef.current = true
-    setIsSubmitting(true)
+    setOptionsError("");
+    setShowSuccessAnimation(false);
+    submitRequestRef.current = true;
+    setIsSubmitting(true);
     submitCooldownTimerRef.current = window.setTimeout(() => {
-      setIsSubmitting(false)
-      submitCooldownTimerRef.current = null
-    }, 2000)
+      setIsSubmitting(false);
+      submitCooldownTimerRef.current = null;
+    }, 2000);
 
     try {
-      setRows([getRow(Date.now())])
-      setVoucherNumber('')
-      setVoucherDate(getToday())
-      setNarration('')
+      setRows([getRow(Date.now())]);
+      setVoucherNumber("");
+      setVoucherDate(getToday());
+      setNarration("");
 
-      await postCompanyCommand(accessToken, companyId, command)
+      await postCompanyCommand(accessToken, companyId, command);
 
-      setShowSuccessAnimation(true)
+      setShowSuccessAnimation(true);
       if (successTimerRef.current) {
-        window.clearTimeout(successTimerRef.current)
+        window.clearTimeout(successTimerRef.current);
       }
       successTimerRef.current = window.setTimeout(() => {
-        setShowSuccessAnimation(false)
-      }, 7000)
+        setShowSuccessAnimation(false);
+      }, 7000);
     } catch (error) {
-      setOptionsError(error?.message || 'Unable to create Physical Stock Voucher.')
-      setShowSuccessAnimation(false)
+      setOptionsError(
+        error?.message || "Unable to create Physical Stock Voucher.",
+      );
+      setShowSuccessAnimation(false);
     } finally {
-      submitRequestRef.current = false
+      submitRequestRef.current = false;
     }
-  }
+  };
   // ====================== TOTALS ======================
-  const totalQty = rows.reduce((sum, row) => sum + (Number(row.qty) || 0), 0)
+  const totalQty = rows.reduce((sum, row) => sum + (Number(row.qty) || 0), 0);
 
-  const totalAmount = rows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0)
+  const totalAmount = rows.reduce(
+    (sum, row) => sum + (Number(row.amount) || 0),
+    0,
+  );
   return (
     <div className="voucher-page-animate relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
       {showSuccessAnimation && (
@@ -359,42 +385,32 @@ const updateRow = (id, field, value) => {
               className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#1a1f24]"
               aria-hidden="true"
             />
-            <span className="mt-3 text-sm font-semibold text-slate-700">Loading...</span>
+            <span className="mt-3 text-sm font-semibold text-slate-700">
+              Loading...
+            </span>
           </div>
         </div>
       )}
 
       <div className="mx-auto max-w-[1280px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.05)]">
-
         {/* ================================================== */}
         {/* HEADER */}
         {/* ================================================== */}
 
         <div className="bg-emerald-700 px-5 py-4 text-[17px] font-bold text-white flex justify-center">
-          <h1 className="leading-none">
-            Create Physical Stock Voucher
-          </h1>
+          <h1 className="leading-none">Create Physical Stock Voucher</h1>
           <div className="ml-auto">
             <div className="ml-auto">
               <button
-
                 type="button"
-
                 className="rounded-lg border border-slate-500 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-slate-700 hover:text-white"
-
                 onClick={() => {
-                  let path = "/my-physical-stock"
+                  let path = "/my-physical-stock";
                   window.history.pushState({}, "", path);
                   window.dispatchEvent(new PopStateEvent("popstate"));
-
                 }}
-
               >
-
                 View status
-
-
-
               </button>
             </div>
           </div>
@@ -405,13 +421,11 @@ const updateRow = (id, field, value) => {
         {/* ================================================== */}
 
         <div className="bg-[#f5f7f4] p-5">
-
           {/* ================================================= */}
           {/* TOP FIELDS */}
           {/* ================================================= */}
 
           <div className="grid gap-3 md:grid-cols-3">
-
             {/* VOUCHER TYPE */}
 
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
@@ -455,11 +469,8 @@ const updateRow = (id, field, value) => {
                   onChange={(event) => setVoucherDate(event.target.value)}
                   className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none"
                 />
-
-
               </div>
             </label>
-
           </div>
 
           {/* ================================================= */}
@@ -467,11 +478,9 @@ const updateRow = (id, field, value) => {
           {/* ================================================= */}
 
           <div className="mt-5 overflow-x-auto overflow-y-hidden rounded-lg border border-slate-200 bg-white">
-
             {/* TABLE HEADER */}
 
             <div className="pl-[5%] grid min-w-[1000px] grid-cols-[1.3fr_0.5fr_0.8fr_0.8fr_0.7fr_0.7fr_0.7fr_0.4fr] gap-1 bg-slate-100 p-1.5 text-[10px] font-semibold text-slate-700">
-
               <span>Items</span>
 
               <span>Qty</span>
@@ -508,7 +517,6 @@ const updateRow = (id, field, value) => {
                 <span className="text-sm leading-none">+</span>
                 Add Item
               </button>
-
             </div>
 
             {/* ================================================= */}
@@ -530,18 +538,17 @@ const updateRow = (id, field, value) => {
                   p-1.5
                 "
               >
-
                 {/* ITEM */}
 
                 <SearchableDropdown
                   name={`physicalStockItem-${row.id}`}
                   label="items"
                   options={itemOptions}
-                  {...getPaginationProps('stock')}
+                  {...getPaginationProps("stock")}
                   loading={optionsLoading}
                   value={row.item}
-                  onSelect={(value) => updateRow(row.id, 'item', value)}
-                  onClear={() => updateRow(row.id, 'item', '')}
+                  onSelect={(value) => updateRow(row.id, "item", value)}
+                  onClear={() => updateRow(row.id, "item", "")}
                   placeholder="Search Item"
                 />
 
@@ -551,7 +558,9 @@ const updateRow = (id, field, value) => {
                   type="number"
                   min="0"
                   value={row.qty}
-                  onChange={(event) => updateRow(row.id, 'qty', event.target.value)}
+                  onChange={(event) =>
+                    updateRow(row.id, "qty", event.target.value)
+                  }
                   className="
                     min-h-9
                     rounded-md
@@ -575,11 +584,11 @@ const updateRow = (id, field, value) => {
                   name={`physicalStockGodown-${row.id}`}
                   label="godowns"
                   options={godownOptions}
-                  {...getPaginationProps('godowns')}
+                  {...getPaginationProps("godowns")}
                   loading={optionsLoading}
                   value={row.godown}
-                  onSelect={(value) => updateRow(row.id, 'godown', value)}
-                  onClear={() => updateRow(row.id, 'godown', '')}
+                  onSelect={(value) => updateRow(row.id, "godown", value)}
+                  onClear={() => updateRow(row.id, "godown", "")}
                   placeholder="Select"
                 />
 
@@ -587,7 +596,9 @@ const updateRow = (id, field, value) => {
 
                 <input
                   value={row.batch}
-                  onChange={(event) => updateRow(row.id, 'batch', event.target.value)}
+                  onChange={(event) =>
+                    updateRow(row.id, "batch", event.target.value)
+                  }
                   placeholder="0"
                   className="
                     min-h-9
@@ -610,7 +621,9 @@ const updateRow = (id, field, value) => {
                 <input
                   type="date"
                   value={row.mfgDate}
-                  onChange={(event) => updateRow(row.id, 'mfgDate', event.target.value)}
+                  onChange={(event) =>
+                    updateRow(row.id, "mfgDate", event.target.value)
+                  }
                   className="
                     min-h-9
                     rounded-md
@@ -634,7 +647,9 @@ const updateRow = (id, field, value) => {
                 <input
                   type="date"
                   value={row.expDate}
-                  onChange={(event) => updateRow(row.id, 'expDate', event.target.value)}
+                  onChange={(event) =>
+                    updateRow(row.id, "expDate", event.target.value)
+                  }
                   className="
                     min-h-9
                     rounded-md
@@ -657,7 +672,9 @@ const updateRow = (id, field, value) => {
 
                 <input
                   value={row.amount}
-                  onChange={(event) => updateRow(row.id, 'amount', event.target.value)}
+                  onChange={(event) =>
+                    updateRow(row.id, "amount", event.target.value)
+                  }
                   className="
                     min-h-9
                     rounded-md
@@ -697,10 +714,8 @@ const updateRow = (id, field, value) => {
                 >
                   ✕
                 </button>
-
               </div>
             ))}
-
           </div>
 
           {/* ================================================= */}
@@ -724,12 +739,11 @@ const updateRow = (id, field, value) => {
               <div className="font-semibold">TOTAL</div>
 
               <div className="flex gap-8 text-right">
-                <span>
-                  Qty: {totalQty}
-                </span>
+                <span>Qty: {totalQty}</span>
 
                 <span>
-                  Amount: ₹{totalAmount.toLocaleString('en-IN', {
+                  Amount: ₹
+                  {totalAmount.toLocaleString("en-IN", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
@@ -743,10 +757,7 @@ const updateRow = (id, field, value) => {
           {/* ================================================= */}
 
           <div className="mt-5 flex items-center gap-3 text-[12px] text-slate-700">
-
-            <span className="font-semibold">
-              Narration:
-            </span>
+            <span className="font-semibold">Narration:</span>
 
             <input
               value={narration}
@@ -768,9 +779,7 @@ const updateRow = (id, field, value) => {
               "
               placeholder=""
             />
-
           </div>
-
         </div>
 
         {/* ================================================== */}
@@ -778,7 +787,6 @@ const updateRow = (id, field, value) => {
         {/* ================================================== */}
 
         <div className="flex justify-end bg-[#f5f7f4] px-5 pb-5 pt-0">
-
           <button
             type="button"
             onClick={createVoucher}
@@ -797,15 +805,11 @@ const updateRow = (id, field, value) => {
               active:scale-[0.98]
             "
           >
-            {isSubmitting ? 'Create Voucher' : 'Create Voucher'}
+            {isSubmitting ? "Create Voucher" : "Create Voucher"}
           </button>
-
         </div>
-
       </div>
-
     </div>
-  )
+  );
 }
-
-export default PhysicalStockPage
+export default PhysicalStockPage;
