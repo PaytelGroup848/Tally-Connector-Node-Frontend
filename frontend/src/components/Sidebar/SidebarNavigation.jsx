@@ -1,3 +1,4 @@
+import { useState } from "react";
 function Arrow() {
   return (
     <span className="ml-auto flex h-5 w-4 shrink-0 items-center justify-center text-base leading-none text-slate-400" aria-hidden="true">
@@ -7,9 +8,23 @@ function Arrow() {
 }
 
 export default function SidebarNavigation({ visibleNavItems, navItemRefs, submenuItems, isSubItemAllowed, isSubmenuActive, isCollectPaymentsRoute, isCashBankRoute, currentPath, showDashboard, collapsed, isNavExpanded, handleExpandableClick, handleDashboardClick, handleNavClick, closeAllDropdowns, onQuotation, closeOnMobile, onNavigate }) {
+  const [openSubmenu, setOpenSubmenu] = useState(null);
+
+  const toggleSubmenu = (event, label, path) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const isCurrentlyOpen = openSubmenu === label;
+
+    // Preserve any existing parent navigation logic.
+    handleExpandableClick(event, label, path);
+
+    // Close the current submenu, or open only the clicked submenu.
+    setOpenSubmenu(isCurrentlyOpen ? null : label);
+  };
   return (
-      <nav
-        className="
+    <nav
+      className="
           relative
           z-10
 
@@ -23,117 +38,115 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
           [scrollbar-color:#26385E_transparent]
           [scrollbar-gutter:stable]
         "
-      >
-        {visibleNavItems.map(
-          ([
-            IconComponent,
-            label,
-            expandable,
-            badge,
-            path,
-          ]) => {
-            const targetPath =
-              label === "Dashboard"
-                ? "/dashboard"
-                : `/${path}`;
+    >
+      {visibleNavItems.map(
+        ([
+          IconComponent,
+          label,
+          expandable,
+          badge,
+          path,
+        ]) => {
+          const targetPath =
+            label === "Dashboard"
+              ? "/dashboard"
+              : `/${path}`;
 
-            const hasSubmenu =
-              Array.isArray(
-                submenuItems[label],
-              ) &&
-              submenuItems[label].length > 0;
+          const hasSubmenu =
+            Array.isArray(
+              submenuItems[label],
+            ) &&
+            submenuItems[label].length > 0;
 
-            const active =
-              (label === "Dashboard" &&
-                showDashboard) ||
-              isCollectPaymentsRoute(
-                label,
-              ) ||
-              isCashBankRoute(label) ||
-              currentPath.startsWith(
-                `/${path}`,
-              ) ||
-              submenuItems[label]?.some(
-                ([, itemPath]) =>
-                  isSubmenuActive(itemPath),
-              );
+          const active =
+            (label === "Dashboard" &&
+              showDashboard) ||
+            isCollectPaymentsRoute(
+              label,
+            ) ||
+            isCashBankRoute(label) ||
+            currentPath.startsWith(
+              `/${path}`,
+            ) ||
+            submenuItems[label]?.some(
+              ([, itemPath]) =>
+                isSubmenuActive(itemPath),
+            );
+          const submenuOpen =
+            hasSubmenu && openSubmenu === label;
 
-            const submenuOpen =
-              hasSubmenu &&
-              isNavExpanded(label, path);
-
-            return (
-              <div
-                key={label}
-                ref={(element) => {
-                  navItemRefs.current[label] =
-                    element;
-                }}
-                className="
+          return (
+            <div
+              key={label}
+              ref={(element) => {
+                navItemRefs.current[label] =
+                  element;
+              }}
+              className="
                   mb-1
                   w-full
                   shrink-0
                 "
-              >
-                {/* =================================================
+            >
+              {/* =================================================
                     MAIN NAV ITEM
                 ================================================== */}
 
-                <a
-                  href={
-                    expandable
-                      ? undefined
-                      : targetPath
-                  }
-                  onClick={(event) => {
-                    // Expandable menu
-                    if (expandable) {
-                      handleExpandableClick(
-                        event,
-                        label,
-                        path,
-                      );
-
-                      return;
-                    }
-
-                    // Dashboard
-                    if (label === "Dashboard") {
-                      handleDashboardClick(event);
-                      return;
-                    }
-
-                    // Every other normal menu
-                    handleNavClick(
+              <a
+                href={
+                  expandable
+                    ? undefined
+                    : targetPath
+                }
+                onClick={(event) => {
+                  // Expandable menu
+                  if (expandable) {
+                    handleExpandableClick(
                       event,
-                      targetPath,
+                      label,
+                      path,
                     );
-                  }}
-                  style={{
-                    boxSizing: "border-box",
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                    width: "100%",
-                    height: "42px",
-                    minHeight: "42px",
-                    maxHeight: "42px",
-                    margin: 0,
-                    paddingLeft: "12px",
-                    paddingRight: "12px",
-                    gap: "12px",
-                    border: "0",
-                    borderWidth: "0",
-                    borderStyle: "none",
-                    borderRadius: "8px",
-                    lineHeight: "normal",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    textDecoration: "none",
-                    transform: "none",
-                    flexShrink: 0,
-                  }}
-                  className={`
+
+                    return;
+                  }
+
+                  // Dashboard
+                  if (label === "Dashboard") {
+                    handleDashboardClick(event);
+                    return;
+                  }
+
+                  // Every other normal menu
+                  handleNavClick(
+                    event,
+                    targetPath,
+                  );
+                }}
+                style={{
+                  boxSizing: "border-box",
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  width: "100%",
+                  height: "42px",
+                  minHeight: "42px",
+                  maxHeight: "42px",
+                  margin: 0,
+                  paddingLeft: "12px",
+                  paddingRight: "12px",
+                  gap: "12px",
+                  border: "0",
+                  borderWidth: "0",
+                  borderStyle: "none",
+                  borderRadius: "8px",
+                  lineHeight: "normal",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  textDecoration: "none",
+                  transform: "none",
+                  flexShrink: 0,
+                }}
+                className={`
                     sidebar-link
                     group
                     overflow-hidden
@@ -141,19 +154,18 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
                     no-underline
                     transition-none
 
-                    ${
-                      active
-                        ? "text-emerald-400"
-                        : "text-white hover:text-emerald-400"
-                    }
+                    ${active
+                    ? "text-emerald-400"
+                    : "text-white hover:text-emerald-400"
+                  }
                   `}
-                >
-                  {/* ===========================================
+              >
+                {/* ===========================================
                       ICON
                   ============================================ */}
 
-                  <span
-                    className={`
+                <span
+                  className={`
                       relative
                       z-10
 
@@ -165,31 +177,30 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
                       items-center
                       justify-center
 
-                      ${
-                        active
-                          ? "text-emerald-400"
-                          : "text-slate-400 group-hover:text-emerald-400"
-                      }
+                      ${active
+                      ? "text-emerald-400"
+                      : "text-slate-400 group-hover:text-emerald-400"
+                    }
                     `}
-                  >
-                    <IconComponent
-                      className="
+                >
+                  <IconComponent
+                    className="
                         h-4
                         w-4
                         shrink-0
                       "
-                      strokeWidth={2}
-                    />
-                  </span>
+                    strokeWidth={2}
+                  />
+                </span>
 
-                  {/* ===========================================
+                {/* ===========================================
                       LABEL
                   ============================================ */}
 
-                  {!collapsed && (
-                    <>
-                      <span
-                        className={`
+                {!collapsed && (
+                  <>
+                    <span
+                      className={`
                           relative
                           z-10
 
@@ -203,23 +214,22 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
                           font-medium
                           leading-5
 
-                          ${
-                            active
-                              ? "text-emerald-400"
-                              : "text-white group-hover:text-emerald-400"
-                          }
+                          ${active
+                          ? "text-emerald-400"
+                          : "text-white group-hover:text-emerald-400"
+                        }
                         `}
-                      >
-                        {label}
-                      </span>
+                    >
+                      {label}
+                    </span>
 
-                      {/* ========================================
+                    {/* ========================================
                           BADGE
                       ======================================== */}
 
-                      {badge && (
-                        <span
-                          className="
+                    {badge && (
+                      <span
+                        className="
                             relative
                             z-10
 
@@ -246,52 +256,45 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
 
                             text-emerald-400
                           "
-                        >
-                          {badge}
-                        </span>
-                      )}
+                      >
+                        {badge}
+                      </span>
+                    )}
 
-                      {/* ========================================
+                    {/* ========================================
                           ARROW
                       ======================================== */}
 
-                      {expandable && (
+                    {expandable && hasSubmenu && (
+                      <button
+                        type="button"
+                        aria-label={`${submenuOpen ? "Close" : "Open"} ${label} submenu`}
+                        aria-expanded={submenuOpen}
+                        onClick={(event) => toggleSubmenu(event, label, path)}
+                        className="relative z-20 ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white/10 hover:text-emerald-400 focus:outline-none"
+                      >
                         <span
-                          className={`
-                            relative
-                            z-10
-
-                            flex
-                            h-5
-                            w-4
-                            shrink-0
-
-                            items-center
-                            justify-center
-
-                            ${
-                              submenuOpen
-                                ? "rotate-90"
-                                : "rotate-0"
-                            }
-                          `}
+                          className={`flex h-5 w-4 items-center justify-center transition-transform duration-200 ${submenuOpen ? "rotate-90" : "rotate-0"
+                            }`}
+                          aria-hidden="true"
                         >
                           <Arrow />
                         </span>
-                      )}
-                    </>
-                  )}
-                </a>
+                      </button>
+                    )}
+                  </>
+                )}
+              </a>
 
-                {/* =================================================
+              {/* =================================================
                     SUBMENU
                 ================================================== */}
 
-                {!collapsed &&
-                  hasSubmenu &&
-                  submenuOpen && (
-                    <div
-                      className="
+              {!collapsed &&
+                hasSubmenu &&
+                submenuOpen && (
+                  <div
+                    className="
                         relative
                         z-10
 
@@ -303,114 +306,113 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
 
                         box-border
                       "
-                    >
-                      {submenuItems[label]
-                        .filter(
-                          ([, itemPath]) =>
-                            isSubItemAllowed(
-                              path,
+                  >
+                    {submenuItems[label]
+                      .filter(
+                        ([, itemPath]) =>
+                          isSubItemAllowed(
+                            path,
+                            itemPath,
+                          ),
+                      )
+                      .map(
+                        ([item, itemPath]) => {
+                          const subActive =
+                            isSubmenuActive(
                               itemPath,
-                            ),
-                        )
-                        .map(
-                          ([item, itemPath]) => {
-                            const subActive =
-                              isSubmenuActive(
-                                itemPath,
-                              );
+                            );
 
-                            return (
-                              <a
-                                key={item}
-                                href={itemPath}
-                                onClick={(
-                                  event,
-                                ) => {
-                                  event.preventDefault();
+                          return (
+                            <a
+                              key={item}
+                              href={itemPath}
+                              onClick={(
+                                event,
+                              ) => {
+                                event.preventDefault();
 
-                                  // Close all dropdowns
-                                  closeAllDropdowns();
+                                // Close all dropdowns
+                                closeAllDropdowns();
 
-                                  if (
-                                    itemPath ===
-                                    "/create-voucher/Quotation"
-                                  ) {
-                                    onQuotation(
-                                      event,
-                                    );
-                                    closeOnMobile();
-                                    return;
-                                  }
-
-                                  onNavigate(
-                                    itemPath,
+                                if (
+                                  itemPath ===
+                                  "/create-voucher/Quotation"
+                                ) {
+                                  onQuotation(
+                                    event,
                                   );
-
                                   closeOnMobile();
-                                }}
-                                style={{
-                                  boxSizing:
-                                    "border-box",
-                                  display:
-                                    "block",
-                                  position:
-                                    "relative",
-                                  width: "100%",
-                                  height:
-                                    "38px",
-                                  minHeight:
-                                    "38px",
-                                  maxHeight:
-                                    "38px",
-                                  margin: 0,
-                                  paddingTop:
-                                    "8px",
-                                  paddingBottom:
-                                    "8px",
-                                  paddingLeft:
-                                    "12px",
-                                  paddingRight:
-                                    "12px",
-                                  border:
-                                    "0",
-                                  borderWidth:
-                                    "0",
-                                  borderStyle:
-                                    "none",
-                                  borderRadius:
-                                    "6px",
-                                  lineHeight:
-                                    "22px",
-                                  fontSize:
-                                    "14px",
-                                  fontWeight:
-                                    500,
-                                  textDecoration:
-                                    "none",
-                                  transform:
-                                    "none",
-                                }}
-                                className={`
+                                  return;
+                                }
+
+                                onNavigate(
+                                  itemPath,
+                                );
+
+                                closeOnMobile();
+                              }}
+                              style={{
+                                boxSizing:
+                                  "border-box",
+                                display:
+                                  "block",
+                                position:
+                                  "relative",
+                                width: "100%",
+                                height:
+                                  "38px",
+                                minHeight:
+                                  "38px",
+                                maxHeight:
+                                  "38px",
+                                margin: 0,
+                                paddingTop:
+                                  "8px",
+                                paddingBottom:
+                                  "8px",
+                                paddingLeft:
+                                  "12px",
+                                paddingRight:
+                                  "12px",
+                                border:
+                                  "0",
+                                borderWidth:
+                                  "0",
+                                borderStyle:
+                                  "none",
+                                borderRadius:
+                                  "6px",
+                                lineHeight:
+                                  "22px",
+                                fontSize:
+                                  "14px",
+                                fontWeight:
+                                  500,
+                                textDecoration:
+                                  "none",
+                                transform:
+                                  "none",
+                              }}
+                              className={`
                                   overflow-hidden
 
                                   outline-none
                                   no-underline
                                   transition-none
 
-                                  ${
-                                    subActive
-                                      ? "text-emerald-400"
-                                      : "text-white hover:text-emerald-400"
-                                  }
+                                  ${subActive
+                                  ? "text-emerald-400"
+                                  : "text-white hover:text-emerald-400"
+                                }
                                 `}
-                              >
-                                {/* =================================
+                            >
+                              {/* =================================
                                     SUBMENU ACTIVE BACKGROUND
                                 ================================== */}
 
-                                {subActive && (
-                                  <span
-                                    className="
+                              {subActive && (
+                                <span
+                                  className="
                                       pointer-events-none
 
                                       absolute
@@ -421,15 +423,15 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
 
                                       bg-[#101A36]
                                     "
-                                  />
-                                )}
+                                />
+                              )}
 
-                                {/* =================================
+                              {/* =================================
                                     SUBMENU TEXT
                                 ================================== */}
 
-                                <span
-                                  className="
+                              <span
+                                className="
                                     relative
                                     z-10
 
@@ -438,19 +440,19 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
 
                                     font-medium
                                   "
-                                >
-                                  {item}
-                                </span>
-                              </a>
-                            );
-                          },
-                        )}
-                    </div>
-                  )}
-              </div>
-            );
-          },
-        )}
-      </nav>
+                              >
+                                {item}
+                              </span>
+                            </a>
+                          );
+                        },
+                      )}
+                  </div>
+                )}
+            </div>
+          );
+        },
+      )}
+    </nav>
   );
 }
