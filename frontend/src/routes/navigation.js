@@ -18,7 +18,7 @@ import {
 
 export const navItems = [
   [LayoutDashboard, "Dashboard", false, false, "dashboard"],
-  [Settings,"Settings",false,false,"settings"],
+  [Settings, "Settings", false, false, "settings"],
   [Plus, "Create Vouchers", true, false, "create-voucher"],
   [FileText, "Sales", true, false, "sales"],
   [ShoppingCart, "Purchase", true, false, "purchase"],
@@ -27,7 +27,7 @@ export const navItems = [
   [Users, "Parties", false, false, "parties"],
   [Package, "Items", false, false, "items"],
   [BarChart3, "Reports", true, false, "reports"],
-  [ClipboardList, "My Entries", true, false, "my-entries"],
+  // [ClipboardList, "My Entries", true, false, "my-entries"],
   [FileText, "Vouchers", false, false, "vouchers"],
   [BookOpen, "Ledgers", false, false, "my-ledgers"],
   // [Settings, 'Configurations', false, false, 'configurations'],

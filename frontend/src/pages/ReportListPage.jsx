@@ -66,9 +66,8 @@ import { jsPDF } from "jspdf";
 import { FaWhatsapp } from "react-icons/fa";
 import { downloadVoucherPdf } from "../services/voucherPdfApi";
 
-// ============================================================
-// REPORT DATA
-// ============================================================
+import VoucherPreviewModal from "../components/VoucherPreviewModal";
+import { Eye } from "lucide-react";
 
 const reports = {
   "/sales": {
@@ -1671,6 +1670,8 @@ function SalesReport({ companyId }) {
 
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [previewId, setPreviewId] = useState(null);
+
   useEffect(() => {
     if (!accessToken || !companyId) {
       setRows([]);
@@ -2032,6 +2033,16 @@ function SalesReport({ companyId }) {
                         })}
 
                         <td className="whitespace-nowrap px-5 py-3 text-center">
+                          {console.log("this is my row", row)}
+                          <button
+                            type="button"
+                            onClick={() => setPreviewId(row._id)}
+                            className="inline-flex mr-5 items-center gap-1.5 rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                          >
+                            <Eye size={14} />
+                            View
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => handleDownload(row)}
@@ -2083,6 +2094,14 @@ function SalesReport({ companyId }) {
                             )}
                           </button>
                         </td>
+
+                        <VoucherPreviewModal
+                          open={!!previewId}
+                          onClose={() => setPreviewId(null)}
+                          companyId={companyId}
+                          voucherId={previewId}
+                          fileName={`${row.voucherType || "INVOICE"}-${row.voucherNumber || ""}`}
+                        />
                       </tr>
                     );
                   })
@@ -2749,6 +2768,7 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
   const [pageSize, setPageSize] = useState(20);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [previewId, setPreviewId] = useState(null);
 
   useEffect(() => {
     if (!accessToken || !effectiveCompanyId) {
@@ -3053,6 +3073,14 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
                         <td className="whitespace-nowrap px-5 py-3 text-center">
                           <button
                             type="button"
+                            onClick={() => setPreviewId(row._id)}
+                            className="inline-flex mr-5 items-center gap-1.5 rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                          >
+                            <Eye size={14} />
+                            View
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleDownload(row)}
                             disabled={isDownloading}
                             className="inline-flex h-8 min-w-[80px] items-center justify-center gap-1.5 rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-600 transition hover:border-red-300 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
@@ -3080,6 +3108,13 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
                             )}
                           </button>
                         </td>
+                        <VoucherPreviewModal
+                          open={!!previewId}
+                          onClose={() => setPreviewId(null)}
+                          companyId={companyId}
+                          voucherId={previewId}
+                          fileName={`${row.voucherType || "INVOICE"}-${row.voucherNumber || ""}`}
+                        />
                       </tr>
                     );
                   })

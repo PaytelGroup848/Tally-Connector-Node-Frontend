@@ -42,15 +42,9 @@ function Sidebar({
 }) {
   const entryPath = currentPath.toLowerCase();
 
-  // ============================================================
-  // REFS FOR AUTO SCROLLING OPENED NAVIGATION
-  // ============================================================
 
   const navItemRefs = useRef({});
 
-  // ============================================================
-  // MODULE ACCESS
-  // ============================================================
 
   const isSubItemAllowed = (parentPath, itemPath) => {
     if (!Array.isArray(allowedModules)) {
@@ -64,9 +58,6 @@ function Sidebar({
     return allowedModules.includes(itemPath);
   };
 
-  // ============================================================
-  // VISIBLE NAV ITEMS
-  // ============================================================
 
   const visibleNavItems = navItems.filter(
     ([, label, , , path]) => {
