@@ -17,7 +17,7 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
     const isCurrentlyOpen = openSubmenu === label;
 
     // Preserve any existing parent navigation logic.
-    handleExpandableClick(event, label, path);
+    // handleExpandableClick(event, label, path);
 
     // Close the current submenu, or open only the clicked submenu.
     setOpenSubmenu(isCurrentlyOpen ? null : label);
@@ -99,28 +99,17 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
                     : targetPath
                 }
                 onClick={(event) => {
-                  // Expandable menu
                   if (expandable) {
-                    handleExpandableClick(
-                      event,
-                      label,
-                      path,
-                    );
-
+                    toggleSubmenu(event, label, path);
                     return;
                   }
 
-                  // Dashboard
                   if (label === "Dashboard") {
                     handleDashboardClick(event);
                     return;
                   }
 
-                  // Every other normal menu
-                  handleNavClick(
-                    event,
-                    targetPath,
-                  );
+                  handleNavClick(event, targetPath);
                 }}
                 style={{
                   boxSizing: "border-box",
@@ -266,21 +255,13 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
                       ======================================== */}
 
                     {expandable && hasSubmenu && (
-                      <button
-                        type="button"
-                        aria-label={`${submenuOpen ? "Close" : "Open"} ${label} submenu`}
-                        aria-expanded={submenuOpen}
-                        onClick={(event) => toggleSubmenu(event, label, path)}
-                        className="relative z-20 ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white/10 hover:text-emerald-400 focus:outline-none"
+                      <span
+                        className={`relative z-10 ml-auto flex h-8 w-8 shrink-0 items-center justify-center text-slate-400 transition-transform duration-200 ${submenuOpen ? "rotate-90 bottom-[20%]" : "rotate-0"
+                          }`}
+                        aria-hidden="true"
                       >
-                        <span
-                          className={`flex h-5 w-4 items-center justify-center transition-transform duration-200 ${submenuOpen ? "rotate-90" : "rotate-0"
-                            }`}
-                          aria-hidden="true"
-                        >
-                          <Arrow />
-                        </span>
-                      </button>
+                        <Arrow />
+                      </span>
                     )}
                   </>
                 )}
@@ -324,6 +305,7 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
 
                           return (
                             <a
+
                               key={item}
                               href={itemPath}
                               onClick={(
