@@ -84,74 +84,7 @@ function getPageMeta(path = '') {
     ],
   }
 }
-// function extractHsnOptions(response) {
-//   if (Array.isArray(response)) return response
 
-//   if (!response || typeof response !== 'object') return []
-
-//   const possibleKeys = [
-//     'results',
-//     'data',
-//     'result',
-//     'hsnList',
-//     'hsnDetails',
-//     'hsnCodes',
-//     'suggestions',
-//     'items',
-//     'records',
-//   ]
-
-//   for (const key of possibleKeys) {
-//     const value = response[key]
-
-//     if (Array.isArray(value) && value.length > 0) {
-//       return value
-//     }
-
-//     if (value && typeof value === 'object') {
-//       const nested = extractHsnOptions(value)
-//       if (nested.length > 0) return nested
-//     }
-//   }
-
-//   return []
-// }
-
-
-// const code =
-//   option?.hsnCode ??
-//   option?.hsncode ??
-//   option?.hsn_code ??
-//   option?.HSNCode ??
-//   option?.HSN_CODE ??
-//   option?.code ??
-//   option?.Code ??
-//   option?.hsn ??
-//   option?.value ??
-//   ''
-
-// const description =
-//   option?.hsnDesc ??
-//   option?.hsnDescription ??
-//   option?.hsn_description ??
-//   option?.description ??
-//   option?.Description ??
-//   option?.desc ??
-//   option?.name ??
-//   option?.text ??
-//   option?.label ??
-//   ''
-
-// return {
-//   code: String(code).trim(),
-//   description: String(description).trim(),
-// }
-// function getHsnOptionDetails(option) {
-//   return {
-//     code: String(option?.c ?? '').trim(),
-//     description: String(option?.n ?? '').trim(),
-//   }
-// }
 function getHsnOptionDetails(option) {
   return {
     code: String(option?.c ?? '').trim(),

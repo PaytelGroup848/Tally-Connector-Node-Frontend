@@ -270,31 +270,6 @@ function GstSearchPage() {
                     ))}
                 </div>
               </div>
-
-              {/* {data.geolocation && (
-                <div className="sm:col-span-2">
-                  <a
-                    href={`https://www.google.com/maps?q=${encodeURIComponent(
-                      data.geolocation,
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-                  >
-                    <MapPin className="h-3.5 w-3.5 text-slate-400 transition group-hover:text-blue-600" />
-
-                    <span>View on Map</span>
-
-                    <span className="text-slate-400">·</span>
-
-                    <span className="font-mono text-[11px] text-slate-500 group-hover:text-blue-600">
-                      {data.geolocation}
-                    </span>
-
-                    <ExternalLink className="h-3.5 w-3.5 text-blue-600 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </a>
-                </div>
-              )} */}
             </div>
           </div>
         )}

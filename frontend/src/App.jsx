@@ -6,9 +6,9 @@ import PlansPage from './pages/PlansPage'
 import useAuthStore from './store/authStore'
 import { useCurrentUser } from './hooks/useCurrentUser'
 import SuperAdminPage from './pages/SuperAdminPage'
-import PrivacyPage from './pages/PrivacyPage'
-import TermsAndConditions from './pages/TermsAndConditions'
-import RefundPolicy from './pages/RefundPolicy'
+import PrivacyPage from './pages/LandingPage/PrivacyPage'
+import TermsAndConditions from './pages/LandingPage/TermsAndConditions'
+import RefundPolicy from './pages/LandingPage/RefundPolicy'
 function App() {
 
   const [currentPath, setCurrentPath] = useState(

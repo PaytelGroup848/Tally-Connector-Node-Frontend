@@ -1,905 +1,276 @@
 @import "tailwindcss";
 
-/* ============================================================
-   CLOUD DATA / CLOUDBIZ UI SYSTEM
-============================================================ */
+/* CLOUD DATA / CLOUDBIZ UI SYSTEM */
 
 @theme {
   --color-app-primary: #10a66f;
   --color-app-primary-hover: #0b935f;
-
   --color-app-navy: #092f52;
   --color-app-navy-dark: #062640;
-
   --color-app-bg: #f5f8fc;
   --color-app-surface: #ffffff;
-
   --color-app-text: #102a43;
   --color-app-text-secondary: #61758a;
   --color-app-text-muted: #8ba0b3;
-
   --color-app-border: #dce5ee;
   --color-app-border-light: #edf2f7;
-
   --color-app-success: #0fa968;
   --color-app-danger: #ef4444;
   --color-app-warning: #f59e0b;
 }
 
-/* ============================================================
-   BASE
-============================================================ */
+/* BASE */
 
 @layer base {
   :root {
-    font-family:
-      Inter,
-      ui-sans-serif,
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      sans-serif;
-
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #102a43;
     background: #f5f8fc;
-
     font-synthesis: none;
     text-rendering: optimizeLegibility;
-
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  *,
-  *::before,
-  *::after {
-    @apply box-border;
-  }
+  *, *::before, *::after { @apply box-border; }
+  html, body, #root { @apply min-h-full w-full; }
+  html { @apply bg-app-bg; }
+  body { @apply m-0 min-w-[320px] overflow-x-hidden bg-app-bg; }
 
-  html,
-  body,
-  #root {
-    @apply min-h-full w-full;
-  }
-
-  html {
-    @apply bg-app-bg;
-  }
-
-  body {
-    @apply m-0 min-w-[320px] overflow-x-hidden bg-app-bg;
-  }
-
-  button,
-  input,
-  select,
-  textarea {
-    font: inherit;
-    cursor:pointer
-  }
-
-  button,
-  a {
-    @apply cursor-pointer;
-  }
-
-  button:disabled {
-    @apply cursor-not-allowed;
-  }
-
-  img,
-  svg {
-    @apply block;
-  }
+  button, input, select, textarea { font: inherit; cursor: pointer; }
+  a { @apply cursor-pointer; }
+  button:disabled { @apply cursor-not-allowed; }
+  img, svg { @apply block; }
 }
 
-/* ============================================================
-   GLOBAL SHELL
-============================================================ */
-
 @layer components {
-  .app-shell {
-    @apply min-h-screen
-      min-w-0
-      max-w-[100vw]
-      overflow-x-hidden
-      bg-app-bg;
-  }
+  /* SHELL */
 
-  .app-main {
-    @apply min-h-screen
-      min-w-0
-      w-full
-      overflow-x-hidden
-      bg-app-bg;
-  }
+  .app-shell { @apply min-h-screen min-w-0 max-w-[100vw] overflow-x-hidden bg-app-bg; }
+  .app-main { @apply min-h-screen min-w-0 w-full overflow-x-hidden bg-app-bg; }
 
-  /* ==========================================================
-     SIDEBAR
-  ========================================================== */
+  /* SIDEBAR */
 
   .app-sidebar {
     position: fixed;
     left: 0;
     top: 0;
     z-index: 70;
-
     width: 228px;
     height: 100vh;
-
     display: flex;
     flex-direction: column;
-
     overflow: hidden;
-
-    background:
-      linear-gradient(
-        180deg,
-        #092f52 0%,
-        #072b4b 48%,
-        #062640 100%
-      );
-
-    color: #ffffff;
+    background: linear-gradient(180deg, #092f52 0%, #072b4b 48%, #062640 100%);
+    color: #fff;
   }
 
-  .sidebar-brand {
-    @apply flex
-      h-16
-      min-h-16
-      shrink-0
-      items-center
-      border-b
-      border-white/10
-      bg-white/[0.025]
-      px-4;
-  }
+  .app-sidebar.mobile-open { z-index: 90; }
+
+  .sidebar-brand { @apply flex h-16 min-h-16 shrink-0 items-center border-b border-white/10 bg-white/[0.025] px-4; }
 
   .sidebar-brand-title-books {
+    background-image: linear-gradient(180deg, #74ddff 0%, #11a6df 42%, #007ebc 100%);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.22), 0 2px 5px rgba(0, 0, 0, 0.2);
-    background-image: linear-gradient(180deg, #74ddff 0%, #11a6df 42%, #007ebc 100%);
- 
   }
 
-  .sidebar-nav {
-    @apply min-h-0
-      flex-1
-      overflow-x-hidden
-      overflow-y-auto
-      px-3
-      py-4;
-  }
+  .sidebar-nav { @apply min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-4; }
 
   .sidebar-link {
-    @apply flex
-      h-[44px]
-      min-h-[44px]
-      w-full
-      items-center
-      gap-3
-      rounded-lg
-      px-3
-      text-left
-      text-[13px]
-      font-medium
-      no-underline
-      transition-all
-      duration-200;
+    @apply flex h-[44px] min-h-[44px] w-full items-center gap-3 rounded-lg px-3 text-left text-[13px] font-medium no-underline transition-all duration-200;
   }
+  .sidebar-link:hover { @apply bg-white/10 text-white; }
+  .sidebar-link.is-active { @apply bg-app-primary text-white; }
 
-  .sidebar-link:hover {
-    @apply bg-white/10 text-white;
+  .sidebar-link > span:first-child {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 9px;
   }
+  .sidebar-link > span:first-child > svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-  .sidebar-link.is-active {
-    @apply bg-app-primary text-white;
+  /* Sidebar scrollbar */
+  .sidebar-scroll, .app-sidebar .sidebar-nav {
+    scrollbar-width: thin;
+    scrollbar-color: #385b76 #072b4b;
+    overscroll-behavior: contain;
   }
+  .sidebar-scroll::-webkit-scrollbar, .app-sidebar .sidebar-nav::-webkit-scrollbar { width: 6px; }
+  .sidebar-scroll::-webkit-scrollbar-track, .app-sidebar .sidebar-nav::-webkit-scrollbar-track { background: #072b4b; border-radius: 9999px; }
+  .sidebar-scroll::-webkit-scrollbar-thumb, .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb { background: #385b76; border-radius: 9999px; border: 1px solid #072b4b; }
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover, .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #4d6f88; }
 
-  /* ==========================================================
-     HEADER
-  ========================================================== */
+  /* Collapsed sidebar */
+  .app-sidebar[data-collapsed="true"] { width: 68px; }
+  .app-sidebar[data-collapsed="true"] .sidebar-brand { justify-content: center; padding-inline: 0; }
+  .app-sidebar[data-collapsed="true"] .sidebar-nav { padding-inline: 10px; }
+  .app-sidebar[data-collapsed="true"] .sidebar-link {
+    width: 44px;
+    min-width: 44px;
+    margin-inline: auto;
+    justify-content: center;
+    padding-inline: 0;
+    gap: 0;
+  }
+  .app-sidebar[data-collapsed="true"] .sidebar-link > span:not(:first-child),
+  .app-sidebar[data-collapsed="true"] .sidebar-link > p,
+  .app-sidebar[data-collapsed="true"] .sidebar-link > strong,
+  .app-sidebar[data-collapsed="true"] .sidebar-link + div { display: none; }
+  .app-sidebar[data-collapsed="true"] .sidebar-link > span:first-child { background: transparent; }
+  .app-sidebar[data-collapsed="true"] .sidebar-link.is-active { background: transparent; }
+  .app-sidebar[data-collapsed="true"] .sidebar-link.is-active > span:first-child { background: #10a66f; color: #fff; }
+
+  /* HEADER */
 
   .app-header {
     position: sticky;
     top: 0;
     z-index: 60;
-
     width: 100%;
     min-height: 64px;
     height: 64px;
-
     border-bottom: 1px solid #dce5ee;
-    background: #ffffff;
-
-    box-shadow:
-      0 1px 3px rgba(15, 23, 42, 0.04);
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   }
 
-  /* ==========================================================
-     CARDS
-  ========================================================== */
+  /* CARDS */
 
-  .cloud-card {
-    @apply rounded-xl
-      border
-      border-app-border
-      bg-white
-      shadow-[0_4px_18px_rgba(30,64,90,0.045)];
+  .cloud-card { @apply rounded-xl border border-app-border bg-white shadow-[0_4px_18px_rgba(30,64,90,0.045)]; }
+  .cloud-metric-card { @apply min-h-[108px] rounded-xl border border-app-border bg-white p-4 text-left shadow-[0_4px_18px_rgba(30,64,90,0.045)] transition hover:-translate-y-px hover:shadow-[0_8px_22px_rgba(30,64,90,0.07)]; }
+
+  .items-card, .particulars-card, .config-card, .list-card, .report-card, .workspace-card, .stock-card, .report-group {
+    @apply overflow-hidden rounded-xl border border-app-border bg-white shadow-[0_4px_18px_rgba(30,64,90,0.045)];
   }
 
-  .cloud-metric-card {
-    @apply min-h-[108px]
-      rounded-xl
-      border
-      border-app-border
-      bg-white
-      p-4
-      text-left
-      shadow-[0_4px_18px_rgba(30,64,90,0.045)]
-      transition
-      hover:-translate-y-px
-      hover:shadow-[0_8px_22px_rgba(30,64,90,0.07)];
+  /* INPUTS & BUTTONS */
+
+  .cloud-input { @apply h-10 rounded-lg border border-app-border bg-white px-3 text-[12px] text-app-text outline-none transition placeholder:text-slate-400 focus:border-app-primary focus:ring-2 focus:ring-emerald-100; }
+  .cloud-primary-btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-app-primary px-4 text-[12px] font-semibold text-white shadow-sm transition hover:bg-app-primary-hover focus:outline-none focus:ring-2 focus:ring-emerald-200; }
+  .cloud-secondary-btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-app-border bg-white px-4 text-[12px] font-semibold text-app-text-secondary transition hover:bg-slate-50 hover:text-app-text; }
+
+  .create-voucher, .primary-action, .save-config, .eway-portal-button {
+    @apply inline-flex min-h-10 items-center justify-center rounded-lg bg-app-primary px-4 text-xs font-semibold text-white transition hover:bg-app-primary-hover focus:outline-none focus:ring-2 focus:ring-emerald-200;
   }
 
-  /* ==========================================================
-     INPUTS
-  ========================================================== */
+  /* PAGE TITLES */
 
-  .cloud-input {
-    @apply h-10
-      rounded-lg
-      border
-      border-app-border
-      bg-white
-      px-3
-      text-[12px]
-      text-app-text
-      outline-none
-      transition
-      placeholder:text-slate-400
-      focus:border-app-primary
-      focus:ring-2
-      focus:ring-emerald-100;
+  .cloud-page-title { @apply m-0 text-[25px] font-bold leading-tight tracking-[-0.025em] text-app-text; }
+  .cloud-page-subtitle { @apply text-xs text-app-text-secondary; }
+
+  /* TABLE */
+
+  .cloud-table { @apply w-full border-collapse text-left; }
+  .cloud-table thead th { @apply h-10 whitespace-nowrap border-b border-app-border bg-slate-50 px-4 text-[10px] font-semibold uppercase tracking-wide text-app-text-secondary; }
+  .cloud-table tbody tr { @apply transition hover:bg-slate-50/70; }
+  .cloud-table tbody td { @apply border-b border-app-border-light px-4 py-3 text-[12px] text-app-text-secondary; }
+
+  .dashboard-chart-scroll, .dashboard-table-scroll { scrollbar-width: none; }
+  .dashboard-chart-scroll::-webkit-scrollbar, .dashboard-table-scroll::-webkit-scrollbar { display: none; }
+
+  /* STATUS */
+
+  .status-badge { @apply inline-flex min-h-6 items-center rounded-full px-2.5 text-[10px] font-semibold; }
+  .status-posted { @apply bg-emerald-50 text-emerald-700; }
+  .status-paid { @apply bg-blue-50 text-blue-700; }
+  .status-pending { @apply bg-amber-50 text-amber-700; }
+  .status-overdue { @apply bg-red-50 text-red-700; }
+
+  /* PAGE CONTAINERS */
+
+  .page-surface, .section-page, .receipt-page, .journal-page, .stock-page, .stock-journal-page, .quotation-page, .eway-page {
+    @apply min-h-[calc(100vh-64px)] bg-app-bg text-app-text;
   }
 
-  /* ==========================================================
-     BUTTONS
-  ========================================================== */
+  /* FORMS */
 
-  .cloud-primary-btn {
-    @apply inline-flex
-      h-10
-      items-center
-      justify-center
-      gap-2
-      rounded-lg
-      bg-app-primary
-      px-4
-      text-[12px]
-      font-semibold
-      text-white
-      shadow-sm
-      transition
-      hover:bg-app-primary-hover
-      focus:outline-none
-      focus:ring-2
-      focus:ring-emerald-200;
+  .voucher-details, .journal-form, .receipt-form, .stock-header {
+    @apply mx-auto grid w-full max-w-6xl gap-4 rounded-xl border border-app-border bg-white p-5 shadow-[0_4px_18px_rgba(30,64,90,0.045)];
+  }
+  .voucher-details { @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-4; }
+  .journal-form, .receipt-form { @apply grid-cols-1 md:grid-cols-2; }
+  .stock-header { @apply grid-cols-1 md:grid-cols-3; }
+
+  .voucher-details label, .journal-form label, .receipt-form label, .stock-header label { @apply min-w-0 text-xs font-medium text-app-text-secondary; }
+
+  .voucher-details input, .voucher-details select,
+  .journal-form input, .journal-form select,
+  .receipt-form input, .receipt-form select, .receipt-form textarea,
+  .stock-header input, .stock-header select {
+    @apply mt-1 min-h-10 w-full rounded-lg border border-app-border bg-white px-3 text-sm text-app-text outline-none transition focus:border-app-primary focus:ring-2 focus:ring-emerald-100;
   }
 
-  .cloud-secondary-btn {
-    @apply inline-flex
-      h-10
-      items-center
-      justify-center
-      gap-2
-      rounded-lg
-      border
-      border-app-border
-      bg-white
-      px-4
-      text-[12px]
-      font-semibold
-      text-app-text-secondary
-      transition
-      hover:bg-slate-50
-      hover:text-app-text;
-  }
+  .page-toolbar { @apply flex min-h-16 flex-wrap items-center gap-3 border-b border-app-border-light bg-white px-4 py-3; }
 
-  /* ==========================================================
-     PAGE TITLES
-  ========================================================== */
+  /* TESTIMONIALS */
 
-  .cloud-page-title {
-    @apply m-0
-      text-[25px]
-      font-bold
-      leading-tight
-      tracking-[-0.025em]
-      text-app-text;
-  }
-
-  .cloud-page-subtitle {
-    @apply text-xs
-      text-app-text-secondary;
-  }
-
-  /* ==========================================================
-     TABLE
-  ========================================================== */
-
-  .cloud-table {
-    @apply w-full
-      border-collapse
-      text-left;
-  }
-
-  .cloud-table thead th {
-    @apply h-10
-      whitespace-nowrap
-      border-b
-      border-app-border
-      bg-slate-50
-      px-4
-      text-[10px]
-      font-semibold
-      uppercase
-      tracking-wide
-      text-app-text-secondary;
-  }
-
-  .cloud-table tbody tr {
-    @apply transition
-      hover:bg-slate-50/70;
-  }
-
-  .cloud-table tbody td {
-    @apply border-b
-      border-app-border-light
-      px-4
-      py-3
-      text-[12px]
-      text-app-text-secondary;
-  }
-
-  .dashboard-chart-scroll {
-    scrollbar-width: none;
-  }
-
-  .dashboard-chart-scroll::-webkit-scrollbar {
-    display: none;
-  }
-
-  .dashboard-table-scroll {
-    scrollbar-width: none;
-  }
-
-  .dashboard-table-scroll::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* ==========================================================
-     STATUS
-  ========================================================== */
-
-  .status-badge {
-    @apply inline-flex
-      min-h-6
-      items-center
-      rounded-full
-      px-2.5
-      text-[10px]
-      font-semibold;
-  }
-
-  .status-posted {
-    @apply bg-emerald-50
-      text-emerald-700;
-  }
-
-  .status-paid {
-    @apply bg-blue-50
-      text-blue-700;
-  }
-
-  .status-pending {
-    @apply bg-amber-50
-      text-amber-700;
-  }
-
-  .status-overdue {
-    @apply bg-red-50
-      text-red-700;
-  }
-
-  /* ==========================================================
-     PAGE CONTAINERS
-  ========================================================== */
-
-  .page-surface,
-  .section-page,
-  .receipt-page,
-  .journal-page,
-  .stock-page,
-  .stock-journal-page,
-  .quotation-page,
-  .eway-page {
-    @apply min-h-[calc(100vh-64px)]
-      bg-app-bg
-      text-app-text;
-  }
-
-  /* ==========================================================
-     COMMON OLD APP COMPONENTS
-  ========================================================== */
-
-  .items-card,
-  .particulars-card,
-  .config-card,
-  .list-card,
-  .report-card,
-  .workspace-card,
-  .stock-card,
-  .report-group {
-    @apply overflow-hidden
-      rounded-xl
-      border
-      border-app-border
-      bg-white
-      shadow-[0_4px_18px_rgba(30,64,90,0.045)];
-  }
-
-  .voucher-details,
-  .journal-form,
-  .receipt-form,
-  .stock-header {
-    @apply mx-auto
-      grid
-      w-full
-      max-w-6xl
-      gap-4
-      rounded-xl
-      border
-      border-app-border
-      bg-white
-      p-5
-      shadow-[0_4px_18px_rgba(30,64,90,0.045)];
-  }
-
-  .voucher-details {
-    @apply grid-cols-1
-      md:grid-cols-2
-      lg:grid-cols-4;
-  }
-
-  .journal-form,
-  .receipt-form {
-    @apply grid-cols-1
-      md:grid-cols-2;
-  }
-
-  .stock-header {
-    @apply grid-cols-1
-      md:grid-cols-3;
-  }
-
-  .voucher-details label,
-  .journal-form label,
-  .receipt-form label,
-  .stock-header label {
-    @apply min-w-0
-      text-xs
-      font-medium
-      text-app-text-secondary;
-  }
-
-
-.testimonial-marquee {
-  animation: testimonialScroll 35s linear infinite;
+  .testimonial-marquee { animation: testimonialScroll 35s linear infinite; }
+  .testimonial-marquee:hover { animation-play-state: paused; }
 }
 
 @keyframes testimonialScroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
+  to { transform: translateX(-50%); }
 }
 
-.testimonial-marquee:hover {
-  animation-play-state: paused;
+@keyframes swing {
+  0%, 100% { transform: rotate(18deg); }
+  50% { transform: rotate(-18deg); }
 }
 
-
-  .voucher-details input,
-  .voucher-details select,
-  .journal-form input,
-  .journal-form select,
-  .receipt-form input,
-  .receipt-form select,
-  .receipt-form textarea,
-  .stock-header input,
-  .stock-header select {
-    @apply mt-1
-      min-h-10
-      w-full
-      rounded-lg
-      border
-      border-app-border
-      bg-white
-      px-3
-      text-sm
-      text-app-text
-      outline-none
-      transition
-      focus:border-app-primary
-      focus:ring-2
-      focus:ring-emerald-100;
-  }
-
-  .create-voucher,
-  .primary-action,
-  .save-config,
-  .eway-portal-button {
-    @apply inline-flex
-      min-h-10
-      items-center
-      justify-center
-      rounded-lg
-      bg-app-primary
-      px-4
-      text-xs
-      font-semibold
-      text-white
-      transition
-      hover:bg-app-primary-hover
-      focus:outline-none
-      focus:ring-2
-      focus:ring-emerald-200;
-  }
-
-  .page-toolbar {
-    @apply flex
-      min-h-16
-      flex-wrap
-      items-center
-      gap-3
-      border-b
-      border-app-border-light
-      bg-white
-      px-4
-      py-3;
-  }
-}
-
-/* ============================================================
-   DESKTOP SHELL ALIGNMENT
-============================================================ */
+/* DESKTOP */
 
 @media (min-width: 1024px) {
-  .app-shell .app-main {
-    margin-left: 228px;
-    width: calc(100% - 228px);
-  }
-
-  .app-shell .app-main.sidebar-collapsed {
-    margin-left: 68px;
-    width: calc(100% - 68px);
-  }
-
-  .app-sidebar.is-collapsed {
-    width: 68px;
-  }
+  .app-shell .app-main { margin-left: 228px; width: calc(100% - 228px); }
+  .app-shell .app-main.sidebar-collapsed { margin-left: 68px; width: calc(100% - 68px); }
+  .app-sidebar.is-collapsed { width: 68px; }
 }
 
-/* ============================================================
-   SIDEBAR SCROLLBAR
-============================================================ */
-
-@layer components {
-  .sidebar-scroll,
-  .app-sidebar .sidebar-nav {
-    scrollbar-width: thin;
-    scrollbar-color: #385b76 #072b4b;
-    overscroll-behavior: contain;
-  }
-
-  .sidebar-scroll::-webkit-scrollbar,
-  .app-sidebar .sidebar-nav::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .sidebar-scroll::-webkit-scrollbar-track,
-  .app-sidebar .sidebar-nav::-webkit-scrollbar-track {
-    background: #072b4b;
-    border-radius: 9999px;
-  }
-
-  .sidebar-scroll::-webkit-scrollbar-thumb,
-  .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
-    background: #385b76;
-    border-radius: 9999px;
-    border: 1px solid #072b4b;
-  }
-
-  .sidebar-scroll::-webkit-scrollbar-thumb:hover,
-  .app-sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
-    background: #4d6f88;
-  }
-
-  /* ==========================================================
-     SIDEBAR LINKS
-  ========================================================== */
-
-  .app-sidebar .sidebar-link {
-    min-height: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    border-radius: 8px;
-  }
-
-  .app-sidebar .sidebar-link > span:first-child {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    flex-shrink: 0;
-    border-radius: 9px;
-  }
-
-  .app-sidebar .sidebar-link > span:first-child > svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  /* ==========================================================
-     COLLAPSED SIDEBAR
-  ========================================================== */
-
-  .app-sidebar[data-collapsed="true"] {
-    width: 68px;
-  }
-
-  .app-sidebar[data-collapsed="true"] .sidebar-brand {
-    justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .app-sidebar[data-collapsed="true"] .sidebar-nav {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  .app-sidebar[data-collapsed="true"] .sidebar-link {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
-
-    margin-left: auto;
-    margin-right: auto;
-
-    justify-content: center;
-
-    padding-left: 0;
-    padding-right: 0;
-
-    gap: 0;
-  }
-
-  .app-sidebar[data-collapsed="true"]
-    .sidebar-link > span:not(:first-child),
-  .app-sidebar[data-collapsed="true"] .sidebar-link > p,
-  .app-sidebar[data-collapsed="true"] .sidebar-link > strong {
-    display: none;
-  }
-
-  .app-sidebar[data-collapsed="true"] .sidebar-link + div {
-    display: none;
-  }
-
-  .app-sidebar[data-collapsed="true"]
-    .sidebar-link > span:first-child {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-    border-radius: 9px;
-    background: transparent;
-  }
-
-  .app-sidebar[data-collapsed="true"]
-    .sidebar-link.is-active {
-    background: transparent;
-  }
-
-  .app-sidebar[data-collapsed="true"]
-    .sidebar-link.is-active
-    > span:first-child {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 9px;
-    background: #10a66f;
-    color: #ffffff;
-  }
-
-  /* ==========================================================
-     MOBILE SIDEBAR
-  ========================================================== */
-
-  .app-sidebar.mobile-open {
-    z-index: 90;
-  }
-}
-
-/* ============================================================
-   TABLET / MOBILE SHELL
-============================================================ */
-
-@media (max-width: 1023px) {
-  .app-shell .app-main {
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-
-  .app-sidebar {
-    z-index: 90;
-  }
-
-  .app-sidebar[data-collapsed="true"] {
-    width: 68px;
-  }
-}
-
-/* ============================================================
-   DESKTOP HEADER WIDTH FIX
-============================================================ */
+/* DESKTOP HEADER WIDTH FIX */
 
 @media (min-width: 1024px) and (max-width: 1250px) {
-  .app-header .max-w-\[390px\] {
-    max-width: 300px;
-  }
-
-  .app-header [class*="w-[230px]"] {
-    width: 220px;
-    min-width: 190px;
-  }
-
-  .app-header .w-\[175px\] {
-    width: 155px;
-  }
-
-  .app-header .w-\[185px\] {
-    width: 165px;
-  }
-
-  .app-header .w-\[92px\] {
-    width: 82px;
-  }
+  .app-header .max-w-\[390px\] { max-width: 300px; }
+  .app-header [class*="w-[230px]"] { width: 220px; min-width: 190px; }
+  .app-header .w-\[175px\] { width: 155px; }
+  .app-header .w-\[185px\] { width: 165px; }
+  .app-header .w-\[92px\] { width: 82px; }
 }
 
-/* ============================================================
-   TABLET
-============================================================ */
+/* TABLET / MOBILE */
 
 @media (max-width: 1023px) {
-  .app-header {
-    z-index: 80;
-    min-height: 64px;
-    height: auto;
-  }
-
-  .app-sidebar {
-    box-shadow:
-      10px 0 28px rgba(15, 23, 42, 0.18);
-  }
+  .app-shell .app-main { margin-left: 0 !important; width: 100% !important; }
+  .app-sidebar { z-index: 90; box-shadow: 10px 0 28px rgba(15, 23, 42, 0.18); }
+  .app-header { z-index: 80; min-height: 64px; height: auto; }
 }
 
-/* ============================================================
-   MOBILE
-============================================================ */
+/* MOBILE */
 
 @media (max-width: 767px) {
-  *{
-    button,a{
-      cursor:pointer
-    }
-  }
-  .cloud-page-title {
-    @apply text-[22px];
-  
-  }
+  .cloud-page-title { @apply text-[22px]; }
+  .cloud-table { min-width: 820px; }
 
-  .cloud-table {
-    min-width: 820px;
-  }
-
-  .app-header {
-    min-height: 64px;
-    height: auto;
-  }
-
-  .app-header > div:first-child {
-    height: 64px;
-    min-height: 64px;
-  }
-
-  .app-header [class*="w-[230px]"] {
-    width: auto;
-    min-width: 0;
-    max-width: 210px;
-  }
-
-  .app-header .w-\[82px\],
-  .app-header .w-\[88px\],
-  .app-header .w-\[175px\],
-  .app-header .w-\[185px\] {
-    display: none;
-  }
-
-  .app-header .w-\[92px\] {
-    width: 58px;
-  }
-
-  .app-header [class*="w-[300px]"] {
-    width: min(300px, calc(100vw - 16px));
-  }
-
-  .app-header .connector-status-menu {
-    position: fixed;
-    top: 40px;
-    left: 16px;
-    right: 16px;
-    width: auto;
-    transform: none;
-  }
+  .app-header > div:first-child { height: 64px; min-height: 64px; }
+  .app-header [class*="w-[230px]"] { width: auto; min-width: 0; max-width: 210px; }
+  .app-header .w-\[82px\], .app-header .w-\[88px\], .app-header .w-\[175px\], .app-header .w-\[185px\] { display: none; }
+  .app-header .w-\[92px\] { width: 58px; }
+  .app-header [class*="w-[300px]"] { width: min(300px, calc(100vw - 16px)); }
+  .app-header .connector-status-menu { position: fixed; top: 40px; left: 16px; right: 16px; width: auto; transform: none; }
 }
 
-/* ============================================================
-   VERY SMALL PHONES
-============================================================ */
+/* VERY SMALL PHONES */
 
 @media (max-width: 480px) {
-  *{
-    button,a{
-      cursor:pointer
-    }
-  }
-  .app-header [class*="w-[230px]"] {
-    max-width: 175px;
-  }
-
-  .app-header .w-\[92px\] {
-    width: 52px;
-  }
-
-  .app-header .h-9 {
-    height: 34px;
-  }
-
-  .app-header .w-9 {
-    width: 34px;
-  }
-
-  .cloud-page-title {
-    @apply text-[20px];
-  }
+  .app-header [class*="w-[230px]"] { max-width: 175px; }
+  .app-header .w-\[92px\] { width: 52px; }
+  .app-header .h-9 { height: 34px; }
+  .app-header .w-9 { width: 34px; }
+  .cloud-page-title { @apply text-[20px]; }
 }

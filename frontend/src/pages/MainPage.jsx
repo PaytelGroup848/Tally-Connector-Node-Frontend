@@ -9,11 +9,8 @@ import ProfilePage from "./ProfilePage";
 import AddNewPage from "./AddNewPage";
 import AddUserPage from "./AddUserPage";
 import AllUsersPage from "./AllUsersPage";
-import ContraPage from "./ContraPage";
 import DownloadInvoicePage from "./DownloadInvoicePage";
-import CreditNotePage from "./CreditNotePage";
 import InactiveCustomersPage from "./InactiveCustomersPage";
-import ConfigurationsPage from "./ConfigurationsPage";
 import DebitNotePage from "./DebitNotePage";
 import DeliveryNotePage from "./DeliveryNotePage";
 import JournalPage from "./JournalPage";
@@ -62,6 +59,7 @@ import {
   extractOrganizationContext,
   fetchProfile,
 } from "../services/profileApi";
+
 
 const selectedCompanyStorageKey = "selectedCompanyId";
 
@@ -1116,6 +1114,7 @@ function App() {
     ) {
       return (
         <MyVouchersPage
+        key={currentPath}
           companyId={getCompanyId(
             selectedCompany,
           )}
@@ -1132,6 +1131,7 @@ function App() {
     ) {
       return (
         <MyVouchersPage
+        key={currentPath}
           companyId={getCompanyId(
             selectedCompany,
           )}
@@ -1148,6 +1148,7 @@ function App() {
     ) {
       return (
         <MyVouchersPage
+          key={currentPath}
           companyId={getCompanyId(
             selectedCompany,
           )}
@@ -1164,6 +1165,7 @@ function App() {
     ) {
       return (
         <MyVouchersPage
+          key={currentPath}
           companyId={getCompanyId(
             selectedCompany,
           )}
@@ -1220,7 +1222,9 @@ function App() {
 
     if (additionalMyVoucher) {
       return (
+        
         <MyVouchersPage
+        key={currentPath}
           companyId={getCompanyId(
             selectedCompany,
           )}
@@ -1426,6 +1430,7 @@ function App() {
     if (flags.showPayment) {
       return (
         <ReceiptPage
+          key={currentPath}
           companyId={
             selectedCompany?.id
           }
@@ -1440,6 +1445,7 @@ function App() {
     if (flags.showReceiptNote) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Receipt Note"
           companyId={
             selectedCompany?.id
@@ -1451,6 +1457,7 @@ function App() {
     if (flags.showReceipt) {
       return (
         <ReceiptPage
+          key={currentPath}
           companyId={
             selectedCompany?.id
           }
@@ -1464,6 +1471,7 @@ function App() {
     if (flags.showPurchaseOrder) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Purchase Order"
           companyId={
             selectedCompany?.id
@@ -1476,6 +1484,7 @@ function App() {
       return currentPath.toLowerCase() ===
         "/create-voucher/purchaseinvoice" ? (
         <DocumentVoucherPage
+        key={currentPath}
           title="Purchase"
           companyId={
             selectedCompany?.id
@@ -1504,6 +1513,7 @@ function App() {
     if (flags.showStockJournal) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Stock Journal"
           companyId={
             selectedCompany?.id
@@ -1519,6 +1529,7 @@ function App() {
     if (flags.showJournal) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Journal"
           companyId={
             selectedCompany?.id
@@ -1530,6 +1541,7 @@ function App() {
     if (flags.showContra) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Contra"
           companyId={
             selectedCompany?.id
@@ -1541,6 +1553,7 @@ function App() {
     if (flags.showDeliveryNote) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Delivery Note"
           companyId={
             selectedCompany?.id
@@ -1562,6 +1575,7 @@ function App() {
     if (flags.showDebitNote) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Debit Note"
           companyId={
             selectedCompany?.id
@@ -1573,6 +1587,7 @@ function App() {
     if (flags.showCreditNote) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Credit Note"
           companyId={
             selectedCompany?.id
@@ -1584,6 +1599,7 @@ function App() {
     if (flags.showSalesOrder) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Sales Order"
           companyId={
             selectedCompany?.id
@@ -1594,7 +1610,8 @@ function App() {
 
     if (flags.showQuotation) {
       return (
-        <DocumentVoucherPage
+          <DocumentVoucherPage
+          key={currentPath}
           title="Quotation"
           companyId={
             selectedCompany?.id
@@ -1606,6 +1623,7 @@ function App() {
     if (flags.showSalesVoucher) {
       return (
         <DocumentVoucherPage
+        key={currentPath}
           title="Sales"
           companyId={
             selectedCompany?.id
