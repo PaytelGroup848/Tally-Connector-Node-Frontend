@@ -18,14 +18,15 @@ import {
 
 export const navItems = [
   [LayoutDashboard, "Dashboard", false, false, "dashboard"],
-  [Building,"My Company",false,false,"settings"],
+  [Building, "My Company", false, false, "settings"],
+  [Users, "Parties", false, false, "parties"],
+  [Package, "Items & Inventory", false, false, "items"],
   [Plus, "Create Vouchers", true, false, "create-voucher"],
   [FileText, "Sales", true, false, "sales"],
   [ShoppingCart, "Purchase", true, false, "purchase"],
   [WalletCards, "Cash & Bank", true, false, "cash-bank"],
   [HandCoins, "Collect Payments", false, false, "collect-payments"],
-  [Users, "Parties", false, false, "parties"],
-  [Package, "Items", false, false, "items"],
+
   [BarChart3, "Reports", true, false, "reports"],
   // [ClipboardList, "My Entries", true, false, "my-entries"],
   [FileText, "Vouchers", false, false, "vouchers"],
