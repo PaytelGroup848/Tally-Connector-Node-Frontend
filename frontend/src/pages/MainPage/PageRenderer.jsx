@@ -51,11 +51,13 @@ export default function PageRenderer({
   const renderPage = () => {
     if (currentPath === "/bank-status") {
       const searchParams = new URLSearchParams(window.location.search);
+      const companyId = searchParams.get("companyId");
       const companyName = searchParams.get("companyName") || "";
 
       return (
         <ViewBankStatusPage
-          companyId={searchParams.get("companyId")}
+          key={companyId || "missing-company"}
+          companyId={companyId}
           companyName={companyName}
           onClose={() => navigateTo("/settings")}
         />

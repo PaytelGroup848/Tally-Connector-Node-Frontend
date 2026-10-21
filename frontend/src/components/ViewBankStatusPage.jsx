@@ -1,10 +1,51 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import useAuthStore from "../store/authStore";
+import Pagination from "./Pagination";
 import {
   extractCommands,
   fetchCompanyCommands,
 } from "../services/companiesApi";
+
+const PAGE_SIZE = 20;
+
+function extractPagination(response) {
+  const pending = [response];
+
+  while (pending.length > 0) {
+    const value = pending.shift();
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+
+    for (const key of ["pagination", "meta"]) {
+      const metadata = value[key];
+      if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+        return metadata;
+      }
+    }
+
+    const hasPaginationFields = [
+      "total",
+      "totalItems",
+      "totalRecords",
+      "totalPages",
+      "pages",
+      "count",
+    ].some((key) => value[key] !== undefined);
+    if (hasPaginationFields) return value;
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === "object") pending.push(child);
+    }
+  }
+
+  return {};
+}
+
+function getSafeNumber(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
 
 function getValue(command, keys) {
   for (const source of [
@@ -199,9 +240,16 @@ export default function ViewBankStatusPage({
 }) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const [commands, setCommands] = useState([]);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedCommand, setSelectedCommand] = useState(null);
+  const totalItems = commands.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const visibleCommands = commands.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
   const requestError = !accessToken
     ? "Sign in to load bank status."
     : !companyId
@@ -215,18 +263,48 @@ export default function ViewBankStatusPage({
 
     async function loadLedgerCommands() {
       setIsLoading(true);
+      setErrorMessage("");
 
       try {
-        const response = await fetchCompanyCommands(accessToken, companyId, {
-          type: "CREATE_LEDGER",
-          page: 1,
-          limit: 20,
-          q: "",
-        });
+        const allCommands = [];
+        let currentPage = 1;
+        let hasMorePages = true;
 
-        if (isMounted) {
-          setCommands(extractCommands(response));
+        while (hasMorePages) {
+          const response = await fetchCompanyCommands(
+            accessToken,
+            companyId,
+            {
+              type: "CREATE_LEDGER",
+              page: currentPage,
+              limit: PAGE_SIZE,
+              q: "",
+            },
+          );
+          const nextCommands = extractCommands(response);
+          const pagination = extractPagination(response);
+          const total = getSafeNumber(
+            pagination.total ??
+              pagination.totalItems ??
+              pagination.totalRecords ??
+              pagination.count,
+          );
+          const apiTotalPages = getSafeNumber(
+            pagination.totalPages ?? pagination.pages,
+          );
+
+          allCommands.push(...nextCommands);
+          hasMorePages =
+            nextCommands.length === PAGE_SIZE &&
+            (apiTotalPages !== null
+              ? currentPage < apiTotalPages
+              : total !== null
+                ? allCommands.length < total
+                : true);
+          currentPage += 1;
         }
+
+        if (isMounted) setCommands(allCommands);
       } catch (error) {
         if (isMounted) {
           setCommands([]);
@@ -275,18 +353,18 @@ export default function ViewBankStatusPage({
         </header>
 
         <div className="min-h-0 flex-1 overflow-auto p-5">
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-3 py-12 text-sm text-slate-500">
-              <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-600" />
-              Loading bank status...
-            </div>
-          ) : requestError ? (
+          {requestError ? (
             <p
               className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
               role="alert"
             >
               {requestError}
             </p>
+          ) : isLoading ? (
+            <div className="flex items-center justify-center gap-3 py-12 text-sm text-slate-500">
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-600" />
+              Loading bank status...
+            </div>
           ) : commands.length === 0 ? (
             <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
               No bank status records found.
@@ -304,7 +382,7 @@ export default function ViewBankStatusPage({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {commands.map((command, index) => {
+                  {visibleCommands.map((command, index) => {
                     const status = getValue(command, [
                       "status",
                       "state",
@@ -371,6 +449,19 @@ export default function ViewBankStatusPage({
             </div>
           )}
         </div>
+
+        {!isLoading && !requestError && commands.length > 0 && (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={PAGE_SIZE}
+            onPageChange={(nextPage) => {
+              setPage(nextPage);
+              setSelectedCommand(null);
+            }}
+          />
+        )}
 
         {selectedCommand && (
           <div
