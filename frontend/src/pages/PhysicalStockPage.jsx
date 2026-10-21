@@ -346,7 +346,7 @@ const updateRow = (id, field, value) => {
               ✓
             </div>
             <p className="text-sm font-semibold text-green-700">
-              Physical Stock Voucher created successfully!
+              Voucher created successfully, click view status
             </p>
           </div>
         </div>
@@ -797,7 +797,7 @@ const updateRow = (id, field, value) => {
               active:scale-[0.98]
             "
           >
-            {isSubmitting ? 'Creating...' : 'Create Voucher'}
+            {isSubmitting ? 'Create Voucher' : 'Create Voucher'}
           </button>
 
         </div>
