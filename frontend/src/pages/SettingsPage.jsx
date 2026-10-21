@@ -680,65 +680,91 @@ const SettingsPage = () => {
     setBankActionError("");
   };
 
-  const saveCompanyBank = async (event) => {
-    event.preventDefault();
-    if (!banksCompanyId || !accessToken) return;
+const saveCompanyBank = async (event) => {
+  event.preventDefault();
+  if (!banksCompanyId || !accessToken) return;
 
-    const requestId = banksRequestRef.current;
-    setBankSaving(true);
-    setBankSaveError("");
-    try {
-      if (editingBankId) {
-        const updates = Object.fromEntries(
-          Object.entries(bankForm).filter(
-            ([key, value]) =>
-              key !== "isDefault" && value !== bankEditOriginal?.[key],
-          ),
-        );
-        const shouldSetDefault =
-          bankForm.isDefault && !bankEditOriginal?.isDefault;
+  const requestId = banksRequestRef.current;
+  setBankSaving(true);
+  setBankSaveError("");
 
-        if (Object.keys(updates).length === 0 && !shouldSetDefault) {
-          setBankFormOpen(false);
-          setEditingBankId(null);
-          setBankEditOriginal(null);
-          return;
-        }
-        if (Object.keys(updates).length > 0) {
-          await updateCompanyBank(
-            accessToken,
-            banksCompanyId,
-            editingBankId,
-            updates,
-          );
-        }
-        if (shouldSetDefault) {
-          await setDefaultCompanyBank(
-            accessToken,
-            banksCompanyId,
-            editingBankId,
-          );
-        }
-      } else {
-        await createCompanyBank(accessToken, banksCompanyId, bankForm);
+  try {
+    let apiResponse = null;
+
+    if (editingBankId) {
+      const updates = Object.fromEntries(
+        Object.entries(bankForm).filter(
+          ([key, value]) =>
+            key !== "isDefault" && value !== bankEditOriginal?.[key],
+        ),
+      );
+      const shouldSetDefault =
+        bankForm.isDefault && !bankEditOriginal?.isDefault;
+
+      if (Object.keys(updates).length === 0 && !shouldSetDefault) {
+        setBankFormOpen(false);
+        setEditingBankId(null);
+        setBankEditOriginal(null);
+        setBankSaving(false);
+        return;
       }
-      if (requestId !== banksRequestRef.current) return;
-      const response = await fetchCompanyBanks(accessToken, banksCompanyId);
-      if (requestId !== banksRequestRef.current) return;
-      const banks = extractBankList(response);
-      setCompanyBanks(banks);
-      setBankUnderOptions(extractUnderOptions(response, banks));
-      setBankForm(EMPTY_BANK_FORM);
-      setEditingBankId(null);
-      setBankEditOriginal(null);
-      setBankFormOpen(false);
-    } catch (error) {
-      if (requestId !== banksRequestRef.current) return;
-      setBankSaveError(error?.message || "Unable to add bank details.");
-    } finally {
-      if (requestId === banksRequestRef.current) setBankSaving(false);
+
+      if (Object.keys(updates).length > 0) {
+        apiResponse = await updateCompanyBank(
+          accessToken,
+          banksCompanyId,
+          editingBankId,
+          updates,
+        );
+      }
+      if (shouldSetDefault) {
+        await setDefaultCompanyBank(accessToken, banksCompanyId, editingBankId);
+      }
+    } else {
+      apiResponse = await createCompanyBank(
+        accessToken,
+        banksCompanyId,
+        bankForm,
+      );
     }
-  };
+
+    if (requestId !== banksRequestRef.current) return;
+
+    // 👇 Tally Sync Check
+    // Backend response check karo ki Tally sync successfully hua ya nahi
+    const responseData = apiResponse?.data || apiResponse;
+    if (responseData?.tallySynced === false) {
+      setBankSaveError(
+        "Bank saved in app, but failed to sync with Tally. Please check your Tally connection or try again.",
+      );
+      // Optional: Alert bhi dikha sakte ho
+      // alert("Bank saved locally, but Tally sync failed.");
+    }
+
+    const response = await fetchCompanyBanks(accessToken, banksCompanyId);
+    if (requestId !== banksRequestRef.current) return;
+
+    const banks = extractBankList(response);
+    setCompanyBanks(banks);
+    setBankUnderOptions(extractUnderOptions(response, banks));
+    setBankForm(EMPTY_BANK_FORM);
+    setEditingBankId(null);
+    setBankEditOriginal(null);
+    setBankFormOpen(false);
+  } catch (error) {
+    if (requestId !== banksRequestRef.current) return;
+
+    const errorMessage = error?.message || "Unable to save bank details.";
+
+    if (errorMessage.toLowerCase().includes("tally")) {
+      setBankSaveError(`Tally Sync Error: ${errorMessage}`);
+    } else {
+      setBankSaveError(errorMessage);
+    }
+  } finally {
+    if (requestId === banksRequestRef.current) setBankSaving(false);
+  }
+};
 
   const handleBankAction = async (bank, action) => {
     const bankId = bank.id || bank._id || bank.bankId || bank.bank_id;
