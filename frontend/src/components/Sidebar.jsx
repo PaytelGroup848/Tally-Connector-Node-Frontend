@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from "react";
 import { navItems, submenuItems } from "../routes/navigation";
 import SidebarNavigation from "./Sidebar/SidebarNavigation";
@@ -21,9 +20,7 @@ function Sidebar({
 }) {
   const entryPath = currentPath.toLowerCase();
 
-
   const navItemRefs = useRef({});
-
 
   const isSubItemAllowed = (parentPath, itemPath) => {
     if (!Array.isArray(allowedModules)) {
@@ -37,34 +34,28 @@ function Sidebar({
     return allowedModules.includes(itemPath);
   };
 
+  const visibleNavItems = navItems.filter(([, label, , , path]) => {
+    if (!Array.isArray(allowedModules)) {
+      return true;
+    }
 
-  const visibleNavItems = navItems.filter(
-    ([, label, , , path]) => {
-      if (!Array.isArray(allowedModules)) {
-        return true;
-      }
+    const subItems = submenuItems[label];
 
-      const subItems = submenuItems[label];
+    if (!subItems) {
+      return allowedModules.includes(path);
+    }
 
-      if (!subItems) {
-        return allowedModules.includes(path);
-      }
-
-      return (
-        allowedModules.includes(path) ||
-        subItems.some(([, itemPath]) =>
-          isSubItemAllowed(path, itemPath),
-        )
-      );
-    },
-  );
+    return (
+      allowedModules.includes(path) ||
+      subItems.some(([, itemPath]) => isSubItemAllowed(path, itemPath))
+    );
+  });
 
   // ============================================================
   // ACTIVE SUBMENU
   // ============================================================
 
-  const isSubmenuActive = (itemPath) =>
-    entryPath === itemPath.toLowerCase();
+  const isSubmenuActive = (itemPath) => entryPath === itemPath.toLowerCase();
 
   // ============================================================
   // SPECIAL ROUTES
@@ -72,9 +63,7 @@ function Sidebar({
 
   const isCollectPaymentsRoute = (label) =>
     label === "Collect Payments" &&
-    ["/receivables", "/receivablesnew"].includes(
-      entryPath,
-    );
+    ["/receivables", "/receivablesnew"].includes(entryPath);
 
   const isCashBankRoute = (label) =>
     label === "Cash & Bank" &&
@@ -90,9 +79,7 @@ function Sidebar({
   const isNavExpanded = (label, path) =>
     expandedNav[label] ??
     (currentPath.startsWith(`/${path}`) ||
-      submenuItems[label]?.some(([, itemPath]) =>
-        isSubmenuActive(itemPath),
-      ));
+      submenuItems[label]?.some(([, itemPath]) => isSubmenuActive(itemPath)));
 
   // ============================================================
   // AUTO SCROLL TO OPENED DROPDOWN
@@ -178,17 +165,11 @@ function Sidebar({
   // SINGLE SUBMENU OPEN
   // ============================================================
 
-  const handleExpandableClick = (
-    event,
-    label,
-    path,
-  ) => {
+  const handleExpandableClick = (event, label, path) => {
     event.preventDefault();
 
     setExpandedNav((current) => {
-      const isCurrentlyOpen =
-        current[label] ??
-        isNavExpanded(label, path);
+      const isCurrentlyOpen = current[label] ?? isNavExpanded(label, path);
 
       // Clicking the already-open dropdown closes it
       if (isCurrentlyOpen) {
@@ -232,11 +213,7 @@ function Sidebar({
         ${
           isCompact
             ? `
-                ${
-                  collapsed
-                    ? "-translate-x-full"
-                    : "translate-x-0"
-                }
+                ${collapsed ? "-translate-x-full" : "translate-x-0"}
 
                 w-[228px]
               `
