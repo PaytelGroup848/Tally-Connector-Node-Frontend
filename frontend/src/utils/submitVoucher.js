@@ -360,7 +360,7 @@ export function createVoucherSubmitHandler(options) {
       }
       successTimerRef.current = window.setTimeout(() => {
         setShowSuccessAnimation(false);
-      }, 1600);
+      }, 7000);
 
       const commandId = extractCommandId(commandResponse);
 

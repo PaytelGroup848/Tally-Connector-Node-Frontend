@@ -473,7 +473,7 @@ export function DocumentVoucherPage({
                 `Create ${title} `
               ) : (
                 "Create Voucher"
-              )}
+              )}  
             </button>
           </div>
         </div>
