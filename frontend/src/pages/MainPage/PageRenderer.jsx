@@ -7,7 +7,6 @@ import AddNewPage from "../AddNewPage";
 import AddUserPage from "../AddUserPage";
 import AllUsersPage from "../AllUsersPage";
 import DownloadInvoicePage from "../DownloadInvoicePage";
-import InactiveCustomersPage from "../InactiveCustomersPage";
 import GstSearchPage from "../GstSearchPage";
 import ItemsPage from "../ItemsPage";
 import SettingsPage from "../SettingsPage";
@@ -28,10 +27,8 @@ import ReportsPage from "../ReportsPage";
 import ReceiptPage from "../ReceiptPage";
 import { DocumentVoucherPage } from "../DocumentVoucherPage";
 import ManageReminderPage from "../ManageReminderPage";
-import InactiveStocksPage from "../InactiveStocksPage";
 import DataBackupPage from "../DataBackupPage";
 import VouchersPage from "../VouchersPage";
-import ConfigurationsPage from "../ConfigurationsPage";
 
 
 export default function PageRenderer({
@@ -166,11 +163,7 @@ export default function PageRenderer({
       );
     }
 
-    if (
-      flags.showConfigurationsPage
-    ) {
-      return <ConfigurationsPage />;
-    }
+    
 
     if (flags.showAllUsersPage) {
       return <AllUsersPage />;
@@ -180,17 +173,9 @@ export default function PageRenderer({
       return <AddUserPage />;
     }
 
-    if (
-      flags.showInactiveCustomersPage
-    ) {
-      return <InactiveCustomersPage />;
-    }
+  
 
-    if (
-      flags.showInactiveStocksPage
-    ) {
-      return <InactiveStocksPage />;
-    }
+   
 
     if (
       flags.showDownloadInvoicePage

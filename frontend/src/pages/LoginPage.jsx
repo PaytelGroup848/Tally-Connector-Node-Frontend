@@ -150,7 +150,9 @@ const LoginPage = () => {
         user: {
           email: trimmedEmail,
           ...(data?.user || {}),
-          ...(isSuperAdminLogin ? { role: "SUPER_ADMIN", isSuperAdmin: true } : {}),
+          ...(isSuperAdminLogin
+            ? { role: "SUPER_ADMIN", isSuperAdmin: true }
+            : {}),
         },
       });
 
@@ -674,20 +676,7 @@ const LoginPage = () => {
               lg:justify-start
               lg:pt-2
             "
-          >
-            {/* <img
-              src={logo}
-              alt="CtrlBooks logo"
-              className="max-sm:ml-[-5%]
-                lg:ml-[-7%]
-                xl:ml-[5%]  
-                h-auto
-                w-50
-                max-w-full
-                object-contain
-              "
-            /> */}
-          </div>
+          ></div>
 
           {/* =================================================
               LOGIN CONTENT
@@ -1061,7 +1050,6 @@ const LoginPage = () => {
                     
 
                     rounded-md
-
                     bg-[#10a66f]
 
                     text-[0.96rem]
