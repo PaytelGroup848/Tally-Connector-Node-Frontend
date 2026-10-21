@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, X } from "lucide-react";
 
 import useAuthStore from "../store/authStore";
 import {
@@ -12,6 +12,7 @@ import { getUniqueFields } from "../utils/columnUtils";
 
 import { FileDown, Loader2 } from "lucide-react";
 import { downloadVoucherPdf } from "../services/voucherPdfApi";
+import VoucherPreviewModal from "../components/VoucherPreviewModal";
 
 function formatValue(value) {
   if (value === null || value === undefined || value === "") {
@@ -123,7 +124,7 @@ function isHiddenColumn(key) {
   return (
     isIdentifierColumn(key) ||
     normalizedKey === "vouchernumber" ||
-    (normalizedKey.includes("date") && normalizedKey.length==4) ||
+    (normalizedKey.includes("date") && normalizedKey.length == 4) ||
     (normalizedKey.includes("v") && normalizedKey.length == 1) ||
     normalizedKey === "raw" ||
     normalizedKey === "source"
@@ -169,6 +170,8 @@ function VouchersPage({ companyId }) {
   const [detailStack, setDetailStack] = useState([]);
 
   const [downloadingId, setDownloadingId] = useState(null);
+
+  const [previewId, setPreviewId] = useState(null);
 
   const handleDownload = async (voucher) => {
     try {
@@ -657,59 +660,58 @@ function VouchersPage({ companyId }) {
                           );
                         })}
 
-                        {/* ⭐ ACTION CELL */}
+                        {/*  ACTION CELL */}
                         <div className="box-border w-[140px] min-w-[140px] max-w-[140px] overflow-hidden border-l border-[#e5ebf2] pr-4">
-                          <button
-                            type="button"
-                            onClick={() => handleDownload(voucher)}
-                            disabled={isDownloading}
-                            className="
-            inline-flex
-            h-8
-            min-w-[90px]
-            items-center
-            justify-center
-            gap-1.5
-            rounded-md
-            border
-            border-red-200
-            bg-white
-            px-3
-            text-xs
-            font-medium
-            text-red-600
-            transition
-            hover:border-red-300
-            hover:bg-red-50
-            disabled:cursor-wait
-            disabled:opacity-60
-            disabled:hover:border-red-200
-            disabled:hover:bg-white
-          "
-                            title={
-                              isDownloading
-                                ? "Generating PDF..."
-                                : "Generate PDF"
-                            }
-                            aria-label={
-                              isDownloading
-                                ? "Generating PDF..."
-                                : "Generate PDF"
-                            }
-                          >
-                            {isDownloading ? (
-                              <>
-                                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
-                                <span>Wait...</span>
-                              </>
-                            ) : (
-                              <>
-                                <FileDown size={14} strokeWidth={2} />
-                                <span>PDF</span>
-                              </>
-                            )}
-                          </button>
+                          <div className="flex flex-col gap-2 px-5 py-3">
+                            {/* View Button */}
+                            <button
+                              type="button"
+                              onClick={() => setPreviewId(voucher._id)}
+                              className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                            >
+                              <Eye size={14} />
+                              View
+                            </button>
+
+                            {/* Download PDF Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleDownload(voucher)}
+                              disabled={isDownloading}
+                              className="inline-flex h-8 min-w-[90px] items-center justify-center gap-1.5 rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-600 transition hover:border-red-300 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 disabled:hover:border-red-200 disabled:hover:bg-white"
+                              title={
+                                isDownloading
+                                  ? "Generating PDF..."
+                                  : "Generate PDF"
+                              }
+                              aria-label={
+                                isDownloading
+                                  ? "Generating PDF..."
+                                  : "Generate PDF"
+                              }
+                            >
+                              {isDownloading ? (
+                                <>
+                                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                                  <span>Wait...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <FileDown size={14} strokeWidth={2} />
+                                  <span>PDF</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
+
+                        <VoucherPreviewModal
+                          open={!!previewId}
+                          onClose={() => setPreviewId(null)}
+                          companyId={companyId}
+                          voucherId={previewId}
+                          fileName={`voucher-${previewId || ""}`}
+                        />
                       </div>
                     );
                   })}

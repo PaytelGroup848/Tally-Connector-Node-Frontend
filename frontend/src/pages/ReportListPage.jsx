@@ -1153,22 +1153,22 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
         "mobile_number",
       ],
     },
-    {
-      key: "address",
-      label: "Address",
-      aliases: [
-        "address",
-        "billingAddress",
-        "billing_address",
-        "postalAddress",
-        "postal_address",
-        "addressLine1",
-        "address_line_1",
-        "fullAddress",
-        "full_address",
-        "location",
-      ],
-    },
+    // {
+    //   key: "address",
+    //   label: "Address",
+    //   aliases: [
+    //     "address",
+    //     "billingAddress",
+    //     "billing_address",
+    //     "postalAddress",
+    //     "postal_address",
+    //     "addressLine1",
+    //     "address_line_1",
+    //     "fullAddress",
+    //     "full_address",
+    //     "location",
+    //   ],
+    // },
   ];
 
   const getCustomerValue = (customer, column) => {
