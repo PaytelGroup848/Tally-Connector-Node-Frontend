@@ -1,4 +1,5 @@
 import { useState } from 'react'
+
 import DateRangePicker from '../components/DateRangePicker'
 
 const pages = {

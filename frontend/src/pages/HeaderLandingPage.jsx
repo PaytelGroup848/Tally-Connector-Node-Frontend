@@ -143,7 +143,7 @@ export default function HeaderLandingPage() {
                             </div>
 
                             {/* Yellow Tag */}
-                            <div className="relative mt-12 w-[125px] rotate-[-14deg] rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)]">
+                            <div className="relative mt-12 w-[125px]  rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)]">
                                 {/* Screw holes */}
                                 <span className="absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
                                 <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />

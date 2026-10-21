@@ -988,7 +988,7 @@ function ReceiptPage({
           >
             {isSubmitting
               ? 'Creating...'
-              : `Create ${documentType}`}
+              : `Create Voucher`}
           </button>
         </div>
       </form>
