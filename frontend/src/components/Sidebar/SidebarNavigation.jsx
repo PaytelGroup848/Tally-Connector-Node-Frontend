@@ -256,7 +256,7 @@ export default function SidebarNavigation({ visibleNavItems, navItemRefs, submen
 
                     {expandable && hasSubmenu && (
                       <span
-                        className={`relative z-10 ml-auto flex h-8 w-8 shrink-0 items-center justify-center text-slate-400 transition-transform duration-200 ${submenuOpen ? "rotate-90 bottom-[20%]" : "rotate-0"
+                        className={`relative z-10 ml-auto flex h-8 w-8 shrink-0 items-center justify-center text-slate-400 transition-transform duration-200 ${submenuOpen ? "rotate-90 bottom-[20%] left-[5%]" : "rotate-0"
                           }`}
                         aria-hidden="true"
                       >
