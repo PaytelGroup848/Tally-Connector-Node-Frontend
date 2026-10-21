@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import useAuthStore from "../store/authStore";
-import { FileDown } from "lucide-react";
+import { Eye, FileDown } from "lucide-react";
 import {
   extractPurchasePagination,
   extractPurchases,
@@ -8,6 +8,7 @@ import {
 } from "../services/companiesApi";
 
 import { downloadVoucherPdf } from "../services/voucherPdfApi";
+import VoucherPreviewModal from "../components/VoucherPreviewModal";
 
 const supplierFields = [
   ["Supplier’s Name", "Supplier’s Name"],
@@ -181,6 +182,7 @@ function PurchasePage({ companyId }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [previewId, setPreviewId] = useState(null);
 
   const handleDownload = async (purchase) => {
     const purchaseId = purchase?._id || purchase?.id;
@@ -485,6 +487,14 @@ function PurchasePage({ companyId }) {
                         <td className="whitespace-nowrap px-5 py-3 text-center">
                           <button
                             type="button"
+                            onClick={() => setPreviewId(purchase._id)}
+                            className="inline-flex items-center gap-1.5 mr-5 rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                          >
+                            <Eye size={14} />
+                            View
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleDownload(purchase)}
                             disabled={isDownloading || !purchaseId}
                             className="
@@ -520,6 +530,14 @@ function PurchasePage({ companyId }) {
                             )}
                           </button>
                         </td>
+
+                        <VoucherPreviewModal
+                          open={!!previewId}
+                          onClose={() => setPreviewId(null)}
+                          companyId={companyId}
+                          voucherId={previewId}
+                          fileName={`voucher-${previewId || ""}`}
+                        />
                       </tr>
                     );
                   })
