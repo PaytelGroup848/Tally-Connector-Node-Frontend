@@ -10,10 +10,12 @@ function withTimeout(promise, timeoutMs, message) {
 }
 
 export function createVoucherSubmitHandler(options) {
-  const { title, accessToken, isJournalStyleVoucher, isSalesInvoice, defaultVoucherType, isReceiptDeliveryNote, requestCompanyId, setSubmitError, setShowSuccessAnimation, advancedVoucherFieldNames, journalRows, isStockJournal, getJournalTotalsInPaise, formatJournalPaise, isSalesOrder, isNoteVoucher, sourceRows, destinationRows, itemRows, setIsSubmitting, calculateRowTaxBreakdown, calculateRowAmount, calculateLedgerTotals, subtotal, isJournal, isContra, isSameState, selectedGstin, postCompanyCommand, extractCommandId, fetchCommandStatus, extractCommandStatus, getCommandFailureDetails, setSelectedParty, setSelectedVoucherNumber, resetSelectedPartyBalance, setAdditionalLedgers, setShowLedgerPanel, setJournalRows, createJournalRow, setSourceRows, setDestinationRows, createStockJournalRow, resetItemRows, successTimerRef } = options;
+  const { title, accessToken, isJournalStyleVoucher, isSalesInvoice, defaultVoucherType, isReceiptDeliveryNote, requestCompanyId, setSubmitError, setShowSuccessAnimation, advancedVoucherFieldNames, journalRows, isStockJournal, getJournalTotalsInPaise, formatJournalPaise, isSalesOrder, isNoteVoucher, sourceRows, destinationRows, itemRows, setIsSubmitting, submitRequestRef, calculateRowTaxBreakdown, calculateRowAmount, calculateLedgerTotals, subtotal, isJournal, isContra, isSameState, selectedGstin, setSelectedGstin, postCompanyCommand, extractCommandId, fetchCommandStatus, extractCommandStatus, getCommandFailureDetails, setSelectedParty, setSelectedVoucherNumber, resetSelectedPartyBalance, setAdditionalLedgers, setShowLedgerPanel, setJournalRows, createJournalRow, setSourceRows, setDestinationRows, createStockJournalRow, resetItemRows, successTimerRef } = options;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (submitRequestRef.current) return;
 
     const form = event.currentTarget;
 
@@ -240,7 +242,11 @@ export function createVoucherSubmitHandler(options) {
     }
 
     try {
+      submitRequestRef.current = true;
       setIsSubmitting(true);
+      window.setTimeout(() => {
+        setIsSubmitting(false);
+      }, 2000);
 
       const items = isStockJournal
         ? {
@@ -345,6 +351,21 @@ export function createVoucherSubmitHandler(options) {
             }),
           },
       };
+
+      form.reset();
+      setSelectedParty("");
+      setSelectedVoucherNumber("");
+      setSelectedGstin("");
+      resetSelectedPartyBalance();
+      setAdditionalLedgers([]);
+      setShowLedgerPanel(false);
+      setJournalRows([
+        { ...createJournalRow(1), type: "Debit" },
+        { ...createJournalRow(2), type: "Credit" },
+      ]);
+      setSourceRows([createStockJournalRow(1)]);
+      setDestinationRows([createStockJournalRow(2)]);
+      resetItemRows();
 
       const commandResponse = isReceiptDeliveryNote
         ? await withTimeout(
@@ -453,21 +474,6 @@ export function createVoucherSubmitHandler(options) {
         return;
       }
 
-      form.reset();
-
-      setSelectedParty("");
-      setSelectedVoucherNumber("");
-      resetSelectedPartyBalance();
-      setAdditionalLedgers([]);
-      setShowLedgerPanel(false);
-      setJournalRows([
-        { ...createJournalRow(1), type: "Debit" },
-        { ...createJournalRow(2), type: "Credit" },
-      ]);
-      setSourceRows([createStockJournalRow(1)]);
-      setDestinationRows([createStockJournalRow(2)]);
-
-      resetItemRows();
     } catch (error) {
       setSubmitError(
         getCommandFailureDetails(
@@ -476,7 +482,7 @@ export function createVoucherSubmitHandler(options) {
         ),
       );
     } finally {
-      setIsSubmitting(false);
+      submitRequestRef.current = false;
     }
   };
 

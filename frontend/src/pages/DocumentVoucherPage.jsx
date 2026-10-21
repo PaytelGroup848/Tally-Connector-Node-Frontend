@@ -88,6 +88,7 @@ export function DocumentVoucherPage({
     optionPagesRef,
     stockError, setStockError,
     successTimerRef,
+    submitRequestRef,
   } = useVoucherPageState(title);
 
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -266,7 +267,7 @@ export function DocumentVoucherPage({
     requestCompanyId, setSubmitError, setShowSuccessAnimation,
     advancedVoucherFieldNames, journalRows, isStockJournal, getJournalTotalsInPaise,
     formatJournalPaise, isSalesOrder, isNoteVoucher, sourceRows, destinationRows,
-    itemRows, setIsSubmitting, calculateRowTaxBreakdown, calculateRowAmount,
+    itemRows, setIsSubmitting, submitRequestRef, setSelectedGstin, calculateRowTaxBreakdown, calculateRowAmount,
     calculateLedgerTotals, subtotal, isJournal, isContra, isSameState,
     selectedGstin,
     postCompanyCommand, extractCommandId, fetchCommandStatus, extractCommandStatus,
