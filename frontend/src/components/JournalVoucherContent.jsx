@@ -109,42 +109,35 @@ export function JournalVoucherContent({
             />
 
             {voucherType === "Contra" ? (
-              <select
+              <SearchableDropdown
                 name={`transactionType-${row.id}`}
-                value={row.partyName || ""}
-                required
-                disabled={banksLoading}
-                onChange={(event) =>
-                  onRowChange(row.id, "partyName", event.target.value)
-                }
-                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              >
-                <option value="">
-                  {banksLoading
+                label="transaction type"
+                options={[
+                  "CASH",
+                  ...companyBanks
+                    .map(
+                      (bank) =>
+                        bank.name ??
+                        bank.ledgerName ??
+                        bank.bankName ??
+                        bank.accountName ??
+                        "",
+                    )
+                    .filter(Boolean),
+                ].filter(
+                  (value, index, array) => array.indexOf(value) === index,
+                )}
+                placeholder={
+                  banksLoading
                     ? "Loading bank accounts..."
-                    : "Select transaction type"}
-                </option>
-
-                <option value="CASH">Cash</option>
-
-                {companyBanks.map((bank, index) => {
-                  const bankId = bank._id ?? bank.tallyExternalId ?? index;
-                  const bankName =
-                    bank.name ??
-                    bank.ledgerName ??
-                    bank.bankName ??
-                    bank.accountName ??
-                    "";
-
-                  if (!bankName) return null;
-
-                  return (
-                    <option key={String(bankId)} value={bankName}>
-                      {bankName}
-                    </option>
-                  );
-                })}
-              </select>
+                    : "Select transaction type"
+                }
+                loading={banksLoading}
+                disabled={banksLoading}
+                value={row.partyName || ""}
+                onSelect={(value) => onRowChange(row.id, "partyName", value)}
+                onClear={() => onRowChange(row.id, "partyName", "")}
+              />
             ) : (
               <SearchableDropdown
                 name={`journalPartyName-${row.id}`}

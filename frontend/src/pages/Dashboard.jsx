@@ -112,7 +112,7 @@ function DashboardPage({
               className="inline-flex h-10 items-center gap-2 rounded-lg border border-app-border bg-white px-3 text-[11px] font-semibold text-app-text-secondary shadow-sm"
             >
               <CalendarDays className="h-4 w-4" />
-              <span className="max-w-[180px] truncate text-left">{dashboardValues.rangeLabel}</span>
+             
               <ChevronDown className="h-4 w-4 text-slate-400" />
             </button>
 
