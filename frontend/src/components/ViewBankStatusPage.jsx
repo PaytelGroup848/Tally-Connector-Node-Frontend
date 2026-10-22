@@ -498,7 +498,7 @@ export default function ViewBankStatusPage({
                   id="ledger-command-details"
                   className="font-semibold text-slate-900"
                 >
-                  Ledger Command Details
+                  Details
                 </h3>
                 <button
                   type="button"
