@@ -1,5 +1,5 @@
-﻿import SettingsPageContent from "../components/settings/SettingsPageContent";
+﻿import SettingPage from "../components/settings/SettingPage";
 
 export default function SettingsPage(props) {
-  return <SettingsPageContent {...props} />;
+  return <SettingPage {...props} />;
 }
