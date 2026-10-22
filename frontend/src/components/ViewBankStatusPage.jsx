@@ -135,6 +135,7 @@ function formatLabel(value) {
   return String(value)
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .replace(/[_-]+/g, " ")
+    .replace("payload","Details")
     .trim()
     .split(/\s+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -497,7 +498,7 @@ export default function ViewBankStatusPage({
                   id="ledger-command-details"
                   className="font-semibold text-slate-900"
                 >
-                  Ledger Command Details
+                  Details
                 </h3>
                 <button
                   type="button"
