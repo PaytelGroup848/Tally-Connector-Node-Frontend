@@ -75,6 +75,9 @@ export const validateSettings = (form) => {
 
 export const extractBankList = (response) => {
   if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.data?.banks)) return response.data.banks;
+  if (Array.isArray(response?.banks)) return response.banks;
+  if (Array.isArray(response?.data?.items)) return response.data.items;
 
   const pending = [response];
   while (pending.length > 0) {
@@ -95,7 +98,6 @@ export const extractBankList = (response) => {
       if (child && typeof child === "object") pending.push(child);
     }
   }
-
   return [];
 };
 
