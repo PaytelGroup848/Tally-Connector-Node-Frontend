@@ -167,116 +167,117 @@ export default function BankDetailsModal({ company, onClose }) {
     };
   }, [company?.id, accessToken]);
 
-const handleSave = async (event) => {
-  event.preventDefault();
-  if (!company?.id || !accessToken) return;
+  const handleSave = async (event) => {
+    event.preventDefault();
+    if (!company?.id || !accessToken) return;
 
-  const requestId = banksRequestRef.current;
-  setBankSaving(true);
-  setBankSaveError("");
+    const requestId = banksRequestRef.current;
+    setBankSaving(true);
+    setBankSaveError("");
 
-  try {
-    if (editingBankId) {
-      const updates = Object.fromEntries(
-        Object.entries(bankForm).filter(
-          ([key, value]) =>
-            key !== "isDefault" && value !== bankEditOriginal?.[key],
-        ),
-      );
-
-      const shouldSetDefault =
-        Boolean(bankForm.isDefault) && !Boolean(bankEditOriginal?.isDefault);
-
-      if (Object.keys(updates).length === 0 && !shouldSetDefault) {
-        setBankFormOpen(false);
-        setEditingBankId(null);
-        setBankEditOriginal(null);
-        setBankSaving(false);
-        return;
-      }
-
- 
-    if (Object.keys(updates).length > 0) {
-      const isTallyBank = !bankEditOriginal?.appBankId;
-      if (isTallyBank) {
-        // 👇 ledgerName (bank name) bhi bhejo Tally ke liye
-        await updateTallyBankLedger(accessToken, company.id, editingBankId, {
-          ...updates,
-          ledgerName: bankForm.bankName, // 👈 ye add karo
-        });
-      } else {
-        await updateCompanyBank(
-          accessToken,
-          company.id,
-          editingBankId,
-          updates,
+    try {
+      if (editingBankId) {
+        const updates = Object.fromEntries(
+          Object.entries(bankForm).filter(
+            ([key, value]) =>
+              key !== "isDefault" && value !== bankEditOriginal?.[key],
+          ),
         );
+
+        const shouldSetDefault =
+          Boolean(bankForm.isDefault) && !Boolean(bankEditOriginal?.isDefault);
+
+        if (Object.keys(updates).length === 0 && !shouldSetDefault) {
+          setBankFormOpen(false);
+          setEditingBankId(null);
+          setBankEditOriginal(null);
+          setBankSaving(false);
+          return;
+        }
+
+        if (Object.keys(updates).length > 0) {
+          const isTallyBank = !bankEditOriginal?.appBankId;
+          if (isTallyBank) {
+            await updateTallyBankLedger(
+              accessToken,
+              company.id,
+              editingBankId,
+              {
+                ...updates,
+                ledgerName: bankForm.bankName,
+              },
+            );
+          } else {
+            await updateCompanyBank(
+              accessToken,
+              company.id,
+              editingBankId,
+              updates,
+            );
+          }
+        }
+
+        if (shouldSetDefault) {
+          let appBankId = bankEditOriginal?.appBankId;
+
+          if (!appBankId) {
+            const freshBanks = await fetchCompanyBanks(accessToken, company.id);
+            const allBanks = extractBankList(freshBanks);
+
+            // Match karo: account number + IFSC (ya bank name)
+            const matched = allBanks.find(
+              (b) =>
+                (String(b.accountNumber || "").trim() ===
+                  String(bankForm.accountNumber || "").trim() &&
+                  String(b.ifscCode || "").toUpperCase() ===
+                    String(bankForm.ifscCode || "").toUpperCase()) ||
+                String(b.bankName || "")
+                  .toLowerCase()
+                  .trim() ===
+                  String(bankForm.bankName || "")
+                    .toLowerCase()
+                    .trim(),
+            );
+
+            appBankId = matched?._id || matched?.id || null;
+          }
+
+          if (!appBankId) {
+            setBankSaveError(
+              "Could not link this bank to your account. It may not be synced yet. Please try again after Tally sync completes.",
+            );
+            setBankSaving(false);
+            return;
+          }
+
+          // 👇 Ab default set karo
+          await setDefaultCompanyBank(accessToken, company.id, appBankId);
+        }
+      } else {
+        // Create new bank
+        const payload = { ...bankForm };
+        if (payload.isDefault === undefined) payload.isDefault = false;
+        await createCompanyBank(accessToken, company.id, payload);
       }
+
+      if (requestId !== banksRequestRef.current) return;
+
+      await reloadBanks(requestId, company.id);
+
+      setBankForm(EMPTY_BANK_FORM);
+      setEditingBankId(null);
+      setBankEditOriginal(null);
+      setBankFormOpen(false);
+    } catch (error) {
+      if (requestId !== banksRequestRef.current) return;
+      const msg = error?.message || "Unable to save bank.";
+      setBankSaveError(
+        msg.toLowerCase().includes("tally") ? `Tally Sync Error: ${msg}` : msg,
+      );
+    } finally {
+      if (requestId === banksRequestRef.current) setBankSaving(false);
     }
-
-
-if (shouldSetDefault) {
-  let appBankId = bankEditOriginal?.appBankId;
-
-  
-  if (!appBankId) {
-    const freshBanks = await fetchCompanyBanks(accessToken, company.id);
-    const allBanks = extractBankList(freshBanks);
-
-    // Match karo: account number + IFSC (ya bank name)
-    const matched = allBanks.find(
-      (b) =>
-        (String(b.accountNumber || "").trim() ===
-          String(bankForm.accountNumber || "").trim() &&
-          String(b.ifscCode || "").toUpperCase() ===
-            String(bankForm.ifscCode || "").toUpperCase()) ||
-        String(b.bankName || "")
-          .toLowerCase()
-          .trim() ===
-          String(bankForm.bankName || "")
-            .toLowerCase()
-            .trim(),
-    );
-
-    appBankId = matched?._id || matched?.id || null;
-  }
-
-  if (!appBankId) {
-    setBankSaveError(
-      "Could not link this bank to your account. It may not be synced yet. Please try again after Tally sync completes.",
-    );
-    setBankSaving(false);
-    return;
-  }
-
-  // 👇 Ab default set karo
-  await setDefaultCompanyBank(accessToken, company.id, appBankId);
-}
-    } else {
-      // Create new bank
-      const payload = { ...bankForm };
-      if (payload.isDefault === undefined) payload.isDefault = false;
-      await createCompanyBank(accessToken, company.id, payload);
-    }
-
-    if (requestId !== banksRequestRef.current) return;
-
-    await reloadBanks(requestId, company.id);
-
-    setBankForm(EMPTY_BANK_FORM);
-    setEditingBankId(null);
-    setBankEditOriginal(null);
-    setBankFormOpen(false);
-  } catch (error) {
-    if (requestId !== banksRequestRef.current) return;
-    const msg = error?.message || "Unable to save bank.";
-    setBankSaveError(
-      msg.toLowerCase().includes("tally") ? `Tally Sync Error: ${msg}` : msg,
-    );
-  } finally {
-    if (requestId === banksRequestRef.current) setBankSaving(false);
-  }
-};
+  };
 
   return (
     <div
@@ -455,7 +456,9 @@ if (shouldSetDefault) {
                           appBankId: bank.appBankId || null,
                         });
 
-                      setEditingBankId(bank.appBankId || bank.tallyExternalId);
+                        setEditingBankId(
+                          bank.appBankId || bank.tallyExternalId,
+                        );
                         setBankSaveError("");
                         setBankFormOpen(true);
                       }}
