@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { inviteMember, normalizeMember } from "../../services/membersApi";
 import { ROLE_OPTIONS } from "./memberUi";
-
+import { SearchableDropdown } from "../../components/SearchableDropdown";
 function AddUserModal({ accessToken, onClose, onSuccess, onBuyUser }) {
   const [email, setEmail] = useState("");
 
@@ -119,34 +119,29 @@ function AddUserModal({ accessToken, onClose, onSuccess, onBuyUser }) {
           {/* ROLE */}
           <label className="block text-sm font-semibold text-slate-700">
             Role
-            <select
-              value={role}
-              onChange={(event) => setRole(event.target.value)}
-              disabled={loading}
-              className="
-                mt-2
-                w-full
-                rounded-lg
-                border border-slate-300
-                bg-white
-                px-3 py-2.5
-                font-normal
-                text-slate-800
-                outline-none
-                focus:border-slate-500
-                focus:ring-2
-                focus:ring-slate-200
-                disabled:cursor-not-allowed
-                disabled:bg-slate-100
-                cursor-pointer
-              "
-            >
-              {ROLE_OPTIONS.map((roleOption) => (
-                <option key={roleOption.value} value={roleOption.value}>
-                  {roleOption.label}
-                </option>
-              ))}
-            </select>
+            <div className="mt-2">
+              <SearchableDropdown
+                name="role"
+                label="roles"
+                options={ROLE_OPTIONS.map((roleOption) => roleOption.label)}
+                placeholder="Select Role"
+                value={
+                  ROLE_OPTIONS.find((roleOption) => roleOption.value === role)
+                    ?.label || ""
+                }
+                disabled={loading}
+                onSelect={(selectedLabel) => {
+                  const selectedRole = ROLE_OPTIONS.find(
+                    (roleOption) => roleOption.label === selectedLabel,
+                  );
+
+                  if (selectedRole) {
+                    setRole(selectedRole.value);
+                  }
+                }}
+                onClear={() => setRole("")}
+              />
+            </div>
           </label>
 
           {/* ERROR */}
@@ -154,7 +149,8 @@ function AddUserModal({ accessToken, onClose, onSuccess, onBuyUser }) {
             <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-600">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span>{error}</span>
-                {error === "Seat limit reached" || error.includes("Seat limit") ? (
+                {error === "Seat limit reached" ||
+                error.includes("Seat limit") ? (
                   <button
                     type="button"
                     onClick={() => {

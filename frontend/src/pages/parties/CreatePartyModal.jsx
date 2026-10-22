@@ -1,11 +1,6 @@
-import {
-  AlertCircle,
-  CheckCircle2,
-  Loader2,
-  X,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, X } from "lucide-react";
 import { getGstStateCode } from "./utils";
-
+import { SearchableDropdown } from "../../components/SearchableDropdown";
 export default function CreatePartyModal({
   partyForm,
   gstLookup,
@@ -69,18 +64,31 @@ export default function CreatePartyModal({
             <span>
               Party Type<span className="text-red-500"> *</span>
             </span>
-            <select
-              required
-              value={partyForm.partyType}
-              onChange={(event) =>
-                updatePartyField("partyType", event.target.value)
+            <SearchableDropdown
+              name="partyType"
+              label="party types"
+              options={[
+                "Customer (Sundry Debtors)",
+                "Supplier (Sundry Creditors)",
+              ]}
+              placeholder="Select Party Type"
+              value={
+                partyForm.partyType === "CUSTOMER"
+                  ? "Customer (Sundry Debtors)"
+                  : partyForm.partyType === "SUPPLIER"
+                    ? "Supplier (Sundry Creditors)"
+                    : ""
               }
-              className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-            >
-              <option value="">Select Party Type</option>
-              <option value="CUSTOMER">Customer (Sundry Debtors)</option>
-              <option value="SUPPLIER">Supplier (Sundry Creditors)</option>
-            </select>
+              onSelect={(selectedLabel) => {
+                const partyType =
+                  selectedLabel === "Customer (Sundry Debtors)"
+                    ? "CUSTOMER"
+                    : "SUPPLIER";
+
+                updatePartyField("partyType", partyType);
+              }}
+              onClear={() => updatePartyField("partyType", "")}
+            />
           </label>
 
           <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
@@ -184,25 +192,26 @@ export default function CreatePartyModal({
 
           <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
             <span>GST Registration Type</span>
-            <select
-              value={partyForm.gstRegistrationType}
-              onChange={(event) =>
-                updatePartyField("gstRegistrationType", event.target.value)
+            <SearchableDropdown
+              name="gstRegistrationType"
+              label="GST registration types"
+              options={[
+                "Regular",
+                "Composition",
+                "Unregistered",
+                "Consumer",
+                "Overseas",
+                "SEZ",
+                "Deemed Exporter",
+                "Input Service Distributor",
+              ]}
+              placeholder="Select Registration Type"
+              value={partyForm.gstRegistrationType || ""}
+              onSelect={(value) =>
+                updatePartyField("gstRegistrationType", value)
               }
-              className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-            >
-              <option value="">Select Registration Type</option>
-              <option value="Regular">Regular</option>
-              <option value="Composition">Composition</option>
-              <option value="Unregistered">Unregistered</option>
-              <option value="Consumer">Consumer</option>
-              <option value="Overseas">Overseas</option>
-              <option value="SEZ">SEZ</option>
-              <option value="Deemed Exporter">Deemed Exporter</option>
-              <option value="Input Service Distributor">
-                Input Service Distributor
-              </option>
-            </select>
+              onClear={() => updatePartyField("gstRegistrationType", "")}
+            />
           </label>
 
           <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
