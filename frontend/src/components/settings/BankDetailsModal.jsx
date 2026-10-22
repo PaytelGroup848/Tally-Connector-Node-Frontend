@@ -194,25 +194,24 @@ const handleSave = async (event) => {
         return;
       }
 
-      // 👇 Step 1: Agar fields change hui hain
-      if (Object.keys(updates).length > 0) {
-        const isTallyBank = !bankEditOriginal?.appBankId;
-        if (isTallyBank) {
-          await updateTallyBankLedger(
-            accessToken,
-            company.id,
-            editingBankId,
-            updates,
-          );
-        } else {
-          await updateCompanyBank(
-            accessToken,
-            company.id,
-            editingBankId,
-            updates,
-          );
-        }
+ 
+    if (Object.keys(updates).length > 0) {
+      const isTallyBank = !bankEditOriginal?.appBankId;
+      if (isTallyBank) {
+        // 👇 ledgerName (bank name) bhi bhejo Tally ke liye
+        await updateTallyBankLedger(accessToken, company.id, editingBankId, {
+          ...updates,
+          ledgerName: bankForm.bankName, // 👈 ye add karo
+        });
+      } else {
+        await updateCompanyBank(
+          accessToken,
+          company.id,
+          editingBankId,
+          updates,
+        );
       }
+    }
 
 
 if (shouldSetDefault) {
