@@ -15,8 +15,10 @@ import {
   extractBankList,
   extractUnderOptions,
 } from "./settingsHelpers";
+import { useNavigate } from "react-router-dom";
 
 export default function BankDetailsModal({ company, onClose }) {
+  const navigate = useNavigate();
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const [companyBanks, setCompanyBanks] = useState([]);
@@ -273,6 +275,32 @@ export default function BankDetailsModal({ company, onClose }) {
 
         <div className="space-y-4 overflow-y-auto p-5">
           <div className="flex justify-end gap-2">
+            {console.log("this is my company ", company)}
+
+            <button
+              type="button"
+              onClick={() => {
+                const companyId = company?.id || company?._id;
+                const companyName = company?.name || "";
+
+                if (!companyId) {
+                  setBanksError(
+                    "Company ID not found. Please select a company again.",
+                  );
+                  return;
+                }
+
+                navigate(
+                  `/bank-status?companyId=${encodeURIComponent(companyId)}&companyName=${encodeURIComponent(companyName)}`,
+                );
+
+                onClose?.();
+              }}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+            >
+              View Bank Status
+            </button>
+
             <button
               type="button"
               onClick={() => {
@@ -280,7 +308,7 @@ export default function BankDetailsModal({ company, onClose }) {
                 setEditingBankId(null);
                 setBankEditOriginal(null);
                 setBankSaveError("");
-                setBankFormOpen((o) => !o);
+                setBankFormOpen((open) => !open);
               }}
               className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
             >
