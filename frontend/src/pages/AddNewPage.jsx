@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import useAuthStore from '../store/authStore'
 import { postCompanyCommand } from '../services/companiesApi'
-
+import { SearchableDropdown } from '../components/SearchableDropdown'
 function getPageMeta(path = '') {
   const normalizedPath = path.toLowerCase()
 
@@ -272,18 +272,23 @@ function AddNewPage({ path, companyId }) {
 
                     <div className="relative">
                       {fieldKey === 'typeOfSupply' ? (
-                        <select
-                          value={formValues.typeOfSupply || ''}
-                          onChange={(event) =>
-                            updateField('typeOfSupply', event.target.value)
-                          }
-                          className="h-11 w-full rounded-md border border-slate-300 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition focus:border-slate-500 focus:bg-white"
-                        >
-                          <option value="">Select Type Of Supply</option>
-                          <option value="Capital Goods">Capital Goods</option>
-                          <option value="Goods">Goods</option>
-                          <option value="Services">Services</option>
-                        </select>
+                       <SearchableDropdown
+  name="typeOfSupply"
+  label="types of supply"
+  options={[
+    "Capital Goods",
+    "Goods",
+    "Services",
+  ]}
+  placeholder="Select Type Of Supply"
+  value={formValues.typeOfSupply || ""}
+  onSelect={(value) =>
+    updateField("typeOfSupply", value)
+  }
+  onClear={() =>
+    updateField("typeOfSupply", "")
+  }
+/>
                       ) : (
                         <>
                           <input

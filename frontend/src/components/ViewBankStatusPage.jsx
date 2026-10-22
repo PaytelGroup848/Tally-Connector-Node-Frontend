@@ -104,7 +104,6 @@ function getStatusClass(status) {
 const HIDDEN_JSON_FIELDS = new Set([
   "result",
   "id",
-  "payload",
   "guid",
   "__v",
   "companyId",
@@ -174,7 +173,7 @@ function JsonDataTable({ data, level = 0 }) {
         <thead className="bg-slate-50">
           <tr>
             <th className="w-1/3 border border-slate-200 px-3 py-2 font-semibold text-slate-600">
-              Key
+              Field
             </th>
             <th className="border border-slate-200 px-3 py-2 font-semibold text-slate-600">
               Value
@@ -217,7 +216,7 @@ function JsonDataTable({ data, level = 0 }) {
                     <span className="text-slate-600">—</span>
                   ) : value === "" ? (
                     <span className="text-slate-400">
-                      Empty string
+                      NA
                     </span>
                   ) : (
                     <span className="break-words text-slate-700">
@@ -261,59 +260,75 @@ export default function ViewBankStatusPage({
 
     let isMounted = true;
 
-    async function loadLedgerCommands() {
-      setIsLoading(true);
-      setErrorMessage("");
+   async function loadLedgerCommands() {
+  setIsLoading(true);
+  setErrorMessage("");
 
-      try {
-        const allCommands = [];
-        let currentPage = 1;
-        let hasMorePages = true;
+  try {
+    const allCommands = [];
+    const commandTypes = ["CREATE_LEDGER", "UPDATE_LEDGER"];
 
-        while (hasMorePages) {
-          const response = await fetchCompanyCommands(
-            accessToken,
-            companyId,
-            {
-              type: "CREATE_LEDGER",
-              page: currentPage,
-              limit: PAGE_SIZE,
-              q: "",
-            },
-          );
-          const nextCommands = extractCommands(response);
-          const pagination = extractPagination(response);
-          const total = getSafeNumber(
-            pagination.total ??
-              pagination.totalItems ??
-              pagination.totalRecords ??
-              pagination.count,
-          );
-          const apiTotalPages = getSafeNumber(
-            pagination.totalPages ?? pagination.pages,
-          );
+    for (const type of commandTypes) {
+      let currentPage = 1;
+      let hasMorePages = true;
+      let fetchedCount = 0;
 
-          allCommands.push(...nextCommands);
-          hasMorePages =
-            nextCommands.length === PAGE_SIZE &&
-            (apiTotalPages !== null
-              ? currentPage < apiTotalPages
-              : total !== null
-                ? allCommands.length < total
-                : true);
-          currentPage += 1;
-        }
+      while (hasMorePages) {
+        const response = await fetchCompanyCommands(
+          accessToken,
+          companyId,
+          {
+            type,
+            page: currentPage,
+            limit: PAGE_SIZE,
+            q: "",
+          },
+        );
 
-        if (isMounted) setCommands(allCommands);
-      } catch (error) {
-        if (isMounted) {
-          setCommands([]);
-          setErrorMessage(error?.message || "Unable to load bank status.");
-        }
-      } finally {
-        if (isMounted) setIsLoading(false);
+        const nextCommands = extractCommands(response);
+        const pagination = extractPagination(response);
+
+        const total = getSafeNumber(
+          pagination.total ??
+            pagination.totalItems ??
+            pagination.totalRecords ??
+            pagination.count,
+        );
+
+        const apiTotalPages = getSafeNumber(
+          pagination.totalPages ?? pagination.pages,
+        );
+
+        allCommands.push(...nextCommands);
+        fetchedCount += nextCommands.length;
+
+        hasMorePages =
+          nextCommands.length === PAGE_SIZE &&
+          (apiTotalPages !== null
+            ? currentPage < apiTotalPages
+            : total !== null
+              ? fetchedCount < total
+              : true);
+
+        currentPage += 1;
       }
     }
+
+    if (isMounted) {
+      setCommands(allCommands);
+      setPage(1);
+    }
+  } catch (error) {
+    if (isMounted) {
+      setCommands([]);
+      setErrorMessage(
+        error?.message || "Unable to load bank status.",
+      );
+    }
+  } finally {
+    if (isMounted) setIsLoading(false);
+  }
+}
 
     loadLedgerCommands();
 

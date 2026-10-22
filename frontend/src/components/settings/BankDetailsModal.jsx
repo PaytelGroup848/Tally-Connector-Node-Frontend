@@ -1,6 +1,7 @@
 // src/pages/Settings/BankDetailsModal.jsx
 import { useEffect, useRef, useState } from "react";
 import { X, Pencil, Star, Plus } from "lucide-react";
+import { SearchableDropdown } from "../../components/SearchableDropdown";
 import useAuthStore from "../../store/authStore";
 import {
   createCompanyBank,
@@ -315,21 +316,21 @@ if (shouldSetDefault) {
                 const companyId = company?.id || company?._id;
                 const companyName = company?.name || "";
 
-    if (!companyId) {
-      setBanksError(
-        "Company ID not found. Please select a company again.",
-      );
-      return;
-    }
+                if (!companyId) {
+                  setBanksError(
+                    "Company ID not found. Please select a company again.",
+                  );
+                  return;
+                }
 
-    onClose?.();
+                onClose?.();
 
-    window.location.href = `/bank-status?companyId=${encodeURIComponent(companyId)}&companyName=${encodeURIComponent(companyName)}`;
-  }}
-  className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
->
-  View Bank Status
-</button>
+                window.location.href = `/bank-status?companyId=${encodeURIComponent(companyId)}&companyName=${encodeURIComponent(companyName)}`;
+              }}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+            >
+              View Bank Status
+            </button>
 
             <button
               type="button"
@@ -521,29 +522,33 @@ if (shouldSetDefault) {
                           {label}
                         </span>
                         {name === "under" ? (
-                          <select
-                            value={bankForm.under}
-                            onChange={(e) =>
-                              setBankForm((c) => ({
-                                ...c,
-                                under: e.target.value,
+                          <SearchableDropdown
+                            name="under"
+                            label="under"
+                            options={[
+                              ...new Set([
+                                ...(bankForm.under &&
+                                !bankUnderOptions.includes(bankForm.under)
+                                  ? [bankForm.under]
+                                  : []),
+                                ...bankUnderOptions,
+                              ]),
+                            ]}
+                            placeholder="Select Under"
+                            value={bankForm.under || ""}
+                            onSelect={(value) =>
+                              setBankForm((current) => ({
+                                ...current,
+                                under: value,
                               }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                          >
-                            <option value="">Select Under</option>
-                            {bankForm.under &&
-                              !bankUnderOptions.includes(bankForm.under) && (
-                                <option value={bankForm.under}>
-                                  {bankForm.under}
-                                </option>
-                              )}
-                            {bankUnderOptions.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
+                            onClear={() =>
+                              setBankForm((current) => ({
+                                ...current,
+                                under: "",
+                              }))
+                            }
+                          />
                         ) : (
                           <input
                             required={[
