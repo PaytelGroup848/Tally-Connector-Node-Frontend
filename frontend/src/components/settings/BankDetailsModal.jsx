@@ -395,46 +395,6 @@ export default function BankDetailsModal({ company, onClose }) {
                 </dl>
 
                 <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
-                  {bank.appBankId || bank.tallyExternalId ? (
-                    <button
-                      type="button"
-                      disabled={Boolean(bankActionBusyId)}
-                      onClick={() => {
-                        setBankForm({
-                          bankName,
-                          under,
-                          accountHolderName: details.accountHolderName || "",
-                          accountNumber: details.accountNumber || "",
-                          ifscCode: details.ifscCode || "",
-                          swiftCode: details.swiftCode || "",
-                          branchName: details.branchName || "",
-                          isDefault: Boolean(bank.isDefault),
-                        });
-                        setBankEditOriginal({
-                          bankName,
-                          under,
-                          accountHolderName: details.accountHolderName || "",
-                          accountNumber: details.accountNumber || "",
-                          ifscCode: details.ifscCode || "",
-                          swiftCode: details.swiftCode || "",
-                          branchName: details.branchName || "",
-                          isDefault: Boolean(bank.isDefault),
-                          // 👇 Track karo ki ye Tally bank hai ya app bank
-                          appBankId: bank.appBankId || null,
-                        });
-                        // 👇 Priority: appBankId > tallyExternalId
-                        setEditingBankId(
-                          bank.appBankId || bank.tallyExternalId,
-                        );
-                        setBankSaveError("");
-                        setBankFormOpen(true);
-                      }}
-                      className="..."
-                    >
-                      <Pencil size={14} /> Edit
-                    </button>
-                  ) : null}
-
                   {(bank.appBankId || bank._id || bank.tallyExternalId) && (
                     <button
                       type="button"
