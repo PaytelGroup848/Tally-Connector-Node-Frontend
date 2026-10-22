@@ -40,33 +40,47 @@ export default function BankDetailsModal({ company, onClose }) {
     return tallyBanks.map((tallyBank) => {
       const details = tallyBank.bankDetails || {};
 
-      // Match karo: pehle exact accountNumber + ifsc, phir bankName se
       const matchedAppBank = appBanks.find((appBank) => {
-        const sameAccount =
-          String(appBank.accountNumber || "").trim() ===
-          String(details.accountNumber || "").trim();
+        const tAccount = String(details.accountNumber || "").trim();
+        const aAccount = String(appBank.accountNumber || "").trim();
+        const tIfsc = String(details.ifscCode || "")
+          .toUpperCase()
+          .trim();
+        const aIfsc = String(appBank.ifscCode || "")
+          .toUpperCase()
+          .trim();
+        const tName = String(tallyBank.name || "")
+          .toLowerCase()
+          .trim();
+        const aName = String(appBank.bankName || "")
+          .toLowerCase()
+          .trim();
 
-        const sameIfsc =
-          String(appBank.ifscCode || "")
-            .toUpperCase()
-            .trim() ===
-          String(details.ifscCode || "")
-            .toUpperCase()
-            .trim();
+        // Rule 1: Both account + IFSC match (strong)
+        if (
+          tAccount &&
+          aAccount &&
+          tIfsc &&
+          aIfsc &&
+          tAccount === aAccount &&
+          tIfsc === aIfsc
+        ) {
+          return true;
+        }
 
-        const sameBankName =
-          String(appBank.bankName || "")
-            .toLowerCase()
-            .trim() ===
-          String(tallyBank.name || "")
-            .toLowerCase()
-            .trim();
+        // Rule 2: Bank name match (case-insensitive)
+        if (tName && aName && tName === aName) {
+          return true;
+        }
 
-        return (sameAccount && sameIfsc) || sameBankName;
+        // Rule 3: Account number alone matches (Tally bank has it)
+        if (tAccount && aAccount && tAccount === aAccount) {
+          return true;
+        }
+
+        return false;
       });
 
-      // 👇 Tally bank + app bank ka data MERGE karo
-      // Agar Tally mein field khali hai, toh app ka data use karo
       const mergedDetails = {
         accountHolderName:
           details.accountHolderName || matchedAppBank?.accountHolderName || "",
@@ -81,7 +95,7 @@ export default function BankDetailsModal({ company, onClose }) {
 
       return {
         ...tallyBank,
-        // 👇 Merged bankDetails
+
         bankDetails: mergedDetails,
         appBankId: matchedAppBank?._id || null,
         isDefault: Boolean(matchedAppBank?.isDefault),
@@ -105,6 +119,9 @@ export default function BankDetailsModal({ company, onClose }) {
       tallyRes.status === "fulfilled" ? extractBank(tallyRes.value) : [];
     const appBanks =
       appRes.status === "fulfilled" ? extractBankList(appRes.value) : [];
+
+    console.log("Tally banks:", tallyBanks);
+    console.log("App banks:", appBanks);
 
     const finalBanks = mergeBankLists(tallyBanks, appBanks);
     setCompanyBanks(finalBanks);
@@ -149,43 +166,45 @@ export default function BankDetailsModal({ company, onClose }) {
     };
   }, [company?.id, accessToken]);
 
-  const handleSave = async (event) => {
-    event.preventDefault();
-    if (!company?.id || !accessToken) return;
+const handleSave = async (event) => {
+  event.preventDefault();
+  if (!company?.id || !accessToken) return;
 
-    const requestId = banksRequestRef.current;
-    setBankSaving(true);
-    setBankSaveError("");
+  const requestId = banksRequestRef.current;
+  setBankSaving(true);
+  setBankSaveError("");
 
-    try {
-      if (editingBankId) {
-        const updates = Object.fromEntries(
-          Object.entries(bankForm).filter(
-            ([key, value]) =>
-              key !== "isDefault" && value !== bankEditOriginal?.[key],
-          ),
-        );
+  try {
+    if (editingBankId) {
+      const updates = Object.fromEntries(
+        Object.entries(bankForm).filter(
+          ([key, value]) =>
+            key !== "isDefault" && value !== bankEditOriginal?.[key],
+        ),
+      );
 
-        if (Object.keys(updates).length === 0) {
-          setBankFormOpen(false);
-          setEditingBankId(null);
-          setBankEditOriginal(null);
-          setBankSaving(false);
-          return;
-        }
+      const shouldSetDefault =
+        Boolean(bankForm.isDefault) && !Boolean(bankEditOriginal?.isDefault);
 
+      if (Object.keys(updates).length === 0 && !shouldSetDefault) {
+        setBankFormOpen(false);
+        setEditingBankId(null);
+        setBankEditOriginal(null);
+        setBankSaving(false);
+        return;
+      }
+
+      // 👇 Step 1: Agar fields change hui hain
+      if (Object.keys(updates).length > 0) {
         const isTallyBank = !bankEditOriginal?.appBankId;
-
         if (isTallyBank) {
-          // Tally ledger update karo
           await updateTallyBankLedger(
             accessToken,
             company.id,
-            editingBankId, // ye tallyExternalId hai
+            editingBankId,
             updates,
           );
         } else {
-          // App bank update karo
           await updateCompanyBank(
             accessToken,
             company.id,
@@ -193,55 +212,85 @@ export default function BankDetailsModal({ company, onClose }) {
             updates,
           );
         }
-      } else {
-        await createCompanyBank(accessToken, company.id, bankForm);
       }
 
-      if (requestId !== banksRequestRef.current) return;
 
-      await reloadBanks(requestId, company.id);
+      if (shouldSetDefault) {
+        let appBankId = bankEditOriginal?.appBankId;
 
-      setBankForm(EMPTY_BANK_FORM);
-      setEditingBankId(null);
-      setBankEditOriginal(null);
-      setBankFormOpen(false);
-    } catch (error) {
-      if (requestId !== banksRequestRef.current) return;
-      const msg = error?.message || "Unable to save bank.";
-      setBankSaveError(
-        msg.toLowerCase().includes("tally") ? `Tally Sync Error: ${msg}` : msg,
-      );
-    } finally {
-      if (requestId === banksRequestRef.current) setBankSaving(false);
-    }
-  };
+        // Agar appBankId nahi hai, toh pehle Tally bank ko app mein create karo
+     if (!appBankId) {
+       try {
+         const createResponse = await createCompanyBank(
+           accessToken,
+           company.id,
+           {
+             bankName: bankForm.bankName,
+             under: bankForm.under,
+             accountHolderName: bankForm.accountHolderName,
+             accountNumber: bankForm.accountNumber,
+             ifscCode: bankForm.ifscCode,
+             swiftCode: bankForm.swiftCode || "",
+             branchName: bankForm.branchName || "",
+             isDefault: false,
+           },
+         );
+         appBankId = createResponse?.data?.bank?.id;
+       } catch (createErr) {
+         //  409 aaya? (already exists)
+         const errorMsg = createErr?.message || "";
 
-  const handleAction = async (bank, action) => {
-    const bankId = bank.appBankId;
-    if (!company?.id || !bankId || !accessToken) {
-      setBankActionError("Bank not linked. Try refreshing.");
-      return;
-    }
+         if (errorMsg.includes("already exists")) {
+           // Existing bank fetch karke match karo
+           const freshBanks = await fetchCompanyBanks(accessToken, company.id);
+           const allBanks = extractBankList(freshBanks);
+           const matched = allBanks.find(
+             (b) =>
+               String(b.accountNumber || "").trim() ===
+                 String(bankForm.accountNumber || "").trim() &&
+               String(b.ifscCode || "").toUpperCase() ===
+                 String(bankForm.ifscCode || "").toUpperCase(),
+           );
+           appBankId = matched?._id || matched?.id || null;
+         }
+       }
+     }
 
-    const requestId = banksRequestRef.current;
-    setBankActionBusyId(bankId);
-    setBankActionError("");
+        if (!appBankId) {
+          setBankSaveError(
+            "Could not link this bank to your account. Please try again.",
+          );
+          setBankSaving(false);
+          return;
+        }
 
-    try {
-      if (action === "default") {
-        await setDefaultCompanyBank(accessToken, company.id, bankId);
+        await setDefaultCompanyBank(accessToken, company.id, appBankId);
       }
-      if (requestId !== banksRequestRef.current) return;
-      await reloadBanks(requestId, company.id);
-    } catch (error) {
-      if (requestId !== banksRequestRef.current) return;
-      setBankActionError(error?.message || "Unable to update bank.");
-    } finally {
-      if (requestId === banksRequestRef.current) {
-        setBankActionBusyId(null);
-      }
+    } else {
+      // Create new bank
+      const payload = { ...bankForm };
+      if (payload.isDefault === undefined) payload.isDefault = false;
+      await createCompanyBank(accessToken, company.id, payload);
     }
-  };
+
+    if (requestId !== banksRequestRef.current) return;
+
+    await reloadBanks(requestId, company.id);
+
+    setBankForm(EMPTY_BANK_FORM);
+    setEditingBankId(null);
+    setBankEditOriginal(null);
+    setBankFormOpen(false);
+  } catch (error) {
+    if (requestId !== banksRequestRef.current) return;
+    const msg = error?.message || "Unable to save bank.";
+    setBankSaveError(
+      msg.toLowerCase().includes("tally") ? `Tally Sync Error: ${msg}` : msg,
+    );
+  } finally {
+    if (requestId === banksRequestRef.current) setBankSaving(false);
+  }
+};
 
   return (
     <div
@@ -275,8 +324,6 @@ export default function BankDetailsModal({ company, onClose }) {
 
         <div className="space-y-4 overflow-y-auto p-5">
           <div className="flex justify-end gap-2">
-            {console.log("this is my company ", company)}
-
             <button
               type="button"
               onClick={() => {
@@ -421,11 +468,10 @@ export default function BankDetailsModal({ company, onClose }) {
                           swiftCode: details.swiftCode || "",
                           branchName: details.branchName || "",
                           isDefault: Boolean(bank.isDefault),
+                          appBankId: bank.appBankId || null,
                         });
-                        // 👇 ID priority: appBankId > _id > tallyExternalId
-                        setEditingBankId(
-                          bank.appBankId || bank._id || bank.tallyExternalId,
-                        );
+
+                      setEditingBankId(bank.appBankId || bank.tallyExternalId);
                         setBankSaveError("");
                         setBankFormOpen(true);
                       }}
