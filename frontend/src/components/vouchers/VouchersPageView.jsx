@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Eye, FileDown } from "lucide-react";
 import VoucherPreviewModal from "../VoucherPreviewModal";
 import VoucherDetailStack from "./VoucherDetailStack";
+import { SearchableDropdown } from "../SearchableDropdown";
 import {
   formatCellValue,
   formatColumnLabel,
@@ -57,18 +58,16 @@ function VouchersPageView({
               <label className="flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px] text-[#17355f]">
                 <span>Voucher type</span>
 
-                <select
-                  value={voucherType}
-                  onChange={(event) => setVoucherType(event.target.value)}
-                  className="h-[38px] min-w-[180px] cursor-pointer rounded-lg border border-[#10b981] bg-white px-3 text-[12px] text-slate-700 outline-none transition focus:border-[#17355f] focus:ring-1 focus:ring-[#17355f]/20"
-                >
-                  <option value="">Select voucher type</option>
-                  {voucherTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
+                <SearchableDropdown
+                  name="voucherType"
+                  label="voucher type"
+                  options={voucherTypes}
+                  placeholder="Select voucher type"
+                  value={voucherType || ""}
+                  onSelect={(value) => setVoucherType(value)}
+                  onClear={() => setVoucherType("")}
+                  showAllValues={true}
+                />
               </label>
 
               {/* SHOW RECORDS */}

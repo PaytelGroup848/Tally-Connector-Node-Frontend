@@ -153,6 +153,10 @@ if (currentPath === '/refund-policy') {
   /*
    * Authentication loading
    */
+  if(currentPath=== '/'){
+       {""}
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">

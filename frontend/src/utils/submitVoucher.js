@@ -294,7 +294,7 @@ export function createVoucherSubmitHandler(options) {
       const journalPayload = {
         voucherType,
         voucherNumber: values.voucherNumber || "",
-        date: values.date || "",
+        voucherDate: values.date || "",
         particulars: journalRows.map((row) => ({
           type: row.type || "",
           partyName: row.partyName || "",

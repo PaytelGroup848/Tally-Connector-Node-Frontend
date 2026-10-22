@@ -438,9 +438,7 @@ function PhysicalStockPage({ companyId }) {
                   className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none"
                 />
 
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  ×
-                </span>
+                
               </div>
             </label>
 

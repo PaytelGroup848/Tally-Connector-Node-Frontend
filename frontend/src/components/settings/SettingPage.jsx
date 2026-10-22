@@ -15,7 +15,7 @@ const sections = [
     title: "Company Settings",
     description: "Configure company preferences",
     icon: Settings,
-    color: "violet",
+    color: "emerald",
   },
   {
     id: "bank",
@@ -113,7 +113,7 @@ export default function SettingPage() {
             {companies.map((company, companyIndex) => (
               <div
                 key={company.id || `company-${companyIndex}`}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition hover:shadow-md"
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0px_4px_20px_rgba(15,23,42,0.04)] transition hover:shadow-md"
               >
                 <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-4">
                   <div className="min-w-0 flex-1">
@@ -145,7 +145,7 @@ export default function SettingPage() {
                               setBankCompany(company);
                             }
                           }}
-                          className={`group flex w-full items-center gap-3 px-4 py-4 text-left transition hover:bg-slate-50 ${
+                          className={`group flex w-full items-center gap-3 px-4 py-4 text-left transition ${section.color === "emerald" ? "bg-emerald-50 hover:bg-emerald-100" : "bg-sky-100 hover:bg-sky-200"}  ${
                             sectionIndex < sections.length - 1
                               ? "border-b border-slate-100"
                               : ""
@@ -153,9 +153,9 @@ export default function SettingPage() {
                         >
                           <div
                             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                              section.color === "violet"
-                                ? "bg-violet-50 text-violet-600 ring-1 ring-violet-100"
-                                : "bg-blue-50 text-blue-600 ring-1 ring-blue-100"
+                              section.color === "emerald"
+                                ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
+                                : "bg-blue-50 text-sky-600 ring-1 ring-blue-100"
                             }`}
                           >
                             <Icon size={16} strokeWidth={2} />

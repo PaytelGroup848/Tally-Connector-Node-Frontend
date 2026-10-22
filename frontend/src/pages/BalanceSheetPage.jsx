@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import useAuthStore from '../store/authStore'
+import { SearchableDropdown } from '../components/SearchableDropdown'
 import {
   extractBalanceSheetPagination,
   extractBalanceSheetRows,
@@ -237,15 +238,32 @@ function BalanceSheetPage({ companyId }) {
         <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-5 py-3">
           <label className="flex items-center gap-2 text-xs text-slate-600">
             <span>Ledger Type</span>
-            <select
-              value={ledgerType}
-              onChange={(event) => setLedgerType(event.target.value)}
-              className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-            >
-              <option value="liability">Liability</option>
-              <option value="asset">Asset</option>
-             
-            </select>
+       <SearchableDropdown
+  name="ledgerType"
+  label="ledger type"
+  options={[
+    "Liability",
+    "Asset",
+  ]}
+  placeholder="Select Ledger Type"
+  value={
+    {
+      liability: "Liability",
+      asset: "Asset",
+    }[ledgerType] || ""
+  }
+  onSelect={(value) => {
+    const ledgerTypeMap = {
+      Liability: "liability",
+      Asset: "asset",
+    };
+
+    if (ledgerTypeMap[value]) {
+      setLedgerType(ledgerTypeMap[value]);
+    }
+  }}
+  onClear={() => setLedgerType("")}
+/>
           </label>
 
           <label className="flex h-9 w-[260px] items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-slate-400 transition focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">

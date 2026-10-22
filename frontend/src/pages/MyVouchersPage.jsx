@@ -1,152 +1,159 @@
-import { useEffect, useMemo, useState } from 'react'
-import useAuthStore from '../store/authStore'
+import { useEffect, useMemo, useState } from "react";
+import useAuthStore from "../store/authStore";
+import {SearchableDropdown} from "../components/SearchableDropdown";
 import {
   deleteCompanyCommand,
   extractCommands,
   fetchCompanyCommands,
-} from '../services/companiesApi'
-
+} from "../services/companiesApi";
+import { ArrowLeft,Eye,Info } from "lucide-react";
 function normalizeKey(key) {
-  return String(key).trim().toLowerCase().replace(/[^a-z0-9]/g, '')
+  return String(key)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
 }
 
 function formatLabel(key) {
-  if (normalizeKey(key) === 'payload') return 'Details'
+  if (normalizeKey(key) === "payload") return "Details";
 
   return String(key)
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function formatDate(value) {
-  if (!value) return 'NA'
+  if (!value) return "NA";
 
-  const rawValue = String(value).trim()
+  const rawValue = String(value).trim();
   const dateValue = /^\d{4}-\d{2}-\d{2}$/.test(rawValue)
     ? new Date(
         Number(rawValue.slice(0, 4)),
         Number(rawValue.slice(5, 7)) - 1,
         Number(rawValue.slice(8, 10)),
       )
-    : new Date(rawValue)
+    : new Date(rawValue);
 
-  if (Number.isNaN(dateValue.getTime())) return String(value)
+  if (Number.isNaN(dateValue.getTime())) return String(value);
 
-  return new Intl.DateTimeFormat('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    dateStyle: 'medium',
-  }).format(dateValue)
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    dateStyle: "medium",
+  }).format(dateValue);
 }
 
 function isStructured(value) {
-  return value !== null && typeof value === 'object'
+  return value !== null && typeof value === "object";
 }
 
 function isViewableField(key, value) {
-  const normalizedKey = normalizeKey(key)
+  const normalizedKey = normalizeKey(key);
 
   const hasMessageValue =
     value !== null &&
     value !== undefined &&
-    String(value).trim().toLowerCase() !== '' &&
-    String(value).trim().toLowerCase() !== 'na'
+    String(value).trim().toLowerCase() !== "" &&
+    String(value).trim().toLowerCase() !== "na";
 
   return (
     isStructured(value) ||
-    ((normalizedKey.includes('error') ||
-      normalizedKey.includes('message')) &&
+    ((normalizedKey.includes("error") || normalizedKey.includes("message")) &&
       hasMessageValue)
-  )
+  );
 }
 
 function getViewLabel(key) {
-  const normalizedKey = normalizeKey(key)
+  const normalizedKey = normalizeKey(key);
 
-  if (normalizedKey === 'payload') return 'View details'
+  if (normalizedKey === "payload") return "View details";
 
-  return normalizedKey.includes('error') || normalizedKey.includes('message')
-    ? 'View error'
-    : 'View result'
+  return normalizedKey.includes("error") || normalizedKey.includes("message")
+    ? "View error"
+    : "View result";
 }
 
 function getStatusClasses(key, value) {
-  const normalizedKey = normalizeKey(key)
+  const normalizedKey = normalizeKey(key);
   const isStatusField =
-    normalizedKey === 'status' ||
-    normalizedKey === 'state' ||
-    normalizedKey === 'commandstatus'
+    normalizedKey === "status" ||
+    normalizedKey === "state" ||
+    normalizedKey === "commandstatus";
 
-  if (!isStatusField) return ''
+  if (!isStatusField) return "";
 
-  const status = String(value ?? '').trim().toLowerCase()
+  const status = String(value ?? "")
+    .trim()
+    .toLowerCase();
 
-  if (status === 'pending') return 'font-semibold text-amber-600'
-  if (status === 'sent') return 'font-semibold text-blue-600'
-  if (status === 'done') return 'font-semibold text-emerald-600'
-  if (status === 'failed') return 'font-semibold text-red-600'
+  if (status === "pending") return "font-semibold text-amber-600";
+  if (status === "sent") return "font-semibold text-blue-600";
+  if (status === "done") return "font-semibold text-emerald-600";
+  if (status === "failed") return "font-semibold text-red-600";
 
-  return 'font-semibold text-slate-600'
+  return "font-semibold text-slate-600";
 }
 
 function getDetailEntries(value) {
   if (Array.isArray(value)) {
-    return value.map((item, index) => [String(index + 1), item])
+    return value.map((item, index) => [String(index + 1), item]);
   }
 
-  return value && typeof value === 'object'
-    ? Object.entries(value)
-    : []
+  return value && typeof value === "object" ? Object.entries(value) : [];
 }
 
-function formatValue(value, key = '') {
-  if (value === null || value === undefined || value === '') return '-'
+function formatValue(value, key = "") {
+  if (value === null || value === undefined || value === "") return "-";
 
-  const normalizedKey = normalizeKey(key)
+  const normalizedKey = normalizeKey(key);
   if (
-    normalizedKey.includes('date') ||
-    normalizedKey.includes('time') ||
-    normalizedKey.endsWith('at')
+    normalizedKey.includes("date") ||
+    normalizedKey.includes("time") ||
+    normalizedKey.endsWith("at")
   ) {
-    return formatDate(value)
+    return formatDate(value);
   }
 
-  if (typeof value === 'number') return value.toLocaleString('en-IN')
-  return String(value)
+  if (typeof value === "number") return value.toLocaleString("en-IN");
+  return String(value);
 }
 
 function getColumns(rows, { includeType = false } = {}) {
-  const columns = []
-  const seen = new Set()
+  const columns = [];
+  const seen = new Set();
 
   rows.forEach((row) => {
     Object.keys(row || {}).forEach((key) => {
-      const normalizedKey = normalizeKey(key)
+      const normalizedKey = normalizeKey(key);
       const hidden =
-        normalizedKey === 'id' ||
-        normalizedKey.endsWith('id') ||
-        normalizedKey.endsWith('guid') ||
-          normalizedKey === 'vouchernumber' ||
-          (!includeType && normalizedKey === 'type') ||
-          normalizedKey === 'vouchertype' ||
-          normalizedKey === 'completedat'
+        normalizedKey === "id" ||
+        normalizedKey.endsWith("id") ||
+        normalizedKey.endsWith("guid") ||
+        normalizedKey === "vouchernumber" ||
+        (!includeType && normalizedKey === "type") ||
+        normalizedKey === "vouchertype" ||
+        normalizedKey === "completedat";
 
       if (!hidden && normalizedKey && !seen.has(normalizedKey)) {
-        seen.add(normalizedKey)
-        columns.push(key)
+        seen.add(normalizedKey);
+        columns.push(key);
       }
-    })
-  })
+    });
+  });
 
-  return columns
+  return columns;
 }
 
 function getDetailTableColumns(value) {
-  if (!Array.isArray(value) || value.length === 0 || !value.every(isStructured)) {
-    return []
+  if (
+    !Array.isArray(value) ||
+    value.length === 0 ||
+    !value.every(isStructured)
+  ) {
+    return [];
   }
 
-  return getColumns(value, { includeType: true })
+  return getColumns(value, { includeType: true });
 }
 
 function getCommandPayload(command) {
@@ -157,185 +164,222 @@ function getCommandPayload(command) {
     command?.data ||
     command ||
     {}
-  )
+  );
 }
 
 const advancedSettingsKeys = new Set([
-  'supplierName',
-  'supplierCountry',
-  'supplierState',
-  'registrationType',
-  'postalCode',
-  'gstinUin',
-  'placeOfSupply',
-  'address',
-  'consigneeName',
-  'consigneeCountry',
-  'consigneeState',
-  'consigneePostalCode',
-  'consigneeGstinUin',
-  'consigneeAddress',
-  'dispatchFrom',
-  'dispatchThrough',
-  'dispatchDocNo',
-  'dispatchDate',
-  'orderNo',
-  'orderDate',
-  'termsOfDelivery',
-])
+  "supplierName",
+  "supplierCountry",
+  "supplierState",
+  "registrationType",
+  "postalCode",
+  "gstinUin",
+  "placeOfSupply",
+  "address",
+  "consigneeName",
+  "consigneeCountry",
+  "consigneeState",
+  "consigneePostalCode",
+  "consigneeGstinUin",
+  "consigneeAddress",
+  "dispatchFrom",
+  "dispatchThrough",
+  "dispatchDocNo",
+  "dispatchDate",
+  "orderNo",
+  "orderDate",
+  "termsOfDelivery",
+]);
 
 function groupAdvancedSettings(value, shouldGroup = true) {
-  if (!shouldGroup) return value
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+  if (!shouldGroup) return value;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
 
-  const entries = Object.entries(value)
-  const advancedEntries = entries.filter(([key]) => advancedSettingsKeys.has(key))
-  if (advancedEntries.length === 0) return value
+  const entries = Object.entries(value);
+  const advancedEntries = entries.filter(([key]) =>
+    advancedSettingsKeys.has(key),
+  );
+  if (advancedEntries.length === 0) return value;
 
-  const grouped = Object.fromEntries(advancedEntries)
+  const grouped = Object.fromEntries(advancedEntries);
   return {
-    ...Object.fromEntries(entries.filter(([key]) => !advancedSettingsKeys.has(key) && key !== 'advancedSettings')),
-    'Advanced Settings': {
-      ...(value.advancedSettings && typeof value.advancedSettings === 'object' ? value.advancedSettings : {}),
+    ...Object.fromEntries(
+      entries.filter(
+        ([key]) => !advancedSettingsKeys.has(key) && key !== "advancedSettings",
+      ),
+    ),
+    "Advanced Settings": {
+      ...(value.advancedSettings && typeof value.advancedSettings === "object"
+        ? value.advancedSettings
+        : {}),
       ...grouped,
     },
-  }
+  };
 }
 
 function getJournalParticulars(command) {
-  const payload = getCommandPayload(command)
-  const particulars = payload?.particulars || command?.particulars
+  const payload = getCommandPayload(command);
+  const particulars = payload?.particulars || command?.particulars;
 
-  if (Array.isArray(particulars)) return particulars
+  if (Array.isArray(particulars)) return particulars;
 
-  if (particulars && typeof particulars === 'object') {
+  if (particulars && typeof particulars === "object") {
     return Object.entries(particulars).flatMap(([type, entries]) => {
-      const rows = Array.isArray(entries) ? entries : [entries]
+      const rows = Array.isArray(entries) ? entries : [entries];
       return rows.map((entry) => ({
-        ...(entry && typeof entry === 'object' ? entry : { partyName: entry }),
+        ...(entry && typeof entry === "object" ? entry : { partyName: entry }),
         type: entry?.type || type,
-      }))
-    })
+      }));
+    });
   }
 
-  return []
+  return [];
 }
 
 function isParticularRows(value) {
-  return Array.isArray(value) && value.length > 0 && value.some((row) => {
-    const type = String(row?.type || '').toLowerCase()
-    return type === 'debit' || type === 'credit'
-  })
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.some((row) => {
+      const type = String(row?.type || "").toLowerCase();
+      return type === "debit" || type === "credit";
+    })
+  );
 }
 
 function JournalParticularTables({ value }) {
   return (
     <div className="space-y-4">
-      {['Debit', 'Credit'].map((type) => {
+      {["Debit", "Credit"].map((type) => {
         const rows = value.filter(
-          (row) => String(row?.type || '').toLowerCase() === type.toLowerCase(),
-        )
+          (row) => String(row?.type || "").toLowerCase() === type.toLowerCase(),
+        );
 
         return (
-          <section key={type} className="overflow-hidden rounded-lg border border-[#dfe7f0]">
-            <div className={`px-3 py-2 text-[11px] font-semibold uppercase tracking-wide ${type === 'Debit' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>
+          <section
+            key={type}
+            className="overflow-hidden rounded-lg border border-[#dfe7f0]"
+          >
+            <div
+              className={`px-3 py-2 text-[11px] font-semibold uppercase tracking-wide ${type === "Debit" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}
+            >
               {type} Particulars
             </div>
             {rows.length > 0 ? (
               <table className="w-full border-collapse text-[12px] text-[#17355f]">
                 <thead className="bg-[#f1f5f9] text-left text-[10px] font-semibold uppercase tracking-wide text-[#52657d]">
                   <tr>
-                    <th className="border-b border-r border-[#dfe7f0] px-3 py-2.5">Party Name</th>
-                    <th className="border-b border-[#dfe7f0] px-3 py-2.5">Amount</th>
+                    <th className="border-b border-r border-[#dfe7f0] px-3 py-2.5">
+                      Party Name
+                    </th>
+                    <th className="border-b border-[#dfe7f0] px-3 py-2.5">
+                      Amount
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((row, index) => (
-                    <tr key={`${type}-${index}`} className="odd:bg-white even:bg-[#fbfdff]">
-                      <td className="border-b border-r border-[#dfe7f0] px-3 py-2.5">{formatValue(row?.partyName, 'partyName')}</td>
-                      <td className="border-b border-[#dfe7f0] px-3 py-2.5">{formatValue(row?.amount, 'amount')}</td>
+                    <tr
+                      key={`${type}-${index}`}
+                      className="odd:bg-white even:bg-[#fbfdff]"
+                    >
+                      <td className="border-b border-r border-[#dfe7f0] px-3 py-2.5">
+                        {formatValue(row?.partyName, "partyName")}
+                      </td>
+                      <td className="border-b border-[#dfe7f0] px-3 py-2.5">
+                        {formatValue(row?.amount, "amount")}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             ) : (
-              <p className="px-3 py-2.5 text-xs text-slate-500">No {type.toLowerCase()} particulars.</p>
+              <p className="px-3 py-2.5 text-xs text-slate-500">
+                No {type.toLowerCase()} particulars.
+              </p>
             )}
           </section>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 function getJournalValue(command, key) {
-  const payload = getCommandPayload(command)
-  return payload?.[key] ?? command?.[key] ?? ''
+  const payload = getCommandPayload(command);
+  return payload?.[key] ?? command?.[key] ?? "";
 }
 
-function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', commandType = '' }) {
-  const accessToken = useAuthStore((state) => state.accessToken)
-  const isQuotationPage = voucherType === 'Quotation'
-  const isReceiptOrPaymentPage = voucherType === 'Receipt' || voucherType === 'Payment'
-  const isJournalPage = voucherType === 'Journal'
+function MyVouchersPage({
+  companyId,
+  title = "My Vouchers",
+  voucherType = "",
+  commandType = "",
+}) {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isQuotationPage = voucherType === "Quotation";
+  const isReceiptOrPaymentPage =
+    voucherType === "Receipt" || voucherType === "Payment";
+  const isJournalPage = voucherType === "Journal";
   const isSimpleCommandPage =
-    commandType === 'CREATE_PARTY' ||
-    commandType === 'CREATE_STOCK_ITEM' ||
-    commandType === 'UPDATE_STOCK_ITEM'
-  const [commands, setCommands] = useState([])
-  const [query, setQuery] = useState('')
-  const [status, setStatus] = useState('')
-  const [fromDate, setFromDate] = useState(isReceiptOrPaymentPage ? '' : '')
-  const [toDate, setToDate] = useState(isReceiptOrPaymentPage ? '' : '')
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
-  const [totalItems, setTotalItems] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [deletingCommandId, setDeletingCommandId] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
-  const [detailStack, setDetailStack] = useState([])
+    commandType === "CREATE_PARTY" ||
+    commandType === "CREATE_STOCK_ITEM" ||
+    commandType === "UPDATE_STOCK_ITEM";
+  const [commands, setCommands] = useState([]);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("");
+  const [fromDate, setFromDate] = useState(isReceiptOrPaymentPage ? "" : "");
+  const [toDate, setToDate] = useState(isReceiptOrPaymentPage ? "" : "");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [deletingCommandId, setDeletingCommandId] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [detailStack, setDetailStack] = useState([]);
 
   const openDetail = (title, value) => {
-    setDetailStack((currentStack) => [
-      ...currentStack,
-      { title, value },
-    ])
-  }
+    setDetailStack((currentStack) => [...currentStack, { title, value }]);
+  };
 
   const closeDetail = () => {
-    setDetailStack((currentStack) => currentStack.slice(0, -1))
-  }
+    setDetailStack((currentStack) => currentStack.slice(0, -1));
+  };
 
   useEffect(() => {
-    setPage(1)
-  }, [companyId, status, query, fromDate, toDate, pageSize])
+    setPage(1);
+  }, [companyId, status, query, fromDate, toDate, pageSize]);
 
   useEffect(() => {
     if (!accessToken || !companyId) {
-      setCommands([])
-      setTotalItems(0)
-      setTotalPages(1)
-      setErrorMessage(accessToken ? 'No company selected.' : 'Session expired. Please sign in.')
-      return undefined
+      setCommands([]);
+      setTotalItems(0);
+      setTotalPages(1);
+      setErrorMessage(
+        accessToken
+          ? "No company selected."
+          : "Session expired. Please sign in.",
+      );
+      return undefined;
     }
 
     if (!isSimpleCommandPage && fromDate && toDate && fromDate >= toDate) {
-      setCommands([])
-      setTotalItems(0)
-      setTotalPages(1)
-      setErrorMessage('From date cannot be greater than To date.')
-      return undefined
+      setCommands([]);
+      setTotalItems(0);
+      setTotalPages(1);
+      setErrorMessage("From date cannot be greater than To date.");
+      return undefined;
     }
 
-    let isMounted = true
-    setIsLoading(true)
-    setErrorMessage('')
+    let isMounted = true;
+    setIsLoading(true);
+    setErrorMessage("");
 
     fetchCompanyCommands(accessToken, companyId, {
       type: commandType,
       voucherType,
-      status: isSimpleCommandPage ? '' : status.trim().toUpperCase(),
+      status: isSimpleCommandPage ? "" : status.trim().toUpperCase(),
       page,
       limit: pageSize,
       q: query.trim(),
@@ -347,54 +391,73 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
           }),
     })
       .then((response) => {
-        if (!isMounted) return
+        if (!isMounted) return;
 
-        const nextCommands = extractCommands(response)
-        const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data || response
+        const nextCommands = extractCommands(response);
+        const pagination =
+          response?.pagination ||
+          response?.data?.pagination ||
+          response?.meta ||
+          response?.data ||
+          response;
         const total = Number(
           pagination?.total ??
             pagination?.totalItems ??
             pagination?.totalRecords ??
             response?.total ??
             nextCommands.length,
-        )
+        );
         const pages = Number(
           pagination?.totalPages ??
             pagination?.pages ??
             Math.ceil(total / pageSize),
-        )
+        );
 
-        setCommands(nextCommands)
-        setTotalItems(Number.isFinite(total) ? total : nextCommands.length)
-        setTotalPages(Number.isFinite(pages) && pages > 0 ? pages : 1)
+        setCommands(nextCommands);
+        setTotalItems(Number.isFinite(total) ? total : nextCommands.length);
+        setTotalPages(Number.isFinite(pages) && pages > 0 ? pages : 1);
       })
       .catch((error) => {
-        if (!isMounted) return
-        setCommands([])
-        setTotalItems(0)
-        setTotalPages(1)
-        setErrorMessage(error?.message || 'Unable to load vouchers')
+        if (!isMounted) return;
+        setCommands([]);
+        setTotalItems(0);
+        setTotalPages(1);
+        setErrorMessage(error?.message || "Unable to load vouchers");
       })
       .finally(() => {
-        if (isMounted) setIsLoading(false)
-      })
+        if (isMounted) setIsLoading(false);
+      });
 
     return () => {
-      isMounted = false
-    }
-  }, [accessToken, companyId, commandType, isQuotationPage, isReceiptOrPaymentPage, voucherType, status, query, fromDate, toDate, page, pageSize])
+      isMounted = false;
+    };
+  }, [
+    accessToken,
+    companyId,
+    commandType,
+    isQuotationPage,
+    isReceiptOrPaymentPage,
+    voucherType,
+    status,
+    query,
+    fromDate,
+    toDate,
+    page,
+    pageSize,
+  ]);
 
-  const columns = useMemo(() => getColumns(commands), [commands])
-  const pageItems = totalPages <= 7
-    ? Array.from({ length: totalPages }, (_, index) => index + 1)
-    : [1, '...', page - 1, page, page + 1, '...', totalPages]
+  const columns = useMemo(() => getColumns(commands), [commands]);
+  const pageItems =
+    totalPages <= 7
+      ? Array.from({ length: totalPages }, (_, index) => index + 1)
+      : [1, "...", page - 1, page, page + 1, "...", totalPages];
 
   const getCommandId = (command) =>
     command?._id ||
     command?.commandId ||
     command?.command_id ||
     command?.id ||
-    ''
+    "";
 
   const isPendingCommand = (command) => {
     const status = String(
@@ -402,40 +465,48 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
         command?.state ||
         command?.commandStatus ||
         command?.command_status ||
-        '',
-    ).toLowerCase()
+        "",
+    ).toLowerCase();
 
-    return status === 'pending'
-  }
+    return status === "pending";
+  };
 
   const handleDelete = async (command) => {
-    const commandId = getCommandId(command)
-    if (!commandId || deletingCommandId) return
+    const commandId = getCommandId(command);
+    if (!commandId || deletingCommandId) return;
 
-    if (!window.confirm('Are you sure, you want to delete this?')) return
+    if (!window.confirm("Are you sure, you want to delete this?")) return;
 
     try {
-      setDeletingCommandId(String(commandId))
-      setErrorMessage('')
-      await deleteCompanyCommand(accessToken, companyId, commandId)
+      setDeletingCommandId(String(commandId));
+      setErrorMessage("");
+      await deleteCompanyCommand(accessToken, companyId, commandId);
       setCommands((currentCommands) =>
         currentCommands.filter(
           (item) => String(getCommandId(item)) !== String(commandId),
         ),
-      )
-      setTotalItems((currentTotal) => Math.max(0, currentTotal - 1))
+      );
+      setTotalItems((currentTotal) => Math.max(0, currentTotal - 1));
     } catch (error) {
-      setErrorMessage(error?.message || 'Unable to delete command')
+      setErrorMessage(error?.message || "Unable to delete command");
     } finally {
-      setDeletingCommandId('')
+      setDeletingCommandId("");
     }
-  }
+  };
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#f8fafc] text-[#17355f]">
       <div className="px-3 py-3 sm:px-5 sm:py-4">
         <section className="border-t border-[#e5ebf2] bg-white md:min-w-[1120px]">
           <div className="flex min-h-[70px] flex-col gap-3 border-b border-[#e5ebf2] px-4 py-3 sm:px-8 lg:flex-row lg:flex-nowrap lg:items-center">
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </button>
             <input
               type="search"
               value={query}
@@ -449,9 +520,7 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
                 <span>Show</span>
                 <select
                   value={pageSize}
-                  onChange={(event) =>
-                    setPageSize(Number(event.target.value))
-                  }
+                  onChange={(event) => setPageSize(Number(event.target.value))}
                   className="h-[38px] w-[64px] cursor-pointer rounded-lg border border-[#10b981] bg-white px-2 text-[12px] text-slate-700 outline-none"
                 >
                   {[10, 20, 30, 50].map((size) => (
@@ -463,93 +532,245 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
                 <span>rows</span>
               </label>
 
-              {!isSimpleCommandPage && <label className="flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px]">
-                <span>Status</span>
-                <select
-                  value={status}
-                  onChange={(event) => setStatus(event.target.value)}
-                  className="h-[38px] min-w-[140px] cursor-pointer rounded-lg border border-[#10b981] bg-white px-3 text-[12px] text-slate-700 outline-none"
-                >
-                  <option value="">All statuses</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="SENT">Sent</option>
-                  <option value="DONE">Done</option>
-                  <option value="FAILED">Failed</option>
-                </select>
-              </label>}
+              {!isSimpleCommandPage && (
+                <label className="flex h-[38px] items-center gap-2 whitespace-nowrap text-[13px]">
+                  <span>Status</span>
+               <SearchableDropdown
+  name="status"
+  label="status"
+  options={[
+    "All statuses",
+    "Pending",
+    "Sent",
+    "Done",
+    "Failed",
+  ]}
+  placeholder="All statuses"
+  value={
+    {
+      "": "All statuses",
+      PENDING: "Pending",
+      SENT: "Sent",
+      DONE: "Done",
+      FAILED: "Failed",
+    }[status] || "All statuses"
+  }
+  onSelect={(value) => {
+    const statusMap = {
+      "All statuses": "",
+      Pending: "PENDING",
+      Sent: "SENT",
+      Done: "DONE",
+      Failed: "FAILED",
+    };
+
+    setStatus(statusMap[value] ?? "");
+  }}
+  onClear={() => setStatus("")}
+/>
+                </label>
+              )}
             </div>
 
             <div className="hidden min-w-0 flex-1 lg:block" />
 
             <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:flex lg:items-center lg:gap-3">
-              {!isSimpleCommandPage && <label className="flex items-center gap-2 text-[12px]">
-                <span>From</span>
-                <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]" />
-              </label>}
-              {!isSimpleCommandPage && <label className="flex items-center gap-2 text-[12px]">
-                <span>To</span>
-                <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]" />
-              </label>}
+              {!isSimpleCommandPage && (
+                <label className="flex items-center gap-2 text-[12px]">
+                  <span>From</span>
+                  <input
+                    type="date"
+                    value={fromDate}
+                    onChange={(event) => setFromDate(event.target.value)}
+                    className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]"
+                  />
+                </label>
+              )}
+              {!isSimpleCommandPage && (
+                <label className="flex items-center gap-2 text-[12px]">
+                  <span>To</span>
+                  <input
+                    type="date"
+                    value={toDate}
+                    onChange={(event) => setToDate(event.target.value)}
+                    className="h-[30px] rounded-md border border-slate-300 px-2 text-[11px]"
+                  />
+                </label>
+              )}
             </div>
-            <span className="text-[12px]">Page {page} · {pageSize} per page</span>
+            <span className="text-[12px]">
+              Page {page} · {pageSize} per page
+            </span>
           </div>
 
-          {errorMessage && <div className="mx-4 mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 sm:mx-8">{errorMessage}</div>}
+          {errorMessage && (
+            <div className="mx-4 mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 sm:mx-8">
+              {errorMessage}
+            </div>
+          )}
 
           <div className="mx-8 overflow-x-auto rounded-lg border border-[#dfe7f0]">
             <div className="min-w-max">
-              <div className="grid border-b border-[#dfe7f0] bg-[#f4f7fb] px-4 py-3 text-[11px] font-semibold uppercase text-[#274b78]" style={{ gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, 180px) 120px` }}>
-                {columns.map((column) => <div key={column} className="w-[180px] min-w-[180px] max-w-[180px] border-l border-[#dfe7f0] pr-3">{formatLabel(column)}</div>)}
-                <div className="w-[120px] min-w-[120px] max-w-[120px] border-l border-[#dfe7f0]">Action</div>
+              <div
+                className="grid border-b border-[#dfe7f0] bg-[#f4f7fb] px-4 py-3 text-[11px] font-semibold uppercase text-[#274b78]"
+                style={{
+                  gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, 180px) 120px`,
+                }}
+              >
+                {columns.map((column) => (
+                  <div
+                    key={column}
+                    className="w-[180px] min-w-[180px] max-w-[180px] border-l border-[#dfe7f0] pr-3"
+                  >
+                    {formatLabel(column)}
+                  </div>
+                ))}
+                <div className="w-[120px] min-w-[120px] max-w-[120px] border-l border-[#dfe7f0]">
+                  Action
+                </div>
               </div>
 
               {isLoading ? (
-                <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center text-xs text-slate-500">Loading vouchers...</div>
-              ) : commands.length > 0 ? commands.map((command, index) => (
-                <div key={getCommandId(command) || index} className="grid min-w-max items-start border-b border-[#e5ebf2] px-4 py-3 text-[12px] last:border-b-0 odd:bg-white even:bg-[#fbfdff]" style={{ gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, 180px) 120px` }}>
-                  {columns.map((column) => {
-                    const value = command?.[column]
-                    return <div key={column} className="w-[180px] min-w-[180px] max-w-[180px] border-l border-[#e5ebf2] pr-3">
-                      {isViewableField(column, value) ? <button type="button" onClick={() => openDetail(formatLabel(column), value)} className="rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700">{getViewLabel(column)}</button> : <span className={getStatusClasses(column, value)}>{formatValue(value, column)}</span>}
-                    </div>
-                  })}
-                  <div className="w-[120px] min-w-[120px] max-w-[120px] border-l border-[#e5ebf2]">
-                    {isPendingCommand(command) && getCommandId(command) ? (
-                      <button
-                        type="button"
-                        disabled={deletingCommandId === String(getCommandId(command))}
-                        onClick={() => handleDelete(command)}
-                        className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {deletingCommandId === String(getCommandId(command)) ? 'Deleting...' : 'Delete'}
-                      </button>
-                    ) : null}
-                  </div>
+                <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center text-xs text-slate-500">
+                  Loading vouchers...
                 </div>
-              )) : <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center text-xs text-slate-500">No vouchers found.</div>}
+              ) : commands.length > 0 ? (
+                commands.map((command, index) => (
+                  <div
+                    key={getCommandId(command) || index}
+                    className="grid min-w-max items-start border-b border-[#e5ebf2] px-4 py-3 text-[12px] last:border-b-0 odd:bg-white even:bg-[#fbfdff]"
+                    style={{
+                      gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, 180px) 120px`,
+                    }}
+                  >
+                    {columns.map((column) => {
+                      const value = command?.[column];
+                      return (
+                        <div
+                          key={column}
+                          className="w-[180px] min-w-[180px] max-w-[180px] border-l border-[#e5ebf2] pr-3"
+                        >
+                          {isViewableField(column, value) ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openDetail(formatLabel(column), value)
+                              }
+                              className="rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700"
+                            >
+                              {getViewLabel(column)}
+                            </button>
+                          ) : (
+                            <span className={getStatusClasses(column, value)}>
+                              {formatValue(value, column)}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                    <div className="w-[120px] min-w-[120px] max-w-[120px] border-l border-[#e5ebf2]">
+                      {isPendingCommand(command) && getCommandId(command) ? (
+                        <button
+                          type="button"
+                          disabled={
+                            deletingCommandId === String(getCommandId(command))
+                          }
+                          onClick={() => handleDelete(command)}
+                          className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {deletingCommandId === String(getCommandId(command))
+                            ? "Deleting..."
+                            : "Delete"}
+                        </button>
+                      ) : null}
+                      {/* <Info size={16} className="" /> */}
+                    </div>
+                    
+                  </div>
+                ))
+              ) : (
+                <div className="flex min-h-[120px] min-w-[1120px] items-center justify-center text-xs text-slate-500">
+                  No vouchers found.
+                </div>
+              )}
             </div>
           </div>
 
           <footer className="flex flex-wrap items-center justify-center gap-6 border-t border-[#e5ebf2] px-8 py-4 text-xs">
-            <span>{totalItems ? `${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, totalItems)} of ${totalItems}` : '0-0 of 0'}</span>
+            <span>
+              {totalItems
+                ? `${(page - 1) * pageSize + 1}-${Math.min(page * pageSize, totalItems)} of ${totalItems}`
+                : "0-0 of 0"}
+            </span>
             <div className="flex items-center gap-2">
-              <button type="button" disabled={isLoading || page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="h-9 w-9 rounded-md border border-[#d9e2ed] disabled:opacity-40">&lt;</button>
-              {pageItems.map((pageNumber, index) => pageNumber === '...' ? <span key={`ellipsis-${index}`}>...</span> : <button key={pageNumber} type="button" disabled={isLoading} onClick={() => setPage(pageNumber)} className={pageNumber === page ? 'h-9 w-9 rounded-md border border-[#059669] bg-[#059669] text-white' : 'h-9 w-9 rounded-md border border-[#d9e2ed]'}>{pageNumber}</button>)}
-              <button type="button" disabled={isLoading || page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} className="h-9 w-9 rounded-md border border-[#d9e2ed] disabled:opacity-40">&gt;</button>
+              <button
+                type="button"
+                disabled={isLoading || page <= 1}
+                onClick={() => setPage((value) => Math.max(1, value - 1))}
+                className="h-9 w-9 rounded-md border border-[#d9e2ed] disabled:opacity-40"
+              >
+                &lt;
+              </button>
+              {pageItems.map((pageNumber, index) =>
+                pageNumber === "..." ? (
+                  <span key={`ellipsis-${index}`}>...</span>
+                ) : (
+                  <button
+                    key={pageNumber}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => setPage(pageNumber)}
+                    className={
+                      pageNumber === page
+                        ? "h-9 w-9 rounded-md border border-[#059669] bg-[#059669] text-white"
+                        : "h-9 w-9 rounded-md border border-[#d9e2ed]"
+                    }
+                  >
+                    {pageNumber}
+                  </button>
+                ),
+              )}
+              <button
+                type="button"
+                disabled={isLoading || page >= totalPages}
+                onClick={() =>
+                  setPage((value) => Math.min(totalPages, value + 1))
+                }
+                className="h-9 w-9 rounded-md border border-[#d9e2ed] disabled:opacity-40"
+              >
+                &gt;
+              </button>
             </div>
           </footer>
         </section>
       </div>
 
       {detailStack.map((detail, index) => (
-        <div key={`${detail.title}-${index}`} className="fixed inset-x-0 bottom-0 top-16 flex items-center justify-center bg-slate-950/50 p-4" style={{ zIndex: 1000 + index * 100 }}>
+        <div
+          key={`${detail.title}-${index}`}
+          className="fixed inset-x-0 bottom-0 top-16 flex items-center justify-center bg-slate-950/50 p-4"
+          style={{ zIndex: 1000 + index * 100 }}
+        >
           <div className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
             <div className="flex items-start justify-between border-b border-[#dfe7f0] px-5 py-4">
               <div>
-                <h2 className="text-[15px] font-semibold text-slate-900">{detail.title}</h2>
-                <p className="mt-1 text-[11px] text-slate-500">{Array.isArray(detail.value) ? `${detail.value.length} entries` : 'Details'}</p>
+                <h2 className="text-[15px] font-semibold text-slate-900">
+                  {detail.title}
+                </h2>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  {Array.isArray(detail.value)
+                    ? `${detail.value.length} entries`
+                    : "Details"}
+                </p>
               </div>
-              <button type="button" aria-label="Close details" onClick={closeDetail} className="flex h-9 w-9 items-center justify-center rounded-md border border-[#d9e2ed] text-lg leading-none text-slate-500 transition hover:bg-slate-50">x</button>
+              <button
+                type="button"
+                aria-label="Close details"
+                onClick={closeDetail}
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-[#d9e2ed] text-lg leading-none text-slate-500 transition hover:bg-slate-50"
+              >
+                x
+              </button>
             </div>
             <div className="min-h-0 overflow-auto p-4">
               {isParticularRows(detail.value) ? (
@@ -559,29 +780,113 @@ function MyVouchersPage({ companyId, title = 'My Vouchers', voucherType = '', co
                   <table className="w-full min-w-[900px] border-collapse text-[12px] text-[#17355f]">
                     <thead className="bg-[#f1f5f9] text-left text-[10px] font-semibold uppercase tracking-wide text-[#52657d]">
                       <tr>
-                        {getDetailTableColumns(detail.value).map((column) => <th key={column} className="border-b border-r border-[#dfe7f0] px-3 py-2.5 font-semibold last:border-r-0">{formatLabel(column)}</th>)}
+                        {getDetailTableColumns(detail.value).map((column) => (
+                          <th
+                            key={column}
+                            className="border-b border-r border-[#dfe7f0] px-3 py-2.5 font-semibold last:border-r-0"
+                          >
+                            {formatLabel(column)}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {detail.value.map((row, rowIndex) => <tr key={rowIndex} className="odd:bg-white even:bg-[#fbfdff]">
-                        {getDetailTableColumns(detail.value).map((column) => {
-                          const value = row?.[column]
-                          return <td key={column} className="border-b border-r border-[#dfe7f0] px-3 py-2.5 last:border-r-0">{isStructured(value) ? <button type="button" onClick={() => openDetail(formatLabel(column), value)} className="rounded-md border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700">View</button> : formatValue(value, column)}</td>
-                        })}
-                      </tr>)}
+                      {detail.value.map((row, rowIndex) => (
+                        <tr
+                          key={rowIndex}
+                          className="odd:bg-white even:bg-[#fbfdff]"
+                        >
+                          {getDetailTableColumns(detail.value).map((column) => {
+                            const value = row?.[column];
+                            return (
+                              <td
+                                key={column}
+                                className="border-b border-r border-[#dfe7f0] px-3 py-2.5 last:border-r-0"
+                              >
+                                {isStructured(value) ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      openDetail(formatLabel(column), value)
+                                    }
+                                    className="rounded-md border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700"
+                                  >
+                                    View
+                                  </button>
+                                ) : (
+                                  formatValue(value, column)
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
-              ) : getDetailEntries(groupAdvancedSettings(detail.value, detail.title !== 'Advanced Settings')).length > 0 ? getDetailEntries(groupAdvancedSettings(detail.value, detail.title !== 'Advanced Settings')).map(([key, value]) => <div key={key} className="grid grid-cols-[180px_1fr] items-start border-b border-[#dfe7f0] px-2 py-3 text-xs"><strong>{Array.isArray(detail.value) ? `Item ${key}` : formatLabel(key)}</strong>{isStructured(value) ? <button type="button" onClick={() => openDetail(Array.isArray(detail.value) ? `Item ${key}` : formatLabel(key), value)} className="w-fit rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700">View</button> : <span className="whitespace-pre-wrap break-words">{formatValue(value, key)}</span>}</div>) : <div className="whitespace-pre-wrap break-words px-2 py-3 text-sm text-[#17355f]">{formatValue(detail.value)}</div>}
+              ) : getDetailEntries(
+                  groupAdvancedSettings(
+                    detail.value,
+                    detail.title !== "Advanced Settings",
+                  ),
+                ).length > 0 ? (
+                getDetailEntries(
+                  groupAdvancedSettings(
+                    detail.value,
+                    detail.title !== "Advanced Settings",
+                  ),
+                ).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="grid grid-cols-[180px_1fr] items-start border-b border-[#dfe7f0] px-2 py-3 text-xs"
+                  >
+                    <strong>
+                      {Array.isArray(detail.value)
+                        ? `Item ${key}`
+                        : formatLabel(key)}
+                    </strong>
+                    {isStructured(value) ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openDetail(
+                            Array.isArray(detail.value)
+                              ? `Item ${key}`
+                              : formatLabel(key),
+                            value,
+                          )
+                        }
+                        className="w-fit rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700"
+                      >
+                        View
+                      </button>
+                    ) : (
+                      <span className="whitespace-pre-wrap break-words">
+                        {formatValue(value, key)}
+                      </span>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="whitespace-pre-wrap break-words px-2 py-3 text-sm text-[#17355f]">
+                  {formatValue(detail.value)}
+                </div>
+              )}
             </div>
             <div className="flex justify-end border-t border-[#dfe7f0] px-5 py-3">
-              <button type="button" onClick={closeDetail} className="rounded-md bg-[#172a46] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#203b61]">Close</button>
+              <button
+                type="button"
+                onClick={closeDetail}
+                className="rounded-md bg-[#172a46] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#203b61]"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
       ))}
     </div>
-  )
+  );
 }
 
-export default MyVouchersPage
+export default MyVouchersPage;

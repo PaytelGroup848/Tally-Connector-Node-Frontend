@@ -152,18 +152,18 @@ export function JournalVoucherContent({
               />
             )}
 
-            <input
-              name={`journalAmount-${row.id}`}
-              type="number"
-              min="0"
-              step="0.01"
-              value={row.amount}
-              onChange={(event) =>
-                onRowChange(row.id, "amount", event.target.value)
-              }
-              className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-              placeholder="Amount"
-            />
+   <input
+  name={`journalAmount-${row.id}`}
+  type="number"
+  min="0"
+  step="1"
+  value={row.amount ?? ""}
+  onChange={(event) =>
+    onRowChange(row.id, "amount", event.target.value)
+  }
+  className="min-h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
+  placeholder="Amount"
+/>
             <button
               type="button"
               onClick={() => onRemoveRow(row.id)}

@@ -20,6 +20,7 @@ export function SearchableDropdown({
     onClear,
     resetToken = 0,
     disabled = false,
+    showAllValues,
   }) {
     const [query, setQuery] = useState(value ?? defaultValue);
     const [open, setOpen] = useState(false);
@@ -239,7 +240,7 @@ export function SearchableDropdown({
                   </p>
                 )}
 
-                {!infiniteScroll && !showAll && filteredOptions.length > 10 && (
+                {!showAllValues && !infiniteScroll && !showAll && filteredOptions.length > 10 && (
                   <button
                     type="button"
                     onMouseDown={(event) => event.preventDefault()}

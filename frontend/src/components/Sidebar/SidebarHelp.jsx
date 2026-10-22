@@ -74,7 +74,7 @@ export default function SidebarHelp({ collapsed }) {
             </p>
 
             <a
-              href="tel:+919311472357"
+             
               className="
                 mt-0.5
 
