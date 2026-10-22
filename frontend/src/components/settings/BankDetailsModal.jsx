@@ -7,6 +7,7 @@ import {
   fetchCompanyBanks,
   setDefaultCompanyBank,
   updateCompanyBank,
+  updateTallyBankLedger,
 } from "../../services/CompanyDetailsAndBanksApi";
 import { fetchCompanyBank, extractBank } from "../../services/companiesApi";
 import {
@@ -106,8 +107,18 @@ export default function BankDetailsModal({ company, onClose }) {
     const finalBanks = mergeBankLists(tallyBanks, appBanks);
     setCompanyBanks(finalBanks);
 
-    const underOptions = [
+    const apiUnderOptions = [
       ...new Set(finalBanks.map((b) => b.parent || b.group).filter(Boolean)),
+    ];
+
+    const DEFAULT_UNDER_OPTIONS = [
+      "Bank Accounts",
+      "Bank OD A/c",
+      "Bank OCC A/c",
+    ];
+
+    const underOptions = [
+      ...new Set([...DEFAULT_UNDER_OPTIONS, ...apiUnderOptions]),
     ];
     setBankUnderOptions(underOptions);
   };
@@ -161,12 +172,25 @@ export default function BankDetailsModal({ company, onClose }) {
           return;
         }
 
-        await updateCompanyBank(
-          accessToken,
-          company.id,
-          editingBankId,
-          updates,
-        );
+        const isTallyBank = !bankEditOriginal?.appBankId;
+
+        if (isTallyBank) {
+          // Tally ledger update karo
+          await updateTallyBankLedger(
+            accessToken,
+            company.id,
+            editingBankId, // ye tallyExternalId hai
+            updates,
+          );
+        } else {
+          // App bank update karo
+          await updateCompanyBank(
+            accessToken,
+            company.id,
+            editingBankId,
+            updates,
+          );
+        }
       } else {
         await createCompanyBank(accessToken, company.id, bankForm);
       }
@@ -345,21 +369,47 @@ export default function BankDetailsModal({ company, onClose }) {
                 </dl>
 
                 <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
-                  {bank.appBankId && !bank.isDefault && (
+                  {bank.appBankId || bank.tallyExternalId ? (
                     <button
                       type="button"
                       disabled={Boolean(bankActionBusyId)}
-                      onClick={() => handleAction(bank, "default")}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-50 disabled:opacity-50"
+                      onClick={() => {
+                        setBankForm({
+                          bankName,
+                          under,
+                          accountHolderName: details.accountHolderName || "",
+                          accountNumber: details.accountNumber || "",
+                          ifscCode: details.ifscCode || "",
+                          swiftCode: details.swiftCode || "",
+                          branchName: details.branchName || "",
+                          isDefault: Boolean(bank.isDefault),
+                        });
+                        setBankEditOriginal({
+                          bankName,
+                          under,
+                          accountHolderName: details.accountHolderName || "",
+                          accountNumber: details.accountNumber || "",
+                          ifscCode: details.ifscCode || "",
+                          swiftCode: details.swiftCode || "",
+                          branchName: details.branchName || "",
+                          isDefault: Boolean(bank.isDefault),
+                          // 👇 Track karo ki ye Tally bank hai ya app bank
+                          appBankId: bank.appBankId || null,
+                        });
+                        // 👇 Priority: appBankId > tallyExternalId
+                        setEditingBankId(
+                          bank.appBankId || bank.tallyExternalId,
+                        );
+                        setBankSaveError("");
+                        setBankFormOpen(true);
+                      }}
+                      className="..."
                     >
-                      <Star size={14} />
-                      {bankActionBusyId === bank.appBankId
-                        ? "Setting..."
-                        : "Set Default"}
+                      <Pencil size={14} /> Edit
                     </button>
-                  )}
+                  ) : null}
 
-                  {bank.appBankId && (
+                  {(bank.appBankId || bank._id || bank.tallyExternalId) && (
                     <button
                       type="button"
                       disabled={Boolean(bankActionBusyId)}
@@ -384,7 +434,10 @@ export default function BankDetailsModal({ company, onClose }) {
                           branchName: details.branchName || "",
                           isDefault: Boolean(bank.isDefault),
                         });
-                        setEditingBankId(bank.appBankId);
+                        // 👇 ID priority: appBankId > _id > tallyExternalId
+                        setEditingBankId(
+                          bank.appBankId || bank._id || bank.tallyExternalId,
+                        );
                         setBankSaveError("");
                         setBankFormOpen(true);
                       }}
