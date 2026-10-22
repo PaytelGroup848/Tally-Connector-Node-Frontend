@@ -215,57 +215,43 @@ const handleSave = async (event) => {
       }
 
 
-      if (shouldSetDefault) {
-        let appBankId = bankEditOriginal?.appBankId;
+if (shouldSetDefault) {
+  let appBankId = bankEditOriginal?.appBankId;
 
-        // Agar appBankId nahi hai, toh pehle Tally bank ko app mein create karo
-     if (!appBankId) {
-       try {
-         const createResponse = await createCompanyBank(
-           accessToken,
-           company.id,
-           {
-             bankName: bankForm.bankName,
-             under: bankForm.under,
-             accountHolderName: bankForm.accountHolderName,
-             accountNumber: bankForm.accountNumber,
-             ifscCode: bankForm.ifscCode,
-             swiftCode: bankForm.swiftCode || "",
-             branchName: bankForm.branchName || "",
-             isDefault: false,
-           },
-         );
-         appBankId = createResponse?.data?.bank?.id;
-       } catch (createErr) {
-         //  409 aaya? (already exists)
-         const errorMsg = createErr?.message || "";
+  
+  if (!appBankId) {
+    const freshBanks = await fetchCompanyBanks(accessToken, company.id);
+    const allBanks = extractBankList(freshBanks);
 
-         if (errorMsg.includes("already exists")) {
-           // Existing bank fetch karke match karo
-           const freshBanks = await fetchCompanyBanks(accessToken, company.id);
-           const allBanks = extractBankList(freshBanks);
-           const matched = allBanks.find(
-             (b) =>
-               String(b.accountNumber || "").trim() ===
-                 String(bankForm.accountNumber || "").trim() &&
-               String(b.ifscCode || "").toUpperCase() ===
-                 String(bankForm.ifscCode || "").toUpperCase(),
-           );
-           appBankId = matched?._id || matched?.id || null;
-         }
-       }
-     }
+    // Match karo: account number + IFSC (ya bank name)
+    const matched = allBanks.find(
+      (b) =>
+        (String(b.accountNumber || "").trim() ===
+          String(bankForm.accountNumber || "").trim() &&
+          String(b.ifscCode || "").toUpperCase() ===
+            String(bankForm.ifscCode || "").toUpperCase()) ||
+        String(b.bankName || "")
+          .toLowerCase()
+          .trim() ===
+          String(bankForm.bankName || "")
+            .toLowerCase()
+            .trim(),
+    );
 
-        if (!appBankId) {
-          setBankSaveError(
-            "Could not link this bank to your account. Please try again.",
-          );
-          setBankSaving(false);
-          return;
-        }
+    appBankId = matched?._id || matched?.id || null;
+  }
 
-        await setDefaultCompanyBank(accessToken, company.id, appBankId);
-      }
+  if (!appBankId) {
+    setBankSaveError(
+      "Could not link this bank to your account. It may not be synced yet. Please try again after Tally sync completes.",
+    );
+    setBankSaving(false);
+    return;
+  }
+
+  // 👇 Ab default set karo
+  await setDefaultCompanyBank(accessToken, company.id, appBankId);
+}
     } else {
       // Create new bank
       const payload = { ...bankForm };
