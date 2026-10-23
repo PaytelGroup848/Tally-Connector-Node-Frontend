@@ -1,5 +1,5 @@
 import { API_BASE_URL, request } from "./client";
-
+// const API_BASE_URL = 'https://connector.cloudata.in/api'
 export async function postCompanyCommand(accessToken, companyId, command) {
   if (!accessToken) throw new Error('Access token not found')
   if (!companyId) throw new Error('Company is not selected')

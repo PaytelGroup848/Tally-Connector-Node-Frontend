@@ -1,5 +1,5 @@
 import { request } from "./client";
-
+const API_BASE_URL = 'https://connector.cloudata.in/api'
 export function fetchCompanyVouchers(
   accessToken,
   companyId,
@@ -85,7 +85,7 @@ export async function deleteCompanyCommand(
   if (!commandId) throw new Error('Command ID not found')
 
   const response = await fetch(
-    `${API_BASE_URL}/companies/${encodeURIComponent(companyId)}/commands/${encodeURIComponent(commandId)}`,
+    `${'https://connector.cloudata.in/api'}/companies/${encodeURIComponent(companyId)}/commands/${encodeURIComponent(commandId)}`,
     {
       method: 'DELETE',
       headers: {

@@ -208,7 +208,7 @@ function VouchersPageView({
                   </div>
                 ))}
 
-                <div className="box-border flex h-full w-[140px] min-w-[140px] max-w-[140px] items-center justify-center overflow-hidden border-l border-[#dfe7f0] pr-4">
+                <div className="box-border flex h-full w-[140px] min-w-[140px] max-w-[140px] items-center justify-center overflow-hidden border-l border-[#dfe7f0] ">
                   <span className="block whitespace-normal break-words">
                     Action
                   </span>
@@ -278,13 +278,13 @@ function VouchersPageView({
                         })}
 
                         {/*  ACTION CELL */}
-                        <div className="box-border w-[140px] min-w-[140px] max-w-[140px] overflow-hidden border-l border-[#e5ebf2] pr-4">
-                          <div className="flex flex-col gap-2 px-5 py-3">
+                        <div className="box-border w-[170px] min-w-[170px] max-w-[170px] border-l border-[#e5ebf2]">
+                          <div className="flex items-center gap-2 px-3 py-3">
                             {/* View Button */}
                             <button
                               type="button"
                               onClick={() => setPreviewId(voucher._id)}
-                              className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
+                              className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
                             >
                               <Eye size={14} />
                               View
@@ -295,7 +295,7 @@ function VouchersPageView({
                               type="button"
                               onClick={() => handleDownload(voucher)}
                               disabled={isDownloading}
-                              className="inline-flex h-8 min-w-[90px] items-center justify-center gap-1.5 rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-600 transition hover:border-red-300 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 disabled:hover:border-red-200 disabled:hover:bg-white"
+                              className="inline-flex h-8 min-w-[50px] shrink-0 items-center justify-center gap-1.5 rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-600 transition hover:border-red-300 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 disabled:hover:border-red-200 disabled:hover:bg-white"
                               title={
                                 isDownloading
                                   ? "Generating PDF..."

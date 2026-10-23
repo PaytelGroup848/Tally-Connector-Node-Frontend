@@ -1,83 +1,72 @@
-
-import { useEffect, useState } from 'react'
-import {
-  Building2,
-  BookOpen,
-  Copy,
-  Check,
-  Hash,
-  Link2,
-} from 'lucide-react'
-import useAuthStore from '../store/authStore'
+import { useEffect, useState } from "react";
+import { Building2, BookOpen, Copy, Check, Hash, Link2 } from "lucide-react";
+import useAuthStore from "../store/authStore";
 import {
   extractCompany,
   extractLedgerPagination,
   extractLedgers,
   fetchCompanyById,
   fetchCompanyLedgers,
-} from '../services/companiesApi'
-import { getUniqueFields } from '../utils/columnUtils'
+} from "../services/companiesApi";
+import { getUniqueFields } from "../utils/columnUtils";
 
-const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
-  const accessToken = useAuthStore((state) => state.accessToken)
+const MyCompanyDetailsPage = ({ companyId: companyIdProp = "" }) => {
+  const accessToken = useAuthStore((state) => state.accessToken);
 
-  const [company, setCompany] = useState(null)
-  const [ledgers, setLedgers] = useState([])
-  const [ledgerError, setLedgerError] = useState('')
-  const [ledgerPage, setLedgerPage] = useState(1)
-  const [ledgerLimit, setLedgerLimit] = useState(20)
-  const [ledgerSearch, setLedgerSearch] = useState('')
-  const [ledgerQuery, setLedgerQuery] = useState('')
-  const [ledgerPagination, setLedgerPagination] = useState({})
-  const [isLedgersLoading, setIsLedgersLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [copiedField, setCopiedField] = useState('')
+  const [company, setCompany] = useState(null);
+  const [ledgers, setLedgers] = useState([]);
+  const [ledgerError, setLedgerError] = useState("");
+  const [ledgerPage, setLedgerPage] = useState(1);
+  const [ledgerLimit, setLedgerLimit] = useState(20);
+  const [ledgerSearch, setLedgerSearch] = useState("");
+  const [ledgerQuery, setLedgerQuery] = useState("");
+  const [ledgerPagination, setLedgerPagination] = useState({});
+  const [isLedgersLoading, setIsLedgersLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [copiedField, setCopiedField] = useState("");
 
-  const companyId = companyIdProp || decodeURIComponent(
-    window.location.pathname.split('/').pop() || '',
-  )
+  const companyId =
+    companyIdProp ||
+    decodeURIComponent(window.location.pathname.split("/").pop() || "");
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      setLedgerQuery(ledgerSearch)
-      setLedgerPage(1)
-    }, 400)
+      setLedgerQuery(ledgerSearch);
+      setLedgerPage(1);
+    }, 400);
 
-    return () => clearTimeout(debounceTimer)
-  }, [ledgerSearch])
+    return () => clearTimeout(debounceTimer);
+  }, [ledgerSearch]);
 
   useEffect(() => {
-    if (!accessToken || !companyId) return undefined
+    if (!accessToken || !companyId) return undefined;
 
-    let isMounted = true
+    let isMounted = true;
 
     fetchCompanyById(accessToken, companyId)
       .then((response) => {
         if (isMounted) {
-          setCompany(extractCompany(response))
+          setCompany(extractCompany(response));
         }
       })
       .catch((requestError) => {
         if (isMounted) {
-          setError(
-            requestError?.message ||
-              'Unable to load company details',
-          )
+          setError(requestError?.message || "Unable to load company details");
         }
-      })
+      });
 
     return () => {
-      isMounted = false
-    }
-  }, [accessToken, companyId])
+      isMounted = false;
+    };
+  }, [accessToken, companyId]);
 
   useEffect(() => {
-    if (!accessToken || !companyId) return undefined
+    if (!accessToken || !companyId) return undefined;
 
-    let isMounted = true
+    let isMounted = true;
 
-    setIsLedgersLoading(true)
-    setLedgerError('')
+    setIsLedgersLoading(true);
+    setLedgerError("");
 
     fetchCompanyLedgers(accessToken, companyId, {
       page: ledgerPage,
@@ -86,23 +75,23 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
     })
       .then((response) => {
         if (isMounted) {
-          setLedgers(extractLedgers(response))
-          setLedgerPagination(extractLedgerPagination(response))
+          setLedgers(extractLedgers(response));
+          setLedgerPagination(extractLedgerPagination(response));
         }
       })
       .catch((requestError) => {
         if (isMounted) {
-          setLedgerError(requestError?.message || 'Unable to load ledger data')
+          setLedgerError(requestError?.message || "Unable to load ledger data");
         }
       })
       .finally(() => {
-        if (isMounted) setIsLedgersLoading(false)
-      })
+        if (isMounted) setIsLedgersLoading(false);
+      });
 
     return () => {
-      isMounted = false
-    }
-  }, [accessToken, companyId, ledgerPage, ledgerLimit, ledgerQuery])
+      isMounted = false;
+    };
+  }, [accessToken, companyId, ledgerPage, ledgerLimit, ledgerQuery]);
 
   const reportedPageCount = Number(
     ledgerPagination.totalPages ||
@@ -110,63 +99,46 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
       ledgerPagination.pages ||
       ledgerPagination.lastPage ||
       0,
-  )
+  );
   const reportedTotal = Number(
     ledgerPagination.total ||
       ledgerPagination.totalItems ||
       ledgerPagination.totalRecords ||
       ledgerPagination.count ||
       0,
-  )
-  const ledgerPageCount = reportedPageCount > 0
-    ? reportedPageCount
-    : Math.max(1, Math.ceil(reportedTotal / ledgerLimit))
+  );
+  const ledgerPageCount =
+    reportedPageCount > 0
+      ? reportedPageCount
+      : Math.max(1, Math.ceil(reportedTotal / ledgerLimit));
 
   useEffect(() => {
-    setLedgerPage((page) => Math.min(page, ledgerPageCount))
-  }, [ledgerPageCount])
+    setLedgerPage((page) => Math.min(page, ledgerPageCount));
+  }, [ledgerPageCount]);
 
   const handleCopy = async (value, key) => {
-    if (!value || value === '-') return
+    if (!value || value === "-") return;
 
     try {
-      await navigator.clipboard.writeText(String(value))
-      setCopiedField(key)
+      await navigator.clipboard.writeText(String(value));
+      setCopiedField(key);
 
       setTimeout(() => {
-        setCopiedField('')
-      }, 1500)
+        setCopiedField("");
+      }, 1500);
     } catch {
       // Ignore clipboard errors
     }
-  }
+  };
 
   const fields = [
     {
-      label: 'Company ID',
-      key: 'id',
+      label: "Company ID -",
+      key: "id",
       icon: Hash,
-      description: 'Unique identifier',
+      description: "Unique identifier",
     },
-    {
-      label: 'Tally Company Name',
-      key: 'tallyCompanyName',
-      icon: Building2,
-      description: 'Registered Tally company',
-    },
-    // {
-    //   label: 'Tally Company GUID',
-    //   key: 'tallyCompanyGuid',
-    //   icon: Hash,
-    //   description: 'Tally unique identifier',
-    // },
-    // {
-    //   label: 'Linked Connector ID',
-    //   key: 'linkedByConnectorId',
-    //   icon: Link2,
-    //   description: 'Connected through',
-    // },
-  ]
+  ];
 
   /* =====================================================
      ERROR STATE
@@ -197,15 +169,13 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
 
             <div className="px-6 py-6 sm:px-8">
               <div className="rounded-xl border border-red-100 bg-red-50/60 px-4 py-3">
-                <p className="text-sm leading-6 text-red-600">
-                  {error}
-                </p>
+                <p className="text-sm leading-6 text-red-600">{error}</p>
               </div>
             </div>
           </div>
         </div>
       </section>
-    )
+    );
   }
 
   /* =====================================================
@@ -220,10 +190,7 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
             <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 animate-pulse items-center justify-center rounded-xl bg-slate-100">
-                  <Building2
-                    size={22}
-                    className="text-slate-300"
-                  />
+                  <Building2 size={22} className="text-slate-300" />
                 </div>
 
                 <div className="space-y-2">
@@ -250,107 +217,116 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
           </div>
         </div>
       </section>
-    )
+    );
   }
 
-  const companyName =
-    company?.tallyCompanyName || 'Tally Company'
+  const companyName = company?.tallyCompanyName || "Tally Company";
 
   const ledgerColumns = getUniqueFields(
     ledgers.flatMap((ledger) => Object.keys(ledger || {})),
     {
       ignoreKeywords: [
-        'source',
-        'raw',
-        'version',
-        'v',
-        '__v',
-        'id',
-        '_id',
-        'guid',
-        'alterid',
-        'ledgerid',
-        'companyid',
-        'organisationid',
-        'organizationid',
-        'tallyexternalid',
+        "source",
+        "raw",
+        "version",
+        "v",
+        "__v",
+        "id",
+        "_id",
+        "guid",
+        "alterid",
+        "ledgerid",
+        "companyid",
+        "organisationid",
+        "organizationid",
+        "tallyexternalid",
       ],
     },
-  )
+  );
 
   const formatLedgerValue = (value, column) => {
-    if (value === null || value === undefined || value === '') return 'NA'
+    if (value === null || value === undefined || value === "") return "NA";
 
-    const normalizedColumn = column.toLowerCase().replace(/[_-]/g, '')
-    if (normalizedColumn === 'createdat' || normalizedColumn === 'updatedat') {
-      const date = new Date(value)
+    const normalizedColumn = column.toLowerCase().replace(/[_-]/g, "");
+    if (normalizedColumn === "createdat" || normalizedColumn === "updatedat") {
+      const date = new Date(value);
       if (!Number.isNaN(date.getTime())) {
-        return new Intl.DateTimeFormat('en-IN', {
-          dateStyle: 'medium',
-          timeStyle: 'short',
-          timeZone: 'Asia/Kolkata',
-        }).format(date)
+        return new Intl.DateTimeFormat("en-IN", {
+          dateStyle: "medium",
+          timeStyle: "short",
+          timeZone: "Asia/Kolkata",
+        }).format(date);
       }
     }
 
-    if (typeof value === 'object') return JSON.stringify(value)
-    return String(value)
-  }
+    if (typeof value === "object") return JSON.stringify(value);
+    return String(value);
+  };
 
-  const formatLedgerLabel = (column) => column
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/\b\w/g, (character) => character.toUpperCase())
-    .trim()
+  const formatLedgerLabel = (column) =>
+    column
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/[_-]+/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/\b\w/g, (character) => character.toUpperCase())
+      .trim();
 
-  const ledgerPageItems = ledgerPageCount <= 7
-    ? Array.from({ length: ledgerPageCount }, (_, index) => index + 1)
-    : ledgerPage <= 4
-      ? [1, 2, 3, 4, 5, '...', ledgerPageCount]
-      : ledgerPage >= ledgerPageCount - 3
-        ? [1, '...', ledgerPageCount - 4, ledgerPageCount - 3, ledgerPageCount - 2, ledgerPageCount - 1, ledgerPageCount]
-        : [1, '...', ledgerPage - 1, ledgerPage, ledgerPage + 1, '...', ledgerPageCount]
+  const ledgerPageItems =
+    ledgerPageCount <= 7
+      ? Array.from({ length: ledgerPageCount }, (_, index) => index + 1)
+      : ledgerPage <= 4
+        ? [1, 2, 3, 4, 5, "...", ledgerPageCount]
+        : ledgerPage >= ledgerPageCount - 3
+          ? [
+              1,
+              "...",
+              ledgerPageCount - 4,
+              ledgerPageCount - 3,
+              ledgerPageCount - 2,
+              ledgerPageCount - 1,
+              ledgerPageCount,
+            ]
+          : [
+              1,
+              "...",
+              ledgerPage - 1,
+              ledgerPage,
+              ledgerPage + 1,
+              "...",
+              ledgerPageCount,
+            ];
 
   return (
     <section className="min-h-screen bg-[#f7f9fc] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
+      <div className="w-full">
         {/* =================================================
             MAIN CARD
         ================================================= */}
 
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
-
           {/* =================================================
               COMPANY HEADER
           ================================================= */}
 
-          <div className="border-b border-slate-100 px-6 py-6 sm:px-8 lg:px-10">
+          <div className="px-6 py-2 sm:px-8 lg:px-10">
             <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
-
               {/* Company identity */}
 
               <div className="flex min-w-0 items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                  <Building2 size={27} strokeWidth={2} />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                  <Building2 size={18} strokeWidth={2} />
                 </div>
 
                 <div className="min-w-0">
-                  <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
-                    Company Information
-                  </p>
+                 
 
-                  <h1 className="truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                  <h1 className="truncate text-lg font-bold tracking-tight text-slate-900 sm:text-md">
                     {companyName}
                   </h1>
 
-                  <p className="mt-1 text-sm text-slate-500">
-                    Company details connected through Tally
-                  </p>
+                 
                 </div>
               </div>
-
-              
             </div>
           </div>
 
@@ -358,94 +334,59 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
               DETAILS CONTENT
           ================================================= */}
 
-          <div className="px-6 py-6 sm:px-8 sm:py-8 lg:px-10">
-
-            <div className="mb-5">
-              
-
-            
-            </div>
+          <div className="px-6 py-6 sm:px-8 sm:py-2 lg:px-10">
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {fields.map(
-                ({
-                  label,
-                  key,
-                  icon: Icon,
-                  description,
-                }) => {
-                  const value = company?.[key] || '-'
-                  const isCopied = copiedField === key
+              {fields.map(({ label, key, icon: Icon, description }) => {
+                const value = company?.[key] || "-";
+                const isCopied = copiedField === key;
 
-                  return (
-                    <div
-                      key={key}
-                      className="group rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
-                    >
-                      <div className="flex items-start gap-4">
+                return (
+                  <div
+                    key={key}
+                    className="group rounded-2xl border border-slate-200 bg-white p-1 transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Content */}
 
-                        {/* Icon */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <span className="px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                              {label}
+                            </span>
 
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-500 transition-colors duration-200 group-hover:bg-emerald-50 group-hover:text-emerald-600">
-                          <Icon size={18} strokeWidth={2} />
-                        </div>
-
-                        {/* Content */}
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                {label}
-                              </p>
-
-                              <p className="mt-1 text-xs text-slate-400">
-                                {description}
-                              </p>
-                            </div>
-
-                            {value !== '-' && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleCopy(value, key)
-                                }
-                                title={
-                                  isCopied
-                                    ? 'Copied'
-                                    : 'Copy value'
-                                }
-                                className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                              >
-                                {isCopied ? (
-                                  <Check
-                                    size={15}
-                                    className="text-emerald-600"
-                                  />
-                                ) : (
-                                  <Copy size={15} />
-                                )}
-                              </button>
-                            )}
-                          </div>
-
-                          <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2.5">
-                            <p
+                            <span
                               className={`break-all text-sm font-semibold leading-5 ${
-                                value === '-'
-                                  ? 'text-slate-400'
-                                  : 'text-slate-800'
+                                value === "-"
+                                  ? "text-slate-400"
+                                  : "text-slate-800"
                               }`}
                             >
                               {value}
-                            </p>
+                            </span>
                           </div>
+
+                          {value !== "-" && (
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(value, key)}
+                              title={isCopied ? "Copied" : "Copy value"}
+                              className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                            >
+                              {isCopied ? (
+                                <Check size={15} className="text-emerald-600" />
+                              ) : (
+                                <Copy size={15} />
+                              )}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
-                  )
-                },
-              )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -457,7 +398,9 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">Ledgers</h2>
-              <p className="mt-1 text-sm text-slate-500">Ledger data connected through Tally</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Ledger data connected through Tally
+              </p>
             </div>
           </div>
 
@@ -467,7 +410,7 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
                 type="search"
                 value={ledgerSearch}
                 onChange={(event) => {
-                  setLedgerSearch(event.target.value)
+                  setLedgerSearch(event.target.value);
                 }}
                 placeholder="Search ledgers"
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 sm:w-64"
@@ -477,42 +420,63 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
                 <select
                   value={ledgerLimit}
                   onChange={(event) => {
-                    setLedgerLimit(Number(event.target.value))
-                    setLedgerPage(1)
+                    setLedgerLimit(Number(event.target.value));
+                    setLedgerPage(1);
                   }}
                   className="rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none focus:border-emerald-500"
                 >
                   {[10, 20, 30, 50].map((limit) => (
-                    <option key={limit} value={limit}>{limit}</option>
+                    <option key={limit} value={limit}>
+                      {limit}
+                    </option>
                   ))}
                 </select>
                 <span className="whitespace-nowrap">records</span>
               </label>
             </div>
-            <span className="text-xs text-slate-500">Page {ledgerPage} · {ledgerLimit} per page</span>
+            <span className="text-xs text-slate-500">
+              Page {ledgerPage} · {ledgerLimit} per page
+            </span>
           </div>
 
           {ledgerError ? (
-            <p className="px-6 py-5 text-sm text-red-600 sm:px-8">{ledgerError}</p>
+            <p className="px-6 py-5 text-sm text-red-600 sm:px-8">
+              {ledgerError}
+            </p>
           ) : isLedgersLoading ? (
-            <p className="px-6 py-5 text-sm text-slate-500 sm:px-8">Loading ledger data...</p>
+            <p className="px-6 py-5 text-sm text-slate-500 sm:px-8">
+              Loading ledger data...
+            </p>
           ) : ledgers.length === 0 ? (
-            <p className="px-6 py-5 text-sm text-slate-500 sm:px-8">No ledger data available.</p>
+            <p className="px-6 py-5 text-sm text-slate-500 sm:px-8">
+              No ledger data available.
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     {ledgerColumns.map((column) => (
-                      <th key={column} className="whitespace-nowrap px-5 py-3 font-semibold">{formatLedgerLabel(column)}</th>
+                      <th
+                        key={column}
+                        className="whitespace-nowrap px-5 py-3 font-semibold"
+                      >
+                        {formatLedgerLabel(column)}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {ledgers.map((ledger, index) => (
-                    <tr key={ledger?.id || ledger?._id || index} className="hover:bg-slate-50">
+                    <tr
+                      key={ledger?.id || ledger?._id || index}
+                      className="hover:bg-slate-50"
+                    >
                       {ledgerColumns.map((column) => (
-                        <td key={column} className="whitespace-nowrap px-5 py-3 text-slate-700">
+                        <td
+                          key={column}
+                          className="whitespace-nowrap px-5 py-3 text-slate-700"
+                        >
                           {formatLedgerValue(ledger?.[column], column)}
                         </td>
                       ))}
@@ -524,9 +488,14 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
           )}
 
           <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4 sm:px-8">
-            {ledgerPageItems.map((page, index) => (
-              page === '...' ? (
-                <span key={`ellipsis-${index}`} className="px-1 text-sm text-slate-400">...</span>
+            {ledgerPageItems.map((page, index) =>
+              page === "..." ? (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="px-1 text-sm text-slate-400"
+                >
+                  ...
+                </span>
               ) : (
                 <button
                   key={page}
@@ -535,20 +504,19 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = '' }) => {
                   onClick={() => setLedgerPage(page)}
                   className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
                     ledgerPage === page
-                      ? 'border-emerald-600 bg-emerald-600 text-white'
-                      : 'border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
+                      ? "border-emerald-600 bg-emerald-600 text-white"
+                      : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
                   } disabled:cursor-not-allowed disabled:opacity-50`}
                 >
                   {page}
                 </button>
-              )
-            ))}
+              ),
+            )}
           </div>
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default MyCompanyDetailsPage
-
+export default MyCompanyDetailsPage;

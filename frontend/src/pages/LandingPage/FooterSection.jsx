@@ -13,8 +13,8 @@ export default function FooterSection({ scrollTo, goToPrivacy, goToTerms, goToRe
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:px-8 lg:grid-cols-3 lg:gap-16 lg:px-8">
           {/* Grow Your Business */}
           <div>
-            <img src={logoFull} />
-            <img src={CloudeData} className="h-[70px] w-[55%]" />
+            <img src={logoFull} alt="Control Books Logo" />
+            <img src={CloudeData} className="h-[70px] w-[55%]" alt="CloudeData Logo" />
             <h3 className="text-[22px] font-extrabold text-emerald-700">
               Grow Your Business
             </h3>

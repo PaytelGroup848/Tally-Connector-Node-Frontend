@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Building2, Settings, Landmark, ChevronRight } from "lucide-react";
+import { Building2, Settings, Landmark, ChevronRight,Building } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import {
   extractCompanies,
@@ -121,6 +121,7 @@ export default function SettingPage() {
                       className="flex justify-center mt-1 break-words text-sm font-semibold text-slate-900"
                       title={company.name || "Unnamed Company"}
                     >
+                      <Building size={20} className="pr-1" />
                       {company.name || "Unnamed Company"}
                     </h2>
                     {company.meta && (

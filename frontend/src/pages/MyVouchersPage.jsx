@@ -493,7 +493,30 @@ function MyVouchersPage({
       setDeletingCommandId("");
     }
   };
+const STATUS_INFO = {
+  pending: {
+    text: "Please wait, your connector or Tally may be offline.",
+    color: "text-amber-500",
+  },
+  sent: {
+    text: "Your data has reached the connector, kindly wait, or check that your Tally is open.",
+    color: "text-blue-500",
+  },
+  done: {
+    text: "Created successfully.",
+    color: "text-green-600",
+  },
+  failed: {
+    text: "Rejected by Tally.",
+    color: "text-red-600",
+  },
+};
 
+// adjust the field name if your command uses something other than `status`
+const getStatusInfo = (command) => {
+  const key = String(command?.status ?? "").trim().toLowerCase();
+  return STATUS_INFO[key] || null;
+};
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#f8fafc] text-[#17355f]">
       <div className="px-3 py-3 sm:px-5 sm:py-4">
@@ -625,9 +648,11 @@ function MyVouchersPage({
                     {formatLabel(column)}
                   </div>
                 ))}
-                <div className="w-[120px] min-w-[120px] max-w-[120px] border-l border-[#dfe7f0]">
-                  Action
-                </div>
+                {(columns?.length > 0) && (
+                  <div className="w-[120px] min-w-[120px] max-w-[120px] border-l border-[#dfe7f0]">
+                    Action
+                  </div>
+                )}
               </div>
 
               {isLoading ? (
@@ -668,23 +693,41 @@ function MyVouchersPage({
                         </div>
                       );
                     })}
-                    <div className="w-[120px] min-w-[120px] max-w-[120px] border-l border-[#e5ebf2]">
-                      {isPendingCommand(command) && getCommandId(command) ? (
-                        <button
-                          type="button"
-                          disabled={
-                            deletingCommandId === String(getCommandId(command))
-                          }
-                          onClick={() => handleDelete(command)}
-                          className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {deletingCommandId === String(getCommandId(command))
-                            ? "Deleting..."
-                            : "Delete"}
-                        </button>
-                      ) : null}
-                      {/* <Info size={16} className="" /> */}
-                    </div>
+                   <div className="w-[120px] min-w-[120px] max-w-[120px]  flex items-center gap-2 px-2">
+  {isPendingCommand(command) && getCommandId(command) ? (
+    <button
+      type="button"
+      disabled={deletingCommandId === String(getCommandId(command))}
+      onClick={() => handleDelete(command)}
+      className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {deletingCommandId === String(getCommandId(command))
+        ? "Deleting..."
+        : "Delete"}
+    </button>
+  ) : null}
+
+  {(() => {
+    const info = getStatusInfo(command);
+    if (!info) return null;
+    return (
+      <div className="group relative flex items-center">
+        <Info
+          size={16}
+          className={`cursor-pointer ${info.color}`}
+          tabIndex={0}
+          aria-label={info.text}
+        />
+        <div
+          role="tooltip"
+          className="border-1 border-gray-100 pointer-events-none absolute left-5 z-50  w-52 rounded-md bg-white px-3 py-1 text-xs font-medium text-gray-900 opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+        >
+          {info.text}
+        </div>
+      </div>
+    );
+  })()}
+</div>
                     
                   </div>
                 ))

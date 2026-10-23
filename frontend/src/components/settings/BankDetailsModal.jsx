@@ -287,7 +287,7 @@ export default function BankDetailsModal({ company, onClose }) {
       <section
         role="dialog"
         aria-modal="true"
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="flex max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
@@ -374,103 +374,191 @@ export default function BankDetailsModal({ company, onClose }) {
               </div>
             )}
 
-          {companyBanks.map((bank, bankIndex) => {
-            const details = bank.bankDetails || {};
-            const bankName =
-              bank.name || bank.bankName || details.bankName || "Bank";
-            const under = bank.parent || bank.group || "Bank Accounts";
+          <div className="overflow-x-auto rounded-xl border border-slate-200">
+            <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
+              <thead className="bg-slate-50">
+                <tr className="border-b border-slate-200">
+                  <th className="px-4 py-3 font-semibold text-slate-600">
+                    Bank Name
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-slate-600">
+                    Under
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-slate-600">
+                    Account Holder
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-slate-600">
+                    Account Number
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-slate-600">
+                    IFSC Code
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-slate-600">
+                    SWIFT Code
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-slate-600">
+                    Branch
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-600">
+                    Closing Balance
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-slate-600">
+                    Action
+                  </th>
+                </tr>
+              </thead>
 
-            return (
-              <div
-                key={bank._id || bank.tallyExternalId || bankIndex}
-                className="rounded-xl border border-slate-200 p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h3 className="font-semibold text-slate-900">{bankName}</h3>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {bank.isDefault && (
-                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                        Default
-                      </span>
-                    )}
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                      {under}
-                    </span>
-                  </div>
-                </div>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {companyBanks.length > 0 ? (
+                  companyBanks.map((bank, bankIndex) => {
+                    const details = bank.bankDetails || {};
 
-                <dl className="mt-3 grid grid-cols-1 gap-x-5 gap-y-2 text-sm sm:grid-cols-2">
-                  {[
-                    [
-                      "Account Holder",
-                      details.accountHolderName || bank.accountHolderName,
-                    ],
-                    [
-                      "Account Number",
-                      details.accountNumber || bank.accountNumber,
-                    ],
-                    ["IFSC Code", details.ifscCode || bank.ifscCode],
-                    ["SWIFT Code", details.swiftCode || bank.swiftCode],
-                    ["Branch", details.branchName || bank.branchName],
-                    [
-                      "Closing Balance",
+                    const bankName =
+                      bank.name || bank.bankName || details.bankName || "Bank";
+
+                    const under = bank.parent || bank.group || "Bank Accounts";
+
+                    const accountHolderName =
+                      details.accountHolderName || bank.accountHolderName;
+
+                    const accountNumber =
+                      details.accountNumber || bank.accountNumber;
+
+                    const ifscCode = details.ifscCode || bank.ifscCode;
+                    const swiftCode = details.swiftCode || bank.swiftCode;
+                    const branchName = details.branchName || bank.branchName;
+
+                    const closingBalance =
                       bank.closingBalance != null
                         ? `₹${Number(bank.closingBalance).toLocaleString("en-IN")}`
-                        : null,
-                    ],
-                  ].map(([label, value]) => (
-                    <div key={label}>
-                      <dt className="text-xs text-slate-500">{label}</dt>
-                      <dd className="break-words font-medium text-slate-800">
-                        {value || "—"}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
+                        : "—";
 
-                <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
-                  {(bank.appBankId || bank._id || bank.tallyExternalId) && (
-                    <button
-                      type="button"
-                      disabled={Boolean(bankActionBusyId)}
-                      onClick={() => {
-                        setBankForm({
-                          bankName,
-                          under,
-                          accountHolderName: details.accountHolderName || "",
-                          accountNumber: details.accountNumber || "",
-                          ifscCode: details.ifscCode || "",
-                          swiftCode: details.swiftCode || "",
-                          branchName: details.branchName || "",
-                          isDefault: Boolean(bank.isDefault),
-                        });
-                        setBankEditOriginal({
-                          bankName,
-                          under,
-                          accountHolderName: details.accountHolderName || "",
-                          accountNumber: details.accountNumber || "",
-                          ifscCode: details.ifscCode || "",
-                          swiftCode: details.swiftCode || "",
-                          branchName: details.branchName || "",
-                          isDefault: Boolean(bank.isDefault),
-                          appBankId: bank.appBankId || null,
-                        });
+                    return (
+                      <tr
+                        key={bank._id || bank.tallyExternalId || bankIndex}
+                        className="transition hover:bg-slate-50"
+                      >
+                        <td className="whitespace-nowrap px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-900">
+                              {bankName}
+                            </span>
 
-                        setEditingBankId(
-                          bank.appBankId || bank.tallyExternalId,
-                        );
-                        setBankSaveError("");
-                        setBankFormOpen(true);
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                            {bank.isDefault && (
+                              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+                          {under}
+                        </td>
+
+                        <td className="px-4 py-3 text-slate-700">
+                          {accountHolderName || "—"}
+                        </td>
+
+                        <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-800">
+                          {accountNumber || "—"}
+                        </td>
+
+                        <td className="whitespace-nowrap px-4 py-3 text-slate-700">
+                          {ifscCode || "—"}
+                        </td>
+
+                        <td className="whitespace-nowrap px-4 py-3 text-slate-700">
+                          {swiftCode || "—"}
+                        </td>
+
+                        <td className="px-4 py-3 text-slate-700">
+                          {branchName || "—"}
+                        </td>
+
+                        <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-slate-800">
+                          {closingBalance}
+                        </td>
+
+                        <td className="px-4 py-3 text-center">
+                          {(bank.appBankId ||
+                            bank._id ||
+                            bank.tallyExternalId) && (
+                            <button
+                              type="button"
+                              disabled={Boolean(bankActionBusyId)}
+                              onClick={() => {
+                                setBankForm({
+                                  bankName,
+                                  under,
+                                  accountHolderName:
+                                    details.accountHolderName ||
+                                    bank.accountHolderName ||
+                                    "",
+                                  accountNumber:
+                                    details.accountNumber ||
+                                    bank.accountNumber ||
+                                    "",
+                                  ifscCode:
+                                    details.ifscCode || bank.ifscCode || "",
+                                  swiftCode:
+                                    details.swiftCode || bank.swiftCode || "",
+                                  branchName:
+                                    details.branchName || bank.branchName || "",
+                                  isDefault: Boolean(bank.isDefault),
+                                });
+
+                                setBankEditOriginal({
+                                  bankName,
+                                  under,
+                                  accountHolderName:
+                                    details.accountHolderName ||
+                                    bank.accountHolderName ||
+                                    "",
+                                  accountNumber:
+                                    details.accountNumber ||
+                                    bank.accountNumber ||
+                                    "",
+                                  ifscCode:
+                                    details.ifscCode || bank.ifscCode || "",
+                                  swiftCode:
+                                    details.swiftCode || bank.swiftCode || "",
+                                  branchName:
+                                    details.branchName || bank.branchName || "",
+                                  isDefault: Boolean(bank.isDefault),
+                                  appBankId: bank.appBankId || null,
+                                });
+
+                                setEditingBankId(
+                                  bank.appBankId || bank.tallyExternalId,
+                                );
+
+                                setBankSaveError("");
+                                setBankFormOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <Pencil size={14} />
+                              Edit
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={9}
+                      className="px-4 py-10 text-center text-sm text-slate-500"
                     >
-                      <Pencil size={14} /> Edit
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                      No bank accounts found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
           {bankFormOpen && (
             <div

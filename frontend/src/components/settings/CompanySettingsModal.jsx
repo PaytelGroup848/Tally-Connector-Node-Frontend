@@ -230,7 +230,7 @@ export default function CompanySettingsModal({ company, onClose }) {
       <section
         role="dialog"
         aria-modal="true"
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="flex max-h-[85vh] w-full max-w-8xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
@@ -304,31 +304,39 @@ export default function CompanySettingsModal({ company, onClose }) {
               )}
 
               <div className="overflow-x-auto rounded-xl border border-slate-200">
-                <table className="w-full min-w-[400px] border-collapse text-left text-sm">
+                <table className="w-full min-w-max border-collapse text-left text-sm">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="border-b border-slate-200 px-4 py-3 font-semibold text-slate-700">
-                        Field
-                      </th>
-                      <th className="border-b border-slate-200 px-4 py-3 font-semibold text-slate-700">
-                        Value
-                      </th>
+                      {flattenSettings(companySettings).map((row, i) => (
+                        <th
+                          key={`${row.key}-${i}`}
+                          className="whitespace-nowrap border-b border-r border-slate-200 px-4 py-3 font-semibold text-slate-700 last:border-r-0"
+                        >
+                          {row.key}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    {flattenSettings(companySettings).map((row, i) => (
-                      <tr
-                        key={`${row.key}-${i}`}
-                        className="transition hover:bg-slate-50"
-                      >
-                        <td className="w-2/5 break-words border-b border-slate-100 px-4 py-3 font-medium text-slate-600">
-                          {row.key}
+
+                  <tbody className="bg-white">
+                    <tr className="hover:bg-slate-50">
+                      {flattenSettings(companySettings).map((row, i) => (
+                        <td
+                          key={`${row.key}-${i}`}
+                          className="max-w-xs break-words border-r border-slate-100 px-4 py-3 text-slate-800 last:border-r-0"
+                        >
+                          {row.value ?? "—"}
                         </td>
-                        <td className="break-all border-b border-slate-100 px-4 py-3 text-slate-800">
-                          {row.value}
+                      ))}
+                    </tr>
+
+                    {flattenSettings(companySettings).length === 0 && (
+                      <tr>
+                        <td className="px-4 py-6 text-center text-slate-500">
+                          No company settings available.
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
