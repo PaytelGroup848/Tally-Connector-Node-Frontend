@@ -386,7 +386,7 @@ export function createVoucherSubmitHandler(options) {
       }
       successTimerRef.current = window.setTimeout(() => {
         setShowSuccessAnimation(false);
-      }, 7000);
+      }, 5000);
 
       const commandId = extractCommandId(commandResponse);
 

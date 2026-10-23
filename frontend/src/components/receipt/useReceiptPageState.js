@@ -418,7 +418,7 @@ export function useReceiptPageState({
       successTimerRef.current = window.setTimeout(() => {
         setShowSuccessAnimation(false);
         setSubmitMessage('');
-      }, 7000);
+      }, 5000);
     } catch (error) {
       console.error(`${documentType} creation failed:`, error);
       setShowSuccessAnimation(false);

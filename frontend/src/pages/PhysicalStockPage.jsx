@@ -342,7 +342,7 @@ function PhysicalStockPage({ companyId }) {
       }
       successTimerRef.current = window.setTimeout(() => {
         setShowSuccessAnimation(false);
-      }, 7000);
+      }, 5000);
     } catch (error) {
       setOptionsError(
         error?.message || "Unable to create Physical Stock Voucher.",
