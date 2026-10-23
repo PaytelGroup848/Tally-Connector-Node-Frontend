@@ -1,246 +1,390 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+const MENU_MAX_HEIGHT = 288; // same as Tailwind max-h-72
+
+// Works for string options and object options.
+const getOptionText = (option) =>
+  typeof option === "string"
+    ? option
+    : option?.name ||
+      option?.label ||
+      option?.partyName ||
+      option?.ledgerName ||
+      "";
+
 export function SearchableDropdown({
-    name,
-    label,
-    options,
-    placeholder,
-    loading = false,
-    loadError = "",
-    infiniteScroll = false,
-    hasMoreOptions = false,
-    loadingMore = false,
-    loadMoreError = "",
-    onLoadMore,
-    defaultValue = "",
-    value,
-    onSelect,
-    onOptionSelect,
-    onClear,
-    resetToken = 0,
-    disabled = false,
-    showAllValues,
-  }) {
-    const [query, setQuery] = useState(value ?? defaultValue);
-    const [open, setOpen] = useState(false);
-    const [showAll, setShowAll] = useState(false);
+  name,
+  label = "options",
+  options = [],
+  placeholder,
+  loading = false,
+  loadError = "",
+  infiniteScroll = false,
+  hasMoreOptions = false,
+  loadingMore = false,
+  loadMoreError = "",
+  onLoadMore,
+  defaultValue = "",
+  value,
+  onSelect, // fires on typing AND on picking (unchanged behaviour)
+  onOptionSelect, // fires only on picking; receives the full option (string or object)
+  onInputChange, // fires only on typing
+  onClear, // fires when the input is emptied
+  resetToken = 0,
+  disabled = false,
+  showAllValues,
+}) {
+  const [query, setQuery] = useState(value ?? defaultValue ?? "");
+  const [open, setOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  // true only after the user types; until then the full list is shown
+  const [dirty, setDirty] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [menuPosition, setMenuPosition] = useState(null);
 
-    const dropdownRef = useRef(null);
-    const menuRef = useRef(null);
-    const loadMoreRef = useRef(onLoadMore);
-    const [menuPosition, setMenuPosition] = useState(null);
+  const dropdownRef = useRef(null);
+  const menuRef = useRef(null);
+  const loadMoreRef = useRef(onLoadMore);
+  const listboxId = useId();
 
-    useEffect(() => {
-      loadMoreRef.current = onLoadMore;
-    }, [onLoadMore]);
+  useEffect(() => {
+    loadMoreRef.current = onLoadMore;
+  }, [onLoadMore]);
 
-    const updateMenuPosition = () => {
-      const input = dropdownRef.current?.querySelector("input");
-      if (!input) return;
+  const closeMenu = () => {
+    setOpen(false);
+    setShowAll(false);
+    setDirty(false);
+    setActiveIndex(-1);
+  };
 
-      const rect = input.getBoundingClientRect();
-      setMenuPosition({
-        left: rect.left,
-        top: rect.bottom + 4,
-        width: rect.width,
-      });
+  const openMenu = () => {
+    updateMenuPosition();
+    setOpen(true);
+    setShowAll(false);
+  };
+
+  const updateMenuPosition = () => {
+    const input = dropdownRef.current?.querySelector("input");
+    if (!input) return;
+
+    const rect = input.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    const openUp = spaceBelow < 200 && spaceAbove > spaceBelow;
+
+    setMenuPosition(
+      openUp
+        ? {
+            left: rect.left,
+            bottom: window.innerHeight - rect.top + 4,
+            width: rect.width,
+            maxHeight: Math.min(MENU_MAX_HEIGHT, spaceAbove),
+          }
+        : {
+            left: rect.left,
+            top: rect.bottom + 4,
+            width: rect.width,
+            maxHeight: Math.min(MENU_MAX_HEIGHT, spaceBelow),
+          },
+    );
+  };
+
+  // Sync with controlled value
+  useEffect(() => {
+    if (value !== undefined) {
+      setQuery(value);
+    }
+  }, [value]);
+
+  // Reset when the parent bumps resetToken.
+  // Intentionally depends only on resetToken: value/defaultValue are read
+  // at reset time, not tracked.
+  useEffect(() => {
+    setQuery(value ?? defaultValue ?? "");
+    setOpen(false);
+    setShowAll(false);
+    setDirty(false);
+    setActiveIndex(-1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetToken]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        !menuRef.current?.contains(event.target)
+      ) {
+        setOpen(false);
+        setShowAll(false);
+        setDirty(false);
+        setActiveIndex(-1);
+      }
     };
 
-    useEffect(() => {
-      if (value !== undefined) {
-        setQuery(value);
-      }
-    }, [value]);
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
-    useEffect(() => {
-      setQuery(value ?? defaultValue ?? "");
-      setOpen(false);
-      setShowAll(false);
-    }, [resetToken]);
+  // Keep the portal menu aligned with the input
+  useEffect(() => {
+    if (!open) {
+      setMenuPosition(null);
+      return undefined;
+    }
 
-    // Close dropdown when clicking outside
-    useEffect(() => {
-      const handleOutsideClick = (event) => {
-        if (
-          dropdownRef.current &&
-          !dropdownRef.current.contains(event.target) &&
-          !menuRef.current?.contains(event.target)
-        ) {
-          setOpen(false);
-          setShowAll(false);
-        }
-      };
-
-      document.addEventListener("mousedown", handleOutsideClick);
-
-      return () => {
-        document.removeEventListener("mousedown", handleOutsideClick);
-      };
-    }, []);
-
-    useEffect(() => {
-      if (!open) {
-        setMenuPosition(null);
-        return undefined;
-      }
-
+    updateMenuPosition();
+    const handleResize = () => updateMenuPosition();
+    const handleScroll = (event) => {
+      // scrolling inside the menu itself should not reposition it
+      if (menuRef.current?.contains(event.target)) return;
       updateMenuPosition();
-      const handleViewportChange = () => updateMenuPosition();
-      window.addEventListener("resize", handleViewportChange);
-      window.addEventListener("scroll", handleViewportChange, true);
+    };
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", handleScroll, true);
 
-      return () => {
-        window.removeEventListener("resize", handleViewportChange);
-        window.removeEventListener("scroll", handleViewportChange, true);
-      };
-    }, [open]);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
-    const filteredOptions = options.filter((option) => {
-      const optionText =
-        typeof option === "string"
-          ? option
-          : option?.name ||
-            option?.label ||
-            option?.partyName ||
-            option?.ledgerName ||
-            "";
+  // Filter only after the user starts typing, so reopening a field that
+  // already has a selected value still shows every option.
+  const filteredOptions =
+    dirty && query
+      ? options.filter((option) =>
+          getOptionText(option)
+            .toLowerCase()
+            .includes(String(query).toLowerCase()),
+        )
+      : options;
 
-      return String(optionText)
-        .toLowerCase()
-        .includes(String(query).toLowerCase());
-    });
-
-    useEffect(() => {
-      if (
-        open &&
-        infiniteScroll &&
-        query &&
-        filteredOptions.length === 0 &&
-        hasMoreOptions &&
-        !loadMoreError &&
-        !loadingMore
-      ) {
-        loadMoreRef.current?.();
-      }
-    }, [
-      infiniteScroll,
-      open,
-      query,
-      filteredOptions.length,
-      hasMoreOptions,
-      loadMoreError,
-      loadingMore,
-    ]);
-
-    const visibleOptions = infiniteScroll
+  const visibleOptions = infiniteScroll
+    ? filteredOptions
+    : showAll
       ? filteredOptions
-      : showAll
-        ? filteredOptions
-        : filteredOptions.slice(0, 10);
+      : filteredOptions.slice(0, 10);
 
-    return (
-      <div ref={dropdownRef} className="relative w-full">
-        <input
-          name={name}
-          value={query}
-          autoComplete="off"
-          readOnly={disabled}
-          onFocus={() => {
-            if (!disabled) {
-              setOpen(true);
+  // Infinite scroll: if the loaded options don't fill the menu there is
+  // nothing to scroll, so keep loading until it overflows or no more remain.
+  useEffect(() => {
+    if (
+      !open ||
+      !infiniteScroll ||
+      !hasMoreOptions ||
+      loadingMore ||
+      loadMoreError
+    ) {
+      return;
+    }
+    const menu = menuRef.current;
+    if (menu && menu.scrollHeight <= menu.clientHeight) {
+      loadMoreRef.current?.();
+    }
+  }, [
+    open,
+    infiniteScroll,
+    hasMoreOptions,
+    loadingMore,
+    loadMoreError,
+    visibleOptions.length,
+    menuPosition,
+  ]);
+
+  // Keep the keyboard-highlighted option in view
+  useEffect(() => {
+    if (!open || activeIndex < 0) return;
+    menuRef.current
+      ?.querySelector(`[data-option-index="${activeIndex}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex, open]);
+
+  const selectOption = (option) => {
+    const text = getOptionText(option);
+    setQuery(text);
+    onSelect?.(text);
+    onOptionSelect?.(option); // full option, so callers get ids, GST info, etc.
+    closeMenu();
+  };
+
+  const handleKeyDown = (event) => {
+    if (disabled) return;
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        if (!open) {
+          openMenu();
+          return;
+        }
+        if (visibleOptions.length > 0) {
+          setActiveIndex((i) => (i + 1) % visibleOptions.length);
+        }
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        if (!open) {
+          openMenu();
+          return;
+        }
+        if (visibleOptions.length > 0) {
+          setActiveIndex((i) =>
+            i <= 0 ? visibleOptions.length - 1 : i - 1,
+          );
+        }
+        break;
+      case "Enter":
+        if (open && activeIndex >= 0 && visibleOptions[activeIndex] !== undefined) {
+          event.preventDefault(); // don't submit the surrounding form
+          selectOption(visibleOptions[activeIndex]);
+        }
+        break;
+      case "Escape":
+        if (open) {
+          event.preventDefault();
+          closeMenu();
+        }
+        break;
+      case "Tab":
+        closeMenu();
+        break;
+      default:
+        break;
+    }
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative w-full cursor-pointer">
+      <input
+        name={name}
+        value={query}
+        autoComplete="off"
+        readOnly={disabled}
+        role="combobox"
+        aria-expanded={open && !disabled}
+        aria-controls={listboxId}
+        aria-autocomplete="list"
+        aria-activedescendant={
+          open && activeIndex >= 0 ? `${listboxId}-${activeIndex}` : undefined
+        }
+        onClick={() => {
+          if (disabled) return;
+          openMenu();
+        }}
+        onFocus={() => {
+          if (!disabled) {
+            updateMenuPosition();
+            setOpen(true);
+          }
+        }}
+        onKeyDown={handleKeyDown}
+        onChange={(event) => {
+          if (disabled) return;
+
+          const next = event.target.value;
+          setQuery(next);
+          setDirty(true);
+          setActiveIndex(-1);
+          onSelect?.(next);
+          onInputChange?.(next);
+          if (!next) onClear?.();
+          openMenu();
+        }}
+        placeholder={
+          loading ? `Loading ${label.toLowerCase()}...` : placeholder
+        }
+        className={`min-h-9 w-full rounded-md border border-slate-300 px-2.5 pr-8 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 ${
+          disabled
+            ? "cursor-not-allowed bg-slate-100"
+            : "cursor-pointer bg-white"
+        }`}
+      />
+
+      {!disabled && (
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={`Toggle ${label} dropdown`}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => {
+            if (open) {
+              closeMenu();
+            } else {
+              openMenu();
             }
           }}
-          onChange={(event) => {
-            if (disabled) return;
+          className="absolute inset-y-0 right-0 flex w-8 items-center justify-center rounded-r-md text-slate-400 hover:text-slate-700"
+        >
+          <span className="text-xs">⌄</span>
+        </button>
+      )}
 
-            setQuery(event.target.value);
-
-            onSelect?.(event.target.value);
-
-            setOpen(true);
-            setShowAll(false);
-          }}
-          placeholder={
-            loading ? `Loading ${label.toLowerCase()}...` : placeholder
-          }
-          className={`min-h-9 w-full rounded-md border border-slate-300 px-2.5 pr-14 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 ${
-            disabled ? "cursor-not-allowed bg-slate-100" : "bg-white"
-          }`}
-        />
-
-        {query && !disabled && (
-          <button
-            type="button"
-            aria-label={`Clear ${label}`}
-            onClick={() => {
-              setQuery("");
-              setShowAll(false);
-              onSelect?.("");
-              onClear?.();
+      {open &&
+        !disabled &&
+        menuPosition &&
+        createPortal(
+          <div
+            ref={menuRef}
+            id={listboxId}
+            role="listbox"
+            className="fixed z-[1200] overflow-y-auto rounded-md border border-slate-200 bg-white p-1 shadow-xl"
+            style={menuPosition}
+            onScroll={(event) => {
+              if (!infiniteScroll) return;
+              const menu = event.currentTarget;
+              if (
+                menu.scrollTop + menu.clientHeight >=
+                menu.scrollHeight - 40
+              ) {
+                loadMoreRef.current?.();
+              }
             }}
-            className="absolute right-7 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
           >
-            ×
-          </button>
-        )}
+            <div>
+              {visibleOptions.length > 0 ? (
+                visibleOptions.map((option, index) => {
+                  const text = getOptionText(option);
+                  const isActive = index === activeIndex;
 
-        {!disabled && (
-          <span className="pointer-events-none absolute right-2.5 top-3 -translate-y-1/2 text-slate-400">
-            ⌄
-          </span>
-        )}
-
-        {open &&
-          !disabled &&
-          menuPosition &&
-          createPortal(
-            <div
-              ref={menuRef}
-              className="fixed z-[1200] max-h-72 overflow-y-auto rounded-md border border-slate-200 bg-white p-1 shadow-xl"
-              style={menuPosition}
-              onScroll={(event) => {
-                if (!infiniteScroll) return;
-                const menu = event.currentTarget;
-                if (
-                  menu.scrollTop + menu.clientHeight >=
-                  menu.scrollHeight - 40
-                ) {
-                  loadMoreRef.current?.();
-                }
-              }}
-            >
-              <div>
-                {visibleOptions.length > 0 ? (
-                  visibleOptions.map((option) => (
+                  return (
                     <button
-                      key={option}
+                      key={`${text}-${index}`}
+                      id={`${listboxId}-${index}`}
+                      data-option-index={index}
+                      role="option"
+                      aria-selected={isActive}
                       type="button"
                       onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => {
-                        setQuery(option);
-                        onSelect?.(option);
-                        onOptionSelect?.(option);
-                        setOpen(false);
-                        setShowAll(false);
-                      }}
-                      className="block w-full rounded px-3 py-2 text-left text-xs text-slate-700 transition hover:bg-green-50"
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={() => selectOption(option)}
+                      className={`block w-full rounded px-3 py-2 text-left text-xs text-slate-700 transition hover:bg-green-50 ${
+                        isActive ? "bg-green-50" : ""
+                      }`}
                     >
-                      {option}
+                      {text}
                     </button>
-                  ))
-                ) : (
-                  <p className="px-3 py-2 text-xs text-slate-500">
-                    {loadError || "No matching options."}
-                  </p>
-                )}
-                {visibleOptions.length > 0 && loadError && (
-                  <p className="border-t border-slate-100 px-3 py-2 text-xs text-red-600">
-                    {loadError}
-                  </p>
-                )}
+                  );
+                })
+              ) : (
+                <p className="px-3 py-2 text-xs text-slate-500">
+                  {loadError || "No matching options."}
+                </p>
+              )}
+              {visibleOptions.length > 0 && loadError && (
+                <p className="border-t border-slate-100 px-3 py-2 text-xs text-red-600">
+                  {loadError}
+                </p>
+              )}
 
-                {!showAllValues && !infiniteScroll && !showAll && filteredOptions.length > 10 && (
+              {!showAllValues &&
+                !infiniteScroll &&
+                !showAll &&
+                filteredOptions.length > 10 && (
                   <button
                     type="button"
                     onMouseDown={(event) => event.preventDefault()}
@@ -250,28 +394,28 @@ export function SearchableDropdown({
                     Show more ({filteredOptions.length - 10})
                   </button>
                 )}
-                {infiniteScroll && loadingMore && (
-                  <p className="px-3 py-2 text-center text-xs text-slate-500">
-                    Loading more {label.toLowerCase()}...
-                  </p>
-                )}
-                {infiniteScroll && loadMoreError && (
-                  <div className="border-t border-slate-100 px-3 py-2 text-xs text-red-600">
-                    <p>{loadMoreError}</p>
-                    <button
-                      type="button"
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => loadMoreRef.current?.()}
-                      className="mt-1 font-semibold text-green-700 hover:text-green-800"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>,
-            document.body,
-          )}
-      </div>
-    );
-  }
+              {infiniteScroll && loadingMore && (
+                <p className="px-3 py-2 text-center text-xs text-slate-500">
+                  Loading more {label.toLowerCase()}...
+                </p>
+              )}
+              {infiniteScroll && loadMoreError && (
+                <div className="border-t border-slate-100 px-3 py-2 text-xs text-red-600">
+                  <p>{loadMoreError}</p>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => loadMoreRef.current?.()}
+                    className="mt-1 font-semibold text-green-700 hover:text-green-800"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+}

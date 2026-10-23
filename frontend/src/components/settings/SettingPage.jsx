@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Building2, Settings, Landmark, ChevronRight,Building } from "lucide-react";
+import { Building2, Settings, Landmark, ChevronRight, Building } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import {
   extractCompanies,
@@ -109,19 +109,25 @@ export default function SettingPage() {
         )}
 
         {!companiesLoading && !companiesError && companies.length > 0 && (
+          // No items-start here: grid items stretch, so every card in a row
+          // gets the same height as the tallest one.
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {companies.map((company, companyIndex) => (
               <div
                 key={company.id || `company-${companyIndex}`}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0px_4px_20px_rgba(15,23,42,0.04)] transition hover:shadow-md"
+                // flex + h-full + flex-col: the card fills its grid cell, and
+                // the two buttons below share any extra height (no blank gap).
+                className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0px_4px_20px_rgba(15,23,42,0.04)] transition hover:shadow-md"
               >
-                <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-4">
+                {/* min-h keeps the buttons aligned across cards whose
+                    names/meta wrap onto different numbers of lines */}
+                <div className="flex min-h-[72px] items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-4">
                   <div className="min-w-0 flex-1">
                     <h2
-                      className="flex justify-center mt-1 break-words text-sm font-semibold text-slate-900"
+                      className="mt-1 flex justify-center break-words text-sm font-semibold text-slate-900"
                       title={company.name || "Unnamed Company"}
                     >
-                      <Building size={20} className="pr-1" />
+                      <Building size={20} className="shrink-0 pr-1" />
                       {company.name || "Unnamed Company"}
                     </h2>
                     {company.meta && (
@@ -132,11 +138,11 @@ export default function SettingPage() {
                   </div>
                 </div>
 
-                <div>
+                <div className="flex flex-1 flex-col">
                   {sections.map((section, sectionIndex) => {
                     const Icon = section.icon;
                     return (
-                      <div key={section.id}>
+                      <div key={section.id} className="flex flex-1 flex-col">
                         <button
                           type="button"
                           onClick={() => {
@@ -146,7 +152,7 @@ export default function SettingPage() {
                               setBankCompany(company);
                             }
                           }}
-                          className={`group flex w-full items-center gap-3 px-4 py-4 text-left transition ${section.color === "emerald" ? "bg-emerald-50 hover:bg-emerald-100" : "bg-sky-100 hover:bg-sky-200"}  ${
+                          className={`group flex w-full flex-1 items-center gap-3 px-4 py-4 text-left transition ${section.color === "emerald" ? "bg-emerald-50 hover:bg-emerald-100" : "bg-sky-100 hover:bg-sky-200"}  ${
                             sectionIndex < sections.length - 1
                               ? "border-b border-slate-100"
                               : ""

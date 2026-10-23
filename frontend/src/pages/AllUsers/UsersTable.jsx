@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Edit, LockKeyhole, Trash2, Clock3, Play, Pause } from "lucide-react";
 import { deleteMember, updateMemberRole } from "../../services/membersApi";
 import { ROLE_OPTIONS } from "./memberUi";
-import {formatDate} from "./memberUi";
+import { formatDate } from "./memberUi";
+import { SearchableDropdown } from "../../components/SearchableDropdown";
 function UsersTable({
   users,
   accessToken,
@@ -140,38 +141,37 @@ function UsersTable({
                   {/* ROLE */}
                   <td className="px-4 py-4">
                     {isEditing ? (
-                      <select
-                        value={editingRole}
-                        onChange={(event) => setEditingRole(event.target.value)}
-                        disabled={isSaving}
-                        autoFocus
-                        className="
-                          w-full
-                          max-w-[220px]
-                          rounded-md
-                          border border-slate-300
-                          bg-white
-                          px-3 py-2
-                          text-sm
-                          text-slate-800
-                          outline-none
-                          focus:border-slate-500
-                          focus:ring-2
-                          focus:ring-slate-200
-                          disabled:cursor-not-allowed
-                          disabled:bg-slate-100
-                          cursor-pointer
-                        "
-                      >
-                        {ROLE_OPTIONS.map((roleOption) => (
-                          <option
-                            key={roleOption.value}
-                            value={roleOption.value}
-                          >
-                            {roleOption.label}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="w-full max-w-[220px]">
+                        <SearchableDropdown
+                          name="role"
+                          label="Role"
+                          options={ROLE_OPTIONS.map((roleOption) => ({
+                            name: roleOption.label,
+                            value: roleOption.value,
+                          }))}
+                          value={
+                            ROLE_OPTIONS.find(
+                              (roleOption) => roleOption.value === editingRole,
+                            )?.label || editingRole
+                          }
+                          placeholder="Select role"
+                          disabled={isSaving}
+                          onSelect={(selectedValue) => {
+                            const selectedRole = ROLE_OPTIONS.find(
+                              (roleOption) =>
+                                roleOption.label === selectedValue ||
+                                roleOption.value === selectedValue,
+                            );
+
+                            if (selectedRole) {
+                              setEditingRole(selectedRole.value);
+                            }
+                          }}
+                          onOptionSelect={(option) => {
+                            setEditingRole(option.value);
+                          }}
+                        />
+                      </div>
                     ) : user.role === "ADMIN" ? (
                       "Admin Access"
                     ) : user.role === "ACCOUNTANT" ? (
@@ -280,10 +280,11 @@ function UsersTable({
                                   ? "Reactivate user"
                                   : "Suspend user"
                               }
-                              className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-all duration-200 ${user.isSuspended
-                                ? "border-green-200 bg-green-50 text-green-600 hover:border-green-300 hover:bg-green-100 hover:text-green-700"
-                                : "border-orange-200 bg-orange-50 text-orange-500 hover:border-orange-300 hover:bg-orange-100 hover:text-orange-600"
-                                }`}
+                              className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-all duration-200 ${
+                                user.isSuspended
+                                  ? "border-green-200 bg-green-50 text-green-600 hover:border-green-300 hover:bg-green-100 hover:text-green-700"
+                                  : "border-orange-200 bg-orange-50 text-orange-500 hover:border-orange-300 hover:bg-orange-100 hover:text-orange-600"
+                              }`}
                             >
                               {user.isSuspended ? (
                                 <Play className="h-4 w-4" strokeWidth={2.2} />

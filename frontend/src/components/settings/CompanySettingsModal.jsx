@@ -230,7 +230,7 @@ export default function CompanySettingsModal({ company, onClose }) {
       <section
         role="dialog"
         aria-modal="true"
-        className="flex max-h-[85vh] w-full max-w-8xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="flex mt-[5%] max-h-[85vh] w-full max-w-8xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-start justify-between border-b border-slate-200 px-5 py-4">

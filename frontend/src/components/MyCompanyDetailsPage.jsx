@@ -334,7 +334,7 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = "" }) => {
               DETAILS CONTENT
           ================================================= */}
 
-          <div className="px-6 py-6 sm:px-8 sm:py-2 lg:px-10">
+          <div className="w-fit px-6 py-6 sm:px-8 sm:py-2 lg:px-10">
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {fields.map(({ label, key, icon: Icon, description }) => {

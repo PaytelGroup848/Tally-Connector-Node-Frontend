@@ -720,7 +720,7 @@ const getStatusInfo = (command) => {
         />
         <div
           role="tooltip"
-          className="border-1 border-gray-100 pointer-events-none absolute left-5 z-50  w-52 rounded-md bg-white px-3 py-1 text-xs font-medium text-gray-900 opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+          className="border-1 border-gray-100 pointer-events-none absolute left-5 z-50  w-fit rounded-md bg-white px-3 py-1 text-xs font-medium text-gray-900 opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
         >
           {info.text}
         </div>

@@ -20,7 +20,7 @@ export default function CreatePartyModal({
     >
       <form
         onSubmit={onSubmit}
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl"
+        className=" max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl"
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
           <div>
@@ -43,7 +43,7 @@ export default function CreatePartyModal({
           </button>
         </div>
 
-        <div className="grid gap-4 p-5 sm:grid-cols-2">
+        <div className="grid gap-4 px-5 pt-5 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-slate-700">
             <span>
               Party Name<span className="text-red-500"> *</span>
@@ -287,7 +287,7 @@ export default function CreatePartyModal({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+        <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-1">
           <button
             type="button"
             onClick={onClose}
