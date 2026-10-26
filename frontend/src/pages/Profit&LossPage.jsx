@@ -103,7 +103,7 @@ function ProfitLossPage({ companyId }) {
 
   const [rows, setRows] = useState([]);
   const [query, setQuery] = useState("");
-  const [ledgerType, setLedgerType] = useState("expense");
+  const [ledgerType, setLedgerType] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
