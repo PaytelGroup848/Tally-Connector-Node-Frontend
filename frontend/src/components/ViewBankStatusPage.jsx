@@ -494,7 +494,7 @@ export default function ViewBankStatusPage({
               role="dialog"
               aria-modal="true"
               aria-labelledby="ledger-command-details"
-              className="w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl"
+              className="w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-2xl"
             >
               <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                 <h3

@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-const MENU_MAX_HEIGHT = 288; // same as Tailwind max-h-72
+const MENU_MAX_HEIGHT = 288;
+const DROPDOWN_PAGE_SIZE = 20; // same as Tailwind max-h-72
 
 // Works for string options and object options.
 const getOptionText = (option) =>
@@ -20,7 +21,7 @@ export function SearchableDropdown({
   placeholder,
   loading = false,
   loadError = "",
-  infiniteScroll = false,
+  infiniteScroll = true,
   hasMoreOptions = false,
   loadingMore = false,
   loadMoreError = "",
@@ -38,6 +39,7 @@ export function SearchableDropdown({
   const [query, setQuery] = useState(value ?? defaultValue ?? "");
   const [open, setOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(DROPDOWN_PAGE_SIZE);
   // true only after the user types; until then the full list is shown
   const [dirty, setDirty] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -57,8 +59,8 @@ export function SearchableDropdown({
     setShowAll(false);
     setDirty(false);
     setActiveIndex(-1);
+    setVisibleCount(DROPDOWN_PAGE_SIZE);
   };
-
   const openMenu = () => {
     updateMenuPosition();
     setOpen(true);
@@ -164,36 +166,60 @@ export function SearchableDropdown({
         )
       : options;
 
-  const visibleOptions = infiniteScroll
+  const isServerPagination = infiniteScroll && typeof onLoadMore === "function";
+
+  const visibleOptions = isServerPagination
     ? filteredOptions
     : showAll
       ? filteredOptions
-      : filteredOptions.slice(0, 10);
+      : filteredOptions.slice(0, visibleCount);
+
+  const loadMoreOptions = () => {
+    if (isServerPagination) {
+      if (hasMoreOptions && !loadingMore && !loadMoreError) {
+        loadMoreRef.current?.();
+      }
+      return;
+    }
+
+    setVisibleCount((prev) =>
+      Math.min(prev + DROPDOWN_PAGE_SIZE, filteredOptions.length),
+    );
+  };
+
+  const hasMoreLocalOptions =
+    !isServerPagination && visibleCount < filteredOptions.length;
 
   // Infinite scroll: if the loaded options don't fill the menu there is
   // nothing to scroll, so keep loading until it overflows or no more remain.
   useEffect(() => {
-    if (
-      !open ||
-      !infiniteScroll ||
-      !hasMoreOptions ||
-      loadingMore ||
-      loadMoreError
-    ) {
-      return;
-    }
+    if (!open || !menuPosition) return;
+
     const menu = menuRef.current;
-    if (menu && menu.scrollHeight <= menu.clientHeight) {
-      loadMoreRef.current?.();
+
+    if (!menu) return;
+
+    if (menu.scrollHeight > menu.clientHeight + 1) return;
+
+    if (isServerPagination) {
+      if (hasMoreOptions && !loadingMore && !loadMoreError) {
+        loadMoreRef.current?.();
+      }
+    } else if (hasMoreLocalOptions) {
+      setVisibleCount((prev) =>
+        Math.min(prev + DROPDOWN_PAGE_SIZE, filteredOptions.length),
+      );
     }
   }, [
     open,
-    infiniteScroll,
+    menuPosition?.maxHeight,
+    isServerPagination,
     hasMoreOptions,
     loadingMore,
     loadMoreError,
+    hasMoreLocalOptions,
     visibleOptions.length,
-    menuPosition,
+    filteredOptions.length,
   ]);
 
   // Keep the keyboard-highlighted option in view
@@ -233,13 +259,15 @@ export function SearchableDropdown({
           return;
         }
         if (visibleOptions.length > 0) {
-          setActiveIndex((i) =>
-            i <= 0 ? visibleOptions.length - 1 : i - 1,
-          );
+          setActiveIndex((i) => (i <= 0 ? visibleOptions.length - 1 : i - 1));
         }
         break;
       case "Enter":
-        if (open && activeIndex >= 0 && visibleOptions[activeIndex] !== undefined) {
+        if (
+          open &&
+          activeIndex >= 0 &&
+          visibleOptions[activeIndex] !== undefined
+        ) {
           event.preventDefault(); // don't submit the surrounding form
           selectOption(visibleOptions[activeIndex]);
         }
@@ -290,6 +318,7 @@ export function SearchableDropdown({
           setQuery(next);
           setDirty(true);
           setActiveIndex(-1);
+          setVisibleCount(DROPDOWN_PAGE_SIZE);
           onSelect?.(next);
           onInputChange?.(next);
           if (!next) onClear?.();
@@ -335,14 +364,14 @@ export function SearchableDropdown({
             className="fixed z-[1200] overflow-y-auto rounded-md border border-slate-200 bg-white p-1 shadow-xl"
             style={menuPosition}
             onScroll={(event) => {
-              if (!infiniteScroll) return;
               const menu = event.currentTarget;
-              if (
-                menu.scrollTop + menu.clientHeight >=
-                menu.scrollHeight - 40
-              ) {
-                loadMoreRef.current?.();
-              }
+
+              const reachedBottom =
+                menu.scrollTop + menu.clientHeight >= menu.scrollHeight - 40;
+
+              if (!reachedBottom) return;
+
+              loadMoreOptions();
             }}
           >
             <div>
@@ -381,10 +410,10 @@ export function SearchableDropdown({
                 </p>
               )}
 
-              {!showAllValues &&
-                !infiniteScroll &&
+              {!infiniteScroll &&
+                !showAllValues &&
                 !showAll &&
-                filteredOptions.length > 10 && (
+                filteredOptions.length > visibleCount && (
                   <button
                     type="button"
                     onMouseDown={(event) => event.preventDefault()}
