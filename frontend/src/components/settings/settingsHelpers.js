@@ -2,7 +2,7 @@
 
 export const COMPANY_SETTING_FIELDS = [
   { name: "address", label: "Address", type: "text", required: true },
-  { name: "gstin", label: "GSTIN", type: "text" },
+  { name: "gstin", label: "GSTIN", type: "text"},
   { name: "cin", label: "CIN (optional)", type: "text" },
   { name: "pan", label: "PAN (optional)", type: "text" },
   { name: "mobile", label: "Mobile", type: "tel", required: true },
@@ -66,9 +66,9 @@ export const validateSettings = (form) => {
     }
   }
 
-  if (!errors.gstin && !errors.pan && form.gstin.slice(2, 12) !== form.pan) {
-    errors.gstin = "GSTIN does not match the PAN";
-  }
+  // if (!errors.gstin) {
+  //   errors.gstin = "GSTIN is required";
+  // }
 
   return errors;
 };

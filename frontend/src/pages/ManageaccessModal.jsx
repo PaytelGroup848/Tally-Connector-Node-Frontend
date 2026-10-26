@@ -31,7 +31,7 @@ function CheckBox({ checked, indeterminate, onChange, size = "md" }) {
         ref={(el) => {
           if (el) el.indeterminate = indeterminate;
         }}
-        className="peer absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-[5px] border border-slate-300 bg-white transition-colors checked:border-teal-600 checked:bg-teal-600 indeterminate:border-teal-600 indeterminate:bg-teal-600 hover:border-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+        className="peer absolute inset-0 h-full w-full cursor-pointer appearance-none rounded-[5px] border border-slate-300 bg-white transition-colors checked:border-emerald-600 checked:bg-emerald-600 indeterminate:border-emerald-600 indeterminate:bg-emerald-600 hover:border-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
       />
       <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-white opacity-0 peer-checked:opacity-100">
         {indeterminate ? (
@@ -187,7 +187,7 @@ export default function ManageAccessModal({
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
           <div className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600">
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
               <ShieldCheck size={18} strokeWidth={2} />
             </span>
             <div>
@@ -224,7 +224,7 @@ export default function ManageAccessModal({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search sections..."
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/15"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/15"
             />
           </div>
         </div>
@@ -273,7 +273,7 @@ export default function ManageAccessModal({
                   <span
                     className={`rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums ${
                       checkedCount > 0
-                        ? "bg-teal-50 text-teal-700"
+                        ? "bg-emerald-50 text-emerald-700"
                         : "bg-slate-100 text-slate-400"
                     }`}
                   >
@@ -342,7 +342,7 @@ export default function ManageAccessModal({
               type="button"
               onClick={handleSave}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"
             >
               {loading && <Loader2 size={14} className="animate-spin" />}
               {loading ? "Saving" : "Save access"}

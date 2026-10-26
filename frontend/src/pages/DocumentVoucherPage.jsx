@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import useAuthStore from "../store/authStore";
-
+import StatusToast from "../components/receipt/StatusToast";
 import {
   extractCommandId,
   extractCommandStatus,
@@ -42,7 +42,6 @@ import { createVoucherTotals } from "../hooks/voucherTotals";
 import { createJournalRowActions } from "../hooks/journalRowActions";
 import { createStockRowActions } from "../hooks/stockRowActions";
 import { createItemRowActions } from "../hooks/itemRowActions";
-import { VoucherPageStatus } from "../components/VoucherPageStatus";
 import { VoucherFormHeader } from "../components/VoucherFormHeader";
 import { VoucherDetailsFields } from "../components/VoucherDetailsFields";
 import { VoucherItemsTable } from "../components/VoucherItemsTable";
@@ -367,8 +366,27 @@ export function DocumentVoucherPage({
 
   return (
     <div className="voucher-page-animate relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-3 text-slate-900 sm:p-5">
-      <VoucherPageStatus showSuccessAnimation={showSuccessAnimation} submitError={submitError} failedVoucherType={failedVoucherType} failedVoucherNumber={failedVoucherNumber} failedParty={failedParty} failedAmount={failedAmount} failedCompany={failedCompany} failedDate={failedDate} setSubmitError={setSubmitError} />
+      {/* <VoucherPageStatus showSuccessAnimation={showSuccessAnimation} submitError={submitError} failedVoucherType={failedVoucherType} failedVoucherNumber={failedVoucherNumber} failedParty={failedParty} failedAmount={failedAmount} failedCompany={failedCompany} failedDate={failedDate} setSubmitError={setSubmitError} /> */}
+<StatusToast
+  visible={showSuccessAnimation || Boolean(submitError)}
+  message={
+    submitError
+      ? typeof submitError === "string"
+        ? submitError
+        : submitError.message ||
+          "Unable to create voucher."
+      : "Voucher created successfully, click view status"
+  }
+  isError={Boolean(submitError)}
+  onClose={() => {
+    setShowSuccessAnimation(false);
+    setSubmitError(null);
 
+    if (successTimerRef.current) {
+      window.clearTimeout(successTimerRef.current);
+    }
+  }}
+/>
       <form
         onSubmit={handleSubmit}
         className="relative z-0 mx-auto max-w-[1440px] overflow-visible rounded-lg border border-slate-200 bg-white shadow-[0_10px_30px_rgba(24,33,43,0.06)]"

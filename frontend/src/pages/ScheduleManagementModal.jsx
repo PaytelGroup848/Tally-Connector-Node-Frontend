@@ -31,7 +31,7 @@ const WEEKEND_KEYS = ["saturday", "sunday"];
 function Switch({ checked, onChange, disabled, size = "md" }) {
   const track = size === "sm" ? "h-5 w-9" : "h-6 w-11";
   const thumb = size === "sm" ? "h-3.5 w-3.5" : "h-4.5 w-4.5";
-  const translate = size === "sm" ? "translate-x-4" : "translate-x-5";
+  const translate = size === "sm" ? "translate-x-5" : "translate-x-5.5";
 
   return (
     <button
@@ -41,7 +41,7 @@ function Switch({ checked, onChange, disabled, size = "md" }) {
       disabled={disabled}
       onClick={onChange}
       className={`relative inline-flex ${track} shrink-0 items-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
-        checked ? "bg-teal-600" : "bg-slate-300"
+        checked ? "bg-emerald-600" : "bg-slate-300"
       }`}
     >
       <span
@@ -113,7 +113,7 @@ function TimeSelect({ value, onChange, disabled, openUpward }) {
         onClick={() => setOpen((o) => !o)}
         className={`flex w-[122px] items-center gap-1.5 rounded-md border px-2 py-1.5 text-[13px] transition ${
           open
-            ? "border-teal-500 ring-2 ring-teal-500/15"
+            ? "border-emerald-500 ring-2 ring-emerald-500/15"
             : "border-slate-200 hover:border-slate-300"
         } ${
           disabled
@@ -152,8 +152,8 @@ function TimeSelect({ value, onChange, disabled, openUpward }) {
                 onClick={() => pickHour12(h)}
                 className={`block w-full px-3 py-1.5 text-center text-[13px] tabular-nums transition ${
                   h === hour12
-                    ? "bg-teal-600 font-semibold text-white"
-                    : "text-slate-600 hover:bg-teal-50"
+                    ? "bg-emerald-600 font-semibold text-white"
+                    : "text-slate-600 hover:bg-emerald-50"
                 }`}
               >
                 {String(h).padStart(2, "0")}
@@ -170,8 +170,8 @@ function TimeSelect({ value, onChange, disabled, openUpward }) {
                 onClick={() => pickMinute(m)}
                 className={`block w-full px-3 py-1.5 text-center text-[13px] tabular-nums transition ${
                   m === minute
-                    ? "bg-teal-600 font-semibold text-white"
-                    : "text-slate-600 hover:bg-teal-50"
+                    ? "bg-emerald-600 font-semibold text-white"
+                    : "text-slate-600 hover:bg-emerald-50"
                 }`}
               >
                 {m}
@@ -188,8 +188,8 @@ function TimeSelect({ value, onChange, disabled, openUpward }) {
                 onClick={() => pickPeriod(p === "PM")}
                 className={`rounded-md py-1.5 text-[11px] font-semibold transition ${
                   (p === "PM") === isPM
-                    ? "bg-teal-600 text-white"
-                    : "text-slate-400 hover:bg-teal-50 hover:text-teal-600"
+                    ? "bg-emerald-600 text-white"
+                    : "text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
                 }`}
               >
                 {p}
@@ -284,7 +284,7 @@ export default function ScheduleManagementModal({
         {/* HEADER */}
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
           <div className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600">
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
               <Clock size={18} strokeWidth={2} />
             </span>
             <div>
@@ -313,14 +313,14 @@ export default function ScheduleManagementModal({
           <div
             className={`flex items-center justify-between gap-4 rounded-xl border px-4 py-3.5 transition-colors ${
               scheduleEnabled
-                ? "border-teal-200 bg-teal-50/60"
+                ? "border-emerald-200 bg-emerald-50/60"
                 : "border-slate-200 bg-slate-50"
             }`}
           >
             <div className="flex items-start gap-3">
               <Clock
                 size={18}
-                className={`mt-0.5 ${scheduleEnabled ? "text-teal-600" : "text-slate-400"}`}
+                className={`mt-0.5 ${scheduleEnabled ? "text-emerald-600" : "text-slate-400"}`}
               />
               <div>
                 <div className="text-sm font-semibold text-slate-800">
@@ -409,7 +409,7 @@ export default function ScheduleManagementModal({
                     <span
                       className={`shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${
                         rowActive
-                          ? "bg-teal-50 text-teal-700"
+                          ? "bg-emerald-50 text-emerald-700"
                           : "bg-slate-100 text-slate-400"
                       }`}
                     >
@@ -444,7 +444,7 @@ export default function ScheduleManagementModal({
             type="button"
             onClick={handleSave}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"
           >
             {loading ? (
               <Loader2 size={14} className="animate-spin" />

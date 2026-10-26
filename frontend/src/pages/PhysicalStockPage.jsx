@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { SearchableDropdown } from "./DocumentVoucherPage";
 import useAuthStore from "../store/authStore";
 import { Eye } from "lucide-react";
+import StatusToast from "../components/receipt/StatusToast";
 import {
   extractGodowns,
   extractStockItems,
@@ -361,22 +362,17 @@ function PhysicalStockPage({ companyId }) {
   );
   return (
     <div className="voucher-page-animate relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
-      {showSuccessAnimation && (
-        <div className="fixed right-4 top-20 z-[300] w-[calc(100%-2rem)] max-w-sm">
-          <div
-            role="status"
-            aria-live="polite"
-            className="flex items-center gap-3 rounded-xl border border-green-200 bg-white px-4 py-3 shadow-xl"
-          >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 text-lg font-bold text-green-600">
-              ✓
-            </div>
-            <p className="text-sm font-semibold text-green-700">
-              Voucher created successfully, click view status
-            </p>
-          </div>
-        </div>
-      )}
+      <StatusToast
+        visible={showSuccessAnimation || Boolean(optionsError)}
+        message={
+          optionsError || "Voucher created successfully, click view status"
+        }
+        isError={Boolean(optionsError)}
+        onClose={() => {
+          setShowSuccessAnimation(false);
+          setOptionsError("");
+        }}
+      />
 
       {optionsLoading && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
@@ -437,8 +433,6 @@ function PhysicalStockPage({ companyId }) {
                   readOnly
                   className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none"
                 />
-
-                
               </div>
             </label>
 
@@ -720,17 +714,13 @@ function PhysicalStockPage({ companyId }) {
           {/* TOTAL */}
           {/* ================================================= */}
 
-          {optionsError && (
-            <p className="mt-2 text-xs text-red-600">{optionsError}</p>
-          )}
-
           {/* ================================================= */}
           {/* TOTAL */}
           {/* ================================================= */}
 
-          {optionsError && (
+          {/* {optionsError && (
             <p className="mt-2 text-xs text-red-600">{optionsError}</p>
-          )}
+          )} */}
 
           <div className="mt-5 rounded-lg border border-slate-200 bg-[#e8f7ea] px-4 py-3 text-[12px] text-slate-700">
             <div className="flex items-center justify-between gap-4">

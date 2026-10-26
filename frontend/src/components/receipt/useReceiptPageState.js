@@ -410,15 +410,22 @@ export function useReceiptPageState({
       formElement.reset();
       resetForm();
       setSubmitMessage('');
-      await postCompanyCommand(accessToken, companyId, command);
+     
+await postCompanyCommand(accessToken, companyId, command);
 
-      setShowSuccessAnimation(true);
-      if (successTimerRef.current) window.clearTimeout(successTimerRef.current);
+setSubmitError("");
+setSubmitMessage(`${documentType} voucher created successfully!`);
+setShowSuccessAnimation(true);
 
-      successTimerRef.current = window.setTimeout(() => {
-        setShowSuccessAnimation(false);
-        setSubmitMessage('');
-      }, 5000);
+if (successTimerRef.current) {
+  window.clearTimeout(successTimerRef.current);
+}
+
+successTimerRef.current = window.setTimeout(() => {
+  setShowSuccessAnimation(false);
+  setSubmitMessage("");
+}, 5000);
+
     } catch (error) {
       console.error(`${documentType} creation failed:`, error);
       setShowSuccessAnimation(false);

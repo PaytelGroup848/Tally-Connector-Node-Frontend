@@ -2,6 +2,7 @@
 import ReceiptHeader from './ReceiptHeader';
 import StatusToast from './StatusToast';
 import { useReceiptPageState } from './useReceiptPageState';
+import { useEffect, useState } from 'react';
 
 function ReceiptPageContent({
   companyId: companyIdProp,
@@ -31,13 +32,21 @@ function ReceiptPageContent({
     submitMessage,
     isSubmitting,
   } = useReceiptPageState({ companyId: companyIdProp, selectedCompany, documentType });
+const [toastVisible, setToastVisible] = useState(false);
 
+useEffect(() => {
+  if (submitMessage || submitError) {
+    setToastVisible(true);
+  }
+}, [submitMessage, submitError]);
   return (
     <div className="relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-5 text-slate-900">
-      <StatusToast
-        visible={showSuccessAnimation}
-        message="Voucher created successfully, click view status"
-      />
+ <StatusToast
+  visible={toastVisible && !!(submitMessage || submitError)}
+  message={submitError || submitMessage}
+  isError={!!submitError}
+  onClose={() => setToastVisible(false)}
+/>
 
       {optionsLoading && (
         <div className="absolute inset-x-0 bottom-0 top-0 z-50 flex items-center justify-center bg-slate-950/15 backdrop-blur-[1px]">
@@ -70,17 +79,6 @@ function ReceiptPageContent({
           optionsLoading={optionsLoading}
         />
 
-        {(submitMessage || submitError) && (
-          <div className="bg-[#f5f7f4] px-5 pb-2 pt-0">
-            <p
-              className={`text-sm ${
-                submitError ? 'text-red-600' : 'text-emerald-600'
-              }`}
-            >
-              {submitError || submitMessage}
-            </p>
-          </div>
-        )}
 
         {optionsError && (
           <div className="bg-[#f5f7f4] px-5 pb-2 pt-0">

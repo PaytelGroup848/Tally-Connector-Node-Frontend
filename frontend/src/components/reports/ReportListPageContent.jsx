@@ -2479,6 +2479,132 @@ function CashReport({ companyId }) {
   );
 }
 
+function JsonViewModal({ data, onClose }) {
+  if (data === null) return null;
+const toPascalCase = (str) =>
+    String(str)
+      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .replace(/[_\-\s.]+/g, " ")
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  const flattenJson = (value, prefix = "") => {
+    if (value === null || typeof value !== "object") {
+      return [{ field: prefix || "Value", value }];
+    }
+
+    const entries = Object.entries(value);
+
+    if (entries.length === 0) {
+      return [
+        {
+          field: prefix || "Value",
+          value: Array.isArray(value) ? "[]" : "{}",
+        },
+      ];
+    }
+
+    return entries.flatMap(([key, item]) => {
+      const field = prefix
+        ? Array.isArray(value)
+          ? `${prefix}[${key}]`
+          : `${prefix}.${key}`
+        : key;
+
+      if (item !== null && typeof item === "object") {
+        return flattenJson(item, field);
+      }
+
+      return [{ field, value: item }];
+    });
+  };
+
+  const fields = flattenJson(data);
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Bank details"
+        className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
+      >
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">
+              Bank Details
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">
+              View complete bank information
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-xl text-slate-500 hover:bg-slate-100"
+            aria-label="Close modal"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="overflow-auto p-5">
+          <div className="overflow-hidden rounded-lg border border-slate-200">
+            <table className="w-full table-fixed text-left text-sm">
+              <thead className="sticky top-0 bg-slate-100 text-xs uppercase text-slate-600">
+                <tr>
+                  <th className="w-[40%] px-4 py-3 font-semibold">Field</th>
+                  <th className="px-4 py-3 font-semibold">Value</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-100">
+                {fields.map((item, index) => (
+                  <tr
+                    key={`${item.field}-${index}`}
+                    className="hover:bg-slate-50"
+                  >
+                    <td className="break-words px-4 py-3 font-medium text-slate-700">
+                      {toPascalCase(item.field)}
+                    </td>
+
+                    <td className="break-all px-4 py-3 text-slate-600">
+                      {item.value === null ||
+                      item.value === undefined ||
+                      item.value === ""
+                        ? "-"
+                        : String(item.value)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="flex justify-end border-t border-slate-200 px-6 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg bg-emerald-700 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-800"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+  
+
+    }
+
 function BankReport({ companyId }) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const [query, setQuery] = useState("");
@@ -2488,6 +2614,7 @@ function BankReport({ companyId }) {
   const [pageSize, setPageSize] = useState(20);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [viewJson, setViewJson] = useState(null);
 
   useEffect(() => {
     if (!accessToken || !companyId) {
@@ -2562,13 +2689,17 @@ function BankReport({ companyId }) {
   ];
 
   const formatValue = (value, column) => {
-    if (isDateTimeColumn(column)) return formatDateTimeIST(value);
+    if (value !== null && typeof value === "object") {
+      return value;
+    }
+
+    if (isDateTimeColumn(column)) {
+      return formatDateTimeIST(value);
+    }
 
     return value === null || value === undefined || value === ""
       ? "-"
-      : typeof value === "object"
-        ? JSON.stringify(value)
-        : String(value);
+      : String(value);
   };
 
   const label = (column) =>
@@ -2665,15 +2796,30 @@ function BankReport({ companyId }) {
                       className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
                     >
                       {orderedColumns.map((column) => {
-                        const value = formatValue(row?.[column], column);
+                        const rawValue = row?.[column];
+
+                        const isJson =
+                          rawValue !== null && typeof rawValue === "object";
+
+                        const value = formatValue(rawValue, column);
 
                         return (
                           <td
                             key={`${rowIndex}-${column}`}
-                            title={value}
+                            title={isJson ? "View JSON details" : value}
                             className="max-w-[280px] px-5 py-3 leading-5 [overflow-wrap:anywhere]"
                           >
-                            {value}
+                            {isJson ? (
+                              <button
+                                type="button"
+                                onClick={() => setViewJson(rawValue)}
+                                className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                              >
+                                View
+                              </button>
+                            ) : (
+                              value
+                            )}
                           </td>
                         );
                       })}
@@ -2739,6 +2885,7 @@ function BankReport({ companyId }) {
           </button>
         </div>
       </section>
+      <JsonViewModal data={viewJson} onClose={() => setViewJson(null)} />
     </div>
   );
 }
