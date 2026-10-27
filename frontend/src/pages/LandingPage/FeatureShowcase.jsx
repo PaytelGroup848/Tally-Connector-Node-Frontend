@@ -63,13 +63,7 @@ export default function FeatureShowcase({ activeFeature }) {
 }
 
 export function LeadCapture() {
-  return (
-    <div>
-
-
-
-    </div>
-  );
+  return <div></div>;
 }
 
 export function ShowcaseIllustration({ kind }) {
@@ -96,6 +90,7 @@ export function ShowcaseIllustration({ kind }) {
         src={featureImages[kind]}
         alt={imageDescriptions[kind]}
         className="mx-auto h-auto w-full max-w-[480px] rounded-2xl object-contain"
+        loading="lazy"
       />
     );
   }
@@ -131,22 +126,18 @@ export function ShowcaseIllustration({ kind }) {
         </div>
 
         <div className="rounded-2xl bg-white p-5 shadow-xl">
-          <div className="mb-3 text-sm font-black">
-            Inactive Items
-          </div>
+          <div className="mb-3 text-sm font-black">Inactive Items</div>
 
-          {["Cap", "Jeans", "T-Shirt", "Shoes"].map(
-            (item) => (
-              <div
-                key={item}
-                className="flex items-center gap-3 border-b border-slate-100 py-2 text-xs text-slate-600"
-              >
-                <b className="text-red-500">×</b>
-                {item}
-                <span className="h-1.5 flex-1 bg-slate-200" />
-              </div>
-            )
-          )}
+          {["Cap", "Jeans", "T-Shirt", "Shoes"].map((item) => (
+            <div
+              key={item}
+              className="flex items-center gap-3 border-b border-slate-100 py-2 text-xs text-slate-600"
+            >
+              <b className="text-red-500">×</b>
+              {item}
+              <span className="h-1.5 flex-1 bg-slate-200" />
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -210,9 +201,7 @@ export function ShowcaseIllustration({ kind }) {
     return (
       <div className={common}>
         <div className="relative rounded-2xl bg-white p-4 shadow-xl">
-          <div className="text-xs font-black">
-            ABC Pvt Ltd
-          </div>
+          <div className="text-xs font-black">ABC Pvt Ltd</div>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
             {[
@@ -242,39 +231,26 @@ export function ShowcaseIllustration({ kind }) {
     <div className={common}>
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl bg-white p-4 shadow-xl">
-          <div className="text-xs font-bold text-slate-500">
-            Sales
-          </div>
+          <div className="text-xs font-bold text-slate-500">Sales</div>
 
-          <div className="mt-2 text-xl font-black">
-            ₹ 11.50K
-          </div>
+          <div className="mt-2 text-xl font-black">₹ 11.50K</div>
 
           <div className="mt-4 flex h-16 items-end gap-1">
-            {[30, 55, 40, 75, 60].map(
-              (height, index) => (
-                <span
-                  key={index}
-                  className="w-3 rounded-t bg-emerald-700"
-                  style={{ height: `${height}%` }}
-                />
-              )
-            )}
+            {[30, 55, 40, 75, 60].map((height, index) => (
+              <span
+                key={index}
+                className="w-3 rounded-t bg-emerald-700"
+                style={{ height: `${height}%` }}
+              />
+            ))}
           </div>
         </div>
 
         <div className="rounded-2xl bg-white p-4 shadow-xl">
-          <div className="text-xs font-bold text-slate-500">
-            Reports
-          </div>
+          <div className="text-xs font-bold text-slate-500">Reports</div>
 
           <div className="mt-3 space-y-2">
-            {[
-              "Receivables",
-              "Purchase",
-              "Payables",
-              "Receipt",
-            ].map((item) => (
+            {["Receivables", "Purchase", "Payables", "Receipt"].map((item) => (
               <div
                 key={item}
                 className="flex justify-between text-[10px] font-bold"
@@ -293,9 +269,7 @@ export function ShowcaseIllustration({ kind }) {
 export function ShowcasePaper({ title }) {
   return (
     <div className="h-36 w-28 rounded-lg border border-slate-200 bg-white p-2 shadow-xl">
-      <div className="text-[10px] font-black text-emerald-700">
-        {title}
-      </div>
+      <div className="text-[10px] font-black text-emerald-700">{title}</div>
 
       <div className="mt-3 h-2 rounded bg-slate-200" />
       <div className="mt-2 h-2 rounded bg-slate-100" />
@@ -309,33 +283,21 @@ export function ShowcasePerson({ name }) {
     <div className="flex items-center gap-3 rounded-lg bg-white px-3 py-2 shadow-lg">
       <span className="h-6 w-6 rounded-full bg-slate-200" />
 
-      <span className="text-[10px] font-bold">
-        {name}
-      </span>
+      <span className="text-[10px] font-bold">{name}</span>
 
       <b className="text-red-500">×</b>
     </div>
   );
 }
 
-export function DarkStat({
-  value,
-  title,
-  description,
-}) {
+export function DarkStat({ value, title, description }) {
   return (
     <div>
-      <p className="text-3xl font-black text-white">
-        {value}
-      </p>
+      <p className="text-3xl font-black text-white">{value}</p>
 
-      <h3 className="mt-2 text-sm font-extrabold">
-        {title}
-      </h3>
+      <h3 className="mt-2 text-sm font-extrabold">{title}</h3>
 
-      <p className="mt-2 text-xs leading-6 text-white/75">
-        {description}
-      </p>
+      <p className="mt-2 text-xs leading-6 text-white/75">{description}</p>
     </div>
   );
 }

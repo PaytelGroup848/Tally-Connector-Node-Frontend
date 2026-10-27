@@ -17,6 +17,7 @@ export default function ProductSection({ scrollTo }) {
                 src={mobileScreen}
                 alt="CtrlBooks mobile screen showing business balances and transaction options"
                 className="relative mx-auto h-auto w-full max-w-md object-contain"
+                loading="lazy"
               />
             </div>
 

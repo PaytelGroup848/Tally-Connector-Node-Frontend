@@ -66,7 +66,7 @@ const DashboardTables = ({ customers, dayBook }) => (
             <col className="w-[31%]" />
             <col className="w-[20%]" />
             <col className="w-[17%]" />
-            <col className="w-[13%]" />
+            <col className="w-[20%]" />
           </colgroup>
           <thead>
             <tr>
