@@ -11,6 +11,7 @@ import {
 function VouchersPageView({
   companyId,
   page,
+  setPageSize,
   pageSize,
   setPage,
   fromDate,

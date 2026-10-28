@@ -294,6 +294,7 @@ function VouchersPage({ companyId }) {
         page,
         pageSize,
         setPage,
+        setPageSize,
         fromDate,
         setFromDate,
         toDate,
