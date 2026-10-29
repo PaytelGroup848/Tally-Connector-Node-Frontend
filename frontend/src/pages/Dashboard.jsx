@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -8,14 +8,14 @@ import {
   Landmark,
   TrendingUp,
   Users,
-} from 'lucide-react'
-import useAuthStore from '../store/authStore'
-import { fetchCompanyDashboard } from '../services/companiesApi'
-import DashboardTables from './dashboard/DashboardTables'
-import MetricCard from './dashboard/MetricCard'
-import ReceivablesPanel from './dashboard/ReceivablesPanel'
-import SalesReceiptsPanel from './dashboard/SalesReceiptsPanel'
-import { normalizeDashboardData, toInputDate } from './dashboard/utils'
+} from "lucide-react";
+import useAuthStore from "../store/authStore";
+import { fetchCompanyDashboard } from "../services/companiesApi";
+import DashboardTables from "./dashboard/DashboardTables";
+import MetricCard from "./dashboard/MetricCard";
+import ReceivablesPanel from "./dashboard/ReceivablesPanel";
+import SalesReceiptsPanel from "./dashboard/SalesReceiptsPanel";
+import { normalizeDashboardData, toInputDate } from "./dashboard/utils";
 
 function DashboardPage({
   companyId,
@@ -28,72 +28,70 @@ function DashboardPage({
   openCustomDatePicker,
   customDateInput,
 }) {
-  const accessToken = useAuthStore((state) => state.accessToken)
-  const [dashboardData, setDashboardData] = useState(null)
-  const [dashboardRange, setDashboardRange] = useState(null)
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
-  const [draftFromDate, setDraftFromDate] = useState('')
-  const [draftToDate, setDraftToDate] = useState('')
-  const [isDateFilterOpen, setIsDateFilterOpen] = useState(false)
-  const dashboardRequestRef = useRef(0)
-
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardRange, setDashboardRange] = useState(null);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [draftFromDate, setDraftFromDate] = useState("");
+  const [draftToDate, setDraftToDate] = useState("");
+  const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
+  const dashboardRequestRef = useRef(0);
   useEffect(() => {
     if (!accessToken || !companyId) {
-      setDashboardData(null)
-      setDashboardRange(null)
-      return undefined
+      setDashboardData(null);
+      setDashboardRange(null);
+      return undefined;
     }
 
-    let isMounted = true
-    const requestId = ++dashboardRequestRef.current
-    const requestOptions = fromDate && toDate
-      ? { from: fromDate, to: toDate }
-      : {}
+    let isMounted = true;
+    const requestId = ++dashboardRequestRef.current;
+    const requestOptions =
+      fromDate && toDate ? { from: fromDate, to: toDate } : {};
 
     fetchCompanyDashboard(accessToken, companyId, requestOptions)
       .then((response) => {
-        if (!isMounted || requestId !== dashboardRequestRef.current) return
+        if (!isMounted || requestId !== dashboardRequestRef.current) return;
 
-        const responseData = response?.data || response
-        const responseRange = responseData?.range
-        const responseFrom = toInputDate(responseRange?.from)
-        const responseTo = toInputDate(responseRange?.to)
+        const responseData = response?.data || response;
+        const responseRange = responseData?.range;
+        const responseFrom = toInputDate(responseRange?.from);
+        const responseTo = toInputDate(responseRange?.to);
 
-        setDashboardData(responseData)
+        setDashboardData(responseData);
         setDashboardRange(
           responseFrom && responseTo
             ? { from: responseFrom, to: responseTo }
             : null,
-        )
+        );
       })
       .catch((error) => {
-        if (!isMounted || requestId !== dashboardRequestRef.current) return
+        if (!isMounted || requestId !== dashboardRequestRef.current) return;
 
-        setDashboardData(null)
-        setDashboardRange(null)
-        console.warn('Dashboard API failed, using dashboard defaults:', error)
-      })
+        setDashboardData(null);
+        setDashboardRange(null);
+        console.warn("Dashboard API failed, using dashboard defaults:", error);
+      });
 
     return () => {
-      isMounted = false
-    }
-  }, [accessToken, companyId, fromDate, toDate])
+      isMounted = false;
+    };
+  }, [accessToken, companyId, fromDate, toDate]);
 
   const applyDateFilter = (event) => {
-    event.preventDefault()
-    if (!draftFromDate || !draftToDate || draftFromDate > draftToDate) return
+    event.preventDefault();
+    if (!draftFromDate || !draftToDate || draftFromDate > draftToDate) return;
 
-    setFromDate(draftFromDate)
-    setToDate(draftToDate)
-    setDashboardRange(null)
-    setIsDateFilterOpen(false)
-  }
+    setFromDate(draftFromDate);
+    setToDate(draftToDate);
+    setDashboardRange(null);
+    setIsDateFilterOpen(false);
+  };
 
   const dashboardValues = normalizeDashboardData(
     dashboardData,
     dashboardRange || { from: fromDate, to: toDate },
-  )
+  );
 
   return (
     <div className="min-h-[calc(100vh-64px)] w-full min-w-0 overflow-x-hidden bg-app-bg p-4 sm:p-5 lg:p-6">
@@ -105,14 +103,14 @@ function DashboardPage({
             <button
               type="button"
               onClick={() => {
-                setDraftFromDate(fromDate)
-                setDraftToDate(toDate)
-                setIsDateFilterOpen((open) => !open)
+                setDraftFromDate(fromDate);
+                setDraftToDate(toDate);
+                setIsDateFilterOpen((open) => !open);
               }}
               className="inline-flex h-10 items-center gap-2 rounded-lg border border-app-border bg-white px-3 text-[11px] font-semibold text-app-text-secondary shadow-sm"
             >
               <CalendarDays className="h-4 w-4" />
-             
+
               <ChevronDown className="h-4 w-4 text-slate-400" />
             </button>
 
@@ -217,7 +215,7 @@ function DashboardPage({
           <input
             ref={customDateInput}
             type="date"
-            value={dayBookDate || ''}
+            value={dayBookDate || ""}
             onChange={(event) => setDayBookDate(event.target.value)}
           />
 
@@ -225,8 +223,43 @@ function DashboardPage({
           <ArrowUpRight />
         </div>
       </div>
+
+     
+<div className="w-full max-w-none m-0 p-0 overflow-hidden">
+  <div
+    className="relative w-full h-80 overflow-hidden"
+    style={{
+      aspectRatio: "202 / 60",
+      WebkitMaskImage: "url('/ctrlbooks-logo.png')",
+      maskImage: "url('/ctrlbooks-logo.png')",
+      WebkitMaskSize: "100% 100%",
+      maskSize: "100% 100%",
+      WebkitMaskRepeat: "no-repeat",
+      maskRepeat: "no-repeat",
+      WebkitMaskPosition: "center",
+      maskPosition: "center",
+    }}
+  >
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="w-full h-full max-sm:w-[90%] max-sm:h-[70%] overflow-hidden">
+        <video
+          className="block w-full h-full object-cover m-0 p-0"
+          src="/ctrlbooks-video.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          aria-hidden="true"
+        />
+      </div>
     </div>
-  )
+  </div>
+</div>
+
+    </div>
+  );
 }
 
-export default DashboardPage
+export default DashboardPage;
