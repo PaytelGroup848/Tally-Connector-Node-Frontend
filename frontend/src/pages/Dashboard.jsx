@@ -223,6 +223,44 @@ function DashboardPage({
           <ArrowUpRight />
         </div>
       </div>
+
+     
+<div className="w-full max-w-none m-0 p-0 overflow-hidden">
+  <div
+    className="relative w-full h-80 overflow-hidden"
+    style={{
+      aspectRatio: "202 / 60",
+
+      WebkitMaskImage: "url('/ctrlbooks-logo.webp')",
+      maskImage: "url('/ctrlbooks-logo.webp')",
+
+      WebkitMaskSize: "100% 100%",
+      maskSize: "100% 100%",
+      WebkitMaskRepeat: "no-repeat",
+      maskRepeat: "no-repeat",
+      WebkitMaskPosition: "center",
+      maskPosition: "center",
+    }}
+  >
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="w-full h-full max-sm:w-[90%] max-sm:h-[70%] overflow-hidden">
+        <video
+          className="block w-full h-full object-cover m-0 p-0"
+          src="/ctrlbooks-video.webm"
+
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          aria-hidden="true"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
     </div>
   );
 }
