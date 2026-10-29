@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 
 const MENU_MAX_HEIGHT = 288;
 const DROPDOWN_PAGE_SIZE = 20; // same as Tailwind max-h-72
-
+const DEBOUNCE_DELAY = 700;
 // Works for string options and object options.
 const getOptionText = (option) =>
   typeof option === "string"
@@ -44,12 +44,27 @@ export function SearchableDropdown({
   const [dirty, setDirty] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [menuPosition, setMenuPosition] = useState(null);
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   const dropdownRef = useRef(null);
   const menuRef = useRef(null);
   const loadMoreRef = useRef(onLoadMore);
   const listboxId = useId();
+  const onInputChangeRef = useRef(onInputChange);
 
+  useEffect(() => {
+    onInputChangeRef.current = onInputChange;
+  }, [onInputChange]);
+
+  useEffect(() => {
+    if (!dirty) return;
+
+    const timer = setTimeout(() => {
+      onInputChangeRef.current?.(query);
+    }, DEBOUNCE_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [query, dirty, resetToken]);
   useEffect(() => {
     loadMoreRef.current = onLoadMore;
   }, [onLoadMore]);
@@ -154,15 +169,22 @@ export function SearchableDropdown({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+  // Keep the displayed filter in sync with the debounced server search.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, DEBOUNCE_DELAY);
 
+    return () => clearTimeout(timer);
+  }, [query]);
   // Filter only after the user starts typing, so reopening a field that
   // already has a selected value still shows every option.
   const filteredOptions =
-    dirty && query
+    dirty && debouncedQuery
       ? options.filter((option) =>
           getOptionText(option)
             .toLowerCase()
-            .includes(String(query).toLowerCase()),
+            .includes(String(debouncedQuery).toLowerCase()),
         )
       : options;
 
@@ -320,8 +342,10 @@ export function SearchableDropdown({
           setActiveIndex(-1);
           setVisibleCount(DROPDOWN_PAGE_SIZE);
           onSelect?.(next);
-          onInputChange?.(next);
-          if (!next) onClear?.();
+
+          if (!next) {
+            onClear?.();
+          }
           openMenu();
         }}
         placeholder={

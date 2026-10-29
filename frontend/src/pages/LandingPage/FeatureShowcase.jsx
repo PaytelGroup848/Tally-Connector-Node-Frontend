@@ -1,9 +1,9 @@
-import invoiceFeatureImage from "../../assets/Control-Books-Website-Image-2 (7).png";
-import inactiveFeatureImage from "../../assets/Control-Books-Website-Image-3 (2).png";
-import reminderFeatureImage from "../../assets/Control-Books-Website-Image-4 (2).png";
-import backupFeatureImage from "../../assets/Control-Books-Website-Image-5 (1).png";
-import gstFeatureImage from "../../assets/Control-Books-Website-Image-6 (3).png";
-import reportsFeatureImage from "../../assets/Control-Books-Website-Image-7 (2).png";
+import invoiceFeatureImage from "../../assets/Control-Books-Website-Image-2 (7).webp";
+import inactiveFeatureImage from "../../assets/Control-Books-Website-Image-3 (2).webp";
+import reminderFeatureImage from "../../assets/Control-Books-Website-Image-4 (2).webp";
+import backupFeatureImage from "../../assets/Control-Books-Website-Image-5 (1).webp";
+import gstFeatureImage from "../../assets/Control-Books-Website-Image-6 (3).webp";
+import reportsFeatureImage from "../../assets/Control-Books-Website-Image-7 (2).webp";
 import { showcaseFeatures } from "./data";
 import { SectionHeading } from "./LandingPrimitives";
 
@@ -89,7 +89,7 @@ export function ShowcaseIllustration({ kind }) {
       <img
         src={featureImages[kind]}
         alt={imageDescriptions[kind]}
-        className="mx-auto h-auto w-full max-w-[480px] rounded-2xl object-contain"
+        className="mx-auto h-[50%] w-[70%] max-w-[480px] rounded-2xl object-contain"
         loading="lazy"
       />
     );

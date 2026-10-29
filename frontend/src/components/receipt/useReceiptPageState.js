@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { advancedVoucherFieldNames } from '../../pages/DocumentVoucherPage';
 import {
@@ -31,7 +31,11 @@ export function useReceiptPageState({
   const companyId = companyIdProp || getCompanyId(selectedCompany);
 
   const [companyBanks, setCompanyBanks] = useState([]);
+  const [bankSearchOptions, setBankSearchOptions] = useState(null);
   const [banksLoading, setBanksLoading] = useState(false);
+  const [bankSearchLoading, setBankSearchLoading] = useState(false);
+  const [bankSearchError, setBankSearchError] = useState('');
+  const bankSearchRequestRef = useRef(0);
 
   const [voucherTypes, setVoucherTypes] = useState([documentType]);
   const [voucherType, setVoucherType] = useState(documentType);
@@ -39,6 +43,8 @@ export function useReceiptPageState({
   const [voucherTypesError, setVoucherTypesError] = useState('');
 
   const [ledgerOptions, setLedgerOptions] = useState([]);
+  const [ledgerSearchOptions, setLedgerSearchOptions] = useState([]);
+  const [ledgerSearchQuery, setLedgerSearchQuery] = useState('');
   const [ledgerPage, setLedgerPage] = useState({
     nextPage: 1,
     hasMore: false,
@@ -46,6 +52,8 @@ export function useReceiptPageState({
     error: '',
   });
   const ledgerPageRef = useRef(ledgerPage);
+  const ledgerSearchRequestRef = useRef(0);
+  const ledgerSearchBasePageRef = useRef(null);
 
   const [closingBalance, setClosingBalance] = useState('');
   const [closingBalanceLoading, setClosingBalanceLoading] = useState(false);
@@ -95,6 +103,8 @@ export function useReceiptPageState({
 
   const resetForm = () => {
     resetClosingBalance();
+    searchLedgers('');
+    searchBanks('');
     setForm({
       voucherType: documentType,
       voucherNumber: '',
@@ -110,6 +120,7 @@ export function useReceiptPageState({
   const loadMoreLedgers = async () => {
     const currentPage = ledgerPageRef.current;
     if (!currentPage.hasMore || currentPage.loading) return;
+    const requestId = ledgerSearchRequestRef.current;
 
     updateLedgerPage({ ...currentPage, loading: true, error: '' });
 
@@ -117,26 +128,133 @@ export function useReceiptPageState({
       const response = await fetchCompanyLedgers(accessToken, companyId, {
         page: currentPage.nextPage,
         limit: LEDGER_PAGE_SIZE,
+        q: currentPage.q || '',
       });
 
       const ledgers = extractLedgers(response).filter((ledger) =>
         getDisplayName(ledger, ['ledgerName', 'name', 'displayName', 'partyName']),
       );
 
-      setLedgerOptions((existingLedgers) => [...existingLedgers, ...ledgers]);
+      if (ledgerSearchRequestRef.current !== requestId) return;
+      if (currentPage.q) {
+        setLedgerSearchOptions((existingLedgers) => [...existingLedgers, ...ledgers]);
+        setLedgerOptions((existingLedgers) => [...existingLedgers, ...ledgers]);
+      } else {
+        setLedgerOptions((existingLedgers) => [...existingLedgers, ...ledgers]);
+      }
       updateLedgerPage({
         nextPage: currentPage.nextPage + 1,
         hasMore: ledgers.length >= LEDGER_PAGE_SIZE,
         loading: false,
         error: '',
+        q: currentPage.q || '',
       });
     } catch (error) {
+      if (ledgerSearchRequestRef.current !== requestId) return;
       updateLedgerPage({
         ...currentPage,
         loading: false,
         error:
           error instanceof Error ? error.message : 'Unable to load more ledgers.',
       });
+    }
+  };
+
+  const searchLedgers = async (query) => {
+    const normalizedQuery = String(query || '').trim();
+    const requestId = ++ledgerSearchRequestRef.current;
+
+    if (!normalizedQuery) {
+      setLedgerSearchQuery('');
+      setLedgerSearchOptions([]);
+      if (ledgerPageRef.current) {
+        updateLedgerPage({
+          ...ledgerPageRef.current,
+          ...(ledgerSearchBasePageRef.current || {}),
+          loading: false,
+          error: '',
+          q: '',
+        });
+      }
+      ledgerSearchBasePageRef.current = null;
+      return;
+    }
+
+    setLedgerSearchQuery(normalizedQuery);
+    setLedgerSearchOptions([]);
+    if (!ledgerSearchBasePageRef.current) {
+      ledgerSearchBasePageRef.current = { ...ledgerPageRef.current };
+    }
+    updateLedgerPage({
+      ...ledgerPageRef.current,
+      nextPage: 1,
+      hasMore: false,
+      loading: true,
+      error: '',
+      q: normalizedQuery,
+    });
+
+    try {
+      const response = await fetchCompanyLedgers(accessToken, companyId, {
+        page: 1,
+        limit: LEDGER_PAGE_SIZE,
+        q: normalizedQuery,
+      });
+      if (ledgerSearchRequestRef.current !== requestId) return;
+
+      const ledgers = extractLedgers(response).filter((ledger) =>
+        getDisplayName(ledger, ['ledgerName', 'name', 'displayName', 'partyName']),
+      );
+      setLedgerSearchOptions(ledgers);
+      setLedgerOptions((existingLedgers) => [...existingLedgers, ...ledgers]);
+      updateLedgerPage({
+        nextPage: 2,
+        hasMore: ledgers.length >= LEDGER_PAGE_SIZE,
+        loading: false,
+        error: '',
+        q: normalizedQuery,
+      });
+    } catch (error) {
+      if (ledgerSearchRequestRef.current !== requestId) return;
+      updateLedgerPage({
+        ...ledgerPageRef.current,
+        loading: false,
+        error:
+          error instanceof Error ? error.message : 'Unable to search ledgers.',
+      });
+    }
+  };
+
+  const searchBanks = async (query) => {
+    const normalizedQuery = String(query || '').trim();
+    const requestId = ++bankSearchRequestRef.current;
+    if (!normalizedQuery) {
+      setBankSearchOptions(null);
+      setBankSearchLoading(false);
+      setBankSearchError('');
+      return;
+    }
+
+    setBankSearchOptions([]);
+    setBankSearchLoading(true);
+    setBankSearchError('');
+    try {
+      const response = await fetchCompanyBank(accessToken, companyId, {
+        page: 1,
+        limit: 100,
+        q: normalizedQuery,
+      });
+      if (bankSearchRequestRef.current !== requestId) return;
+      setBankSearchOptions(extractBank(response));
+    } catch (error) {
+      if (bankSearchRequestRef.current !== requestId) return;
+      setBankSearchError(
+        error instanceof Error ? error.message : 'Unable to search banks.',
+      );
+    } finally {
+      if (bankSearchRequestRef.current === requestId) {
+        setBankSearchLoading(false);
+      }
     }
   };
 
@@ -204,6 +322,10 @@ export function useReceiptPageState({
   };
 
   useEffect(() => {
+    bankSearchRequestRef.current += 1;
+    setBankSearchOptions(null);
+    setBankSearchLoading(false);
+    setBankSearchError('');
     let active = true;
 
     const loadBanks = async () => {
@@ -286,6 +408,10 @@ export function useReceiptPageState({
   }, [accessToken, companyId, documentType]);
 
   useEffect(() => {
+    ledgerSearchRequestRef.current += 1;
+    ledgerSearchBasePageRef.current = null;
+    setLedgerSearchOptions([]);
+    setLedgerSearchQuery('');
     if (!accessToken || !companyId) {
       setLedgerOptions([]);
       updateLedgerPage({ nextPage: 1, hasMore: false, loading: false, error: '' });
@@ -457,13 +583,20 @@ successTimerRef.current = window.setTimeout(() => {
     accessToken,
     companyId,
     companyBanks,
+    bankSearchOptions,
     banksLoading,
+    bankSearchLoading,
+    bankSearchError,
+    searchBanks,
     voucherTypes,
     voucherType,
     voucherTypesLoading,
     voucherTypesError,
     ledgerOptions,
+    ledgerSearchOptions,
+    ledgerSearchQuery,
     ledgerPage,
+    searchLedgers,
     closingBalance,
     closingBalanceLoading,
     closingBalanceError,

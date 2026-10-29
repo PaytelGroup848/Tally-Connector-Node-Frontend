@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useAuthStore from "../store/authStore";
 import { fetchCompanyBank, extractBank } from "../services/companiesApi";
 import { getJournalTotalsInPaise } from "../utils/voucherHelpers";
@@ -18,12 +18,20 @@ export function JournalVoucherContent({
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const [companyBanks, setCompanyBanks] = useState([]);
+  const [bankSearchOptions, setBankSearchOptions] = useState(null);
+  const [bankSearchLoading, setBankSearchLoading] = useState(false);
+  const [bankSearchError, setBankSearchError] = useState("");
   const [banksLoading, setBanksLoading] = useState(false);
+  const bankSearchRequestRef = useRef(0);
 
   const { debit: debitTotal, credit: creditTotal } =
     getJournalTotalsInPaise(rows);
 
   useEffect(() => {
+    bankSearchRequestRef.current += 1;
+    setBankSearchOptions(null);
+    setBankSearchLoading(false);
+    setBankSearchError("");
     let active = true;
 
     const loadBanks = async () => {
@@ -59,6 +67,39 @@ export function JournalVoucherContent({
       active = false;
     };
   }, [accessToken, companyId]);
+
+  const searchBanks = async (query) => {
+    const normalizedQuery = String(query || "").trim();
+    const requestId = ++bankSearchRequestRef.current;
+    if (!normalizedQuery) {
+      setBankSearchOptions(null);
+      setBankSearchLoading(false);
+      setBankSearchError("");
+      return;
+    }
+
+    setBankSearchOptions([]);
+    setBankSearchLoading(true);
+    setBankSearchError("");
+    try {
+      const response = await fetchCompanyBank(accessToken, companyId, {
+        page: 1,
+        limit: 100,
+        q: normalizedQuery,
+      });
+      if (bankSearchRequestRef.current !== requestId) return;
+      setBankSearchOptions(extractBank(response));
+    } catch (error) {
+      if (bankSearchRequestRef.current !== requestId) return;
+      setBankSearchError(
+        error instanceof Error ? error.message : "Unable to search bank accounts.",
+      );
+    } finally {
+      if (bankSearchRequestRef.current === requestId) {
+        setBankSearchLoading(false);
+      }
+    }
+  };
 
   const hasEnteredAmount = rows.some(
     (row) => String(row.amount ?? "").trim() !== "",
@@ -114,7 +155,7 @@ export function JournalVoucherContent({
                 label="transaction type"
                 options={[
                   "CASH",
-                  ...companyBanks
+                  ...(bankSearchOptions ?? companyBanks)
                     .map(
                       (bank) =>
                         bank.name ??
@@ -128,11 +169,13 @@ export function JournalVoucherContent({
                   (value, index, array) => array.indexOf(value) === index,
                 )}
                 placeholder={
-                  banksLoading
+                  banksLoading || bankSearchLoading
                     ? "Loading bank accounts..."
                     : "Select transaction type"
                 }
-                loading={banksLoading}
+                loading={banksLoading || bankSearchLoading}
+                loadError={bankSearchError}
+                onInputChange={searchBanks}
                 disabled={banksLoading}
                 value={row.partyName || ""}
                 onSelect={(value) => onRowChange(row.id, "partyName", value)}

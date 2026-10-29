@@ -1,5 +1,5 @@
 import { ArrowRight, Bell, Monitor, Smartphone } from "lucide-react";
-import mobileScreen from "../../assets/Control-Books-Mobile-Screen-Website-Image-1.png";
+import mobileScreen from "../../assets/Control-Books-Mobile-Screen-Website-Image-1.webp";
 import { ProductPoint } from "./LandingPrimitives";
 
 export default function ProductSection({ scrollTo }) {

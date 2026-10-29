@@ -44,6 +44,8 @@ function PhysicalStockPage({ companyId }) {
 
   const [stockItems, setStockItems] = useState([]);
   const [godowns, setGodowns] = useState([]);
+  const [dropdownSearchOptions, setDropdownSearchOptions] = useState({});
+  const [dropdownSearchQueries, setDropdownSearchQueries] = useState({});
   const [optionPages, setOptionPages] = useState({});
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [optionsError, setOptionsError] = useState("");
@@ -56,6 +58,8 @@ function PhysicalStockPage({ companyId }) {
   const submitCooldownTimerRef = useRef(null);
   const submitRequestRef = useRef(false);
   const optionPagesRef = useRef({});
+  const searchRequestsRef = useRef({});
+  const searchBasePagesRef = useRef({});
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const updateOptionPage = (source, pageState) => {
@@ -67,6 +71,7 @@ function PhysicalStockPage({ companyId }) {
   const loadMoreOptions = async (source) => {
     const currentPage = optionPagesRef.current[source];
     if (!currentPage?.hasMore || currentPage.loading) return;
+    const requestId = searchRequestsRef.current[source];
 
     updateOptionPage(source, { ...currentPage, loading: true, error: "" });
 
@@ -76,24 +81,38 @@ function PhysicalStockPage({ companyId }) {
           ? await fetchCompanyStock(accessToken, companyId, {
               page: currentPage.nextPage,
               limit: DROPDOWN_PAGE_SIZE,
+              q: currentPage.q || "",
             })
           : await fetchCompanyGodowns(accessToken, companyId, {
               page: currentPage.nextPage,
               limit: DROPDOWN_PAGE_SIZE,
+              q: currentPage.q || "",
             });
       const items =
         source === "stock"
           ? extractStockItems(response)
           : extractGodowns(response);
-      const setItems = source === "stock" ? setStockItems : setGodowns;
-      setItems((existingItems) => [...existingItems, ...items]);
+      if (searchRequestsRef.current[source] !== requestId) return;
+      if (currentPage.q) {
+        setDropdownSearchOptions((existingOptions) => ({
+          ...existingOptions,
+          [source]: [...(existingOptions[source] || []), ...items],
+        }));
+        const setItems = source === "stock" ? setStockItems : setGodowns;
+        setItems((existingItems) => [...existingItems, ...items]);
+      } else {
+        const setItems = source === "stock" ? setStockItems : setGodowns;
+        setItems((existingItems) => [...existingItems, ...items]);
+      }
       updateOptionPage(source, {
         nextPage: currentPage.nextPage + 1,
         hasMore: items.length >= DROPDOWN_PAGE_SIZE,
         loading: false,
         error: "",
+        q: currentPage.q || "",
       });
     } catch (error) {
+      if (searchRequestsRef.current[source] !== requestId) return;
       updateOptionPage(source, {
         ...currentPage,
         loading: false,
@@ -105,6 +124,103 @@ function PhysicalStockPage({ companyId }) {
     }
   };
 
+  const searchOptions = async (source, query) => {
+    const normalizedQuery = String(query || "").trim();
+    const requestId = (searchRequestsRef.current[source] || 0) + 1;
+    searchRequestsRef.current[source] = requestId;
+
+    if (!normalizedQuery) {
+      setDropdownSearchQueries((existingQueries) => ({
+        ...existingQueries,
+        [source]: "",
+      }));
+      setDropdownSearchOptions((existingOptions) => ({
+        ...existingOptions,
+        [source]: [],
+      }));
+      const currentPage = optionPagesRef.current[source];
+      if (currentPage) {
+        updateOptionPage(source, {
+          ...currentPage,
+          ...(searchBasePagesRef.current[source] || {}),
+          loading: false,
+          error: "",
+          q: "",
+        });
+      }
+      delete searchBasePagesRef.current[source];
+      return;
+    }
+
+    setDropdownSearchQueries((existingQueries) => ({
+      ...existingQueries,
+      [source]: normalizedQuery,
+    }));
+    setDropdownSearchOptions((existingOptions) => ({
+      ...existingOptions,
+      [source]: [],
+    }));
+
+    const currentPage = optionPagesRef.current[source] || {
+      nextPage: 1,
+      hasMore: false,
+      loading: false,
+      error: "",
+    };
+    if (!searchBasePagesRef.current[source]) {
+      searchBasePagesRef.current[source] = { ...currentPage };
+    }
+    updateOptionPage(source, {
+      ...currentPage,
+      nextPage: 1,
+      hasMore: false,
+      loading: true,
+      error: "",
+      q: normalizedQuery,
+    });
+
+    try {
+      const response =
+        source === "stock"
+          ? await fetchCompanyStock(accessToken, companyId, {
+              page: 1,
+              limit: DROPDOWN_PAGE_SIZE,
+              q: normalizedQuery,
+            })
+          : await fetchCompanyGodowns(accessToken, companyId, {
+              page: 1,
+              limit: DROPDOWN_PAGE_SIZE,
+              q: normalizedQuery,
+            });
+      if (searchRequestsRef.current[source] !== requestId) return;
+      const items =
+        source === "stock"
+          ? extractStockItems(response)
+          : extractGodowns(response);
+      setDropdownSearchOptions((existingOptions) => ({
+        ...existingOptions,
+        [source]: items,
+      }));
+      const setItems = source === "stock" ? setStockItems : setGodowns;
+      setItems((existingItems) => [...existingItems, ...items]);
+      updateOptionPage(source, {
+        nextPage: 2,
+        hasMore: items.length >= DROPDOWN_PAGE_SIZE,
+        loading: false,
+        error: "",
+        q: normalizedQuery,
+      });
+    } catch (error) {
+      if (searchRequestsRef.current[source] !== requestId) return;
+      updateOptionPage(source, {
+        ...optionPagesRef.current[source],
+        loading: false,
+        error:
+          error instanceof Error ? error.message : "Unable to search options.",
+      });
+    }
+  };
+
   const getPaginationProps = (source) => {
     const pageState = optionPages[source];
     return {
@@ -112,6 +228,7 @@ function PhysicalStockPage({ companyId }) {
       hasMoreOptions: pageState?.hasMore || false,
       loadingMore: pageState?.loading || false,
       loadMoreError: pageState?.error || "",
+      loadError: pageState?.error || "",
       onLoadMore: () => loadMoreOptions(source),
     };
   };
@@ -129,6 +246,14 @@ function PhysicalStockPage({ companyId }) {
   );
 
   useEffect(() => {
+    searchBasePagesRef.current = {};
+    ["stock", "godowns"].forEach((source) => {
+      searchRequestsRef.current[source] =
+        (searchRequestsRef.current[source] || 0) + 1;
+    });
+    setDropdownSearchOptions({});
+    setDropdownSearchQueries({});
+
     if (!companyId || !accessToken) {
       setStockItems([]);
       setGodowns([]);
@@ -200,7 +325,14 @@ function PhysicalStockPage({ companyId }) {
     };
   }, [accessToken, companyId]);
 
-  const itemOptions = stockItems
+  const optionStockItems = dropdownSearchQueries.stock
+    ? dropdownSearchOptions.stock || []
+    : stockItems;
+  const optionGodowns = dropdownSearchQueries.godowns
+    ? dropdownSearchOptions.godowns || []
+    : godowns;
+
+  const itemOptions = optionStockItems
     .map((item) =>
       getDisplayValue(item, [
         "itemName",
@@ -216,7 +348,7 @@ function PhysicalStockPage({ companyId }) {
     )
     .filter((value, index, values) => value && values.indexOf(value) === index);
 
-  const godownOptions = godowns
+  const godownOptions = optionGodowns
     .map((godown) =>
       getDisplayValue(godown, [
         "godownName",
@@ -537,6 +669,7 @@ function PhysicalStockPage({ companyId }) {
                   label="items"
                   options={itemOptions}
                   {...getPaginationProps("stock")}
+                  onInputChange={(query) => searchOptions("stock", query)}
                   loading={optionsLoading}
                   value={row.item}
                   onSelect={(value) => updateRow(row.id, "item", value)}
@@ -577,6 +710,7 @@ function PhysicalStockPage({ companyId }) {
                   label="godowns"
                   options={godownOptions}
                   {...getPaginationProps("godowns")}
+                  onInputChange={(query) => searchOptions("godowns", query)}
                   loading={optionsLoading}
                   value={row.godown}
                   onSelect={(value) => updateRow(row.id, "godown", value)}

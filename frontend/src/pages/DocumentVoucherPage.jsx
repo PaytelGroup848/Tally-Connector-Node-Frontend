@@ -72,6 +72,8 @@ export function DocumentVoucherPage({
     voucherTypesError, setVoucherTypesError,
     visibleVoucherTypeCount, setVisibleVoucherTypeCount,
     selectedParty, setSelectedParty,
+    dropdownSearchOptions, setDropdownSearchOptions,
+    dropdownSearchQueries, setDropdownSearchQueries,
     selectedVoucherNumber, setSelectedVoucherNumber,
     selectedVoucherType, setSelectedVoucherType,
     selectedGstin, setSelectedGstin,
@@ -134,6 +136,8 @@ export function DocumentVoucherPage({
     setVoucherTypes,
     setVoucherTypesError,
     setSelectedParty,
+    setDropdownSearchOptions,
+    setDropdownSearchQueries,
     setSelectedVoucherNumber,
     setSelectedVoucherType,
     setSelectedGstin,
@@ -154,7 +158,7 @@ export function DocumentVoucherPage({
     setOptionPages,
     optionPagesRef,
   };
-  const { updateOptionPage, getPaginationProps, getNativeDropdownPaginationProps, loadMoreOnNativeDropdownSelection } = useVoucherOptionPagination({
+  const { updateOptionPage, searchOptions, getPaginationProps, getNativeDropdownPaginationProps, loadMoreOnNativeDropdownSelection } = useVoucherOptionPagination({
     state: optionState, requestCompanyId: companyId, accessToken, enableVoucherDropdownPagination,
   });
   useVoucherOptionsLoading({
@@ -200,14 +204,18 @@ export function DocumentVoucherPage({
     hasMoreVoucherTypeOptions,
     loadMoreVoucherTypeOptions,
     godownOptions,
+    optionBatches,
     partySources,
     partyOptions,
   } = buildVoucherOptions({
     customers,
     suppliers,
     stockItems,
+    batches,
     vouchers,
     ledgers,
+    dropdownSearchOptions,
+    dropdownSearchQueries,
     godowns,
     voucherTypes,
     getDisplayValue,
@@ -335,6 +343,7 @@ export function DocumentVoucherPage({
       partyBalanceLoading,
       partyOptions,
       partySources,
+      searchOptions,
       resetSelectedPartyBalance,
       selectedGstin,
       selectedParty,
@@ -400,12 +409,21 @@ export function DocumentVoucherPage({
               sourceRows={sourceRows}
               destinationRows={destinationRows}
               stockItems={stockItems}
-              batches={batches}
+              batches={optionBatches}
               itemOptions={itemOptions}
               godownOptions={godownOptions}
-              itemDropdownProps={getPaginationProps("stock")}
-              godownDropdownProps={getPaginationProps("godowns")}
-              batchDropdownProps={getPaginationProps("batches")}
+              itemDropdownProps={{
+                ...getPaginationProps("stock"),
+                onInputChange: (query) => searchOptions("stock", query),
+              }}
+              godownDropdownProps={{
+                ...getPaginationProps("godowns"),
+                onInputChange: (query) => searchOptions("godowns", query),
+              }}
+              batchDropdownProps={{
+                ...getPaginationProps("batches"),
+                onInputChange: (query) => searchOptions("batches", query),
+              }}
               optionsLoading={isOptionsLoading}
               onAddSource={() => addStockRow(setSourceRows)}
               onAddDestination={() => addStockRow(setDestinationRows)}
@@ -426,7 +444,11 @@ export function DocumentVoucherPage({
               voucherType={title}
               rows={journalRows}
               partyOptions={partyLedgerOptions}
-              partyDropdownProps={getPaginationProps(["customers", "ledgers"])}
+              partyDropdownProps={{
+                ...getPaginationProps(["customers", "ledgers"]),
+                onInputChange: (query) =>
+                  searchOptions(["customers", "ledgers"], query),
+              }}
               optionsLoading={isOptionsLoading}
               onAddRow={addJournalRow}
               onRemoveRow={removeJournalRow}
@@ -449,7 +471,11 @@ export function DocumentVoucherPage({
                 companyGstinError={companyGstinError}
                 hasCompanyGstin={Boolean(companyGstin)}
                 ledgerOptions={ledgerOptions}
-                ledgerDropdownProps={getPaginationProps("ledgers")}
+                ledgerDropdownProps={{
+                  ...getPaginationProps("ledgers"),
+                  onInputChange: (query) =>
+                    searchOptions("ledgers", query),
+                }}
                 additionalLedgers={additionalLedgers}
                 onAddLedger={addAdditionalLedger}
                 onRemoveLedger={removeAdditionalLedger}

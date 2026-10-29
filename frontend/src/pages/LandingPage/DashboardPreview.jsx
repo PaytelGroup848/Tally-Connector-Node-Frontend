@@ -1,4 +1,4 @@
-import logo from "../../assets/Ctrl-Books-New-Dashboard-Image-2 (1).png";
+import logo from "../../assets/Ctrl-Books-New-Dashboard-Image-2 (1).webp";
 
 export default function DashboardPreview() {
   return (

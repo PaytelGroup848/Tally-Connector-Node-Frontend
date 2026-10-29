@@ -31,6 +31,10 @@ const [visibleVoucherTypeCount, setVisibleVoucherTypeCount] =
 
 const [selectedParty, setSelectedParty] = useState("");
 
+const [dropdownSearchOptions, setDropdownSearchOptions] = useState({});
+
+const [dropdownSearchQueries, setDropdownSearchQueries] = useState({});
+
 const [selectedVoucherNumber, setSelectedVoucherNumber] = useState("");
 
 const [selectedVoucherType, setSelectedVoucherType] = useState(
@@ -73,5 +77,5 @@ const [stockError, setStockError] = useState("");
 const successTimerRef = useRef(null);
 const submitRequestRef = useRef(false);
 
-  return { isSubmitting, setIsSubmitting, submitError, setSubmitError, showSuccessAnimation, setShowSuccessAnimation, customers, setCustomers, suppliers, setSuppliers, stockItems, setStockItems, vouchers, setVouchers, ledgers, setLedgers, godowns, setGodowns, batches, setBatches, voucherTypes, setVoucherTypes, voucherTypesError, setVoucherTypesError, visibleVoucherTypeCount, setVisibleVoucherTypeCount, selectedParty, setSelectedParty, selectedVoucherNumber, setSelectedVoucherNumber, selectedVoucherType, setSelectedVoucherType, selectedGstin, setSelectedGstin, itemRows, setItemRows, additionalLedgers, setAdditionalLedgers, showLedgerPanel, setShowLedgerPanel, journalRows, setJournalRows, sourceRows, setSourceRows, destinationRows, setDestinationRows, clearToken, setClearToken, isOptionsLoading, setIsOptionsLoading, optionPages, setOptionPages, optionPagesRef, stockError, setStockError, successTimerRef, submitRequestRef };
+  return { isSubmitting, setIsSubmitting, submitError, setSubmitError, showSuccessAnimation, setShowSuccessAnimation, customers, setCustomers, suppliers, setSuppliers, stockItems, setStockItems, vouchers, setVouchers, ledgers, setLedgers, godowns, setGodowns, batches, setBatches, voucherTypes, setVoucherTypes, voucherTypesError, setVoucherTypesError, visibleVoucherTypeCount, setVisibleVoucherTypeCount, selectedParty, setSelectedParty, dropdownSearchOptions, setDropdownSearchOptions, dropdownSearchQueries, setDropdownSearchQueries, selectedVoucherNumber, setSelectedVoucherNumber, selectedVoucherType, setSelectedVoucherType, selectedGstin, setSelectedGstin, itemRows, setItemRows, additionalLedgers, setAdditionalLedgers, showLedgerPanel, setShowLedgerPanel, journalRows, setJournalRows, sourceRows, setSourceRows, destinationRows, setDestinationRows, clearToken, setClearToken, isOptionsLoading, setIsOptionsLoading, optionPages, setOptionPages, optionPagesRef, stockError, setStockError, successTimerRef, submitRequestRef };
 }

@@ -18,6 +18,7 @@ export function VoucherItemsTable(props) {
     itemRows,
     loadMoreOnNativeDropdownSelection,
     stockError,
+    searchOptions,
     title,
     updateItemRow,
     updateItemRowValues,
@@ -95,6 +96,7 @@ export function VoucherItemsTable(props) {
                       label="items"
                       options={itemOptions}
                       {...getPaginationProps("stock")}
+                      onInputChange={(query) => searchOptions("stock", query)}
                       placeholder={stockError || "Search Item"}
                       loading={isOptionsLoading}
                       value={row.item}
@@ -235,6 +237,9 @@ export function VoucherItemsTable(props) {
                         label="godowns"
                         options={godownOptions}
                         {...getPaginationProps("godowns")}
+                        onInputChange={(query) =>
+                          searchOptions("godowns", query)
+                        }
                         placeholder="Search Godown"
                         loading={isOptionsLoading}
                         value={row.godown}

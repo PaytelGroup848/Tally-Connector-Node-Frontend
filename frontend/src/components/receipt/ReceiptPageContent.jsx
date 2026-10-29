@@ -1,4 +1,4 @@
-﻿import ReceiptFormFields from './ReceiptFormFields';
+import ReceiptFormFields from './ReceiptFormFields';
 import ReceiptHeader from './ReceiptHeader';
 import StatusToast from './StatusToast';
 import { useReceiptPageState } from './useReceiptPageState';
@@ -11,10 +11,17 @@ function ReceiptPageContent({
 }) {
   const {
     companyBanks,
+    bankSearchOptions,
     banksLoading,
+    bankSearchLoading,
+    bankSearchError,
+    searchBanks,
     ledgerOptions,
+    ledgerSearchOptions,
+    ledgerSearchQuery,
     ledgerPage,
     loadMoreLedgers,
+    searchLedgers,
     fetchClosingBalance,
     closingBalance,
     closingBalanceLoading,
@@ -66,10 +73,17 @@ useEffect(() => {
           form={form}
           updateField={updateField}
           companyBanks={companyBanks}
+          bankSearchOptions={bankSearchOptions}
           banksLoading={banksLoading}
+          bankSearchLoading={bankSearchLoading}
+          bankSearchError={bankSearchError}
+          searchBanks={searchBanks}
           ledgerOptions={ledgerOptions}
+          ledgerSearchOptions={ledgerSearchOptions}
+          ledgerSearchQuery={ledgerSearchQuery}
           ledgerPage={ledgerPage}
           loadMoreLedgers={loadMoreLedgers}
+          searchLedgers={searchLedgers}
           fetchClosingBalance={fetchClosingBalance}
           closingBalance={closingBalance}
           closingBalanceLoading={closingBalanceLoading}

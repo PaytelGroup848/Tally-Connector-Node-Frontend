@@ -5,9 +5,6 @@ import test4 from "../../assets/New-Testimonial-Review-Card-3 (2).png";
 import test5 from "../../assets/New-Testimonial-Review-Card-8 (2).png";
 import test6 from "../../assets/New-Testimonial-Review-Card-5 (2).png";
 import test7 from "../../assets/New-Testimonial-Review-Card-10.png";
-import test8 from "../../assets/New-Testimonial-Review-Card-4 (2).png";
-import test9 from "../../assets/New-Testimonial-Review-Card-6 (2).png";
-import test10 from "../../assets/New-Testimonial-Review-Card-7 (2).png";
 import test11 from "../../assets/New-Testimonial-Review-Card-9 (2).png";
 
 export const features = [
@@ -76,9 +73,6 @@ export const testimonialImages = [
   test5,
   test6,
   test7,
-  test8,
-  test9,
-  test10,
   test11,
 ];
 

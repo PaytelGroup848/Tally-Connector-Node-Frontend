@@ -1,7 +1,7 @@
 import { SearchableDropdown } from "./SearchableDropdown";
 
 export function VoucherDetailsFields(props) {
-  const { clearToken, customers, defaultDate, defaultVoucherType, fetchSelectedPartyBalance, findLedgerGstin, findVoucherNumberForParty, getPaginationProps, hasMoreVoucherTypeOptions, isJournalStyleVoucher, isNoteVoucher, isOptionsLoading, isSalesInvoice, isSalesOrder, isStockJournal, isSupplierVoucher, ledgerTypeOptions, ledgers, loadMoreVoucherTypeOptions, partyBalance, partyBalanceEditedRef, partyBalanceError, partyBalanceLoading, partyOptions, partySources, resetSelectedPartyBalance, selectedGstin, selectedParty, selectedVoucherNumber, setPartyBalance, setSelectedGstin, setSelectedParty, setSelectedVoucherNumber, title, visibleVoucherTypeOptions, voucherNumberOptions, voucherTypesError, vouchers } = props;
+  const { clearToken, customers, defaultDate, defaultVoucherType, fetchSelectedPartyBalance, findLedgerGstin, findVoucherNumberForParty, getPaginationProps, hasMoreVoucherTypeOptions, isJournalStyleVoucher, isNoteVoucher, isOptionsLoading, isSalesInvoice, isSalesOrder, isStockJournal, isSupplierVoucher, ledgerTypeOptions, ledgers, loadMoreVoucherTypeOptions, partyBalance, partyBalanceEditedRef, partyBalanceError, partyBalanceLoading, partyOptions, partySources, resetSelectedPartyBalance, searchOptions, selectedGstin, selectedParty, selectedVoucherNumber, setPartyBalance, setSelectedGstin, setSelectedParty, setSelectedVoucherNumber, title, visibleVoucherTypeOptions, voucherNumberOptions, voucherTypesError, vouchers } = props;
   return (
 <div
                   className={`grid items-start gap-3 sm:grid-cols-2 ${
@@ -35,6 +35,9 @@ export function VoucherDetailsFields(props) {
                         label={isSupplierVoucher ? "suppliers" : "parties"}
                         options={partyOptions}
                         {...getPaginationProps(partySources)}
+                        onInputChange={(query) =>
+                          searchOptions(partySources, query)
+                        }
                         placeholder="Select Party"
                         loading={isOptionsLoading}
                         value={selectedParty}
@@ -141,6 +144,9 @@ export function VoucherDetailsFields(props) {
                         label="voucher numbers"
                         options={voucherNumberOptions}
                         {...getPaginationProps("vouchers")}
+                        onInputChange={(query) =>
+                          searchOptions("vouchers", query)
+                        }
                         placeholder="Voucher number"
                         loading={isOptionsLoading}
                         value={selectedVoucherNumber}
@@ -171,6 +177,9 @@ export function VoucherDetailsFields(props) {
                         label="ledger types"
                         options={ledgerTypeOptions}
                         {...getPaginationProps("ledgers")}
+                        onInputChange={(query) =>
+                          searchOptions("ledgers", query)
+                        }
                         placeholder="Select Ledger"
                         loading={isOptionsLoading}
                         resetToken={clearToken}
@@ -208,6 +217,7 @@ export function VoucherDetailsFields(props) {
                           "Damaged Goods",
                           "Wrong Item",
                           "Other",
+                          "Purchase Return",
                         ]}
                         placeholder="Select Reason for return"
                         loading={isOptionsLoading}

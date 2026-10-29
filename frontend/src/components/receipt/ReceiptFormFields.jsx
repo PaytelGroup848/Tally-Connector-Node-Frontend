@@ -8,10 +8,17 @@ export default function ReceiptFormFields({
   form,
   updateField,
   companyBanks,
+  bankSearchOptions,
   banksLoading,
+  bankSearchLoading,
+  bankSearchError,
+  searchBanks,
   ledgerOptions,
+  ledgerSearchOptions,
+  ledgerSearchQuery,
   ledgerPage,
   loadMoreLedgers,
+  searchLedgers,
   fetchClosingBalance,
   closingBalance,
   closingBalanceLoading,
@@ -76,12 +83,19 @@ export default function ReceiptFormFields({
             label="transaction type"
             options={[
               "CASH",
-              ...companyBanks
+              ...(bankSearchOptions ?? companyBanks)
                 .map((bank) => bank.name || bank.ledgerName || "")
                 .filter(Boolean),
             ].filter((value, index, array) => array.indexOf(value) === index)}
-            placeholder={banksLoading ? "Loading banks..." : "Select Bank"}
+            placeholder={
+              banksLoading || bankSearchLoading
+                ? "Loading banks..."
+                : "Select Bank"
+            }
             value={form.transactionType || ""}
+            loading={banksLoading || bankSearchLoading}
+            loadError={bankSearchError}
+            onInputChange={searchBanks}
             onSelect={(value) => updateField("transactionType", value)}
             disabled={banksLoading}
           />
@@ -95,7 +109,7 @@ export default function ReceiptFormFields({
           <SearchableDropdown
             name="ledger"
             label="ledgers"
-            options={ledgerOptions.map((ledger) =>
+            options={(ledgerSearchQuery ? ledgerSearchOptions : ledgerOptions).map((ledger) =>
               getDisplayName(ledger, [
                 "ledgerName",
                 "name",
@@ -107,7 +121,9 @@ export default function ReceiptFormFields({
             hasMoreOptions={ledgerPage.hasMore}
             loadingMore={ledgerPage.loading}
             loadMoreError={ledgerPage.error}
+            loadError={ledgerPage.error}
             onLoadMore={loadMoreLedgers}
+            onInputChange={searchLedgers}
             placeholder="Select Party"
             value={form.ledger}
             onSelect={(value) => updateField("ledger", value)}
