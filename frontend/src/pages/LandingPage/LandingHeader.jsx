@@ -22,7 +22,6 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-8 lg:flex">
-
             <button
               onClick={() => scrollTo("home")}
               className="text-md font-semibold text-slate-700 transition hover:text-emerald-700"
@@ -42,7 +41,6 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
             >
               Pricing
             </button>
-         
 
             <button
               onClick={() => scrollTo("testimonials")}
@@ -60,38 +58,30 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
           </nav>
 
           {/* Desktop Actions */}
-          
-          <div className="hidden items-center gap-3 lg:flex">
 
+          <div className="hidden items-center gap-3 lg:flex">
             {/* Start using CtrlBooks */}
             <button
               onClick={goToLogin}
               className="border-1 border-emerald-700 group inline-flex items-center justify-center gap-2 rounded-full  px-6 py-2.5 text-sm font-bold text-slate-700 transition hover:text-white hover:bg-emerald-700 mr-8"
             >
               Start using CtrlBooks
-
             </button>
 
             {/* Download Connector + Enquiry */}
             <div className="mt-23 flex w-[190px] flex-col items-center">
-
               {/* Download Connector */}
               <a
-                href="http://191.44.87.205:8000/downloads/CtrlBooks_Setup_v1.0.2.exe"
+                href="https://connector.ctrlbooks.com/downloads/CtrlBooks_Setup_v1.0.2.exe"
                 download
                 title="Download CtrlBooks Connector"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-emerald-800"
               >
-                <span className="whitespace-nowrap">
-                  Download Connector
-                </span>
-
-           
+                <span className="whitespace-nowrap">Download Connector</span>
               </a>
 
               {/* Enquiry Now */}
               <div className="relative flex h-[95px] w-[140px] items-start justify-center">
-
                 {/* Chain */}
                 <div className="absolute left-1/2 top-0 z-10 flex -translate-x-1/2 flex-col items-center">
                   <div className="h-3 w-[3px] bg-[#8b5a18]" />
@@ -107,7 +97,7 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
                 </div>
 
                 {/* Yellow Tag */}
-<div className="relative mt-12 w-[100px] origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
+                <div className="relative mt-12 w-[100px] origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
                   {/* Screw holes */}
                   <span className="absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
                   <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
@@ -135,7 +125,6 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
           {/* Mobile menu button */}
           {/* ================= MOBILE NAV ACTIONS ================= */}
           <div className="flex items-center gap-2 lg:hidden">
-
             <div className=" flex flex-col gap-3 sm:flex-row sm:justify-center">
               <button
                 onClick={goToLogin}
@@ -143,21 +132,14 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
               >
                 Start using CtrlBooks
               </button>
-
-
             </div>
-
 
             {/* Menu */}
             <button
               type="button"
-              onClick={() =>
-                setMobileOpen((value) => !value)
-              }
+              onClick={() => setMobileOpen((value) => !value)}
               aria-label={
-                mobileOpen
-                  ? "Close navigation menu"
-                  : "Open navigation menu"
+                mobileOpen ? "Close navigation menu" : "Open navigation menu"
               }
               aria-expanded={mobileOpen}
               className="
@@ -181,19 +163,12 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
         hover:bg-slate-50
       "
             >
-              {mobileOpen ? (
-                <X size={20} />
-              ) : (
-                <Menu size={20} />
-              )}
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-
           </div>
-
         </div>
         {/* Enquiry Now */}
         <div className="left-3/4 absolute flex h-[95px] w-[20%] items-start justify-center lg:hidden">
-
           {/* Chain */}
           <div className="absolute left-1/2 top-0 z-10 flex -translate-x-1/2 flex-col items-center">
             <div className="h-3 w-[3px] bg-[#8b5a18]" />
@@ -208,8 +183,8 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
             <div className="mt-1 h-4 w-4 rounded-full border border-gray-400 bg-gradient-to-br from-gray-100 via-gray-300 to-gray-500 shadow-md" />
           </div>
 
-         {/* Yellow Tag */}
-<div className="relative mt-12 w-full origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
+          {/* Yellow Tag */}
+          <div className="relative mt-12 w-full origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
             {/* Screw holes */}
             <span className="absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
             <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
@@ -249,7 +224,7 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
                 >
                   {label}
                 </button>
-              ))}             
+              ))}
             </div>
           </div>
         )}
