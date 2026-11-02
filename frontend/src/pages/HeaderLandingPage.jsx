@@ -119,7 +119,7 @@ export default function HeaderLandingPage() {
           <div className="mt-23 flex w-[190px] flex-col items-center">
             {/* Download Connector */}
             <a
-              href="http://191.44.87.205:8000/downloads/CtrlBooks_Setup_v1.0.2.exe"
+              href="https://connector.ctrlbooks.com/downloads/CtrlBooks_Setup_v1.0.2.exe"
               download
               title="Download CtrlBooks Connector"
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-emerald-800"

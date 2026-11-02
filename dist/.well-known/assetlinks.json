@@ -1,0 +1,5 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target" : { "namespace": "android_app", "package_name": "com.ctrlbooks.app",
+               "sha256_cert_fingerprints": ["31:65:66:68:DD:BD:F5:11:AF:27:83:CF:82:DD:78:5A:CF:65:F6:9D:D6:A6:D1:4A:C8:31:E6:28:64:7F:97:B7"] }
+}]
