@@ -13,7 +13,7 @@ export default function FooterSection({ scrollTo, goToPrivacy, goToTerms, goToRe
           {/* Grow Your Business */}
           <div>
             <img src={logoFull} alt="Control Books Logo" />
-            <img src="/By-img.webp" className="h-[9%] w-[8%] ml-[25%]" alt="By CloudeData Logo" />
+            <img src="/By-img.webp" className="h-[9%] w-[8%] ml-[25%]" alt="By" />
             <img src={CloudeData} className="h-[70px] w-[55%]" alt="CloudeData Logo" />
             <h3 className="text-[22px] font-extrabold text-emerald-700">
               Grow Your Business
