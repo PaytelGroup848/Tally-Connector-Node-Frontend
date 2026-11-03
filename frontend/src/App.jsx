@@ -9,6 +9,7 @@ import SuperAdminPage from "./pages/SuperAdminPage";
 import PrivacyPage from "./pages/LandingPage/PrivacyPage";
 import TermsAndConditions from "./pages/LandingPage/TermsAndConditions";
 import RefundPolicy from "./pages/LandingPage/RefundPolicy";
+import Blogs from "./pages/LandingPage/Blogs";
 function App() {
   const [currentPath, setCurrentPath] = useState(
     () => window.location.pathname,
@@ -33,6 +34,9 @@ function App() {
   }
   if (currentPath === "/refund-policy") {
     return <RefundPolicy />;
+  }
+  if (currentPath === "/ctrlbooks-blogs") {
+    return <Blogs />;
   }
   const { isLoading } = useCurrentUser();
 

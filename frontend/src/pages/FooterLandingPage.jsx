@@ -3,6 +3,9 @@ import logoFull from "../assets/Control-Books-Dashboard.png";
 import CloudeData from "../assets/Cloudedata.png";
 
 export default function FooterLandingPage({ scrollTo }) {
+  const showBlogs = () => {
+    window.location.href = "/ctrlbooks-blogs";
+  };
   return (
     <footer id="footer" className="scroll-mt-24 bg-white text-slate-900">
       {/* Main Footer */}
@@ -10,6 +13,7 @@ export default function FooterLandingPage({ scrollTo }) {
         {/* Grow Your Business */}
         <div>
           <img src={logoFull} alt="CtrlBooks Logo" />
+          <img src="/By-img.webp" className="h-[9%] w-[8%] ml-[25%]" alt="By" />
           <img src={CloudeData} alt="CloudeData" className="h-[70px] w-[55%]" />
           <h3 className="text-[22px] font-extrabold text-emerald-700">
             Grow Your Business
@@ -84,6 +88,13 @@ export default function FooterLandingPage({ scrollTo }) {
               Contact Us
             </button>
 
+            <button
+              onClick={() => showBlogs()}
+              className="block text-sm font-semibold text-slate-900 transition hover:text-emerald-700"
+            >
+              Blogs
+            </button>
+
             {/* <button
               onClick={() => {
                 window.location.href = "/privacy-policy";
@@ -92,7 +103,6 @@ export default function FooterLandingPage({ scrollTo }) {
             >
               Privacy Policy
             </button> */}
-
           </div>
         </div>
 

@@ -2,7 +2,18 @@ import { Menu, X } from "lucide-react";
 import EnquiryModal from "../../components/EnquiryModal";
 import logoFull from "../../assets/Control-Books-Dashboard.png";
 
-export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goToLogin, showEnquiry, setShowEnquiry }) {
+export default function LandingHeader({
+  mobileOpen,
+  setMobileOpen,
+  scrollTo,
+  goToLogin,
+  showEnquiry,
+  setShowEnquiry,
+  showMobileEnquiry = true,
+}) {
+  const showBlogs = () => { 
+  window.location.href = "/ctrlbooks-blogs"; 
+}
   return (
     <>
       {/* ================= HEADER ================= */}
@@ -16,7 +27,7 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
             <img
               src={logoFull}
               alt="CtrlBooks Logo"
-              className="h-18 sm:h-14 w-auto object-contain"
+              className="h-14 w-[145px] object-contain sm:w-auto"
             />
           </button>
 
@@ -55,6 +66,7 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
             >
               FAQ
             </button>
+            
           </nav>
 
           {/* Desktop Actions */}
@@ -130,7 +142,8 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
                 onClick={goToLogin}
                 className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-1 py-1 text-xs font-bold text-white shadow-xl shadow-green-100 transition hover:bg-emerald-800 mr-1"
               >
-                Start using CtrlBooks
+                <span className="sm:hidden">Get started</span>
+                <span className="hidden sm:inline">Start using CtrlBooks</span>
               </button>
             </div>
 
@@ -168,6 +181,7 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
           </div>
         </div>
         {/* Enquiry Now */}
+        {showMobileEnquiry && (
         <div className="left-3/4 absolute flex h-[95px] w-[20%] items-start justify-center lg:hidden">
           {/* Chain */}
           <div className="absolute left-1/2 top-0 z-10 flex -translate-x-1/2 flex-col items-center">
@@ -179,7 +193,6 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
               <span className="-mt-1 h-2 w-2 rotate-45 border-2 border-[#8b5a18]" />
               <span className="-mt-1 h-2 w-2 -rotate-45 border-2 border-[#8b5a18]" />
             </div>
-
             <div className="mt-1 h-4 w-4 rounded-full border border-gray-400 bg-gradient-to-br from-gray-100 via-gray-300 to-gray-500 shadow-md" />
           </div>
 
@@ -206,6 +219,7 @@ export default function LandingHeader({ mobileOpen, setMobileOpen, scrollTo, goT
             </div>
           </div>
         </div>
+        )}
         {/* Mobile Navigation */}
         {mobileOpen && (
           <div className="border-t border-slate-100 bg-white px-4 py-5 lg:hidden">
