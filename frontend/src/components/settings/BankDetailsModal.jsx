@@ -241,16 +241,14 @@ export default function BankDetailsModal({ company, onClose }) {
             appBankId = matched?._id || matched?.id || null;
           }
 
-          if (!appBankId) {
-            setBankSaveError(
-              "Could not link this bank to your account. It may not be synced yet. Please try again after Tally sync completes.",
-            );
-            setBankSaving(false);
-            return;
+          if (appBankId) {
+            await setDefaultCompanyBank(accessToken, company.id, appBankId);
+          } else {
+            await createCompanyBank(accessToken, company.id, {
+              ...bankForm,
+              isDefault: true,
+            });
           }
-
-          // 👇 Ab default set karo
-          await setDefaultCompanyBank(accessToken, company.id, appBankId);
         }
       } else {
         // Create new bank

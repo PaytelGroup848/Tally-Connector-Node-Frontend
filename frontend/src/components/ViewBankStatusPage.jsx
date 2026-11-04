@@ -393,7 +393,7 @@ export default function ViewBankStatusPage({
               <table className="w-full min-w-[720px] border-collapse text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">Ledger / Bank</th>
+                    <th className="px-4 py-3 font-semibold">Bank</th>
                     <th className="px-4 py-3 font-semibold">Status</th>
                     <th className="px-4 py-3 font-semibold">Submitted</th>
                     <th className="px-4 py-3 font-semibold">Message</th>

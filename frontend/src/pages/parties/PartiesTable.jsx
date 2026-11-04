@@ -18,10 +18,7 @@ function PartyRow({ party }) {
   const balance = Number(party?.closingBalance) || 0;
 
   return (
-    <tr
-      key={party?._id || party?.tallyExternalId}
-      className="party-row"
-    >
+    <tr key={party?._id || party?.tallyExternalId} className="party-row">
       <td className="party-td">
         <div style={{ minWidth: "220px" }}>
           <div style={{ fontSize: "12px", fontWeight: 500, color: "#1e3a5f" }}>
@@ -72,8 +69,7 @@ function PartyRow({ party }) {
       </td>
       <td className="party-td party-right">
         <span style={{ fontWeight: 500, color: "#475569" }}>
-          {formatAmount(Math.abs(balance))}
-          {balance < 0 ? " Dr" : balance > 0 ? " Cr" : ""}
+          {balance < 0 ? "-" : ""} {formatAmount(Math.abs(balance))}
         </span>
       </td>
       <td className="party-td party-right">
@@ -125,12 +121,7 @@ function PartyRow({ party }) {
   );
 }
 
-export default function PartiesTable({
-  companyId,
-  parties,
-  loading,
-  search,
-}) {
+export default function PartiesTable({ companyId, parties, loading, search }) {
   if (!companyId) return null;
 
   return (
@@ -147,10 +138,7 @@ export default function PartiesTable({
           <thead>
             <tr style={{ height: "41px", background: "#f5f8fa" }}>
               {columns.map(([label, className]) => (
-                <th
-                  key={label}
-                  className={`party-th ${className || ""}`}
-                >
+                <th key={label} className={`party-th ${className || ""}`}>
                   {label}
                 </th>
               ))}
