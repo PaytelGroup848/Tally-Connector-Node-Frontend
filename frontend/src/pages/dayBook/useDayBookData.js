@@ -58,13 +58,12 @@ export default function useDayBookData(companyId) {
 
         if (!isMounted) return
 
-        console.log('DAY BOOK API RESPONSE:', response)
+      
 
         const nextRows = extractDayBookRows(response)
         const pagination = extractDayBookPagination(response)
 
-        console.log('DAY BOOK ROWS:', nextRows)
-        console.log('DAY BOOK PAGINATION:', pagination)
+       
         const totalCandidates = [
           pagination?.total,
           pagination?.totalItems,

@@ -107,7 +107,7 @@ export function JournalVoucherContent({
 
   const amountsDoNotMatch = hasEnteredAmount && debitTotal !== creditTotal;
 
-  console.log("this is my voucher type", voucherType);
+
 
   const renderParticularSection = (type) => {
     const sectionRows = rows.filter((row) => row.type === type);

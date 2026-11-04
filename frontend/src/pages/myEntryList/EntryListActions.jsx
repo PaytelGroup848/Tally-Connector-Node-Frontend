@@ -44,7 +44,7 @@ export default function EntryListActions({
       <button
         type="button"
         className="text-xs text-slate-700 hover:text-black"
-        onClick={() => console.log("Rows per page clicked")}
+        onClick={() => {}}
       >
         Rows per page: 10　⌄
       </button>

@@ -121,8 +121,7 @@ export default function BankDetailsModal({ company, onClose }) {
     const appBanks =
       appRes.status === "fulfilled" ? extractBankList(appRes.value) : [];
 
-    console.log("Tally banks:", tallyBanks);
-    console.log("App banks:", appBanks);
+   
 
     const finalBanks = mergeBankLists(tallyBanks, appBanks);
     setCompanyBanks(finalBanks);

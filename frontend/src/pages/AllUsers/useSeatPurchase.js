@@ -32,7 +32,7 @@ export default function useSeatPurchase({ accessToken, user, onPaymentSuccess })
       seats: seatsToAdd,
     });
 
-    console.log("Seat order created:", response);
+  
 
     setOrderData(response);
     setStep("details");

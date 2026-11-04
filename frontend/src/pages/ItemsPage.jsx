@@ -183,7 +183,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
         companyId,
         payload,
       )
-      console.log('UPDATE_STOCK_ITEM response:', response)
+  
 
       setStockItems((currentItems) =>
         currentItems.map((item) => {

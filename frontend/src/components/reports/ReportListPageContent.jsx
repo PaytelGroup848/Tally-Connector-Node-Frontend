@@ -1271,7 +1271,7 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 
   const handleReminder = (customer) => {
     const phone = (customer?.phone || "").replace(/\D/g, "");
-    console.log("this is my phone ", customer);
+   
 
     if (!phone) {
       alert("No phone number found for this customer");
@@ -2033,7 +2033,7 @@ function SalesReport({ companyId }) {
                         })}
 
                         <td className="whitespace-nowrap px-5 py-3 text-center">
-                          {console.log("this is my row", row)}
+                         
                           <button
                             type="button"
                             onClick={() => setPreviewId(row._id)}
