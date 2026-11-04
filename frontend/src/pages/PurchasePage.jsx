@@ -3,12 +3,14 @@ import useAuthStore from "../store/authStore";
 import { Eye, FileDown } from "lucide-react";
 import {
   extractPurchasePagination,
+  extractPurchaseTotalAmount,
   extractPurchases,
   fetchCompanyPurchases,
 } from "../services/companiesApi";
 
 import { downloadVoucherPdf } from "../services/voucherPdfApi";
 import VoucherPreviewModal from "../components/VoucherPreviewModal";
+import DateRangePicker from "../components/DateRangePicker";
 
 const supplierFields = [
   ["Supplier’s Name", "Supplier’s Name"],
@@ -178,8 +180,21 @@ function PurchasePage({ companyId }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [pagination, setPagination] = useState({});
+  const [totalAmount, setTotalAmount] = useState(null);
   const [query, setQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [pageState, setPageState] = useState({ companyId, page: 1 });
+  const currentPage = pageState.companyId === companyId ? pageState.page : 1;
+  const setCurrentPage = (page) => {
+    setPageState((state) => ({
+      companyId,
+      page:
+        typeof page === "function"
+          ? page(state.companyId === companyId ? state.page : 1)
+          : page,
+    }));
+  };
   const [pageSize, setPageSize] = useState(20);
   const [downloadingId, setDownloadingId] = useState(null);
   const [previewId, setPreviewId] = useState(null);
@@ -204,6 +219,8 @@ function PurchasePage({ companyId }) {
     if (!accessToken || !companyId) {
       setPurchases([]);
       setPagination({});
+      setTotalAmount(null);
+      setIsLoading(false);
       setErrorMessage(
         accessToken
           ? "No company selected."
@@ -216,22 +233,30 @@ function PurchasePage({ companyId }) {
 
     setIsLoading(true);
     setErrorMessage("");
+    setTotalAmount(null);
 
     fetchCompanyPurchases(accessToken, companyId, {
-      q: "",
-      from: "2010-04-01",
-      to: "2027-03-31",
-      page: 1,
-      limit: 20,
+      q: query,
+      from: startDate,
+      to: endDate,
+      page: currentPage,
+      limit: pageSize,
     })
       .then((response) => {
         if (!isMounted) return;
 
-        setPurchases(extractPurchases(response));
-        setPagination(extractPurchasePagination(response));
+        const nextPurchases = extractPurchases(response);
+        const nextPagination = extractPurchasePagination(response);
+
+        setPurchases(nextPurchases);
+        setPagination(nextPagination);
+        setTotalAmount(extractPurchaseTotalAmount(response));
       })
       .catch((error) => {
         if (isMounted) {
+          setPurchases([]);
+          setPagination({});
+          setTotalAmount(null);
           setErrorMessage(error?.message || "Unable to load purchases");
         }
       })
@@ -244,7 +269,15 @@ function PurchasePage({ companyId }) {
     return () => {
       isMounted = false;
     };
-  }, [accessToken, companyId]);
+  }, [
+    accessToken,
+    companyId,
+    query,
+    currentPage,
+    pageSize,
+    startDate,
+    endDate,
+  ]);
 
   const getPurchaseValue = (purchase, keys) => {
     for (const key of keys) {
@@ -282,45 +315,97 @@ function PurchasePage({ companyId }) {
         });
   };
 
-  const filteredPurchases = purchases.filter((purchase) => {
-    const searchableText = [
-      purchase?.voucherNumber,
-      purchase?.voucherNo,
-      purchase?.voucher_no,
-      purchase?.partyLedger,
-      purchase?.partyName,
-      purchase?.party_name,
-      purchase?.narration,
-      purchase?.voucherType,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    return searchableText.includes(query.toLowerCase());
-  });
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredPurchases.length / pageSize),
+  const totalFromApi = [
+    pagination?.total,
+    pagination?.totalItems,
+    pagination?.totalRecords,
+    pagination?.totalCount,
+    pagination?.count,
+    pagination?.total_count,
+  ].find(
+    (value) =>
+      value !== undefined &&
+      value !== null &&
+      String(value).trim() !== "" &&
+      Number.isFinite(Number(value)),
   );
+  const hasTotalFromApi = totalFromApi !== undefined;
+  const totalItems = hasTotalFromApi
+    ? Number(totalFromApi)
+    : purchases.length;
+  const totalPagesFromApi = Number(
+    pagination?.totalPages ??
+      pagination?.total_pages ??
+      pagination?.pages ??
+      pagination?.pageCount ??
+      pagination?.page_count,
+  );
+  const totalPages =
+    Number.isFinite(totalPagesFromApi) && totalPagesFromApi > 0
+      ? totalPagesFromApi
+      : hasTotalFromApi
+        ? Math.max(1, Math.ceil(totalItems / pageSize))
+        : Math.max(
+            1,
+            currentPage + (purchases.length >= pageSize ? 1 : 0),
+          );
   const safeCurrentPage = Math.min(currentPage, totalPages);
-
-  const paginatedPurchases = filteredPurchases.slice(
-    (safeCurrentPage - 1) * pageSize,
-    safeCurrentPage * pageSize,
-  );
+  const pageItems =
+    totalPages <= 7
+      ? Array.from({ length: totalPages }, (_, index) => index + 1)
+      : safeCurrentPage <= 4
+        ? [1, 2, 3, 4, 5, "...", totalPages]
+        : safeCurrentPage >= totalPages - 3
+          ? [
+              1,
+              "...",
+              totalPages - 4,
+              totalPages - 3,
+              totalPages - 2,
+              totalPages - 1,
+              totalPages,
+            ]
+          : [
+              1,
+              "...",
+              safeCurrentPage - 1,
+              safeCurrentPage,
+              safeCurrentPage + 1,
+              "...",
+              totalPages,
+            ];
 
   return (
     <div className="min-h-[calc(100vh-60px)] bg-[#eef3f8]">
       <div className="bg-white px-5 py-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <span className="block text-xs text-slate-600">Purchase Data</span>
+            <span className="block text-xs text-slate-600">
+              Total Purchase Amount
+            </span>
             <strong className="mt-1 block text-xl font-bold text-slate-900">
-              {filteredPurchases.length} records
+              {totalAmount === null
+                ? "—"
+                : `₹ ${totalAmount.toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`}
             </strong>
+            <span className="mt-1 block text-xs text-slate-500">
+              {hasTotalFromApi
+                ? `${totalItems} records`
+                : `${purchases.length} records on this page`}
+            </span>
           </div>
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(nextStartDate, nextEndDate) => {
+              setCurrentPage(1);
+              setStartDate(nextStartDate);
+              setEndDate(nextEndDate);
+            }}
+          />
         </div>
       </div>
 
@@ -362,7 +447,13 @@ function PurchasePage({ companyId }) {
           </div>
 
           <span className="text-xs text-slate-500">
-            Page {safeCurrentPage} · {pageSize} per page
+            {totalItems > 0
+              ? `${(safeCurrentPage - 1) * pageSize + 1}-${Math.min(
+                  safeCurrentPage * pageSize,
+                  totalItems,
+                )} of ${hasTotalFromApi ? totalItems : "at least"}`
+              : "0 records"}{" "}
+            · Page {safeCurrentPage} of {totalPages}
           </span>
         </div>
 
@@ -407,8 +498,8 @@ function PurchasePage({ companyId }) {
               </thead>
 
               <tbody className="divide-y divide-slate-100">
-                {paginatedPurchases.length > 0 ? (
-                  paginatedPurchases.map((purchase, index) => {
+                {purchases.length > 0 ? (
+                  purchases.map((purchase, index) => {
                     const voucherNumber = getPurchaseValue(purchase, [
                       "voucherNumber",
                       "voucherNo",
@@ -544,7 +635,7 @@ function PurchasePage({ companyId }) {
                 ) : (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="h-[150px] text-center text-sm text-slate-500"
                     >
                       No purchase data available.
@@ -557,12 +648,27 @@ function PurchasePage({ companyId }) {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4">
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-            (page) => (
+          <button
+            type="button"
+            disabled={isLoading || safeCurrentPage <= 1}
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            className="h-9 rounded-lg border border-slate-200 px-3 text-sm text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Previous
+          </button>
+          {pageItems.map((page, index) =>
+            page === "..." ? (
+              <span
+                key={`ellipsis-${index}`}
+                className="px-1 text-sm text-slate-400"
+              >
+                ...
+              </span>
+            ) : (
               <button
                 key={page}
                 type="button"
-                disabled={isLoading || totalPages <= 1}
+                disabled={isLoading}
                 onClick={() => setCurrentPage(page)}
                 className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium ${
                   safeCurrentPage === page
@@ -574,6 +680,16 @@ function PurchasePage({ companyId }) {
               </button>
             ),
           )}
+          <button
+            type="button"
+            disabled={isLoading || safeCurrentPage >= totalPages}
+            onClick={() =>
+              setCurrentPage((page) => Math.min(totalPages, page + 1))
+            }
+            className="h-9 rounded-lg border border-slate-200 px-3 text-sm text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       </section>
     </div>

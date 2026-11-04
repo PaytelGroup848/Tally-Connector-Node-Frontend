@@ -70,7 +70,7 @@ export function fetchCompanySales(
 export function fetchCompanyPurchases(
   accessToken,
   companyId,
-  { q = '', from = '', to = '', page = 1, limit = 20 } = {},
+  { q = '', from = '', to = '', page = '', limit = '' } = {},
 ) {
   const params = new URLSearchParams({
     q: String(q),
@@ -109,18 +109,20 @@ export function extractPurchases(response) {
   if (Array.isArray(response)) return response
 
   const pending = [response]
-  const purchaseKeys = ['purchases', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+  const purchaseKeys = ['purchases', 'purchaseVouchers', 'purchase_vouchers', 'vouchers', 'transactions', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
 
   while (pending.length > 0) {
     const value = pending.shift()
-    if (!value || typeof value !== 'object') continue
+    if (!value || typeof value !== 'object' || Array.isArray(value)) continue
 
     for (const key of purchaseKeys) {
       if (Array.isArray(value[key])) return value[key]
     }
 
     for (const child of Object.values(value)) {
-      if (child && typeof child === 'object') pending.push(child)
+      if (child && typeof child === 'object' && !Array.isArray(child)) {
+        pending.push(child)
+      }
     }
   }
 
@@ -128,10 +130,58 @@ export function extractPurchases(response) {
 }
 
 export function extractPurchasePagination(response) {
-  const pagination = response?.pagination || response?.data?.pagination || response?.meta || response?.data?.meta
-  if (pagination && typeof pagination === 'object') return pagination
+  const pending = [response]
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object' || Array.isArray(value)) continue
+
+    const pagination = value.pagination || value.meta
+    if (pagination && typeof pagination === 'object') return pagination
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object' && !Array.isArray(child)) {
+        pending.push(child)
+      }
+    }
+  }
+
   if (response?.data && typeof response.data === 'object') return response.data
   return response && typeof response === 'object' ? response : {}
+}
+
+export function extractPurchaseTotalAmount(response) {
+  const totalAmountKeys = [
+    'totalAmount',
+    'total_amount',
+    'totalPurchaseAmount',
+    'total_purchase_amount',
+    'purchaseTotal',
+    'purchase_total',
+  ]
+  const pending = [response]
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object' || Array.isArray(value)) continue
+
+    for (const key of totalAmountKeys) {
+      const amount = value[key]
+      if (amount === null || amount === undefined || String(amount).trim() === '') {
+        continue
+      }
+
+      const numericAmount = Number(String(amount).replace(/[^\d.-]/g, ''))
+      if (Number.isFinite(numericAmount)) return numericAmount
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object' && !Array.isArray(child)) {
+        pending.push(child)
+      }
+    }
+  }
+
+  return null
 }
 
 export function extractPurchaseOrders(response) {

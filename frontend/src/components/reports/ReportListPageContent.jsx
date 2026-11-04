@@ -1499,9 +1499,9 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
                     </th>
                   ))}
 
-                  {(row.action==null)?"":<th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
+                  <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
                     Action
-                  </th>}
+                  </th>
                 </tr>
               </thead>
 

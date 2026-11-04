@@ -17,6 +17,16 @@ import ReceivablesPanel from "./dashboard/ReceivablesPanel";
 import SalesReceiptsPanel from "./dashboard/SalesReceiptsPanel";
 import { normalizeDashboardData, toInputDate } from "./dashboard/utils";
 
+function formatHeaderDate(value) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
 function DashboardPage({
   companyId,
   activeTab,
@@ -46,8 +56,10 @@ function DashboardPage({
 
     let isMounted = true;
     const requestId = ++dashboardRequestRef.current;
-    const requestOptions =
-      fromDate && toDate ? { from: fromDate, to: toDate } : {};
+    const requestOptions = {
+      from: fromDate || "2000-01-01",
+      to: toDate || toInputDate(new Date()),
+    };
 
     fetchCompanyDashboard(accessToken, companyId, requestOptions)
       .then((response) => {
@@ -78,6 +90,19 @@ function DashboardPage({
     };
   }, [accessToken, companyId, fromDate, toDate]);
 
+  const companyDataStartDate = toInputDate(
+    dashboardData?.summary?.companyDataStartDate ??
+      dashboardData?.companyDataStartDate,
+  );
+  const companyDataEndDate = toInputDate(
+    dashboardData?.summary?.companyDataEndDate ??
+      dashboardData?.companyDataEndDate,
+  );
+  const companyDataRange =
+    companyDataStartDate && companyDataEndDate
+      ? { from: companyDataStartDate, to: companyDataEndDate }
+      : null;
+
   const applyDateFilter = (event) => {
     event.preventDefault();
     if (!draftFromDate || !draftToDate || draftFromDate > draftToDate) return;
@@ -92,63 +117,38 @@ function DashboardPage({
     dashboardData,
     dashboardRange || { from: fromDate, to: toDate },
   );
+  const reportRange =
+    fromDate && toDate
+      ? { from: fromDate, to: toDate }
+      : dashboardRange || {
+          from: "2000-01-01",
+          to: toInputDate(new Date()),
+        };
 
   return (
     <div className="min-h-[calc(100vh-64px)] w-full min-w-0 overflow-x-hidden bg-app-bg p-4 sm:p-5 lg:p-6">
       <div className="mx-auto w-full max-w-[1500px] min-w-0">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-5 grid grid-cols-[1fr_auto] items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
           <h1 className="cloud-page-title">Dashboard</h1>
 
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => {
-                setDraftFromDate(fromDate);
-                setDraftToDate(toDate);
-                setIsDateFilterOpen((open) => !open);
-              }}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-app-border bg-white px-3 text-[11px] font-semibold text-app-text-secondary shadow-sm"
-            >
-              <CalendarDays className="h-4 w-4" />
-
-              <ChevronDown className="h-4 w-4 text-slate-400" />
-            </button>
-
-            {isDateFilterOpen && (
-              <form
-                onSubmit={applyDateFilter}
-                className="absolute right-0 z-20 mt-2 grid w-64 gap-3 rounded-lg border border-app-border bg-white p-4 shadow-lg"
-              >
-                <label className="grid gap-1 text-[11px] font-semibold text-app-text-secondary">
-                  From
-                  <input
-                    type="date"
-                    value={draftFromDate}
-                    onChange={(event) => setDraftFromDate(event.target.value)}
-                    className="h-9 rounded-md border border-app-border px-2 text-xs text-app-text"
-                  />
-                </label>
-
-                <label className="grid gap-1 text-[11px] font-semibold text-app-text-secondary">
-                  To
-                  <input
-                    type="date"
-                    value={draftToDate}
-                    min={draftFromDate}
-                    onChange={(event) => setDraftToDate(event.target.value)}
-                    className="h-9 rounded-md border border-app-border px-2 text-xs text-app-text"
-                  />
-                </label>
-
-                <button
-                  type="submit"
-                  className="h-9 rounded-md bg-app-primary px-3 text-xs font-semibold text-white"
-                >
-                  Apply Filter
-                </button>
-              </form>
-            )}
+          <div className="col-span-2 flex justify-center sm:col-span-1">
+            <div className="mx-auto grid w-fit max-w-full gap-1.5 rounded-xl border border-app-border bg-white px-3 py-2 shadow-sm sm:px-4">
+              <div className="flex flex-wrap items-center justify-center gap-x-2 text-xs">
+                <span className="text-app-text">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700">
+                    <CalendarDays size={15} />
+                    <span className="text-xs font-semibold tracking-wide">
+                      {companyDataRange
+                        ? `FY (${formatHeaderDate(companyDataRange.from)}) to FY (${formatHeaderDate(companyDataRange.to)})`
+                        : "Date range unavailable"}
+                    </span>
+                  </div>
+                </span>
+              </div>
+            </div>
           </div>
+
+          
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -160,9 +160,9 @@ function DashboardPage({
           />
           <MetricCard
             icon={FileText}
-            label="Total Receipts"
-            value={dashboardValues.totalReceipts}
-            change={dashboardValues.receiptsChange}
+            label="Total Purchases"
+            value={dashboardValues.totalPurchases}
+            change={dashboardValues.purchasesChange}
           />
           <MetricCard
             icon={CreditCard}
@@ -224,43 +224,40 @@ function DashboardPage({
         </div>
       </div>
 
-     
-<div className="w-full max-w-none m-0 p-0 overflow-hidden">
-  <div
-    className="relative w-full h-80 overflow-hidden"
-    style={{
-      aspectRatio: "202 / 60",
+      <div className="w-full max-w-none m-0 p-0 overflow-hidden">
+        <div
+          className="relative w-full h-80 overflow-hidden"
+          style={{
+            aspectRatio: "202 / 60",
 
-      WebkitMaskImage: "url('/ctrlbooks-logo.webp')",
-      maskImage: "url('/ctrlbooks-logo.webp')",
+            WebkitMaskImage: "url('/ctrlbooks-logo.webp')",
+            maskImage: "url('/ctrlbooks-logo.webp')",
 
-      WebkitMaskSize: "100% 100%",
-      maskSize: "100% 100%",
-      WebkitMaskRepeat: "no-repeat",
-      maskRepeat: "no-repeat",
-      WebkitMaskPosition: "center",
-      maskPosition: "center",
-    }}
-  >
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="w-full h-full max-sm:w-[90%] max-sm:h-[70%] overflow-hidden">
-        <video
-          className="block w-full h-full object-cover m-0 p-0"
-          src="/ctrlbooks-video.webm"
-
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          aria-hidden="true"
-        />
+            WebkitMaskSize: "100% 100%",
+            maskSize: "100% 100%",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+          }}
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-full h-full max-sm:w-[90%] max-sm:h-[70%] overflow-hidden">
+              <video
+                className="block w-full h-full object-cover m-0 p-0"
+                src="/ctrlbooks-video.webm"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                disablePictureInPicture
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-
     </div>
   );
 }

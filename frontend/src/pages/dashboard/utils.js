@@ -16,15 +16,11 @@ export const formatAmount = (value, fallback) => {
 
   const sign = numericValue < 0 ? '-₹ ' : '₹ '
   const absoluteValue = Math.abs(numericValue)
-  const compactValue = absoluteValue >= 10000000
-    ? `${(absoluteValue / 10000000).toFixed(2)}Cr`
-    : absoluteValue >= 100000
-      ? `${(absoluteValue / 100000).toFixed(2)}L`
-      : absoluteValue >= 1000
-        ? `${(absoluteValue / 1000).toFixed(2)}K`
-        : new Intl.NumberFormat('en-IN').format(absoluteValue)
+  const compactValue = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(Math.round(absoluteValue));
 
-  return `${sign}${compactValue}`
+return `${sign}${compactValue}`;
+
+
 }
 
 export const formatPercent = (value, fallback) => {
@@ -164,11 +160,20 @@ export const normalizeDashboardData = (response, fallbackRange) => {
   ])
 
   return {
-    totalSales: formatAmount(readField(summary, ['totalSales', 'salesTotal', 'sales']), '₹ 0'),
+    totalSales: formatAmount(
+      readField(summary, ['salesAccountsTotal', 'sales_accounts_total']),
+      '₹ 0',
+    ),
     totalReceipts: formatAmount(readField(summary, ['totalReceipts', 'receiptsTotal', 'receipts']), '₹ 0'),
+    totalPurchases: formatAmount(
+      readField(summary, ['purchaseAccountsTotal', 'purchase_accounts_total']),
+      '₹ 0',),
     totalPayments: formatAmount(readField(summary, ['totalPayments', 'paymentsTotal', 'payments']), '₹ 0'),
     cashBankBalance: formatAmount(readField(summary, ['cashBankBalance', 'cashAndBankBalance', 'cashBank']), '₹ 0'),
-    salesChange: formatPercent(readField(summary, ['totalSales']), '0%'),
+    salesChange: formatPercent(
+      readField(summary, ['salesAccountsTotal', 'sales_accounts_total']),
+      '0%',
+    ),
     receiptsChange: formatPercent(readField(summary, ['totalReceipts']), '0%'),
     paymentsChange: formatPercent(readField(summary, ['totalPayments']), '0%'),
     cashBankChange: formatPercent(readField(summary, ['cashBankBalance']), '—'),

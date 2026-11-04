@@ -78,16 +78,15 @@ export function fetchCompanyDashboard(
   companyId,
   { from = '', to = '' } = {},
 ) {
-  let path = `/companies/${encodeURIComponent(companyId)}/dashboard?from=2000-01-01&to`
+  const path = `/companies/${encodeURIComponent(companyId)}/dashboard`
 
-  // Only add query parameters when both dates are actually selected
   if (from && to) {
     const params = new URLSearchParams({
       from: String(from),
       to: String(to),
     })
 
-    path += `?${params.toString()}`
+    return request(`${path}?${params.toString()}`, accessToken)
   }
 
   return request(path, accessToken)
