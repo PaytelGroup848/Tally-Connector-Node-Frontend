@@ -413,7 +413,7 @@ function PurchasePage({ companyId }) {
         <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <label className="flex h-9 w-full items-center rounded-lg border border-slate-200 px-3 text-sm text-slate-500 sm:w-64">
-              <span className="mr-2 text-slate-400">⌕</span>
+             
               <input
                 value={query}
                 onChange={(event) => {
