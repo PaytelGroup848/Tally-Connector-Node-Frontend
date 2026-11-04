@@ -35,6 +35,7 @@ export function SearchableDropdown({
   resetToken = 0,
   disabled = false,
   showAllValues,
+  debounceDelay = DEBOUNCE_DELAY,
 }) {
   const [query, setQuery] = useState(value ?? defaultValue ?? "");
   const [open, setOpen] = useState(false);
@@ -61,10 +62,10 @@ export function SearchableDropdown({
 
     const timer = setTimeout(() => {
       onInputChangeRef.current?.(query);
-    }, DEBOUNCE_DELAY);
+    }, debounceDelay);
 
     return () => clearTimeout(timer);
-  }, [query, dirty, resetToken]);
+  }, [query, dirty, resetToken, debounceDelay]);
   useEffect(() => {
     loadMoreRef.current = onLoadMore;
   }, [onLoadMore]);
@@ -173,10 +174,10 @@ export function SearchableDropdown({
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
-    }, DEBOUNCE_DELAY);
+    }, debounceDelay);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, debounceDelay]);
   // Filter only after the user starts typing, so reopening a field that
   // already has a selected value still shows every option.
   const filteredOptions =
@@ -196,7 +197,7 @@ export function SearchableDropdown({
       ? filteredOptions
       : filteredOptions.slice(0, visibleCount);
 
-  const loadMoreOptions = () => {
+  const loadMoreOptions = () => settimeout(() => {
     if (isServerPagination) {
       if (hasMoreOptions && !loadingMore && !loadMoreError) {
         loadMoreRef.current?.();
@@ -207,7 +208,7 @@ export function SearchableDropdown({
     setVisibleCount((prev) =>
       Math.min(prev + DROPDOWN_PAGE_SIZE, filteredOptions.length),
     );
-  };
+  },700);
 
   const hasMoreLocalOptions =
     !isServerPagination && visibleCount < filteredOptions.length;
