@@ -1,5 +1,7 @@
 import { SearchableDropdown } from "./SearchableDropdown";
 
+const VOUCHER_FIELD_SEARCH_DEBOUNCE_MS = 300;
+
 export function VoucherDetailsFields(props) {
   const { clearToken, customers, defaultDate, defaultVoucherType, fetchSelectedPartyBalance, findLedgerGstin, findVoucherNumberForParty, getPaginationProps, hasMoreVoucherTypeOptions, isJournalStyleVoucher, isNoteVoucher, isOptionsLoading, isSalesInvoice, isSalesOrder, isStockJournal, isSupplierVoucher, ledgerTypeOptions, ledgers, loadMoreVoucherTypeOptions, partyBalance, partyBalanceEditedRef, partyBalanceError, partyBalanceLoading, partyOptions, partySources, resetSelectedPartyBalance, searchOptions, selectedGstin, selectedParty, selectedVoucherNumber, setPartyBalance, setSelectedGstin, setSelectedParty, setSelectedVoucherNumber, title, visibleVoucherTypeOptions, voucherNumberOptions, voucherTypesError, vouchers } = props;
   return (
@@ -147,6 +149,7 @@ export function VoucherDetailsFields(props) {
                         onInputChange={(query) =>
                           searchOptions("vouchers", query)
                         }
+                        debounceDelay={VOUCHER_FIELD_SEARCH_DEBOUNCE_MS}
                         placeholder="Voucher number"
                         loading={isOptionsLoading}
                         value={selectedVoucherNumber}
@@ -180,6 +183,7 @@ export function VoucherDetailsFields(props) {
                         onInputChange={(query) =>
                           searchOptions("ledgers", query)
                         }
+                        debounceDelay={VOUCHER_FIELD_SEARCH_DEBOUNCE_MS}
                         placeholder="Select Ledger"
                         loading={isOptionsLoading}
                         resetToken={clearToken}

@@ -22,11 +22,11 @@ const ReceivablesPanel = ({ totalOutstanding, agingData, customerCounts }) => {
   return (
     <Panel
       title="Receivables"
-    
+      className="flex h-full flex-col"
     >
-      <div className="p-4 sm:p-5">
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[155px_1fr]">
-          <div>
+      <div className="flex flex-1 flex-col justify-center p-4 sm:p-5">
+        <div className="grid grid-cols-1 gap-5">
+          <div className="flex flex-col items-center text-center">
             <p className="text-xs font-semibold text-app-text-secondary">Total Outstanding</p>
             <p className="mt-1 text-xl font-bold text-app-text">{totalOutstanding}</p>
 
