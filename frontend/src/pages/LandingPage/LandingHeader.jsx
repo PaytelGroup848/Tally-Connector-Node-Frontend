@@ -11,9 +11,9 @@ export default function LandingHeader({
   setShowEnquiry,
   showMobileEnquiry = true,
 }) {
-  const showBlogs = () => { 
-  window.location.href = "/ctrlbooks-blogs"; 
-}
+  const showBlogs = () => {
+    window.location.href = "/ctrlbooks-blogs";
+  };
   return (
     <>
       {/* ================= HEADER ================= */}
@@ -66,7 +66,6 @@ export default function LandingHeader({
             >
               FAQ
             </button>
-            
           </nav>
 
           {/* Desktop Actions */}
@@ -84,7 +83,7 @@ export default function LandingHeader({
             <div className="mt-23 flex w-[190px] flex-col items-center">
               {/* Download Connector */}
               <a
-                href="https://connector.ctrlbooks.com/downloads/CtrlBooks_Setup_v1.0.2.exe"
+                href="https://connector.ctrlbooks.com/downloads/CtrlBooks_Setup_v1.0.0.exe"
                 download
                 title="Download CtrlBooks Connector"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-green-100 transition hover:bg-emerald-800"
@@ -182,43 +181,43 @@ export default function LandingHeader({
         </div>
         {/* Enquiry Now */}
         {showMobileEnquiry && (
-        <div className="left-3/4 absolute flex h-[95px] w-[20%] items-start justify-center lg:hidden">
-          {/* Chain */}
-          <div className="absolute left-1/2 top-0 z-10 flex -translate-x-1/2 flex-col items-center">
-            <div className="h-3 w-[3px] bg-[#8b5a18]" />
+          <div className="left-3/4 absolute flex h-[95px] w-[20%] items-start justify-center lg:hidden">
+            {/* Chain */}
+            <div className="absolute left-1/2 top-0 z-10 flex -translate-x-1/2 flex-col items-center">
+              <div className="h-3 w-[3px] bg-[#8b5a18]" />
 
-            <div className="flex flex-col items-center">
-              <span className="h-2 w-2 rotate-45 border-2 border-[#8b5a18]" />
-              <span className="-mt-1 h-2 w-2 -rotate-45 border-2 border-[#8b5a18]" />
-              <span className="-mt-1 h-2 w-2 rotate-45 border-2 border-[#8b5a18]" />
-              <span className="-mt-1 h-2 w-2 -rotate-45 border-2 border-[#8b5a18]" />
+              <div className="flex flex-col items-center">
+                <span className="h-2 w-2 rotate-45 border-2 border-[#8b5a18]" />
+                <span className="-mt-1 h-2 w-2 -rotate-45 border-2 border-[#8b5a18]" />
+                <span className="-mt-1 h-2 w-2 rotate-45 border-2 border-[#8b5a18]" />
+                <span className="-mt-1 h-2 w-2 -rotate-45 border-2 border-[#8b5a18]" />
+              </div>
+              <div className="mt-1 h-4 w-4 rounded-full border border-gray-400 bg-gradient-to-br from-gray-100 via-gray-300 to-gray-500 shadow-md" />
             </div>
-            <div className="mt-1 h-4 w-4 rounded-full border border-gray-400 bg-gradient-to-br from-gray-100 via-gray-300 to-gray-500 shadow-md" />
-          </div>
 
-          {/* Yellow Tag */}
-          <div className="relative mt-12 w-full origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
-            {/* Screw holes */}
-            <span className="absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
-            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
-            <span className="absolute bottom-1.5 left-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
-            <span className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
+            {/* Yellow Tag */}
+            <div className="relative mt-12 w-full origin-top rounded-[10px] border border-[#d69b08] bg-gradient-to-br from-[#fff06a] via-[#ffd83d] to-[#f5bd00] px-3 py-2 shadow-[0_5px_12px_rgba(0,0,0,0.18)] animate-[swing_2.8s_ease-in-out_infinite]">
+              {/* Screw holes */}
+              <span className="absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
+              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
+              <span className="absolute bottom-1.5 left-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
+              <span className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full border border-gray-400 bg-gray-200" />
 
-            <div className="text-center font-serif text-[9px] font-black leading-tight tracking-[0.08em] text-black">
-              <button
-                onClick={() => setShowEnquiry(true)}
-                className="focus:outline-none"
-              >
-                ENQUIRY NOW
-              </button>
+              <div className="text-center font-serif text-[9px] font-black leading-tight tracking-[0.08em] text-black">
+                <button
+                  onClick={() => setShowEnquiry(true)}
+                  className="focus:outline-none"
+                >
+                  ENQUIRY NOW
+                </button>
 
-              <EnquiryModal
-                isOpen={showEnquiry}
-                onClose={() => setShowEnquiry(false)}
-              />
+                <EnquiryModal
+                  isOpen={showEnquiry}
+                  onClose={() => setShowEnquiry(false)}
+                />
+              </div>
             </div>
           </div>
-        </div>
         )}
         {/* Mobile Navigation */}
         {mobileOpen && (
