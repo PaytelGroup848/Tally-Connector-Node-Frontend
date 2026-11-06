@@ -12,6 +12,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import useAuthStore from "../store/authStore";
+import { lockBodyScroll } from "../utils/bodyScrollLock";
 import {
   fetchVoucherHtml,
   downloadVoucherPdfFile,
@@ -93,11 +94,7 @@ export default function VoucherPreviewModal({
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    return lockBodyScroll();
   }, [open]);
 
   useEffect(() => {

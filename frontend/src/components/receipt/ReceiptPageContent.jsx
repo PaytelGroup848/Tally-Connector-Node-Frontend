@@ -2,6 +2,7 @@ import ReceiptFormFields from './ReceiptFormFields';
 import ReceiptHeader from './ReceiptHeader';
 import StatusToast from './StatusToast';
 import { useReceiptPageState } from './useReceiptPageState';
+import { useVoucherNumberOptions } from '../../hooks/useVoucherNumberOptions';
 import { useEffect, useState } from 'react';
 
 function ReceiptPageContent({
@@ -10,6 +11,8 @@ function ReceiptPageContent({
   documentType = 'Receipt',
 }) {
   const {
+    companyId,
+    companyDataYear,
     companyBanks,
     bankSearchOptions,
     banksLoading,
@@ -39,6 +42,12 @@ function ReceiptPageContent({
     submitMessage,
     isSubmitting,
   } = useReceiptPageState({ companyId: companyIdProp, selectedCompany, documentType });
+  const {
+    voucherNumberOptions,
+    loading: voucherNumbersLoading,
+    searchOptions: searchVoucherNumbers,
+    paginationProps: voucherNumberPaginationProps,
+  } = useVoucherNumberOptions(companyId);
 const [toastVisible, setToastVisible] = useState(false);
 
 useEffect(() => {
@@ -72,6 +81,11 @@ useEffect(() => {
         <ReceiptFormFields
           form={form}
           updateField={updateField}
+          companyDataYear={companyDataYear}
+          voucherNumberOptions={voucherNumberOptions}
+          voucherNumbersLoading={voucherNumbersLoading}
+          searchVoucherNumbers={searchVoucherNumbers}
+          voucherNumberPaginationProps={voucherNumberPaginationProps}
           companyBanks={companyBanks}
           bankSearchOptions={bankSearchOptions}
           banksLoading={banksLoading}

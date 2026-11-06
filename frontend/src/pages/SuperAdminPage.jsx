@@ -53,7 +53,7 @@ const SuperAdminPage = () => {
             path: '/super-admin/plans',
         },
          {
-            label: 'All Organisations / Invoices',
+            label: 'All Info / Invoices',
                 icon: Building2,
             path: '/super-admin/organisations',
         },

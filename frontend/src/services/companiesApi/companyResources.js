@@ -101,6 +101,15 @@ export function fetchCompanyLedgers(accessToken, companyId, { page = 1, limit = 
   return request(`/companies/${encodeURIComponent(companyId)}/ledgers?${params.toString()}`, accessToken)
 }
 
+export function fetchCompanyLedgerTypes(accessToken, companyId, { page = 1, limit = 20, q = '' } = {}) {
+  const params = new URLSearchParams({
+    q: String(q),
+    page: String(page),
+    limit: String(limit),
+  })
+  return request(`/companies/${encodeURIComponent(companyId)}/ledger-types?${params.toString()}`, accessToken)
+}
+
 export function fetchCompanyGodowns(accessToken, companyId, { page = 1, limit = 20, q = '' } = {}) {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
   if (q.trim()) params.set('q', q.trim())
@@ -146,6 +155,28 @@ export function extractLedgers(response) {
     if (!value || typeof value !== 'object') continue
 
     for (const key of ledgerKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractLedgerTypes(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const ledgerTypeKeys = ['ledgerTypes', 'ledger_types', 'ledgerType', 'ledger_type', 'types', 'items', 'records', 'results', 'docs', 'rows', 'content', 'data']
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of ledgerTypeKeys) {
       if (Array.isArray(value[key])) return value[key]
     }
 

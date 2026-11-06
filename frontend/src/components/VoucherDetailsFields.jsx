@@ -3,7 +3,7 @@ import { SearchableDropdown } from "./SearchableDropdown";
 const VOUCHER_FIELD_SEARCH_DEBOUNCE_MS = 300;
 
 export function VoucherDetailsFields(props) {
-  const { clearToken, customers, defaultDate, defaultVoucherType, fetchSelectedPartyBalance, findLedgerGstin, findVoucherNumberForParty, getPaginationProps, hasMoreVoucherTypeOptions, isJournalStyleVoucher, isNoteVoucher, isOptionsLoading, isSalesInvoice, isSalesOrder, isStockJournal, isSupplierVoucher, ledgerTypeOptions, ledgers, loadMoreVoucherTypeOptions, partyBalance, partyBalanceEditedRef, partyBalanceError, partyBalanceLoading, partyOptions, partySources, resetSelectedPartyBalance, searchOptions, selectedGstin, selectedParty, selectedVoucherNumber, setPartyBalance, setSelectedGstin, setSelectedParty, setSelectedVoucherNumber, title, visibleVoucherTypeOptions, voucherNumberOptions, voucherTypesError, vouchers } = props;
+  const { clearToken, companyDataEndDate, companyDataStartDate, companyDataYearError, companyDataYearLoading, customers, defaultDate, defaultVoucherType, fetchSelectedPartyBalance, findLedgerGstin, findVoucherNumberForParty, getPaginationProps, hasMoreVoucherTypeOptions, isJournalStyleVoucher, isNoteVoucher, isOptionsLoading, isSalesInvoice, isSalesOrder, isStockJournal, isSupplierVoucher, ledgerTypeOptions, ledgers, loadMoreVoucherTypeOptions, partyBalance, partyBalanceEditedRef, partyBalanceError, partyBalanceLoading, partyOptions, partySources, resetSelectedPartyBalance, searchOptions, selectedGstin, selectedParty, selectedVoucherNumber, setPartyBalance, setSelectedGstin, setSelectedParty, setSelectedVoucherNumber, title, visibleVoucherTypeOptions, voucherNumberOptions, voucherTypesError, vouchers } = props;
   return (
 <div
                   className={`grid items-start gap-3 sm:grid-cols-2 ${
@@ -140,30 +140,20 @@ export function VoucherDetailsFields(props) {
                   <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
                     <span>Voucher No (optional)</span>
 
-                    {title === "Quotation" || isSalesInvoice ? (
-                      <SearchableDropdown
-                        name="voucherNumber"
-                        label="voucher numbers"
-                        options={voucherNumberOptions}
-                        {...getPaginationProps("vouchers")}
-                        onInputChange={(query) =>
-                          searchOptions("vouchers", query)
-                        }
-                        debounceDelay={VOUCHER_FIELD_SEARCH_DEBOUNCE_MS}
-                        placeholder="Voucher number"
-                        loading={isOptionsLoading}
-                        value={selectedVoucherNumber}
-                        resetToken={clearToken}
-                      />
-                    ) : (
-                      <input
-                        name="voucherNumber"
-                        type="text"
-                        defaultValue=""
-                        className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                        placeholder="Voucher Number"
-                      />
-                    )}
+                    <SearchableDropdown
+                      name="voucherNumber"
+                      label="voucher numbers"
+                      options={voucherNumberOptions}
+                      {...getPaginationProps("voucherNumbers")}
+                      onInputChange={(query) =>
+                        searchOptions("voucherNumbers", query)
+                      }
+                      debounceDelay={VOUCHER_FIELD_SEARCH_DEBOUNCE_MS}
+                      placeholder="Voucher number"
+                      loading={isOptionsLoading}
+                      value={selectedVoucherNumber}
+                      resetToken={clearToken}
+                    />
                   </label>
 
                   {(title === "Quotation" ||
@@ -179,9 +169,9 @@ export function VoucherDetailsFields(props) {
                         name="ledgerType"
                         label="ledger types"
                         options={ledgerTypeOptions}
-                        {...getPaginationProps("ledgers")}
+                        {...getPaginationProps("ledgerTypes")}
                         onInputChange={(query) =>
-                          searchOptions("ledgers", query)
+                          searchOptions("ledgerTypes", query)
                         }
                         debounceDelay={VOUCHER_FIELD_SEARCH_DEBOUNCE_MS}
                         placeholder="Select Ledger"
@@ -237,26 +227,32 @@ export function VoucherDetailsFields(props) {
                       <input
                         name="date"
                         type="date"
+                        required
                         defaultValue={defaultDate}
+                        min={companyDataStartDate || undefined}
+                        max={companyDataEndDate || undefined}
+                        disabled={
+                          companyDataYearLoading ||
+                          Boolean(companyDataYearError) ||
+                          !companyDataStartDate ||
+                          !companyDataEndDate
+                        }
                         className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
                       />
                       <span className="pointer-events-none absolute right-3 top-4.5 -translate-y-1/2 text-slate-400">
                         🗓
                       </span>
-
-                      {title === "Quotation" && (
-                        <button
-                          type="button"
-                          aria-label="Clear date"
-                          onClick={(event) => {
-                            event.currentTarget.previousElementSibling.value = "";
-                          }}
-                          className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                        >
-                          ×
-                        </button>
-                      )}
                     </div>
+                    {companyDataYearLoading && (
+                      <span className="text-xs text-slate-500">
+                        Loading company date range...
+                      </span>
+                    )}
+                    {companyDataYearError && (
+                      <span className="text-xs text-red-600" role="status">
+                        Unable to load company data year: {companyDataYearError}
+                      </span>
+                    )}
                   </label>
                 </div>
   );

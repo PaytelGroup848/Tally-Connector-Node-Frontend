@@ -1140,7 +1140,7 @@ const SuperAdminUsersPage = () => {
 
                 {/* ORGANISATION COLUMN */}
                 <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
-                  Organisation
+                  Info
                 </th>
 
                 <th className="whitespace-nowrap px-5 py-3 text-center font-semibold">
@@ -1413,7 +1413,7 @@ const SuperAdminUsersPage = () => {
             <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-600">
-                  Organisation Details
+                  Info Details
                 </p>
 
                 <h3 className="mt-1 text-lg font-bold text-slate-800">
@@ -1424,7 +1424,7 @@ const SuperAdminUsersPage = () => {
                 </h3>
 
                 <p className="mt-1 text-xs text-slate-500">
-                  Organisation information
+                  Info
                 </p>
               </div>
 
@@ -1465,7 +1465,7 @@ const SuperAdminUsersPage = () => {
                             className="transition hover:bg-slate-50"
                           >
                             <td className="px-4 py-3 text-sm font-semibold text-slate-600">
-                              {formatColumnName(
+                              {column==="organizationName" ? "Info" : formatColumnName(
                                 column,
                               )}
                             </td>
@@ -1487,11 +1487,11 @@ const SuperAdminUsersPage = () => {
               ) : (
                 <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
                   <p className="text-sm font-semibold text-slate-600">
-                    No organisation data available
+                    No info available
                   </p>
 
                   <p className="mt-1 text-xs text-slate-400">
-                    No organisation information was found for this user.
+                    No info was found for this user.
                   </p>
                 </div>
               )}

@@ -37,6 +37,23 @@ export function fetchCompanyVouchers(
   )
 }
 
+export function fetchCompanyVoucherNumbers(
+  accessToken,
+  companyId,
+  { page = 1, limit = 20, q = '' } = {},
+) {
+  const params = new URLSearchParams({
+    q: String(q),
+    page: String(page),
+    limit: String(limit),
+  })
+
+  return request(
+    `/companies/${encodeURIComponent(companyId)}/voucher-numbers?${params}`,
+    accessToken,
+  )
+}
+
 export function fetchCompanyCommands(
   accessToken,
   companyId,
@@ -147,6 +164,40 @@ export function extractVouchers(response) {
     if (!value || typeof value !== 'object') continue
 
     for (const key of voucherKeys) {
+      if (Array.isArray(value[key])) return value[key]
+    }
+
+    for (const child of Object.values(value)) {
+      if (child && typeof child === 'object') pending.push(child)
+    }
+  }
+
+  return []
+}
+
+export function extractVoucherNumbers(response) {
+  if (Array.isArray(response)) return response
+
+  const pending = [response]
+  const voucherNumberKeys = [
+    'voucherNumbers',
+    'voucher_numbers',
+    'voucherNumber',
+    'voucher_number',
+    'items',
+    'records',
+    'results',
+    'docs',
+    'rows',
+    'content',
+    'data',
+  ]
+
+  while (pending.length > 0) {
+    const value = pending.shift()
+    if (!value || typeof value !== 'object') continue
+
+    for (const key of voucherNumberKeys) {
       if (Array.isArray(value[key])) return value[key]
     }
 

@@ -13,11 +13,11 @@ import {
 import { extractCustomers } from '../../services/customersApi';
 import { fetchParties } from '../../services/partiesApi';
 import useAuthStore from '../../store/authStore';
+import { useCompanyDataYear, isDateWithinCompanyDataYear } from '../../hooks/useCompanyDataYear';
 import {
   getBalanceValue,
   getCompanyId,
   getDisplayName,
-  getToday,
   getVoucherTypeName,
   LEDGER_PAGE_SIZE,
 } from '../../utils/receipt';
@@ -29,6 +29,7 @@ export function useReceiptPageState({
 }) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const companyId = companyIdProp || getCompanyId(selectedCompany);
+  const companyDataYear = useCompanyDataYear(companyId);
 
   const [companyBanks, setCompanyBanks] = useState([]);
   const [bankSearchOptions, setBankSearchOptions] = useState(null);
@@ -68,7 +69,7 @@ export function useReceiptPageState({
     voucherType: documentType,
     voucherNumber: '',
     partyName: '',
-    date: getToday(),
+    date: '',
     transactionType: '',
     ledger: '',
     amount: '',
@@ -109,7 +110,7 @@ export function useReceiptPageState({
       voucherType: documentType,
       voucherNumber: '',
       partyName: '',
-      date: getToday(),
+      date: '',
       transactionType: '',
       ledger: '',
       amount: '',
@@ -501,6 +502,37 @@ export function useReceiptPageState({
       return;
     }
 
+    if (companyDataYear.loading) {
+      setSubmitError('Wait for the company data year to finish loading.');
+      return;
+    }
+
+    if (
+      companyDataYear.error ||
+      !companyDataYear.startDate ||
+      !companyDataYear.endDate
+    ) {
+      setSubmitError(
+        `Unable to validate the voucher date: ${
+          companyDataYear.error || 'Company data-year dates are unavailable.'
+        }`,
+      );
+      return;
+    }
+
+    if (
+      !isDateWithinCompanyDataYear(
+        form.date,
+        companyDataYear.startDate,
+        companyDataYear.endDate,
+      )
+    ) {
+      setSubmitError(
+        `Select a date between ${companyDataYear.startDate} and ${companyDataYear.endDate}, inclusive.`,
+      );
+      return;
+    }
+
     if (!Number.isFinite(amount) || amount <= 0) {
       setSubmitError('Amount must be greater than 0.');
       return;
@@ -582,6 +614,7 @@ successTimerRef.current = window.setTimeout(() => {
   return {
     accessToken,
     companyId,
+    companyDataYear,
     companyBanks,
     bankSearchOptions,
     banksLoading,

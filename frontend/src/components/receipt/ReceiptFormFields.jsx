@@ -7,6 +7,11 @@ import { getDisplayName } from "../../utils/receipt";
 export default function ReceiptFormFields({
   form,
   updateField,
+  companyDataYear,
+  voucherNumberOptions,
+  voucherNumbersLoading,
+  searchVoucherNumbers,
+  voucherNumberPaginationProps,
   companyBanks,
   bankSearchOptions,
   banksLoading,
@@ -44,15 +49,15 @@ export default function ReceiptFormFields({
         <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
           <span>Voucher No (optional)</span>
 
-          <input
+          <SearchableDropdown
+            name="voucherNumber"
+            label="voucher numbers"
+            options={voucherNumberOptions}
+            {...voucherNumberPaginationProps}
+            onInputChange={searchVoucherNumbers}
             value={form.voucherNumber}
-            type="text"
-            min="0"
-            step="1"
-            onChange={(event) =>
-              updateField("voucherNumber", event.target.value)
-            }
-            className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
+            onSelect={(value) => updateField("voucherNumber", value)}
+            loading={voucherNumbersLoading}
             placeholder="Voucher No"
           />
         </label>
@@ -65,6 +70,14 @@ export default function ReceiptFormFields({
               type="date"
               value={form.date}
               required
+              min={companyDataYear.startDate || undefined}
+              max={companyDataYear.endDate || undefined}
+              disabled={
+                companyDataYear.loading ||
+                Boolean(companyDataYear.error) ||
+                !companyDataYear.startDate ||
+                !companyDataYear.endDate
+              }
               onChange={(event) => updateField("date", event.target.value)}
               className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
             />
@@ -73,6 +86,16 @@ export default function ReceiptFormFields({
               🗓
             </span>
           </div>
+          {companyDataYear.loading && (
+            <span className="text-xs text-slate-500">
+              Loading company date range...
+            </span>
+          )}
+          {companyDataYear.error && (
+            <span className="text-xs text-red-600" role="status">
+              Unable to load company data year: {companyDataYear.error}
+            </span>
+          )}
         </label>
 
         <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">

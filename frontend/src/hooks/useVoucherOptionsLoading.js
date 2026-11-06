@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import {
-  extractBatches, extractGodowns, extractLedgers, extractStockItems, extractVouchers, extractVoucherTypes,
-  fetchCompanyBatches, fetchCompanyCommands, fetchCompanyGodowns, fetchCompanyLedgers, fetchCompanyStock, fetchCompanyVouchers, fetchCompanyVoucherTypes,
+  extractBatches, extractGodowns, extractLedgerTypes, extractLedgers, extractStockItems, extractVoucherNumbers, extractVouchers, extractVoucherTypes,
+  fetchCompanyBatches, fetchCompanyCommands, fetchCompanyGodowns, fetchCompanyLedgerTypes, fetchCompanyLedgers, fetchCompanyStock, fetchCompanyVoucherNumbers, fetchCompanyVouchers, fetchCompanyVoucherTypes,
 } from "../services/companiesApi";
 import { extractCustomers, extractSuppliers, fetchCustomers, fetchSuppliers } from "../services/customersApi";
 import { createEmptyItemRow, createJournalRow, createStockJournalRow, DROPDOWN_PAGE_SIZE } from "../utils/voucherHelpers";
@@ -12,7 +12,9 @@ export function useVoucherOptionsLoading({ state, requestCompanyId, accessToken,
     setSuppliers,
     setStockItems,
     setVouchers,
+    setVoucherNumbers,
     setLedgers,
+    setLedgerTypes,
     setGodowns,
     setBatches,
     setVoucherTypes,
@@ -46,7 +48,9 @@ useEffect(() => {
         setSuppliers([]);
         setStockItems([]);
         setVouchers([]);
+        setVoucherNumbers([]);
         setLedgers([]);
+        setLedgerTypes([]);
         setGodowns([]);
         setBatches([]);
         setVoucherTypes([]);
@@ -86,7 +90,9 @@ useEffect(() => {
       setSuppliers([]);
       setStockItems([]);
       setVouchers([]);
+      setVoucherNumbers([]);
       setLedgers([]);
+      setLedgerTypes([]);
       setGodowns([]);
       setBatches([]);
       setVoucherTypes([]);
@@ -131,6 +137,14 @@ useEffect(() => {
       }
 
       requests.push(
+        fetchCompanyVoucherNumbers(accessToken, requestCompanyId, {
+          page: 1,
+          limit: DROPDOWN_PAGE_SIZE,
+          q: "",
+        }),
+      );
+
+      requests.push(
         fetchCompanyBatches(accessToken, requestCompanyId, {
           page: 1,
           limit: 100,
@@ -142,6 +156,24 @@ useEffect(() => {
           page: 1,
           limit: 100,
         }),
+      );
+
+      const hasLedgerTypeDropdown =
+        title === "Quotation" ||
+        isSalesInvoice ||
+        isSalesOrder ||
+        title === "Purchase" ||
+        title === "Purchase Order" ||
+        title === "Credit Note" ||
+        title === "Debit Note";
+      requests.push(
+        hasLedgerTypeDropdown
+          ? fetchCompanyLedgerTypes(accessToken, requestCompanyId, {
+              page: 1,
+              limit: DROPDOWN_PAGE_SIZE,
+              q: "",
+            })
+          : Promise.resolve(null),
       );
 
       requests.push(
@@ -181,8 +213,10 @@ useEffect(() => {
             suppliersResult,
             stockResult,
             vouchersResult,
+            voucherNumbersResult,
             batchesResult,
             ledgersResult,
+            ledgerTypesResult,
             godownsResult,
             voucherTypesResult,
           ]) => {
@@ -301,6 +335,29 @@ useEffect(() => {
               });
             }
 
+            if (voucherNumbersResult?.status === "fulfilled") {
+              const voucherNumberPage = extractVoucherNumbers(voucherNumbersResult.value);
+              setVoucherNumbers(voucherNumberPage);
+              updateOptionPage("voucherNumbers", {
+                nextPage: 2,
+                hasMore: voucherNumberPage.length >= DROPDOWN_PAGE_SIZE,
+                loading: false,
+                error: "",
+                loadError: "",
+              });
+            } else if (voucherNumbersResult?.status === "rejected") {
+              setVoucherNumbers([]);
+              updateOptionPage("voucherNumbers", {
+                nextPage: 2,
+                hasMore: false,
+                loading: false,
+                error: "",
+                loadError:
+                  voucherNumbersResult.reason?.message ||
+                  "Unable to load voucher numbers.",
+              });
+            }
+
             if (ledgersResult?.status === "fulfilled") {
               const ledgerPage = extractLedgers(ledgersResult.value);
               setLedgers(ledgerPage);
@@ -320,6 +377,28 @@ useEffect(() => {
                 error: "",
                 loadError:
                   ledgersResult.reason?.message || "Unable to load ledgers.",
+              });
+            }
+
+            if (ledgerTypesResult?.status === "fulfilled") {
+              const ledgerTypePage = extractLedgerTypes(ledgerTypesResult.value);
+              setLedgerTypes(ledgerTypePage);
+              updateOptionPage("ledgerTypes", {
+                nextPage: 2,
+                hasMore: ledgerTypePage.length >= DROPDOWN_PAGE_SIZE,
+                loading: false,
+                error: "",
+                loadError: "",
+              });
+            } else if (ledgerTypesResult?.status === "rejected") {
+              setLedgerTypes([]);
+              updateOptionPage("ledgerTypes", {
+                nextPage: 2,
+                hasMore: false,
+                loading: false,
+                error: "",
+                loadError:
+                  ledgerTypesResult.reason?.message || "Unable to load ledger types.",
               });
             }
 
@@ -383,6 +462,7 @@ useEffect(() => {
       setIsOptionsLoading,
       setItemRows,
       setJournalRows,
+      setLedgerTypes,
       setLedgers,
       setOptionPages,
       setPartyBalance,
@@ -397,6 +477,7 @@ useEffect(() => {
       setStockError,
       setStockItems,
       setSuppliers,
+      setVoucherNumbers,
       setVoucherTypes,
       setVoucherTypesError,
       setVouchers,

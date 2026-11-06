@@ -10,6 +10,7 @@ export default function usePartiesData({ accessToken, companyId }) {
   const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [partyType, setPartyType] = useState("CUSTOMER");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -42,6 +43,7 @@ export default function usePartiesData({ accessToken, companyId }) {
           page,
           limit,
           q: search,
+          partyType,
         });
 
         if (!mounted) return;
@@ -67,7 +69,7 @@ export default function usePartiesData({ accessToken, companyId }) {
     return () => {
       mounted = false;
     };
-  }, [accessToken, companyId, page, limit, search, refreshKey]);
+  }, [accessToken, companyId, page, limit, search, partyType, refreshKey]);
 
   useEffect(() => {
     if (gstLookup.status !== "valid" || !gstLookup.data) return;
@@ -88,6 +90,11 @@ export default function usePartiesData({ accessToken, companyId }) {
 
   function handleSearchChange(event) {
     setSearch(event.target.value);
+    setPage(1);
+  }
+
+  function handlePartyTypeChange(event) {
+    setPartyType(event.target.value);
     setPage(1);
   }
 
@@ -154,6 +161,7 @@ export default function usePartiesData({ accessToken, companyId }) {
     limit,
     total,
     search,
+    partyType,
     loading,
     error,
     isCreateOpen,
@@ -165,6 +173,7 @@ export default function usePartiesData({ accessToken, companyId }) {
     setIsPartyCreatedOpen,
     gstLookup,
     handleSearchChange,
+    handlePartyTypeChange,
     handleLimitChange,
     updatePartyField,
     openCreateParty,

@@ -47,6 +47,7 @@ import { VoucherDetailsFields } from "../components/VoucherDetailsFields";
 import { VoucherItemsTable } from "../components/VoucherItemsTable";
 import { usePartyBalance } from "../hooks/usePartyBalance";
 import { useVoucherPageState } from "../hooks/useVoucherPageState";
+import { useCompanyDataYear } from "../hooks/useCompanyDataYear";
 
 export { AdvancedVoucherSettings, advancedVoucherFieldNames } from "../components/AdvancedVoucherSettings";
 export { GstLedgerPanel } from "../components/GstLedgerPanel";
@@ -55,7 +56,7 @@ export { SearchableDropdown } from "../components/SearchableDropdown";
 export function DocumentVoucherPage({
   title,
   companyId,
-  date = new Date().toLocaleDateString("en-CA"),
+  date = "",
 }) {
   const {
     isSubmitting, setIsSubmitting,
@@ -65,7 +66,9 @@ export function DocumentVoucherPage({
     suppliers, setSuppliers,
     stockItems, setStockItems,
     vouchers, setVouchers,
+    voucherNumbers, setVoucherNumbers,
     ledgers, setLedgers,
+    ledgerTypes, setLedgerTypes,
     godowns, setGodowns,
     batches, setBatches,
     voucherTypes, setVoucherTypes,
@@ -93,6 +96,7 @@ export function DocumentVoucherPage({
   } = useVoucherPageState(title);
 
   const accessToken = useAuthStore((state) => state.accessToken);
+  const companyDataYear = useCompanyDataYear(companyId);
 
   const isSalesInvoice = title === "Sales";
   const isSalesOrder = title === "Sales Order";
@@ -130,7 +134,9 @@ export function DocumentVoucherPage({
     setSuppliers,
     setStockItems,
     setVouchers,
+    setVoucherNumbers,
     setLedgers,
+    setLedgerTypes,
     setGodowns,
     setBatches,
     setVoucherTypes,
@@ -174,8 +180,7 @@ export function DocumentVoucherPage({
     };
   }, []);
 
-  const defaultDate =
-    title === "Quotation" ? new Date().toLocaleDateString("en-CA") : date;
+  const defaultDate = date;
 
   const requestCompanyId = companyId;
   const currentCompanyGstinResult =
@@ -198,7 +203,6 @@ export function DocumentVoucherPage({
     itemOptions,
     voucherNumberOptions,
     ledgerTypeOptions,
-    partyLedgerOptions,
     ledgerOptions,
     visibleVoucherTypeOptions,
     hasMoreVoucherTypeOptions,
@@ -213,7 +217,9 @@ export function DocumentVoucherPage({
     stockItems,
     batches,
     vouchers,
+    voucherNumbers,
     ledgers,
+    ledgerTypes,
     dropdownSearchOptions,
     dropdownSearchQueries,
     godowns,
@@ -271,6 +277,7 @@ export function DocumentVoucherPage({
   const handleSubmit = createVoucherSubmitHandler({
     title, accessToken, isJournalStyleVoucher, isSalesInvoice, defaultVoucherType,
     isReceiptDeliveryNote,
+    companyDataYear,
     requestCompanyId, setSubmitError, setShowSuccessAnimation,
     advancedVoucherFieldNames, journalRows, isStockJournal, getJournalTotalsInPaise,
     formatJournalPaise, isSalesOrder, isNoteVoucher, sourceRows, destinationRows,
@@ -319,6 +326,10 @@ export function DocumentVoucherPage({
 
   const voucherFormProps = {
       clearToken,
+      companyDataStartDate: companyDataYear.startDate,
+      companyDataEndDate: companyDataYear.endDate,
+      companyDataYearLoading: companyDataYear.loading,
+      companyDataYearError: companyDataYear.error,
       customers,
       defaultDate,
       defaultVoucherType,
@@ -425,6 +436,19 @@ export function DocumentVoucherPage({
                 onInputChange: (query) => searchOptions("batches", query),
               }}
               optionsLoading={isOptionsLoading}
+              companyDataStartDate={companyDataYear.startDate}
+              companyDataEndDate={companyDataYear.endDate}
+              companyDataYearLoading={companyDataYear.loading}
+              companyDataYearError={companyDataYear.error}
+              voucherNumberOptions={voucherNumberOptions}
+              voucherNumberPaginationProps={getPaginationProps("voucherNumbers")}
+              searchVoucherNumbers={(query) =>
+                searchOptions("voucherNumbers", query)
+              }
+              voucherNumbersLoading={isOptionsLoading}
+              selectedVoucherNumber={selectedVoucherNumber}
+              setSelectedVoucherNumber={setSelectedVoucherNumber}
+              clearToken={clearToken}
               onAddSource={() => addStockRow(setSourceRows)}
               onAddDestination={() => addStockRow(setDestinationRows)}
               onRemoveSource={(rowId) => removeStockRow(setSourceRows, rowId)}
@@ -443,13 +467,19 @@ export function DocumentVoucherPage({
               companyId={companyId}
               voucherType={title}
               rows={journalRows}
-              partyOptions={partyLedgerOptions}
-              partyDropdownProps={{
-                ...getPaginationProps(["customers", "ledgers"]),
-                onInputChange: (query) =>
-                  searchOptions(["customers", "ledgers"], query),
-              }}
-              optionsLoading={isOptionsLoading}
+              companyDataStartDate={companyDataYear.startDate}
+              companyDataEndDate={companyDataYear.endDate}
+              companyDataYearLoading={companyDataYear.loading}
+              companyDataYearError={companyDataYear.error}
+              voucherNumberOptions={voucherNumberOptions}
+              voucherNumberPaginationProps={getPaginationProps("voucherNumbers")}
+              searchVoucherNumbers={(query) =>
+                searchOptions("voucherNumbers", query)
+              }
+              voucherNumbersLoading={isOptionsLoading}
+              selectedVoucherNumber={selectedVoucherNumber}
+              setSelectedVoucherNumber={setSelectedVoucherNumber}
+              clearToken={clearToken}
               onAddRow={addJournalRow}
               onRemoveRow={removeJournalRow}
               onRowChange={updateJournalRow}

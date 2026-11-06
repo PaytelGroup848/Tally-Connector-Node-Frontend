@@ -22,6 +22,7 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
     limit,
     total,
     search,
+    partyType,
     loading,
     error,
     isCreateOpen,
@@ -33,6 +34,7 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
     setIsPartyCreatedOpen,
     gstLookup,
     handleSearchChange,
+    handlePartyTypeChange,
     handleLimitChange,
     updatePartyField,
     openCreateParty,
@@ -77,7 +79,9 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
         limit={limit}
         page={page}
         search={search}
+        partyType={partyType}
         onSearchChange={handleSearchChange}
+        onPartyTypeChange={handlePartyTypeChange}
         onLimitChange={handleLimitChange}
         onAddParty={openCreateParty}
       />

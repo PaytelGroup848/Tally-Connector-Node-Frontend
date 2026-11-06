@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import {
-  extractBatches, extractGodowns, extractLedgers, extractStockItems, extractVouchers,
-  fetchCompanyBatches, fetchCompanyGodowns, fetchCompanyLedgers, fetchCompanyStock, fetchCompanyVouchers,
+  extractBatches, extractGodowns, extractLedgerTypes, extractLedgers, extractStockItems, extractVoucherNumbers, extractVouchers,
+  fetchCompanyBatches, fetchCompanyGodowns, fetchCompanyLedgerTypes, fetchCompanyLedgers, fetchCompanyStock, fetchCompanyVoucherNumbers, fetchCompanyVouchers,
 } from "../services/companiesApi";
 import { extractCustomers, extractSuppliers, fetchCustomers, fetchSuppliers } from "../services/customersApi";
 import { DROPDOWN_PAGE_SIZE } from "../utils/voucherHelpers";
@@ -34,7 +34,9 @@ export function useVoucherOptionPagination({ state, requestCompanyId, accessToke
     setSuppliers,
     setStockItems,
     setVouchers,
+    setVoucherNumbers,
     setLedgers,
+    setLedgerTypes,
     setGodowns,
     setBatches,
     setDropdownSearchOptions,
@@ -48,7 +50,7 @@ export function useVoucherOptionPagination({ state, requestCompanyId, accessToke
 
   useEffect(() => {
     searchBasePagesRef.current = {};
-    ["customers", "suppliers", "ledgers", "stock", "godowns", "batches", "vouchers"].forEach((source) => {
+    ["customers", "suppliers", "ledgers", "stock", "godowns", "batches", "vouchers", "voucherNumbers", "ledgerTypes"].forEach((source) => {
       searchRequestsRef.current[source] =
         (searchRequestsRef.current[source] || 0) + 1;
     });
@@ -83,6 +85,16 @@ const loadMoreOptions = async (source) => {
             }),
           extract: extractVouchers,
           setItems: setVouchers,
+        },
+        voucherNumbers: {
+          fetch: () =>
+            fetchCompanyVoucherNumbers(accessToken, requestCompanyId, {
+              page: currentPage.nextPage,
+              limit: DROPDOWN_PAGE_SIZE,
+              q: currentPage.q || "",
+            }),
+          extract: extractVoucherNumbers,
+          setItems: setVoucherNumbers,
         },
         customers: {
           fetch: () =>
@@ -127,6 +139,16 @@ const loadMoreOptions = async (source) => {
             }),
           extract: extractLedgers,
           setItems: setLedgers,
+        },
+        ledgerTypes: {
+          fetch: () =>
+            fetchCompanyLedgerTypes(accessToken, requestCompanyId, {
+              page: currentPage.nextPage,
+              limit: DROPDOWN_PAGE_SIZE,
+              q: currentPage.q || "",
+            }),
+          extract: extractLedgerTypes,
+          setItems: setLedgerTypes,
         },
         batches: {
           fetch: () =>
@@ -294,6 +316,21 @@ const searchOptions = async (sources, query) => {
               })),
             appendItems: setLedgers,
           },
+          ledgerTypes: {
+              fetch: () =>
+                fetchCompanyLedgerTypes(accessToken, requestCompanyId, {
+                  page: 1,
+                  limit: DROPDOWN_PAGE_SIZE,
+                  q: normalizedQuery,
+                }),
+              extract: extractLedgerTypes,
+              setItems: (items) =>
+                setDropdownSearchOptions((existingOptions) => ({
+                  ...existingOptions,
+                  [source]: items,
+                })),
+              appendItems: setLedgerTypes,
+          },
           stock: {
             fetch: () =>
               fetchCompanyStock(accessToken, requestCompanyId, {
@@ -353,6 +390,21 @@ const searchOptions = async (sources, query) => {
                 [source]: items,
               })),
             appendItems: setVouchers,
+          },
+          voucherNumbers: {
+              fetch: () =>
+                fetchCompanyVoucherNumbers(accessToken, requestCompanyId, {
+                  page: 1,
+                  limit: DROPDOWN_PAGE_SIZE,
+                  q: normalizedQuery,
+                }),
+              extract: extractVoucherNumbers,
+              setItems: (items) =>
+                setDropdownSearchOptions((existingOptions) => ({
+                  ...existingOptions,
+                  [source]: items,
+                })),
+              appendItems: setVoucherNumbers,
           },
         }[source];
 

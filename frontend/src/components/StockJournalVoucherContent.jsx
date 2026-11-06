@@ -199,6 +199,17 @@ export function StockJournalVoucherContent({
     godownDropdownProps,
     batchDropdownProps,
     optionsLoading,
+    companyDataStartDate,
+    companyDataEndDate,
+    companyDataYearLoading,
+    companyDataYearError,
+    voucherNumberOptions,
+    voucherNumberPaginationProps,
+    searchVoucherNumbers,
+    voucherNumbersLoading,
+    selectedVoucherNumber,
+    setSelectedVoucherNumber,
+    clearToken,
     onAddSource,
     onAddDestination,
     onRemoveSource,
@@ -229,10 +240,17 @@ export function StockJournalVoucherContent({
           </label>
           <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
             <span>Voucher No (optional)</span>
-            <input
+            <SearchableDropdown
               name="voucherNumber"
-              defaultValue=""
-              className="min-h-9 rounded border border-slate-300 bg-white px-2 text-xs"
+              label="voucher numbers"
+              options={voucherNumberOptions}
+              {...voucherNumberPaginationProps}
+              onInputChange={searchVoucherNumbers}
+              loading={voucherNumbersLoading}
+              value={selectedVoucherNumber}
+              onSelect={setSelectedVoucherNumber}
+              resetToken={clearToken}
+              placeholder="Voucher number"
             />
           </label>
           <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
@@ -240,9 +258,28 @@ export function StockJournalVoucherContent({
             <input
               name="date"
               type="date"
-              defaultValue={new Date().toLocaleDateString("en-CA")}
+              required
+              defaultValue=""
+              min={companyDataStartDate || undefined}
+              max={companyDataEndDate || undefined}
+              disabled={
+                companyDataYearLoading ||
+                Boolean(companyDataYearError) ||
+                !companyDataStartDate ||
+                !companyDataEndDate
+              }
               className="min-h-9 rounded border border-slate-300 bg-white px-2 text-xs"
             />
+            {companyDataYearLoading && (
+              <span className="text-xs text-slate-500">
+                Loading company date range...
+              </span>
+            )}
+            {companyDataYearError && (
+              <span className="text-xs text-red-600" role="status">
+                Unable to load company data year: {companyDataYearError}
+              </span>
+            )}
           </label>
         </div>
 

@@ -6,7 +6,9 @@ export function buildVoucherOptions({
   stockItems,
   batches,
   vouchers,
+  voucherNumbers,
   ledgers,
+  ledgerTypes,
   dropdownSearchOptions = {},
   dropdownSearchQueries = {},
   godowns,
@@ -20,173 +22,158 @@ export function buildVoucherOptions({
   visibleVoucherTypeCount,
   setVisibleVoucherTypeCount,
 }) {
-const customerOptions = customers
-      .map((customer) =>
-        getDisplayValue(customer, [
-          "name",
-          "customerName",
-          "partyName",
-          "ledgerName",
-          "displayName",
-        ]),
-      )
-      .filter(Boolean)
-      .filter((name, index, names) => names.indexOf(name) === index);
+  const customerOptions = customers
+    .map((customer) =>
+      getDisplayValue(customer, [
+        "name",
+        "customerName",
+        "partyName",
+        "ledgerName",
+        "displayName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((name, index, names) => names.indexOf(name) === index);
 
-const supplierOptions = suppliers
-      .map((supplier) =>
-        getDisplayValue(supplier, [
-          "name",
-          "supplierName",
-          "partyName",
-          "ledgerName",
-          "displayName",
-        ]),
-      )
-      .filter(Boolean)
-      .filter((name, index, names) => names.indexOf(name) === index);
+  const supplierOptions = suppliers
+    .map((supplier) =>
+      getDisplayValue(supplier, [
+        "name",
+        "supplierName",
+        "partyName",
+        "ledgerName",
+        "displayName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((name, index, names) => names.indexOf(name) === index);
 
-const optionStockItems = dropdownSearchQueries.stock
-      ? dropdownSearchOptions.stock || []
-      : stockItems;
+  const optionStockItems = dropdownSearchQueries.stock
+    ? dropdownSearchOptions.stock || []
+    : stockItems;
 
-const optionVouchers = dropdownSearchQueries.vouchers
-      ? dropdownSearchOptions.vouchers || []
-      : vouchers;
+  const optionVouchers = dropdownSearchQueries.voucherNumbers
+    ? dropdownSearchOptions.voucherNumbers || []
+    : voucherNumbers;
 
-const optionLedgers = dropdownSearchQueries.ledgers
-      ? dropdownSearchOptions.ledgers || []
-      : ledgers;
+  const partyVouchers = dropdownSearchQueries.vouchers
+    ? dropdownSearchOptions.vouchers || []
+    : vouchers;
 
-const optionGodowns = dropdownSearchQueries.godowns
-      ? dropdownSearchOptions.godowns || []
-      : godowns;
+  const optionLedgers = dropdownSearchQueries.ledgers
+    ? dropdownSearchOptions.ledgers || []
+    : ledgers;
 
-const optionBatches = dropdownSearchQueries.batches
-      ? dropdownSearchOptions.batches || []
-      : batches;
+  const optionLedgerTypes = dropdownSearchQueries.ledgerTypes
+    ? dropdownSearchOptions.ledgerTypes || []
+    : ledgerTypes;
 
-const itemOptions = optionStockItems
-      .map((item) =>
-        getStockValue(item, [
-          "itemName",
-          "item_name",
-          "stockName",
-          "stock_name",
-          "stockItemName",
-          "stock_item_name",
-          "item",
-          "name",
-          "displayName",
-        ]),
-      )
-      .filter(Boolean)
-      .filter((name, index, names) => names.indexOf(name) === index);
+  const optionGodowns = dropdownSearchQueries.godowns
+    ? dropdownSearchOptions.godowns || []
+    : godowns;
 
-const voucherPartyOptions = optionVouchers
-      .map((voucher) =>
-        getVoucherValue(voucher, [
-          "partyLedger",
-          "party ledger",
-          "partyName",
-          "ledgerName",
-          "party",
-          "customerName",
-        ]),
-      )
-      .filter(Boolean)
-      .filter((value, index, values) => values.indexOf(value) === index);
+  const optionBatches = dropdownSearchQueries.batches
+    ? dropdownSearchOptions.batches || []
+    : batches;
 
-const voucherNumberOptions = optionVouchers
-      .map((voucher) =>
-        getVoucherValue(voucher, [
-          "voucherNumber",
-          "voucherNo",
-          "voucher no",
-          "voucher_no",
-          "number",
-        ]),
-      )
-      .filter(Boolean)
-      .filter((value, index, values) => values.indexOf(value) === index);
+  const itemOptions = optionStockItems
+    .map((item) =>
+      getStockValue(item, [
+        "itemName",
+        "item_name",
+        "stockName",
+        "stock_name",
+        "stockItemName",
+        "stock_item_name",
+        "item",
+        "name",
+        "displayName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((name, index, names) => names.indexOf(name) === index);
 
-const ledgerTypeOptions = optionLedgers
-      .map((ledger) =>
-        getDisplayValue(ledger, [
-          "ledgerType",
-          "ledger_type",
-          "type",
-          "ledgerName",
-          "name",
-          "displayName",
-        ]),
-      )
-      .filter(Boolean)
-      .filter((value, index, values) => values.indexOf(value) === index);
+  const voucherPartyOptions = partyVouchers
+    .map((voucher) =>
+      getVoucherValue(voucher, [
+        "partyLedger",
+        "party ledger",
+        "partyName",
+        "ledgerName",
+        "party",
+        "customerName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index);
 
-const partyCustomers = dropdownSearchQueries.customers
-      ? dropdownSearchOptions.customers || []
-      : customers;
-const partySuppliers = dropdownSearchQueries.suppliers
-      ? dropdownSearchOptions.suppliers || []
-      : suppliers;
-const partyLedgers = optionLedgers;
-
-const partyCustomerOptions = partyCustomers
-      .map((customer) =>
-        getDisplayValue(customer, [
-          "name",
-          "customerName",
-          "partyName",
-          "ledgerName",
-          "displayName",
-        ]),
-      )
-      .filter(Boolean)
-      .filter((name, index, names) => names.indexOf(name) === index);
-
-const partySupplierOptions = partySuppliers
-      .map((supplier) =>
-        getDisplayValue(supplier, [
-          "name",
-          "supplierName",
-          "partyName",
-          "ledgerName",
-          "displayName",
-        ]),
-      )
-      .filter(Boolean)
-      .filter((name, index, names) => names.indexOf(name) === index);
-
-const partyLedgerOptions = [
-      ...partyCustomerOptions,
-      ...partyLedgers
-        .map((ledger) =>
-          getDisplayValue(ledger, [
-            "ledgerName",
+  const voucherNumberOptions = optionVouchers
+    .map((voucher) =>
+      typeof voucher === "string"
+        ? voucher.trim()
+        : getVoucherValue(voucher, [
+            "voucherNumber",
+            "voucherNo",
+            "voucher no",
+            "voucher_no",
+            "number",
             "name",
-            "displayName",
-            "partyName",
           ]),
-        )
-        .filter(Boolean),
-    ].filter((value, index, values) => values.indexOf(value) === index);
+    )
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index);
 
-const supplierLedgerOptions = [
-      ...partySupplierOptions,
-      ...partyLedgers
-        .map((ledger) =>
-          getDisplayValue(ledger, [
-            "ledgerName",
-            "name",
-            "displayName",
-            "partyName",
-          ]),
-        )
-        .filter(Boolean),
-    ].filter((value, index, values) => values.indexOf(value) === index);
+  const ledgerTypeOptions = optionLedgerTypes
+    .map((ledger) =>
+      getDisplayValue(ledger, [
+        "ledgerType",
+        "ledger_type",
+        "type",
+        "ledgerName",
+        "name",
+        "displayName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index);
 
-const ledgerOptions = optionLedgers
+  const partyCustomers = dropdownSearchQueries.customers
+    ? dropdownSearchOptions.customers || []
+    : customers;
+  const partySuppliers = dropdownSearchQueries.suppliers
+    ? dropdownSearchOptions.suppliers || []
+    : suppliers;
+  const partyLedgers = optionLedgers;
+
+  const partyCustomerOptions = partyCustomers
+    .map((customer) =>
+      getDisplayValue(customer, [
+        "name",
+        "customerName",
+        "partyName",
+        "ledgerName",
+        "displayName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((name, index, names) => names.indexOf(name) === index);
+
+  const partySupplierOptions = partySuppliers
+    .map((supplier) =>
+      getDisplayValue(supplier, [
+        "name",
+        "supplierName",
+        "partyName",
+        "ledgerName",
+        "displayName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((name, index, names) => names.indexOf(name) === index);
+
+  const partyLedgerOptions = [
+    ...partyCustomerOptions,
+    ...partyLedgers
       .map((ledger) =>
         getDisplayValue(ledger, [
           "ledgerName",
@@ -195,64 +182,90 @@ const ledgerOptions = optionLedgers
           "partyName",
         ]),
       )
-      .filter(Boolean)
-      .filter((value, index, values) => values.indexOf(value) === index);
+      .filter(Boolean),
+  ].filter((value, index, values) => values.indexOf(value) === index);
 
-const voucherTypeOptions = voucherTypes
-      .map((voucherType) =>
-        typeof voucherType === "string"
-          ? voucherType
-          : getDisplayValue(voucherType, [
-              "voucherType",
-              "voucher_type",
-              "type",
-              "name",
-              "value",
-              "displayName",
-            ]),
+  const supplierLedgerOptions = [
+    ...partySupplierOptions,
+    ...partyLedgers
+      .map((ledger) =>
+        getDisplayValue(ledger, [
+          "ledgerName",
+          "name",
+          "displayName",
+          "partyName",
+        ]),
       )
-      .filter(Boolean)
-      .filter((value, index, values) => values.indexOf(value) === index);
+      .filter(Boolean),
+  ].filter((value, index, values) => values.indexOf(value) === index);
 
-const visibleVoucherTypeOptions = voucherTypeOptions.slice(
-      0,
-      visibleVoucherTypeCount,
+  const ledgerOptions = optionLedgers
+    .map((ledger) =>
+      getDisplayValue(ledger, [
+        "ledgerName",
+        "name",
+        "displayName",
+        "partyName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index);
+
+  const voucherTypeOptions = voucherTypes
+    .map((voucherType) =>
+      typeof voucherType === "string"
+        ? voucherType
+        : getDisplayValue(voucherType, [
+            "voucherType",
+            "voucher_type",
+            "type",
+            "name",
+            "value",
+            "displayName",
+          ]),
+    )
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index);
+
+  const visibleVoucherTypeOptions = voucherTypeOptions.slice(
+    0,
+    visibleVoucherTypeCount,
+  );
+
+  const hasMoreVoucherTypeOptions =
+    visibleVoucherTypeCount < voucherTypeOptions.length;
+
+  const loadMoreVoucherTypeOptions = () => {
+    setVisibleVoucherTypeCount((current) =>
+      Math.min(current + DROPDOWN_PAGE_SIZE, voucherTypeOptions.length),
     );
+  };
 
-const hasMoreVoucherTypeOptions =
-      visibleVoucherTypeCount < voucherTypeOptions.length;
+  if ((isSalesInvoice || isSalesOrder) && voucherTypeOptions.length === 0) {
+    voucherTypeOptions.push(isSalesOrder ? "Sales Order" : "Sales");
+  }
 
-const loadMoreVoucherTypeOptions = () => {
-      setVisibleVoucherTypeCount((current) =>
-        Math.min(current + DROPDOWN_PAGE_SIZE, voucherTypeOptions.length),
-      );
-    };
+  const godownOptions = optionGodowns
+    .map((godownEntry) =>
+      getDisplayValue(godownEntry, [
+        "godownName",
+        "godown_name",
+        "name",
+        "warehouse",
+        "location",
+        "displayName",
+      ]),
+    )
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index);
 
-if ((isSalesInvoice || isSalesOrder) && voucherTypeOptions.length === 0) {
-      voucherTypeOptions.push(isSalesOrder ? "Sales Order" : "Sales");
-    }
+  const partySources = isSupplierVoucher
+    ? ["suppliers", "ledgers"]
+    : ["customers", "ledgers"];
 
-const godownOptions = optionGodowns
-      .map((godownEntry) =>
-        getDisplayValue(godownEntry, [
-          "godownName",
-          "godown_name",
-          "name",
-          "warehouse",
-          "location",
-          "displayName",
-        ]),
-      )
-      .filter(Boolean)
-      .filter((value, index, values) => values.indexOf(value) === index);
-
-const partySources = isSupplierVoucher
-      ? ["suppliers", "ledgers"]
-      : ["customers", "ledgers"];
-
-const partyOptions = isSupplierVoucher
-      ? supplierLedgerOptions
-      : partyLedgerOptions;
+  const partyOptions = isSupplierVoucher
+    ? supplierLedgerOptions
+    : partyLedgerOptions;
 
   return {
     customerOptions,

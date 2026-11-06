@@ -35,6 +35,7 @@ export function SearchableDropdown({
   resetToken = 0,
   disabled = false,
   showAllValues,
+  serverSideFiltering = false,
   debounceDelay = DEBOUNCE_DELAY,
 }) {
   const [query, setQuery] = useState(value ?? defaultValue ?? "");
@@ -181,7 +182,7 @@ export function SearchableDropdown({
   // Filter only after the user starts typing, so reopening a field that
   // already has a selected value still shows every option.
   const filteredOptions =
-    dirty && debouncedQuery
+    dirty && debouncedQuery && !serverSideFiltering
       ? options.filter((option) =>
           getOptionText(option)
             .toLowerCase()
@@ -197,7 +198,7 @@ export function SearchableDropdown({
       ? filteredOptions
       : filteredOptions.slice(0, visibleCount);
 
-  const loadMoreOptions = () => settimeout(() => {
+  const loadMoreOptions = () => setTimeout(() => {
     if (isServerPagination) {
       if (hasMoreOptions && !loadingMore && !loadMoreError) {
         loadMoreRef.current?.();

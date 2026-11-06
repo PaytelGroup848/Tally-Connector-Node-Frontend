@@ -5,7 +5,9 @@ export default function PartiesToolbar({
   limit,
   page,
   search,
+  partyType,
   onSearchChange,
+  onPartyTypeChange,
   onLimitChange,
   onAddParty,
 }) {
@@ -77,6 +79,39 @@ export default function PartiesToolbar({
             }}
           />
         </div>
+
+        <label
+          className="toolbar-party-type"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "7px",
+            fontSize: "12px",
+            color: "#26364a",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <span>Type</span>
+          <select
+            value={partyType}
+            onChange={onPartyTypeChange}
+            aria-label="Party type"
+            style={{
+              height: "38px",
+              minWidth: "112px",
+              padding: "0 8px",
+              border: "1px solid #d8e1ea",
+              borderRadius: "7px",
+              background: "#ffffff",
+              color: "#334155",
+              fontSize: "12px",
+              outline: "none",
+            }}
+          >
+            <option value="CUSTOMER">Customer</option>
+            <option value="SUPPLIER">Supplier</option>
+          </select>
+        </label>
 
         <div
           className="toolbar-show"

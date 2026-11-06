@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { SearchableDropdown } from "./DocumentVoucherPage";
+import { useVoucherNumberOptions } from "../hooks/useVoucherNumberOptions";
+import {
+  isDateWithinCompanyDataYear,
+  useCompanyDataYear,
+} from "../hooks/useCompanyDataYear";
 import useAuthStore from "../store/authStore";
 import { Eye } from "lucide-react";
 import StatusToast from "../components/receipt/StatusToast";
@@ -37,8 +42,6 @@ const getRow = (id) => ({
   amount: "",
 });
 
-const getToday = () => new Date().toLocaleDateString("en-CA");
-
 function PhysicalStockPage({ companyId }) {
   const [rows, setRows] = useState([getRow(1)]);
 
@@ -50,7 +53,7 @@ function PhysicalStockPage({ companyId }) {
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [optionsError, setOptionsError] = useState("");
   const [voucherNumber, setVoucherNumber] = useState("");
-  const [voucherDate, setVoucherDate] = useState(getToday);
+  const [voucherDate, setVoucherDate] = useState("");
   const [narration, setNarration] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
@@ -61,6 +64,13 @@ function PhysicalStockPage({ companyId }) {
   const searchRequestsRef = useRef({});
   const searchBasePagesRef = useRef({});
   const accessToken = useAuthStore((state) => state.accessToken);
+  const companyDataYear = useCompanyDataYear(companyId);
+  const {
+    voucherNumberOptions,
+    loading: voucherNumbersLoading,
+    searchOptions: searchVoucherNumbers,
+    paginationProps: voucherNumberPaginationProps,
+  } = useVoucherNumberOptions(companyId);
 
   const updateOptionPage = (source, pageState) => {
     const nextPages = { ...optionPagesRef.current, [source]: pageState };
@@ -407,10 +417,41 @@ function PhysicalStockPage({ companyId }) {
     // if (!voucherNumber.trim()) {
     //   setOptionsError('Enter a voucher number.')
     //   return
-    // }
+    //     }
+
+    if (companyDataYear.loading) {
+      setOptionsError("Wait for the company data year to finish loading.");
+      return;
+    }
+
+    if (
+      companyDataYear.error ||
+      !companyDataYear.startDate ||
+      !companyDataYear.endDate
+    ) {
+      setOptionsError(
+        `Unable to validate the voucher date: ${
+          companyDataYear.error || "Company data-year dates are unavailable."
+        }`,
+      );
+      return;
+    }
 
     if (!voucherDate || Number.isNaN(Date.parse(voucherDate))) {
       setOptionsError("Enter a valid voucher date.");
+      return;
+    }
+
+    if (
+      !isDateWithinCompanyDataYear(
+        voucherDate,
+        companyDataYear.startDate,
+        companyDataYear.endDate,
+      )
+    ) {
+      setOptionsError(
+        `Select a date between ${companyDataYear.startDate} and ${companyDataYear.endDate}, inclusive.`,
+      );
       return;
     }
 
@@ -464,7 +505,6 @@ function PhysicalStockPage({ companyId }) {
     try {
       setRows([getRow(Date.now())]);
       setVoucherNumber("");
-      setVoucherDate(getToday());
       setNarration("");
 
       await postCompanyCommand(accessToken, companyId, command);
@@ -573,10 +613,16 @@ function PhysicalStockPage({ companyId }) {
             <label className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-slate-700">
               <span>Voucher No (optional)</span>
 
-              <input
+              <SearchableDropdown
+                name="voucherNumber"
+                label="voucher numbers"
+                options={voucherNumberOptions}
+                {...voucherNumberPaginationProps}
+                onInputChange={searchVoucherNumbers}
                 value={voucherNumber}
-                onChange={(event) => setVoucherNumber(event.target.value)}
-                className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none"
+                onSelect={setVoucherNumber}
+                loading={voucherNumbersLoading}
+                placeholder="Voucher No"
               />
             </label>
 
@@ -590,10 +636,28 @@ function PhysicalStockPage({ companyId }) {
                   type="date"
                   value={voucherDate}
                   required
+                  min={companyDataYear.startDate || undefined}
+                  max={companyDataYear.endDate || undefined}
+                  disabled={
+                    companyDataYear.loading ||
+                    Boolean(companyDataYear.error) ||
+                    !companyDataYear.startDate ||
+                    !companyDataYear.endDate
+                  }
                   onChange={(event) => setVoucherDate(event.target.value)}
                   className="min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none"
                 />
               </div>
+              {companyDataYear.loading && (
+                <span className="text-xs text-slate-500">
+                  Loading company date range...
+                </span>
+              )}
+              {companyDataYear.error && (
+                <span className="text-xs text-red-600" role="status">
+                  Unable to load company data year: {companyDataYear.error}
+                </span>
+              )}
             </label>
           </div>
 

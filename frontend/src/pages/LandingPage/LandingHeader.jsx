@@ -123,11 +123,6 @@ export default function LandingHeader({
                     >
                       ENQUIRY NOW
                     </button>
-
-                    <EnquiryModal
-                      isOpen={showEnquiry}
-                      onClose={() => setShowEnquiry(false)}
-                    />
                   </div>
                 </div>
               </div>
@@ -211,11 +206,6 @@ export default function LandingHeader({
               >
                 ENQUIRY NOW
               </button>
-
-              <EnquiryModal
-                isOpen={showEnquiry}
-                onClose={() => setShowEnquiry(false)}
-              />
             </div>
           </div>
         </div>
@@ -243,6 +233,10 @@ export default function LandingHeader({
           </div>
         )}
       </header>
+      <EnquiryModal
+        isOpen={showEnquiry}
+        onClose={() => setShowEnquiry(false)}
+      />
     </>
   );
 }

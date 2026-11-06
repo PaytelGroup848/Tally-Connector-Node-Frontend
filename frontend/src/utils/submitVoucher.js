@@ -10,7 +10,7 @@ function withTimeout(promise, timeoutMs, message) {
 }
 
 export function createVoucherSubmitHandler(options) {
-  const { title, accessToken, isJournalStyleVoucher, isSalesInvoice, defaultVoucherType, isReceiptDeliveryNote, requestCompanyId, setSubmitError, setShowSuccessAnimation, advancedVoucherFieldNames, journalRows, isStockJournal, getJournalTotalsInPaise, formatJournalPaise, isSalesOrder, isNoteVoucher, sourceRows, destinationRows, itemRows, setIsSubmitting, submitRequestRef, calculateRowTaxBreakdown, calculateRowAmount, calculateLedgerTotals, subtotal, isJournal, isContra, isSameState, selectedGstin, setSelectedGstin, postCompanyCommand, extractCommandId, fetchCommandStatus, extractCommandStatus, getCommandFailureDetails, setSelectedParty, setSelectedVoucherNumber, resetSelectedPartyBalance, setAdditionalLedgers, setShowLedgerPanel, setJournalRows, createJournalRow, setSourceRows, setDestinationRows, createStockJournalRow, resetItemRows, successTimerRef } = options;
+  const { title, accessToken, isJournalStyleVoucher, isSalesInvoice, defaultVoucherType, isReceiptDeliveryNote, companyDataYear, requestCompanyId, setSubmitError, setShowSuccessAnimation, advancedVoucherFieldNames, journalRows, isStockJournal, getJournalTotalsInPaise, formatJournalPaise, isSalesOrder, isNoteVoucher, sourceRows, destinationRows, itemRows, setIsSubmitting, submitRequestRef, calculateRowTaxBreakdown, calculateRowAmount, calculateLedgerTotals, subtotal, isJournal, isContra, isSameState, selectedGstin, setSelectedGstin, postCompanyCommand, extractCommandId, fetchCommandStatus, extractCommandStatus, getCommandFailureDetails, setSelectedParty, setSelectedVoucherNumber, resetSelectedPartyBalance, setAdditionalLedgers, setShowLedgerPanel, setJournalRows, createJournalRow, setSourceRows, setDestinationRows, createStockJournalRow, resetItemRows, successTimerRef } = options;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -88,6 +88,38 @@ export function createVoucherSubmitHandler(options) {
 
     if (Number.isNaN(Date.parse(values.date))) {
       setSubmitError(validationError("Enter a valid voucher date."));
+      return;
+    }
+
+    if (companyDataYear.loading) {
+      setSubmitError(validationError("Wait for the company data year to finish loading."));
+      return;
+    }
+
+    if (
+      companyDataYear.error ||
+      !companyDataYear.startDate ||
+      !companyDataYear.endDate
+    ) {
+      setSubmitError(
+        validationError(
+          `Unable to validate the voucher date: ${
+            companyDataYear.error || "Company data-year dates are unavailable."
+          }`,
+        ),
+      );
+      return;
+    }
+
+    if (
+      values.date < companyDataYear.startDate ||
+      values.date > companyDataYear.endDate
+    ) {
+      setSubmitError(
+        validationError(
+          `Select a date between ${companyDataYear.startDate} and ${companyDataYear.endDate}, inclusive.`,
+        ),
+      );
       return;
     }
 

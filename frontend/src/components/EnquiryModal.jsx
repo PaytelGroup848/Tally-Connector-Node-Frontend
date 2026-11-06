@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Check, User, Mail, Phone, MessageSquare, ChevronDown, ArrowRight, Search } from "lucide-react";
+import { lockBodyScroll } from "../utils/bodyScrollLock";
 
 // ---------- Countries: [name, ISO, dial code] ----------
 const RAW = [
@@ -155,11 +156,10 @@ export default function EnquiryModal({ isOpen, onClose }) {
     if (!isOpen) return;
     const onKey = (e) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockBodyScroll = lockBodyScroll();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      unlockBodyScroll();
     };
   }, [isOpen, onClose]);
 
