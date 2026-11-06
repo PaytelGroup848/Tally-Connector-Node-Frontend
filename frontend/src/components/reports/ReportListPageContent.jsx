@@ -3296,19 +3296,80 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
           )}
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 px-6 py-4">
-          {Array.from({ length: totalPages }, (_, index) => index + 1)
-            .slice(0, 7)
-            .map((page) => (
+          {/* Previous */}
+          <button
+            type="button"
+            disabled={isLoading || currentPage === 1}
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            title="Previous page"
+            aria-label="Previous page"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          {/* Page numbers (windowed like SalesReport) */}
+          {(totalPages <= 7
+            ? Array.from({ length: totalPages }, (_, i) => i + 1)
+            : currentPage <= 4
+              ? [1, 2, 3, 4, 5, "...", totalPages]
+              : currentPage >= totalPages - 3
+                ? [
+                    1,
+                    "...",
+                    totalPages - 4,
+                    totalPages - 3,
+                    totalPages - 2,
+                    totalPages - 1,
+                    totalPages,
+                  ]
+                : [
+                    1,
+                    "...",
+                    currentPage - 1,
+                    currentPage,
+                    currentPage + 1,
+                    "...",
+                    totalPages,
+                  ]
+          ).map((page, index) =>
+            page === "..." ? (
+              <span
+                key={`ellipsis-${index}`}
+                className="px-1 text-sm text-slate-400"
+              >
+                ...
+              </span>
+            ) : (
               <button
                 key={page}
                 type="button"
                 disabled={isLoading}
                 onClick={() => setCurrentPage(page)}
-                className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium ${currentPage === page ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"} disabled:opacity-50`}
+                className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
+                  currentPage === page
+                    ? "border-emerald-600 bg-emerald-600 text-white"
+                    : "border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50"
+                } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 {page}
               </button>
-            ))}
+            ),
+          )}
+
+          {/* Next */}
+          <button
+            type="button"
+            disabled={isLoading || currentPage === totalPages}
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages, currentPage + 1))
+            }
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            title="Next page"
+            aria-label="Next page"
+          >
+            <ChevronRight size={16} />
+          </button>
         </div>
       </section>
     </div>
