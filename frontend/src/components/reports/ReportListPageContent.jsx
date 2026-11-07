@@ -54,15 +54,11 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Download,
-  FileDown,
   FileText,
   Loader2,
-  MessageCircle,
   Search,
 } from "lucide-react";
 
-import { jsPDF } from "jspdf";
 import { FaWhatsapp } from "react-icons/fa";
 import { downloadVoucherPdf } from "../../services/voucherPdfApi";
 
@@ -124,9 +120,7 @@ const reports = {
     columns: ["Month", "Amount"],
   },
 
-  // ==========================================================
-  // RECEIVABLES
-  // ==========================================================
+
 
   "/receivables": {
     title: "Receivables",
@@ -150,88 +144,8 @@ const reports = {
         "-",
         "0.00 days",
         "Set Reminder",
-      ],
-      [
-        "2",
-        "Jd Enterprises",
-        "₹ 73,44,372.75",
-        "₹ 73,44,372.75",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "3",
-        "Margadarsi Chits P Ltd",
-        "₹ 53,09,351.00",
-        "₹ 53,09,351.00",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "4",
-        "THOMAS IYADURAI INFRASTRUCTURE PVT LTD",
-        "₹ 47,05,017.00",
-        "₹ 47,05,017.00",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "5",
-        "M K GOPI",
-        "₹ 37,35,100.00",
-        "₹ 37,35,100.00",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "6",
-        "R A S AGENCIES",
-        "₹ 35,29,070.00",
-        "₹ 35,29,070.00",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "7",
-        "Sri Ganesh Balaji Traders",
-        "₹ 34,13,514.56",
-        "₹ 34,13,514.56",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "8",
-        "MADHA AGENCY",
-        "₹ 25,48,266.00",
-        "₹ 25,48,266.00",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "9",
-        "SRIDEV ASSOCIATES",
-        "₹ 20,51,865.15",
-        "₹ 20,51,865.15",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "10",
-        "AVB ENTERPRISES",
-        "₹ 12,41,220.30",
-        "₹ 12,41,220.30",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
+      ]
+    
     ],
   },
 
@@ -258,33 +172,7 @@ const reports = {
         "0.00 days",
         "Set Reminder",
       ],
-      [
-        "2",
-        "Jd Enterprises",
-        "₹ 73,44,372.75",
-        "₹ 73,44,372.75",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "3",
-        "Margadarsi Chits P Ltd",
-        "₹ 53,09,351.00",
-        "₹ 53,09,351.00",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "4",
-        "THOMAS IYADURAI INFRASTRUCTURE PVT LTD",
-        "₹ 47,05,017.00",
-        "₹ 47,05,017.00",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
+    
     ],
   },
 
@@ -311,33 +199,7 @@ const reports = {
         "0.00 days",
         "Set Reminder",
       ],
-      [
-        "2",
-        "Jd Enterprises",
-        "₹ 73,44,372.75",
-        "₹ 73,44,372.75",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "3",
-        "Margadarsi Chits P Ltd",
-        "₹ 53,09,351.00",
-        "₹ 53,09,351.00",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
-      [
-        "4",
-        "THOMAS IYADURAI INFRASTRUCTURE PVT LTD",
-        "₹ 47,05,017.00",
-        "₹ 47,05,017.00",
-        "-",
-        "0.00 days",
-        "Set Reminder",
-      ],
+    
     ],
   },
 
@@ -410,11 +272,6 @@ const reports = {
   },
 };
 
-// ============================================================
-// HIDDEN API FIELDS
-// These fields remain in the API response but are not displayed.
-// ============================================================
-
 const hiddenSalesFields = new Set([
   "id",
   "_id",
@@ -436,10 +293,6 @@ const normalizedHiddenSalesFields = new Set(
 const isHiddenSalesField = (field) =>
   normalizedHiddenSalesFields.has(normalizeFieldName(field));
 
-// ============================================================
-// IST DATE FORMATTER
-// ============================================================
-
 const formatDateTimeIST = (value) => {
   if (value === null || value === undefined || value === "") {
     return "-";
@@ -460,10 +313,6 @@ const formatDateTimeIST = (value) => {
   });
 };
 
-// ============================================================
-// CHECK WHETHER A COLUMN IS DATE/TIME
-// ============================================================
-
 const isDateTimeColumn = (column) => {
   const normalizedColumn = String(column)
     .toLowerCase()
@@ -481,9 +330,7 @@ const isDateTimeColumn = (column) => {
   );
 };
 
-// ============================================================
-// DATE RANGE DISPLAY
-// ============================================================
+
 
 function DateRangeDisplay({ startDate = "", endDate = "", onChange }) {
   return (
@@ -497,10 +344,6 @@ function DateRangeDisplay({ startDate = "", endDate = "", onChange }) {
     </div>
   );
 }
-
-// ============================================================
-// STANDARD REPORT TABLE
-// ============================================================
 
 function ReportTable({
   columns,
@@ -1153,22 +996,6 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
         "mobile_number",
       ],
     },
-    // {
-    //   key: "address",
-    //   label: "Address",
-    //   aliases: [
-    //     "address",
-    //     "billingAddress",
-    //     "billing_address",
-    //     "postalAddress",
-    //     "postal_address",
-    //     "addressLine1",
-    //     "address_line_1",
-    //     "fullAddress",
-    //     "full_address",
-    //     "location",
-    //   ],
-    // },
   ];
 
   const getCustomerValue = (customer, column) => {
@@ -1271,7 +1098,6 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
 
   const handleReminder = (customer) => {
     const phone = (customer?.phone || "").replace(/\D/g, "");
-   
 
     if (!phone) {
       alert("No phone number found for this customer");
@@ -1573,10 +1399,6 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
   );
 }
 
-// ============================================================
-// ACCOUNTS REPORT
-// ============================================================
-
 function AccountsReport({ config }) {
   const [startDate, setStartDate] = useState("");
 
@@ -1642,10 +1464,6 @@ function AccountsReport({ config }) {
     </div>
   );
 }
-
-// ============================================================
-// SALES REPORT
-// ============================================================
 
 function SalesReport({ companyId }) {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -2033,7 +1851,6 @@ function SalesReport({ companyId }) {
                         })}
 
                         <td className="whitespace-nowrap px-5 py-3 text-center">
-                         
                           <button
                             type="button"
                             onClick={() => setPreviewId(row._id)}
@@ -2481,7 +2298,7 @@ function CashReport({ companyId }) {
 
 function JsonViewModal({ data, onClose }) {
   if (data === null) return null;
-const toPascalCase = (str) =>
+  const toPascalCase = (str) =>
     String(str)
       .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
       .replace(/[_\-\s.]+/g, " ")
@@ -2601,9 +2418,7 @@ const toPascalCase = (str) =>
       </div>
     </div>
   );
-  
-
-    }
+}
 
 function BankReport({ companyId }) {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -3439,10 +3254,6 @@ function ReportListPage({ path, companyId }) {
     return <CreditNoteReport companyId={companyId} reportType="deliverynote" />;
   }
 
-  // ==========================================================
-  // RECEIVABLES
-  // ==========================================================
-
   if (config.mode === "receivables") {
     return (
       <ReceivablesReport
@@ -3453,10 +3264,6 @@ function ReportListPage({ path, companyId }) {
       />
     );
   }
-
-  // ==========================================================
-  // ACCOUNTS
-  // ==========================================================
 
   if (config.mode === "accounts") {
     return <AccountsReport config={config} />;
