@@ -10,6 +10,8 @@ import {
   FileText,
   AlertCircle,
   RefreshCw,
+  Check,
+  Eye,
 } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import { lockBodyScroll } from "../utils/bodyScrollLock";
@@ -23,8 +25,8 @@ const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2;
 const ZOOM_STEP = 0.1;
 
-const PAD_LEFT = 20; // px (unscaled)
-const PAD_RIGHT = 20; // px (unscaled)
+const PAD_LEFT = 20;
+const PAD_RIGHT = 20;
 const SHEET_WIDTH = PAPER_WIDTH + PAD_LEFT + PAD_RIGHT;
 
 function IconButton({ label, onClick, disabled, children, className = "" }) {
@@ -62,9 +64,46 @@ export default function VoucherPreviewModal({
   const [areaWidth, setAreaWidth] = useState(0);
   const [docHeight, setDocHeight] = useState(1123);
 
+  const [previewCopy, setPreviewCopy] = useState("ORIGINAL");
+  const [selectedCopies, setSelectedCopies] = useState(["ORIGINAL"]);
+
   const areaRef = useRef(null);
   const iframeRef = useRef(null);
   const closeBtnRef = useRef(null);
+
+  const handleCopyToggle = (type) => {
+    setSelectedCopies((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+    );
+  };
+
+  // 👇 Yahan handleDownloadAll ko fix kiya gaya hai
+  const handleDownloadAll = async () => {
+    if (selectedCopies.length === 0)
+      return alert("Select at least one copy type");
+
+    setDownloading(true);
+    setDownloadError("");
+
+    try {
+      for (const copy of selectedCopies) {
+        // Ek ke baad ek download hoga
+        await downloadVoucherPdfFile(
+          accessToken,
+          companyId,
+          voucherId,
+          fileName,
+          copy,
+        );
+        // Browser ko thoda time do taaki next download trigger ho sake
+        await new Promise((resolve) => setTimeout(resolve, 800));
+      }
+    } catch (err) {
+      setDownloadError(err?.message || "Download failed. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     if (!open || !companyId || !voucherId || !accessToken) return;
@@ -76,7 +115,7 @@ export default function VoucherPreviewModal({
     setZoom(null);
     setLoading(true);
 
-    fetchVoucherHtml(accessToken, companyId, voucherId)
+    fetchVoucherHtml(accessToken, companyId, voucherId, previewCopy)
       .then((result) => {
         if (active) setHtml(result);
       })
@@ -90,7 +129,7 @@ export default function VoucherPreviewModal({
     return () => {
       active = false;
     };
-  }, [open, companyId, voucherId, accessToken, reloadKey]);
+  }, [open, companyId, voucherId, accessToken, reloadKey, previewCopy]); // 👈 previewCopy dependency mein add kiya
 
   useEffect(() => {
     if (!open) return;
@@ -142,14 +181,11 @@ export default function VoucherPreviewModal({
         doc.body?.scrollHeight || 0,
       );
       if (h) setDocHeight(h);
-    } catch {
-      /* cross-origin – keep default height */
-    }
+    } catch {}
   }, []);
 
   const handleIframeLoad = () => {
     measureIframe();
-    // images / fonts inside the invoice may finish a little later
     setTimeout(measureIframe, 400);
   };
 
@@ -162,23 +198,15 @@ export default function VoucherPreviewModal({
     }
   };
 
-  const handleDownload = async () => {
-    if (!accessToken || !companyId || !voucherId) return;
-    setDownloading(true);
-    setDownloadError("");
-    try {
-      await downloadVoucherPdfFile(accessToken, companyId, voucherId, fileName);
-    } catch (err) {
-      setDownloadError(err?.message || "Download failed. Please try again.");
-    } finally {
-      setDownloading(false);
-    }
-  };
-
   if (!open) return null;
 
   const ready = !loading && !error && !!html;
   const zoomPct = Math.round(currentZoom * 100);
+  const COPY_OPTIONS = [
+    { value: "ORIGINAL", label: "Original" },
+    { value: "DUPLICATE", label: "Duplicate" },
+    { value: "CHALLAN", label: "Challan" },
+  ];
 
   return (
     <div
@@ -193,7 +221,7 @@ export default function VoucherPreviewModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* ------------------------------ Header ----------------------------- */}
-        <header className="flex flex-wrap items-center gap-x-3 gap-y-2  border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
+        <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
               <FileText size={20} />
@@ -212,7 +240,6 @@ export default function VoucherPreviewModal({
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* Zoom controls – hidden on very small screens */}
             <div className="hidden items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 sm:flex">
               <IconButton
                 label="Zoom out"
@@ -251,8 +278,10 @@ export default function VoucherPreviewModal({
 
             <button
               type="button"
-              onClick={handleDownload}
-              disabled={downloading || loading || !!error}
+              onClick={handleDownloadAll}
+              disabled={
+                downloading || loading || !!error || selectedCopies.length === 0
+              }
               className="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-600 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {downloading ? (
@@ -277,7 +306,104 @@ export default function VoucherPreviewModal({
           </div>
         </header>
 
-        {/* Download error banner (doesn't hide the preview) */}
+        {/* 👇 Naya Sub-Header for Copy Selection */}
+        {/* Copy selection bar */}
+        <div className="flex flex-col gap-3 border-b border-slate-200 bg-gradient-to-b from-slate-50 to-white px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+          {/* Left: choose which copies to download */}
+          <div className="min-w-0">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-700">
+                Copies to download
+              </span>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                {selectedCopies.length} selected
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedCopies(
+                    selectedCopies.length === COPY_OPTIONS.length
+                      ? []
+                      : COPY_OPTIONS.map((c) => c.value),
+                  )
+                }
+                className="ml-1 text-xs font-medium text-emerald-700 underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
+              >
+                {selectedCopies.length === COPY_OPTIONS.length
+                  ? "Clear all"
+                  : "Select all"}
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {COPY_OPTIONS.map(({ value, label }) => {
+                const checked = selectedCopies.includes(value);
+                return (
+                  <label
+                    key={value}
+                    className={`group relative flex cursor-pointer select-none items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-1 ${
+                      checked
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-sm"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => handleCopyToggle(value)}
+                      className="sr-only"
+                    />
+                    <span
+                      className={`flex h-4 w-4 items-center justify-center rounded-md border transition ${
+                        checked
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-slate-300 bg-white text-transparent group-hover:border-slate-400"
+                      }`}
+                    >
+                      <Check size={11} strokeWidth={3.5} />
+                    </span>
+                    {label}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right: choose which copy to preview (custom segmented control) */}
+          <div className="lg:text-right">
+            <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700 lg:justify-end">
+              <Eye size={13} className="text-slate-500" />
+              Preview
+            </div>
+
+            <div
+              role="tablist"
+              aria-label="Preview copy"
+              className="inline-flex w-full rounded-xl bg-slate-200/70 p-1 lg:w-auto"
+            >
+              {COPY_OPTIONS.map(({ value, label }) => {
+                const active = previewCopy === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setPreviewCopy(value)}
+                    className={`flex-1 rounded-lg px-3.5 py-1.5 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 lg:flex-none ${
+                      active
+                        ? "bg-white text-emerald-700 shadow-sm ring-1 ring-black/5"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         {downloadError && (
           <div
             role="alert"
@@ -301,7 +427,7 @@ export default function VoucherPreviewModal({
         {/* ------------------------------- Body ------------------------------ */}
         <div
           ref={areaRef}
-          className="relative flex-1  overflow-auto bg-slate-200/70 [background-image:radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:18px_18px]"
+          className="relative flex-1 overflow-auto bg-slate-200/70 [background-image:radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:18px_18px]"
         >
           {/* Loading skeleton */}
           {loading && (
@@ -382,7 +508,6 @@ export default function VoucherPreviewModal({
           {/* Paper */}
           {ready && (
             <div className="flex min-h-full justify-center px-4 py-6 sm:py-8">
-              {/* Outer box: scaled size, clips overflow */}
               <div
                 className="shrink-0 overflow-hidden rounded-sm pt-5 bg-white shadow-[0_10px_40px_-10px_rgba(15,23,42,0.35)] ring-1 ring-black/5"
                 style={{
@@ -390,7 +515,6 @@ export default function VoucherPreviewModal({
                   height: docHeight * currentZoom,
                 }}
               >
-                {/* Inner sheet: real size + padding, then scaled together */}
                 <div
                   className="bg-white"
                   style={{

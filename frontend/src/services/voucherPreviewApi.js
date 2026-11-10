@@ -4,14 +4,18 @@ const API_BASE_URL = (
   "https://connector.cloudata.in/api"
 ).replace(/\/$/, "");
 
-// HTML fetch karo (modal ke iframe ke liye)
-export async function fetchVoucherHtml(accessToken, companyId, voucherId) {
+export async function fetchVoucherHtml(
+  accessToken,
+  companyId,
+  voucherId,
+  copyType = "ORIGINAL",
+) {
   if (!accessToken) throw new Error("Access token not found");
   if (!companyId) throw new Error("Company ID is required");
   if (!voucherId) throw new Error("Voucher ID is required");
 
   const response = await fetch(
-    `${API_BASE_URL}/companies/${encodeURIComponent(companyId)}/vouchers/${encodeURIComponent(voucherId)}/html`,
+    `${API_BASE_URL}/companies/${encodeURIComponent(companyId)}/vouchers/${encodeURIComponent(voucherId)}/html?copyType=${copyType}`,
     {
       headers: { Authorization: `Bearer ${accessToken}` },
     },
@@ -22,22 +26,23 @@ export async function fetchVoucherHtml(accessToken, companyId, voucherId) {
     throw new Error(data?.message || "Unable to load invoice preview.");
   }
 
-  return response.text(); // HTML string
+  return response.text();
 }
 
-// PDF download karo (blob banao, phir download)
 export async function downloadVoucherPdfFile(
   accessToken,
   companyId,
   voucherId,
   fileName = "voucher",
+  copyType = "ORIGINAL",
 ) {
   if (!accessToken) throw new Error("Access token not found");
   if (!companyId) throw new Error("Company ID is required");
   if (!voucherId) throw new Error("Voucher ID is required");
 
+  // 👇 URL ke aakhir mein ?copyType= add karo
   const response = await fetch(
-    `${API_BASE_URL}/companies/${encodeURIComponent(companyId)}/vouchers/${encodeURIComponent(voucherId)}/pdf`,
+    `${API_BASE_URL}/companies/${encodeURIComponent(companyId)}/vouchers/${encodeURIComponent(voucherId)}/pdf?copyType=${copyType}`,
     {
       headers: { Authorization: `Bearer ${accessToken}` },
     },
@@ -52,7 +57,7 @@ export async function downloadVoucherPdfFile(
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${fileName}.pdf`;
+  a.download = `${fileName}-${copyType}.pdf`; // File ka naam clear rakhne ke liye
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
