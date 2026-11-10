@@ -272,7 +272,7 @@ export function DocumentVoucherPage({
     defaultTaxInclusive,
   });
 
-  // Qty × Rate, minus the row discount %
+
 
   const handleSubmit = createVoucherSubmitHandler({
     title, accessToken, isJournalStyleVoucher, isSalesInvoice, defaultVoucherType,
@@ -386,7 +386,7 @@ export function DocumentVoucherPage({
 
   return (
     <div className="voucher-page-animate relative min-h-[calc(100vh-60px)] bg-[#eef3f8] p-3 text-slate-900 sm:p-5">
-      {/* <VoucherPageStatus showSuccessAnimation={showSuccessAnimation} submitError={submitError} failedVoucherType={failedVoucherType} failedVoucherNumber={failedVoucherNumber} failedParty={failedParty} failedAmount={failedAmount} failedCompany={failedCompany} failedDate={failedDate} setSubmitError={setSubmitError} /> */}
+  
 <StatusToast
   visible={showSuccessAnimation || Boolean(submitError)}
   message={
