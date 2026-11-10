@@ -40,6 +40,8 @@ function VouchersPageView({
   closeDetail,
   closeAllDetails,
 }) {
+  const serialNumberOffset = (page - 1) * pageSize;
+  const updatedGridColumns = `60px ${tableGridColumns}`;
   return (
     <div className="min-h-[calc(100vh-60px)] overflow-x-auto bg-[#f8fafc] text-[#17355f]">
       {/* =====================================================
@@ -194,10 +196,15 @@ function VouchersPageView({
               <div
                 className="grid min-w-max items-center border-b border-[#dfe7f0] bg-[#f4f7fb] px-4 py-3 text-[11px] font-semibold uppercase text-[#274b78]"
                 style={{
-                  gridTemplateColumns: tableGridColumns,
+                  gridTemplateColumns: updatedGridColumns,
                   minHeight: "48px",
                 }}
               >
+                <div className="box-border flex h-full w-[60px] min-w-[60px] max-w-[60px] items-center overflow-hidden border-l border-[#dfe7f0] pr-4">
+                  <span className="block whitespace-normal break-words">
+                    S.No
+                  </span>
+                </div>
                 {responseColumns.map((column) => (
                   <div
                     key={column}
@@ -235,10 +242,13 @@ function VouchersPageView({
                         key={voucher?._id || voucher?.id || index}
                         className="grid min-w-max items-start border-b border-[#e5ebf2] px-4 py-3 text-[12px] text-[#17355f] last:border-b-0 odd:bg-white even:bg-[#fbfdff]"
                         style={{
-                          gridTemplateColumns: tableGridColumns,
+                          gridTemplateColumns: updatedGridColumns,
                           minHeight: "50px",
                         }}
                       >
+                        <div className="box-border w-[60px] min-w-[60px] max-w-[60px] overflow-hidden border-l border-[#e5ebf2] pr-4">
+                          {serialNumberOffset + index + 1}
+                        </div>
                         {/* CELLS */}
                         {responseColumns.map((column) => {
                           const cellValue = formatCellValue(

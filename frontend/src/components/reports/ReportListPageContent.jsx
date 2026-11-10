@@ -57,6 +57,7 @@ import {
   FileText,
   Loader2,
   Search,
+  FileDown,
 } from "lucide-react";
 
 import { FaWhatsapp } from "react-icons/fa";
@@ -120,8 +121,6 @@ const reports = {
     columns: ["Month", "Amount"],
   },
 
-
-
   "/receivables": {
     title: "Receivables",
     total: "Total Outstanding",
@@ -144,8 +143,7 @@ const reports = {
         "-",
         "0.00 days",
         "Set Reminder",
-      ]
-    
+      ],
     ],
   },
 
@@ -172,7 +170,6 @@ const reports = {
         "0.00 days",
         "Set Reminder",
       ],
-    
     ],
   },
 
@@ -199,7 +196,6 @@ const reports = {
         "0.00 days",
         "Set Reminder",
       ],
-    
     ],
   },
 
@@ -329,8 +325,6 @@ const isDateTimeColumn = (column) => {
     normalizedColumn.includes("updatedon")
   );
 };
-
-
 
 function DateRangeDisplay({ startDate = "", endDate = "", onChange }) {
   return (
@@ -495,6 +489,7 @@ function ReportTable({
               gridTemplateColumns: gridColumns,
             }}
           >
+            
             {columns.map((column) => (
               <b
                 key={column}
@@ -1316,6 +1311,9 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
             <table className="min-w-[1650px] w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
+                    S.No
+                  </th>
                   {customerColumns.map((column) => (
                     <th
                       key={column.key}
@@ -1337,6 +1335,9 @@ function ReceivablesReport({ config, query, setQuery, companyId }) {
                     key={row.customer?.id || row.customer?._id || row.number}
                     className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
                   >
+                    <td className="px-5 py-3 text-xs text-slate-700">
+                      {row.number}
+                    </td>
                     {customerColumns.map((column) => {
                       const value = formatCustomerValue(
                         getCustomerValue(row.customer, column),
@@ -1638,6 +1639,7 @@ function SalesReport({ companyId }) {
       (column) => column.toLowerCase() === "narration",
     );
     return [
+      "S.No",
       ...columns.filter((column) => column.toLowerCase() !== "narration"),
       ...narrationColumns,
     ];
@@ -1829,7 +1831,7 @@ function SalesReport({ companyId }) {
               <tbody className="divide-y divide-slate-100">
                 {rows.length > 0 ? (
                   rows.map((row, rowIndex) => {
-                    const isDownloading = downloadingId === row._id; // ⭐ YAHAN
+                    const isDownloading = downloadingId === row._id;
 
                     return (
                       <tr
@@ -1837,7 +1839,10 @@ function SalesReport({ companyId }) {
                         className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
                       >
                         {salesColumns.map((column) => {
-                          const value = displayValue(row?.[column], column);
+                          const value =
+                            column === "S.No"
+                              ? (currentPage - 1) * pageSize + rowIndex + 1
+                              : displayValue(row?.[column], column);
 
                           return (
                             <td
@@ -2110,6 +2115,7 @@ function CashReport({ companyId }) {
     (column) => column.toLowerCase() === "narration",
   );
   const orderedColumns = [
+    "S.No",
     ...columns.filter((column) => column.toLowerCase() !== "narration"),
     ...narrationColumns,
   ];
@@ -2218,7 +2224,10 @@ function CashReport({ companyId }) {
                       className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
                     >
                       {orderedColumns.map((column) => {
-                        const value = formatValue(row?.[column], column);
+                        const value =
+                          column === "S.No"
+                            ? (currentPage - 1) * pageSize + rowIndex + 1
+                            : formatValue(row?.[column], column);
 
                         return (
                           <td
@@ -2499,6 +2508,7 @@ function BankReport({ companyId }) {
     (column) => column.toLowerCase() === "narration",
   );
   const orderedColumns = [
+    "S.No",
     ...columns.filter((column) => column.toLowerCase() !== "narration"),
     ...narrationColumns,
   ];
@@ -2611,6 +2621,16 @@ function BankReport({ companyId }) {
                       className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
                     >
                       {orderedColumns.map((column) => {
+                        if (column === "S.No") {
+                          return (
+                            <td
+                              key={`${rowIndex}-${column}`}
+                              className="max-w-[280px] px-5 py-3 leading-5"
+                            >
+                              {(currentPage - 1) * pageSize + rowIndex + 1}
+                            </td>
+                          );
+                        }
                         const rawValue = row?.[column];
 
                         const isJson =
@@ -2875,6 +2895,7 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
     (column) => column.toLowerCase() === "narration",
   );
   const orderedColumns = [
+    "S.No",
     ...columns.filter((column) => column.toLowerCase() !== "narration"),
     ...narrationColumns,
   ];
@@ -3019,7 +3040,10 @@ function CreditNoteReport({ companyId, reportType = "creditnote" }) {
                         className="text-xs text-slate-700 transition-colors hover:bg-slate-50"
                       >
                         {orderedColumns.map((column) => {
-                          const value = formatValue(row?.[column], column);
+                          const value =
+                            column === "S.No"
+                              ? (currentPage - 1) * pageSize + rowIndex + 1
+                              : formatValue(row?.[column], column);
 
                           return (
                             <td

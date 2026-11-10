@@ -330,9 +330,7 @@ function PurchasePage({ companyId }) {
       Number.isFinite(Number(value)),
   );
   const hasTotalFromApi = totalFromApi !== undefined;
-  const totalItems = hasTotalFromApi
-    ? Number(totalFromApi)
-    : purchases.length;
+  const totalItems = hasTotalFromApi ? Number(totalFromApi) : purchases.length;
   const totalPagesFromApi = Number(
     pagination?.totalPages ??
       pagination?.total_pages ??
@@ -345,10 +343,7 @@ function PurchasePage({ companyId }) {
       ? totalPagesFromApi
       : hasTotalFromApi
         ? Math.max(1, Math.ceil(totalItems / pageSize))
-        : Math.max(
-            1,
-            currentPage + (purchases.length >= pageSize ? 1 : 0),
-          );
+        : Math.max(1, currentPage + (purchases.length >= pageSize ? 1 : 0));
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const pageItems =
     totalPages <= 7
@@ -413,7 +408,6 @@ function PurchasePage({ companyId }) {
         <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <label className="flex h-9 w-full items-center rounded-lg border border-slate-200 px-3 text-sm text-slate-500 sm:w-64">
-             
               <input
                 value={query}
                 onChange={(event) => {
@@ -472,15 +466,19 @@ function PurchasePage({ companyId }) {
             <table className="min-w-[1200px] w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold text-center">
+                    S.No
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
+                    Party Ledger
+                  </th>
                   <th className="whitespace-nowrap px-5 py-3 font-semibold">
                     Voucher No
                   </th>
                   <th className="whitespace-nowrap px-5 py-3 font-semibold">
                     Date
                   </th>
-                  <th className="whitespace-nowrap px-5 py-3 font-semibold">
-                    Party Ledger
-                  </th>
+
                   <th className="whitespace-nowrap px-5 py-3 font-semibold">
                     Amount
                   </th>
@@ -552,6 +550,12 @@ function PurchasePage({ companyId }) {
                         }
                         className="text-xs text-slate-700 hover:bg-slate-50"
                       >
+                        <td className="px-5 py-3 text-center font-medium text-slate-500">
+                          {(safeCurrentPage - 1) * pageSize + index + 1}
+                        </td>
+                        <td className="max-w-[240px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
+                          {partyLedger}
+                        </td>
                         <td className="max-w-[240px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
                           {voucherNumber}
                         </td>
@@ -562,9 +566,7 @@ function PurchasePage({ companyId }) {
                               purchase?.createdAt,
                           )}
                         </td>
-                        <td className="max-w-[240px] px-5 py-3 leading-5 [overflow-wrap:anywhere]">
-                          {partyLedger}
-                        </td>
+
                         <td className="px-5 py-3 leading-5 text-slate-700">
                           {formatCurrency(amount)}
                         </td>
@@ -635,7 +637,7 @@ function PurchasePage({ companyId }) {
                 ) : (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="h-[150px] text-center text-sm text-slate-500"
                     >
                       No purchase data available.

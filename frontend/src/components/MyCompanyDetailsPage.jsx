@@ -318,13 +318,9 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = "" }) => {
                 </div>
 
                 <div className="min-w-0">
-                 
-
                   <h1 className="truncate text-lg font-bold tracking-tight text-slate-900 sm:text-md">
                     {companyName}
                   </h1>
-
-                 
                 </div>
               </div>
             </div>
@@ -335,7 +331,6 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = "" }) => {
           ================================================= */}
 
           <div className="w-fit px-6 py-6 sm:px-8 sm:py-2 lg:px-10">
-
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {fields.map(({ label, key, icon: Icon, description }) => {
                 const value = company?.[key] || "-";
@@ -456,6 +451,9 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = "" }) => {
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
+                    <th className="whitespace-nowrap px-5 py-3 font-semibold w-12">
+                      S.No
+                    </th>
                     {ledgerColumns.map((column) => (
                       <th
                         key={column}
@@ -472,6 +470,9 @@ const MyCompanyDetailsPage = ({ companyId: companyIdProp = "" }) => {
                       key={ledger?.id || ledger?._id || index}
                       className="hover:bg-slate-50"
                     >
+                      <td className="whitespace-nowrap px-5 py-3 font-medium text-slate-500">
+                        {(ledgerPage - 1) * ledgerLimit + index + 1}
+                      </td>
                       {ledgerColumns.map((column) => (
                         <td
                           key={column}

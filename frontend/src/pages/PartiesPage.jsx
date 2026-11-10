@@ -10,9 +10,7 @@ import { getCompanyId } from "./parties/utils";
 
 function PartiesPage({ selectedCompany: selectedCompanyProp }) {
   const accessToken = useAuthStore((state) => state.accessToken);
-  const storedSelectedCompany = useAuthStore(
-    (state) => state.selectedCompany,
-  );
+  const storedSelectedCompany = useAuthStore((state) => state.selectedCompany);
   const selectedCompany = selectedCompanyProp || storedSelectedCompany;
   const companyId = getCompanyId(selectedCompany);
   const {
@@ -124,6 +122,8 @@ function PartiesPage({ selectedCompany: selectedCompanyProp }) {
         parties={parties}
         loading={loading}
         search={search}
+        page={page}
+        limit={limit}
       />
 
       {companyId && (

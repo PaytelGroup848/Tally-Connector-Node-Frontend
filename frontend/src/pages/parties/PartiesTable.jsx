@@ -1,6 +1,7 @@
 import { formatAmount, formatDate } from "./utils";
 
 const columns = [
+  ["S.NO", "party-center"],
   ["PARTY NAME"],
   ["GSTIN"],
   ["PHONE"],
@@ -14,11 +15,12 @@ const columns = [
   ["UPDATED AT"],
 ];
 
-function PartyRow({ party }) {
+function PartyRow({ party, serialNumber }) {
   const balance = Number(party?.closingBalance) || 0;
 
   return (
     <tr key={party?._id || party?.tallyExternalId} className="party-row">
+      <td className="party-td party-center">{serialNumber}</td>
       <td className="party-td">
         <div style={{ minWidth: "220px" }}>
           <div style={{ fontSize: "12px", fontWeight: 500, color: "#1e3a5f" }}>
@@ -121,7 +123,14 @@ function PartyRow({ party }) {
   );
 }
 
-export default function PartiesTable({ companyId, parties, loading, search }) {
+export default function PartiesTable({
+  companyId,
+  parties,
+  loading,
+  search,
+  page = 1,
+  limit = 20,
+}) {
   if (!companyId) return null;
 
   return (
@@ -160,10 +169,11 @@ export default function PartiesTable({ companyId, parties, loading, search }) {
                 </td>
               </tr>
             ) : parties.length > 0 ? (
-              parties.map((party) => (
+              parties.map((party, index) => (
                 <PartyRow
                   key={party?._id || party?.tallyExternalId}
                   party={party}
+                  serialNumber={(page - 1) * limit + index + 1}
                 />
               ))
             ) : (

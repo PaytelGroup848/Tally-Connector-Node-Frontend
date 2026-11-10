@@ -245,11 +245,13 @@ function ItemsPage({ companyId, myStockItems = false }) {
           onDeleteCommand={handleDeleteCommand}
           onEdit={handleEdit}
           onViewDetails={setDetailDialog}
+          currentPage={currentPage}
+          pageSize={pageSize}
         />
 
         <footer className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-200 pt-4">
           {pageItems.map((pageNumber, index) =>
-            pageNumber === '...' ? (
+            pageNumber === "..." ? (
               <span
                 key={`ellipsis-${index}`}
                 className="px-1 text-sm text-slate-400"
@@ -264,8 +266,8 @@ function ItemsPage({ companyId, myStockItems = false }) {
                 onClick={() => setCurrentPage(pageNumber)}
                 className={`h-9 min-w-9 rounded-lg border px-2 text-sm font-medium transition ${
                   currentPage === pageNumber
-                    ? 'border-emerald-600 bg-emerald-600 text-white'
-                    : 'border-slate-200 text-slate-700 hover:bg-emerald-50'
+                    ? "border-emerald-600 bg-emerald-600 text-white"
+                    : "border-slate-200 text-slate-700 hover:bg-emerald-50"
                 } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 {pageNumber}
@@ -276,7 +278,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
 
         <div className="pt-3 text-center text-xs text-slate-500">
           {totalItems === 0
-            ? '0 of 0'
+            ? "0 of 0"
             : `${(currentPage - 1) * pageSize + 1}-${
                 (currentPage - 1) * pageSize + stockItems.length
               } of ${totalItems}`}
@@ -289,8 +291,8 @@ function ItemsPage({ companyId, myStockItems = false }) {
         showSuccessDialog={showSuccessDialog}
         onCloseSuccess={() => setShowSuccessDialog(false)}
         onViewStatus={() => {
-          setShowSuccessDialog(false)
-          navigate('/my-stock-items')
+          setShowSuccessDialog(false);
+          navigate("/my-stock-items");
         }}
       />
 
@@ -310,7 +312,7 @@ function ItemsPage({ companyId, myStockItems = false }) {
         />
       )}
     </div>
-  )
+  );
 }
 
 export default ItemsPage
