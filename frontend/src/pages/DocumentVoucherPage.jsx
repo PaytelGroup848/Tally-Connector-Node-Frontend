@@ -14,6 +14,7 @@ import {
   formatJournalPaise,
   getGstinStateCode,
   getJournalTotalsInPaise,
+  resolveItemGstRate,
   createStockJournalRow,
 } from "../utils/voucherHelpers";
 import { JournalVoucherContent } from "../components/JournalVoucherContent";
@@ -21,6 +22,7 @@ import { advancedVoucherFieldNames } from "../components/AdvancedVoucherSettings
 import { VoucherBottomSection } from "../components/VoucherBottomSection";
 import { StockJournalVoucherContent } from "../components/StockJournalVoucherContent";
 import {
+  findStockGstRate,
   findStockHsnCode,
   findStockQuantity,
   findStockRate,
@@ -198,6 +200,7 @@ export function DocumentVoucherPage({
     companyStateCode && partyStateCode
       ? companyStateCode === partyStateCode
       : null;
+  const itemGstRate = resolveItemGstRate(itemRows);
 
   const {
     itemOptions,
@@ -269,6 +272,7 @@ export function DocumentVoucherPage({
     findStockQuantity,
     findStockUnits,
     findStockHsnCode,
+    findStockGstRate,
     defaultTaxInclusive,
   });
 
@@ -495,6 +499,7 @@ export function DocumentVoucherPage({
               <VoucherBottomSection
                 subtotal={subtotal}
                 itemTaxes={itemTaxes}
+                gstRate={itemGstRate}
                 isSameState={isSameState}
                 hideIgstBreakdown={defaultTaxInclusive}
                 companyGstinLoading={companyGstinLoading}

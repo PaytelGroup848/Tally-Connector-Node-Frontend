@@ -238,6 +238,73 @@ export const findStockUnits = (stockItems, itemName) => {
       return "";
     };
 
+export const findStockGstRate = (stockItems, itemName) => {
+      const matchingItem = findStockItem(stockItems, itemName);
+
+      if (!matchingItem) return "";
+
+      const normalizeKey = (key) =>
+        String(key)
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "");
+
+      const gstKeys = new Set([
+        "gstrate",
+        "gstpercentage",
+        "gstpercent",
+        "gsttaxrate",
+        "taxrate",
+        "taxpercentage",
+        "taxpercent",
+      ]);
+
+      const extractRate = (value) => {
+        if (typeof value !== "string" && typeof value !== "number") {
+          return "";
+        }
+
+        const text = String(value).replace(/%/g, "").trim();
+
+        if (text === "") return "";
+
+        const numeric = Number(text);
+
+        return Number.isFinite(numeric) ? String(numeric) : "";
+      };
+
+      const queue = [matchingItem];
+      const visited = new Set();
+
+      while (queue.length > 0) {
+        const current = queue.shift();
+
+        if (!current || typeof current !== "object") continue;
+        if (visited.has(current)) continue;
+
+        visited.add(current);
+
+        const entries = Array.isArray(current)
+          ? current.map((value, index) => [String(index), value])
+          : Object.entries(current);
+
+        for (const [key, value] of entries) {
+          if (gstKeys.has(normalizeKey(key))) {
+            const rate = extractRate(value);
+
+            if (rate) {
+              return rate;
+            }
+          }
+
+          if (value && typeof value === "object") {
+            queue.push(value);
+          }
+        }
+      }
+
+      return "";
+    };
+
 export const findStockHsnCode = (stockItems, itemName) => {
       const matchingItem = findStockItem(stockItems, itemName);
 

@@ -153,6 +153,36 @@ export function calculateAdditionalLedgerAmount(row, subtotal) {
     return Math.max(0, (subtotal * Math.max(0, value)) / 100);
   }
 
+export function resolveItemGstRate(itemRows = []) {
+    let firstRate = null;
+    let weightedRate = 0;
+    let totalTaxable = 0;
+
+    for (const row of itemRows) {
+      if (!String(row?.item || "").trim()) continue;
+
+      const rate = Number(row?.gstRate);
+      if (!Number.isFinite(rate)) continue;
+
+      if (firstRate === null) firstRate = rate;
+
+      const quantity = Math.max(0, Number(row?.quantity) || 0);
+      const rateValue = Math.max(0, Number(row?.rate) || 0);
+      const discount = Math.min(100, Math.max(0, Number(row?.discount) || 0));
+      const taxable = quantity * rateValue * (1 - discount / 100);
+
+      if (taxable > 0) {
+        weightedRate += taxable * rate;
+        totalTaxable += taxable;
+      }
+    }
+
+    if (totalTaxable > 0) return weightedRate / totalTaxable;
+    if (firstRate !== null) return firstRate;
+
+    return 18;
+  }
+
 export function createStockJournalRow(id = Date.now()) {
     return {
       id,

@@ -1,6 +1,6 @@
 import { createEmptyItemRow } from "../utils/voucherHelpers";
 
-export function createItemRowActions({ stockItems, setItemRows, setClearToken, findStockRate, findStockQuantity, findStockUnits, findStockHsnCode, defaultTaxInclusive = false }) {
+export function createItemRowActions({ stockItems, setItemRows, setClearToken, findStockRate, findStockQuantity, findStockUnits, findStockHsnCode, findStockGstRate, defaultTaxInclusive = false }) {
 const updateItemRow = (rowId, field, value) => {
       setItemRows((currentRows) =>
         currentRows.map((row) =>
@@ -31,6 +31,9 @@ const handleItemSelect = (rowId, itemName) => {
       const matchingRate = findStockRate(stockItems, itemName);
       const matchingQuantity = findStockQuantity(stockItems, itemName);
       const matchingHsnCode = findStockHsnCode(stockItems, itemName);
+      const matchingGstRate = findStockGstRate
+        ? findStockGstRate(stockItems, itemName)
+        : "";
 
       updateItemRowValues(rowId, {
         item: itemName,
@@ -38,6 +41,7 @@ const handleItemSelect = (rowId, itemName) => {
         rate: matchingRate,
         units: findStockUnits(stockItems, itemName),
         hsnCode: matchingHsnCode,
+        gstRate: matchingGstRate !== "" ? matchingGstRate : "18",
       });
     };
 

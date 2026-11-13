@@ -5,6 +5,7 @@ import { SearchableDropdown } from "./SearchableDropdown";
 export function VoucherBottomSection({
     subtotal,
     itemTaxes,
+    gstRate = 18,
     isSameState,
     hideIgstBreakdown = false,
     companyGstinLoading,
@@ -46,12 +47,21 @@ export function VoucherBottomSection({
     const grandTotal = subtotal + taxes + otherLedgers;
     const cgstAmount = Number((itemTaxes / 2).toFixed(2));
     const sgstAmount = Number((itemTaxes - cgstAmount).toFixed(2));
+    const halfGstRate = gstRate / 2;
 
     const formatCurrency = (value) =>
       Number(value || 0).toLocaleString("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
+
+    const formatRate = (value) => {
+      const rate = Number(value) || 0;
+
+      return Number.isInteger(rate)
+        ? String(rate)
+        : String(Number(rate.toFixed(2)));
+    };
 
     return (
       <div className="mt-3 grid gap-3 lg:grid-cols-[1.35fr_.9fr]">
@@ -267,17 +277,17 @@ export function VoucherBottomSection({
             {isSameState === true ? (
               <>
                 <div className="flex justify-between">
-                  <span>CGST (9%)</span>
+                  <span>CGST ({formatRate(halfGstRate)}%)</span>
                   <span>₹{formatCurrency(cgstAmount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>SGST (9%)</span>
+                  <span>SGST ({formatRate(halfGstRate)}%)</span>
                   <span>₹{formatCurrency(sgstAmount)}</span>
                 </div>
               </>
             ) : isSameState === false && !hideIgstBreakdown ? (
               <div className="flex justify-between">
-                <span>IGST (18%)</span>
+                <span>IGST ({formatRate(gstRate)}%)</span>
                 <span>₹{formatCurrency(itemTaxes)}</span>
               </div>
             ) : itemTaxes > 0 ? (
