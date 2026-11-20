@@ -2,8 +2,8 @@ import useAuthStore from "../store/authStore";
 
 const BaseUrl =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://connector.cloudata.in/api" ||
-  "http://localhost:5000/api";
+  // "https://connector.cloudata.in/api" ||
+  "https://connector.cloudata.in/api";
 
 export const downloadVoucherPdf = async (companyId, voucher) => {
   const token = useAuthStore.getState().accessToken;

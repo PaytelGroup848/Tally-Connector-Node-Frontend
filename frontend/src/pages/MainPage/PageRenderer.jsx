@@ -1,4 +1,5 @@
-import MyEwayBillPage from "./MyEwayBillPage";
+import EwayBillPage from "../EwayBills/EwayBillPage";
+import NICSettingsPage from "../EwayBills/NICSettingsPage";
 import renderMyVoucherRoute from "./MyVoucherRoutes";
 import renderDashboardRoute from "./renderDashboardRoute";
 import { getCompanyId } from "./utils";
@@ -141,8 +142,14 @@ export default function PageRenderer({
       );
     }
 
+    if (currentPath === "/my-eway-bill/settings") {
+      return (
+        <NICSettingsPage companyId={getCompanyId(selectedCompany)} />
+      );
+    }
+
     if (currentPath === "/my-eway-bill") {
-      return <MyEwayBillPage />;
+      return <EwayBillPage companyId={getCompanyId(selectedCompany)} />;
     }
 
     const myVoucherRoutes = renderMyVoucherRoute({

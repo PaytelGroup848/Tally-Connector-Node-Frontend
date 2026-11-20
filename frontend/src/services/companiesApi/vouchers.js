@@ -1,5 +1,5 @@
 import { request } from "./client";
-const API_BASE_URL = 'https://connector.cloudata.in/api'
+const API_BASE_URL = "https://connector.cloudata.in/api";
 export function fetchCompanyVouchers(
   accessToken,
   companyId,
